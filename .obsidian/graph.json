@@ -7,13 +7,55 @@
   "showOrphans": true,
   "collapse-color-groups": false,
   "colorGroups": [
-    { "query": "path:wiki/modules",      "color": { "a": 1, "rgb": 4993279  } },
-    { "query": "path:wiki/concepts",     "color": { "a": 1, "rgb": 16744272 } },
-    { "query": "path:wiki/entities",     "color": { "a": 1, "rgb": 6618880  } },
-    { "query": "path:wiki/cross-module", "color": { "a": 1, "rgb": 16711935 } },
-    { "query": "path:wiki/decisions",    "color": { "a": 1, "rgb": 16711680 } },
-    { "query": "path:wiki/integrations", "color": { "a": 1, "rgb": 255      } },
-    { "query": "path:wiki/sources",      "color": { "a": 1, "rgb": 8355711  } }
+    {
+      "query": "path:wiki/modules",
+      "color": {
+        "a": 1,
+        "rgb": 4993279
+      }
+    },
+    {
+      "query": "path:wiki/concepts",
+      "color": {
+        "a": 1,
+        "rgb": 16744272
+      }
+    },
+    {
+      "query": "path:wiki/entities",
+      "color": {
+        "a": 1,
+        "rgb": 6618880
+      }
+    },
+    {
+      "query": "path:wiki/cross-module",
+      "color": {
+        "a": 1,
+        "rgb": 16711935
+      }
+    },
+    {
+      "query": "path:wiki/decisions",
+      "color": {
+        "a": 1,
+        "rgb": 16711680
+      }
+    },
+    {
+      "query": "path:wiki/integrations",
+      "color": {
+        "a": 1,
+        "rgb": 255
+      }
+    },
+    {
+      "query": "path:wiki/sources",
+      "color": {
+        "a": 1,
+        "rgb": 8355711
+      }
+    }
   ],
   "collapse-display": false,
   "showArrow": true,
@@ -25,6 +67,6 @@
   "repelStrength": 10,
   "linkStrength": 1,
   "linkDistance": 250,
-  "scale": 1,
-  "close": false
+  "scale": 2.3098065335303395,
+  "close": true
 }
