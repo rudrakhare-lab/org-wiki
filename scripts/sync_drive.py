@@ -7,12 +7,13 @@ Drive folder structure (rclone mount, Google Drive Desktop folder, or a manually
 unzipped download). It will:
 
   1. Walk every top-level subfolder ("feature folder") in the source.
-  2. Slugify the folder name → kebab-case (e.g. "Floor Kiosk (Kavya)" → "floor-kiosk").
+  2. Resolve the canonical slug (via SLUG_OVERRIDES first, then slugify()).
   3. Mirror its contents into raw/modules/<slug>/.
   4. Skip files that already exist with identical content (SHA-256 dedup).
-  5. Create raw/modules/<slug>/ automatically if the feature is new.
-  6. Print a per-feature report of new / updated / unchanged files.
-  7. Suggest the next `ingest` commands for files that changed.
+  5. Optionally skip "Copy of ..." duplicates (--skip-copies).
+  6. Create raw/modules/<slug>/ automatically if the feature is genuinely new.
+  7. Print a per-feature report of new / updated / unchanged files.
+  8. Suggest the next `ingest` commands for files that changed.
 
 The script is **idempotent** — safe to re-run any time. It only copies what is
 actually new or changed.
@@ -20,20 +21,20 @@ actually new or changed.
 Examples
 --------
   # Drive Desktop (typical macOS path)
-  python scripts/sync_drive.py \
+  python scripts/sync_drive.py \\
       --source "$HOME/Library/CloudStorage/GoogleDrive-<email>/My Drive/Conwo WorkInSync Docs"
 
-  # rclone mount
-  python scripts/sync_drive.py --source ~/mnt/gdrive/Conwo\\ WorkInSync\\ Docs
-
-  # Manually downloaded + unzipped folder
-  python scripts/sync_drive.py --source ~/Downloads/Conwo\\ WorkInSync\\ Docs
+  # rclone staging folder
+  python scripts/sync_drive.py --source ./raw/_drive_staging
 
   # Preview without copying
   python scripts/sync_drive.py --source <path> --dry-run
 
+  # Skip "Copy of ..." duplicates (recommended for clean ingest)
+  python scripts/sync_drive.py --source <path> --skip-copies
+
   # Sync just one feature
-  python scripts/sync_drive.py --source <path> --only sso
+  python scripts/sync_drive.py --source <path> --only meeting-rooms
 """
 
 from __future__ import annotations
@@ -54,6 +55,30 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 RAW_MODULES = ROOT / "raw" / "modules"
 MANIFEST_PATH = ROOT / "raw" / ".sync_manifest.json"
+
+# ---------------------------------------------------------------------------
+# Slug overrides
+#
+# Drive folder names that would slugify to a long/wrong slug are mapped here
+# to the canonical slug we want. Keys are matched against the slugified Drive
+# folder name (not the raw name), so you only need the simplified version.
+#
+# Add a new line whenever Drive has a folder with a long/variant name that
+# should map to an existing canonical slug.
+# ---------------------------------------------------------------------------
+
+SLUG_OVERRIDES: dict[str, str] = {
+    # Drive folder name (slugified)          → canonical slug
+    "digital-wayfinding-kavya":                "digital-wayfinding",
+    "employee-provisioning-via-external-integrations": "employee-provisioning",
+    "third-party-integrations-slack":          "third-party",
+    "access-management-integration":           "access-management",
+    "desk-management-admin-employee-experience": "desk-management",
+    "guard-app-kiosks-for-guard-app":          "guard-app-kiosks",
+    "tags-desk-parking-dynamic-policy-engine": "tags-desk-parking",
+    # Add more as Drive folder names evolve:
+    # "some-verbose-drive-name":             "canonical-slug",
+}
 
 # ---------------------------------------------------------------------------
 # Filters
@@ -92,11 +117,27 @@ def slugify(name: str) -> str:
     >>> slugify("Third-party")
     'third-party'
     """
-    # Remove (annotations) — typical owner tags
     cleaned = re.sub(r"\s*\([^)]*\)\s*", " ", name)
     cleaned = cleaned.lower().strip()
     cleaned = re.sub(r"[^a-z0-9]+", "-", cleaned)
     return cleaned.strip("-")
+
+
+def resolve_slug(raw_folder_name: str) -> tuple[str, bool]:
+    """Return (canonical_slug, was_overridden).
+
+    First checks SLUG_OVERRIDES (keyed on the pre-override slugified name),
+    then falls back to the plain slugify result.
+    """
+    auto = slugify(raw_folder_name)
+    if auto in SLUG_OVERRIDES:
+        return SLUG_OVERRIDES[auto], True
+    return auto, False
+
+
+def is_copy(filename: str) -> bool:
+    """Return True if the filename looks like a Drive 'Copy of ...' duplicate."""
+    return re.match(r"^(Copy of\s+)+", filename, re.IGNORECASE) is not None
 
 
 def file_sha256(path: Path, chunk_size: int = 65536) -> str:
@@ -107,8 +148,8 @@ def file_sha256(path: Path, chunk_size: int = 65536) -> str:
     return h.hexdigest()
 
 
-def classify_skip(name: str) -> str | None:
-    """Return a skip reason, or None if the file should be processed."""
+def classify_skip(name: str, skip_copies: bool) -> str | None:
+    """Return a skip reason string, or None if the file should be processed."""
     if name in IGNORE_NAMES:
         return "ignored"
     for prefix in IGNORE_PREFIXES:
@@ -119,6 +160,8 @@ def classify_skip(name: str) -> str | None:
         return "google-native"
     if ACCEPT_EXT and ext and ext not in ACCEPT_EXT:
         return f"unsupported-ext({ext})"
+    if skip_copies and is_copy(name):
+        return "copy-duplicate"
     return None
 
 
@@ -132,6 +175,7 @@ def sync_feature(
     feature_slug: str,
     dry_run: bool,
     verbose: bool,
+    skip_copies: bool,
 ) -> tuple[dict, list[str]]:
     """Sync one feature folder. Returns (counts, skipped_messages)."""
     counts = {"new": 0, "updated": 0, "unchanged": 0, "skipped": 0}
@@ -142,11 +186,13 @@ def sync_feature(
             continue
         rel = src.relative_to(src_root)
 
-        reason = classify_skip(src.name)
+        reason = classify_skip(src.name, skip_copies)
         if reason:
             counts["skipped"] += 1
             if reason == "google-native":
                 skipped.append(f"{feature_slug}/{rel}  (Google native — export to PDF first)")
+            elif reason == "copy-duplicate":
+                skipped.append(f"{feature_slug}/{rel}  (Drive 'Copy of' duplicate — skipped)")
             elif reason.startswith("unsupported"):
                 skipped.append(f"{feature_slug}/{rel}  ({reason})")
             continue
@@ -180,10 +226,18 @@ def sync_feature(
 # ---------------------------------------------------------------------------
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--source", required=True, help="Local path to the Drive root (folder containing all feature subfolders)")
+    ap = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    ap.add_argument(
+        "--source", required=True,
+        help="Local path to the Drive root (folder containing all feature subfolders)",
+    )
     ap.add_argument("--dry-run", action="store_true", help="Report changes but do not copy files")
-    ap.add_argument("--only", help="Sync only this feature slug (e.g. sso)")
+    ap.add_argument("--only", help="Sync only this canonical feature slug (e.g. meeting-rooms)")
+    ap.add_argument("--skip-copies", action="store_true",
+                    help="Skip files whose names start with 'Copy of ...' (Drive duplicates)")
     ap.add_argument("-v", "--verbose", action="store_true", help="Also print files that were unchanged")
     args = ap.parse_args()
 
@@ -192,10 +246,11 @@ def main() -> int:
         print(f"ERROR: source is not a directory: {src_root}", file=sys.stderr)
         return 2
 
-    print(f"Source : {src_root}")
-    print(f"Target : {RAW_MODULES.relative_to(ROOT)}/")
+    print(f"Source      : {src_root}")
+    print(f"Target      : {RAW_MODULES.relative_to(ROOT)}/")
+    print(f"Skip copies : {'yes' if args.skip_copies else 'no'}")
     if args.dry_run:
-        print("Mode   : DRY RUN (no files will be copied)")
+        print("Mode        : DRY RUN (no files will be copied)")
     print()
 
     if not args.dry_run:
@@ -203,15 +258,19 @@ def main() -> int:
 
     totals = {"new": 0, "updated": 0, "unchanged": 0, "skipped": 0}
     new_features: list[str] = []
+    overridden_slugs: list[tuple[str, str, str]] = []  # (drive_name, raw_slug, canonical_slug)
     feature_reports: list[tuple[str, dict, bool]] = []
     all_skipped: list[str] = []
 
     for src_feature_dir in sorted(p for p in src_root.iterdir() if p.is_dir() and not p.name.startswith(".")):
-        slug = slugify(src_feature_dir.name)
+        slug, was_overridden = resolve_slug(src_feature_dir.name)
         if not slug:
             continue
         if args.only and slug != args.only:
             continue
+        if was_overridden:
+            raw_auto = slugify(src_feature_dir.name)
+            overridden_slugs.append((src_feature_dir.name, raw_auto, slug))
 
         dst_dir = RAW_MODULES / slug
         is_new_feature = not dst_dir.exists()
@@ -221,7 +280,10 @@ def main() -> int:
                 dst_dir.mkdir(parents=True, exist_ok=True)
                 (dst_dir / ".gitkeep").touch()
 
-        counts, skipped = sync_feature(src_feature_dir, dst_dir, slug, args.dry_run, args.verbose)
+        counts, skipped = sync_feature(
+            src_feature_dir, dst_dir, slug,
+            args.dry_run, args.verbose, args.skip_copies,
+        )
         all_skipped.extend(skipped)
         for k in totals:
             totals[k] += counts[k]
@@ -233,25 +295,32 @@ def main() -> int:
     print("Drive Sync Report")
     print("=" * 64)
 
+    if overridden_slugs:
+        print(f"\nSlug overrides applied ({len(overridden_slugs)}):")
+        for drive_name, raw_slug, canonical in overridden_slugs:
+            print(f"  '{drive_name}'")
+            print(f"    auto-slug : {raw_slug}")
+            print(f"    canonical : {canonical}  ← used")
+
     if new_features:
-        print(f"\nNew feature folders ({len(new_features)}):")
+        print(f"\nGenuinely new feature folders ({len(new_features)}):")
         for f in new_features:
             print(f"  + raw/modules/{f}/")
 
     print("\nPer-feature counts:")
-    print(f"  {'feature':<32}  {'new':>4} {'upd':>4} {'unch':>5} {'skip':>4}")
-    print(f"  {'-'*32}  {'----':>4} {'----':>4} {'-----':>5} {'----':>4}")
+    print(f"  {'feature':<38}  {'new':>4} {'upd':>4} {'unch':>5} {'skip':>4}")
+    print(f"  {'-'*38}  {'----':>4} {'----':>4} {'-----':>5} {'----':>4}")
     for slug, counts, is_new in feature_reports:
         marker = "*" if is_new else " "
-        print(f"  {marker} {slug:<30}  {counts['new']:>4} {counts['updated']:>4} "
+        print(f"  {marker} {slug:<36}  {counts['new']:>4} {counts['updated']:>4} "
               f"{counts['unchanged']:>5} {counts['skipped']:>4}")
 
     if all_skipped:
-        print(f"\nSkipped ({len(all_skipped)} — show first 10):")
-        for s in all_skipped[:10]:
+        print(f"\nSkipped ({len(all_skipped)} — first 15):")
+        for s in all_skipped[:15]:
             print(f"  - {s}")
-        if len(all_skipped) > 10:
-            print(f"  ... and {len(all_skipped) - 10} more")
+        if len(all_skipped) > 15:
+            print(f"  ... and {len(all_skipped) - 15} more")
 
     print(f"\nTotal: {totals['new']} new | {totals['updated']} updated | "
           f"{totals['unchanged']} unchanged | {totals['skipped']} skipped")
@@ -269,8 +338,13 @@ def main() -> int:
         manifest = {
             "last_sync": datetime.now(timezone.utc).isoformat(),
             "source": str(src_root),
+            "skip_copies": args.skip_copies,
             "totals": totals,
             "new_features": new_features,
+            "slug_overrides_applied": [
+                {"drive_folder": d, "auto_slug": a, "canonical": c}
+                for d, a, c in overridden_slugs
+            ],
             "features_with_changes": changed,
             "feature_counts": {slug: c for slug, c, _ in feature_reports},
         }
