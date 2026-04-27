@@ -5,9 +5,50 @@
 ## TL;DR — The 3-Step Loop
 
 ```
-1. Drop PDFs into the right raw/ subfolder
-2. In Cursor chat: "ingest raw/<path>"
-3. Ask questions naturally
+1. Sync new files from Drive:    python scripts/sync_drive.py --source <drive-path>
+2. Ingest a feature:              ingest all docs in raw/modules/<slug>/
+3. Ask questions naturally:       "How does X connect to Y?"
+```
+
+For the manual approach (drag-and-drop), see [Manual upload](#manual-upload-fallback)
+below. For full Drive setup, read [`scripts/SETUP_DRIVE.md`](scripts/SETUP_DRIVE.md).
+
+---
+
+## Auto-Sync from Drive (recommended)
+
+Because docs are still being added to the team Drive, you should pull new files
+automatically rather than re-downloading manually.
+
+### One-time setup
+Pick one of three Drive-access options (Drive Desktop / rclone / manual zip)
+in [`scripts/SETUP_DRIVE.md`](scripts/SETUP_DRIVE.md). Easiest is **Google Drive
+for Desktop** — install once, sign in, done.
+
+### Routine workflow
+
+```bash
+cd /Users/rudrakhare/Desktop/my-wiki/org-wiki
+
+# 1. Pull new/changed files from Drive into raw/modules/<slug>/
+python scripts/sync_drive.py \
+  --source "$HOME/Library/CloudStorage/GoogleDrive-<email>/My Drive/Conwo WorkInSync Docs"
+
+# 2. See what's queued up for ingest
+python scripts/list_pending.py
+```
+
+The script:
+- **Slugifies** Drive folder names → matching `raw/modules/<slug>/` (e.g.
+  `"Floor Kiosk (Kavya)"` → `floor-kiosk`)
+- **Auto-creates** new feature folders if Drive gets a new folder we don't know about
+- **Skips duplicates** by content hash — safe to re-run any time
+- **Reports** new files per feature and **suggests** the exact `ingest` commands
+
+### Then in Cursor chat, ingest each feature with new content
+```
+ingest all new docs in raw/modules/sso/
+ingest all new docs in raw/modules/desk-management/
 ```
 
 ---
@@ -54,7 +95,11 @@ Each feature in your "Conwo WorkInSync Docs" Drive maps **1-to-1** to a folder i
 
 ---
 
-## Step 1 — Download PDFs from Google Drive
+## Manual upload (fallback)
+
+If you don't want to run the sync script, you can still drag-and-drop:
+
+### Step 1 — Download PDFs from Google Drive
 
 1. Open your Drive folder: `Conwo WorkInSync Docs > <feature folder>`
 2. Select all PDFs in that feature folder.
