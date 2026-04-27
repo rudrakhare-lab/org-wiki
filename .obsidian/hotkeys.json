@@ -1,0 +1,6 @@
+{
+  "graph:open":          [{ "modifiers": ["Mod"], "key": "G" }],
+  "app:go-back":         [{ "modifiers": ["Mod"], "key": "[" }],
+  "app:go-forward":      [{ "modifiers": ["Mod"], "key": "]" }],
+  "editor:open-search":  [{ "modifiers": ["Mod"], "key": "F" }]
+}
