@@ -177,6 +177,16 @@
   },
   "active": "98c2f4888cb13870",
   "lastOpenFiles": [
+    "wiki/decisions/2026-04-27-jwt-session-strategy.md",
+    "wiki/cross-module/auth-payments-notifications.md",
+    "wiki/modules/notifications.md",
+    "wiki/modules/payments.md",
+    "wiki/modules/auth.md",
+    "wiki/entities/session.md",
+    "wiki/entities/user.md",
+    "wiki/sources/auth-spec-v1.md",
+    "raw/modules/auth/auth-spec-v1.md",
+    "raw/modules/auth",
     "raw/modules/visitor-management",
     "raw/modules/third-party",
     "raw/modules/tags-desk-parking",
@@ -186,9 +196,6 @@
     "raw/modules/ms-teams-integration",
     "raw/modules/mobile-app",
     "raw/modules/meeting-rooms",
-    "raw/modules/meal-management",
-    "raw/modules/implementation",
-    "wiki/entities/session.md",
     "CLAUDE.md",
     "wiki/overview.md",
     "wiki/log.md",
@@ -197,7 +204,6 @@
     "WORKFLOW.md",
     "README.md",
     "llm-wiki-reference.md",
-    "wiki/cross-module/overview.md",
-    "wiki/modules/payments.md"
+    "wiki/cross-module/overview.md"
   ]
 }

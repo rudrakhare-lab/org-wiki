@@ -1,145 +1,167 @@
-# How to Add Docs to the Wiki
+# How to Add Docs to the WorkInSync Wiki
 
 ---
 
-## Quick Reference
-
-| Task | Command |
-|------|---------|
-| Add a module spec | `ingest raw/modules/<module-name>/<filename>` |
-| Add a meeting transcript | `ingest raw/meetings/<filename>` |
-| Add a PRD | `ingest raw/prds/<filename>` |
-| Add a design doc | `ingest raw/design/<filename>` |
-| Add an API spec | `ingest raw/api/<filename>` |
-| Ask a question | Just type naturally |
-| Health check | `lint the wiki` |
-
----
-
-## Adding a New Feature Module Doc
-
-1. Save your doc (Markdown, PDF, or plain text) to `raw/modules/<module-name>/`
-   - Example: `raw/modules/payments/payments-spec-v2.md`
-2. Open Cursor in the `org-wiki/` folder
-3. Type: `ingest raw/modules/payments/payments-spec-v2.md`
-4. The AI will summarize 5–8 key takeaways and ask you to confirm before writing anything.
-5. Review the summary. Guide the AI on what to emphasize or what to skip.
-6. After confirmation, the AI writes all wiki pages — module page, entity pages, cross-module pages, etc.
-7. Open Obsidian — new pages appear immediately. Hit `Cmd+G` to see the updated graph.
-
----
-
-## Adding a Meeting Transcript
-
-1. Save the transcript to `raw/meetings/<YYYY-MM-DD>-<topic>.md`
-   - Example: `raw/meetings/2026-04-27-auth-design-review.md`
-2. Type: `ingest raw/meetings/2026-04-27-auth-design-review.md`
-3. The AI will extract: decisions made, modules discussed, entities mentioned, action items.
-
----
-
-## Adding a PRD
-
-1. Save to `raw/prds/<feature-name>-prd.md`
-   - Example: `raw/prds/passkeys-prd.md`
-2. Type: `ingest raw/prds/passkeys-prd.md`
-3. The AI will create or update module pages, add new entities if introduced,
-   and extract any architectural decisions documented in the PRD.
-
----
-
-## Adding a Design Doc
-
-1. Save to `raw/design/<feature-name>-design.md`
-2. Type: `ingest raw/design/<filename>`
-3. Figma exports work best as annotated Markdown or plain text — export description
-   text and component specs, not the raw Figma JSON.
-
----
-
-## Adding an API Spec
-
-1. Save to `raw/api/<service-or-module>-api.md` (or `.yaml` for OpenAPI)
-2. Type: `ingest raw/api/<filename>`
-3. The AI will populate the API Endpoints section of the relevant module page
-   and flag any undocumented endpoints or auth mismatches.
-
----
-
-## Asking a Question About Modules
-
-Just type naturally — no special command needed:
+## TL;DR — The 3-Step Loop
 
 ```
-How does the Auth module connect to Payments?
-What entities does the Notifications module use?
-Which modules have a dependency on Auth?
-What was decided about JWT token expiry?
+1. Drop PDFs into the right raw/ subfolder
+2. In Cursor chat: "ingest raw/<path>"
+3. Ask questions naturally
 ```
-
-The AI reads `wiki/index.md` and the relevant wiki pages (not raw docs) and answers
-with citations like `(see [[modules/auth]])`.
-
-**To save the answer as a permanent wiki page**, tell the AI:
-```
-Save this as a wiki page.
-```
-It will create the page at `wiki/concepts/<topic>.md` or `wiki/cross-module/<topic>.md`
-and update the index.
 
 ---
 
-## Running a Wiki Health Check
+## Where to Put Each Type of Doc
 
-Do this every 10–15 ingests to keep the wiki clean:
+### Feature / Module Docs (the main case)
 
+Each feature in your "Conwo WorkInSync Docs" Drive maps **1-to-1** to a folder in `raw/modules/`:
+
+| Drive folder | Local path |
+|---|---|
+| Access management | `raw/modules/access-management/` |
+| Admin Experience | `raw/modules/admin-experience/` |
+| Create Employee form | `raw/modules/create-employee-form/` |
+| Delegation (KAVYA) | `raw/modules/delegation/` |
+| Desk Management | `raw/modules/desk-management/` |
+| Digital Wayfinding | `raw/modules/digital-wayfinding/` |
+| Employee experience | `raw/modules/employee-experience/` |
+| Employee Provisioning | `raw/modules/employee-provisioning/` |
+| ESG Dashboard | `raw/modules/esg-dashboard/` |
+| Floor Kiosk (Kavya) | `raw/modules/floor-kiosk/` |
+| Guard app + kiosks | `raw/modules/guard-app-kiosks/` |
+| Implementation | `raw/modules/implementation/` |
+| Meal Management | `raw/modules/meal-management/` |
+| Meeting Rooms (KAVYA) | `raw/modules/meeting-rooms/` |
+| Mobile App (Kavya) | `raw/modules/mobile-app/` |
+| MS Teams Integration | `raw/modules/ms-teams-integration/` |
+| Parking Management | `raw/modules/parking-management/` |
+| Safe Reach (Vaishnavi) | `raw/modules/safe-reach/` |
+| SSO (Mohit) | `raw/modules/sso/` |
+| Tags - desk + parking | `raw/modules/tags-desk-parking/` |
+| Third-party | `raw/modules/third-party/` |
+| Visitor Management | `raw/modules/visitor-management/` |
+
+### Other Doc Types
+| Doc Type | Folder | Naming Convention |
+|----------|--------|-------------------|
+| Meeting transcripts / standups | `raw/meetings/` | `YYYY-MM-DD-<topic>.md` |
+| PRDs | `raw/prds/` | `<feature>-prd.md` |
+| Design specs / Figma exports | `raw/design/` | `<feature>-design.md` |
+| API specs / OpenAPI YAML | `raw/api/` | `<module>-api.md` (or `.yaml`) |
+| Anything else | `raw/misc/` | descriptive name |
+
+---
+
+## Step 1 — Download PDFs from Google Drive
+
+1. Open your Drive folder: `Conwo WorkInSync Docs > <feature folder>`
+2. Select all PDFs in that feature folder.
+3. Right-click → **Download** (Drive will zip them).
+4. Unzip the download.
+5. Drag-and-drop the PDFs into the matching `raw/modules/<feature>/` folder in Finder.
+
+> **Tip:** Drag a feature folder at a time, not all 22 at once. Ingest is more accurate when done one feature at a time.
+
+> **PDFs vs Markdown:** PDFs are fine — Cursor will read them. If a PDF is huge (>50 MB) or a scanned image, you may want to convert it to text first (export to plain `.txt` from Drive), but most text-based PDFs work directly.
+
+---
+
+## Step 2 — Ingest in Cursor
+
+Open Cursor in the `org-wiki/` folder. In the chat, type **one** of these:
+
+### Single file
+```
+ingest raw/modules/desk-management/desk-mgmt-spec-v1.pdf
+```
+
+### All files in one feature folder (recommended)
+```
+ingest all docs in raw/modules/desk-management/
+```
+The AI will process each file in order, asking you to confirm the summary before writing wiki pages for each.
+
+### What happens during ingest
+1. AI reads the source completely.
+2. AI summarizes 5–8 key takeaways → **you confirm**.
+3. AI creates/updates:
+   - `wiki/sources/<filename>.md` — source summary
+   - `wiki/modules/<feature>.md` — full module page (or stub)
+   - `wiki/entities/*.md` — for any data models found
+   - `wiki/cross-module/*.md` — when modules interact
+   - `wiki/decisions/*.md` — for any architectural choices
+   - Updates `wiki/glossary.md`, `wiki/index.md`, `wiki/log.md`
+
+---
+
+## Step 3 — Ask Questions
+
+After ingesting some docs, ask anything in plain English:
+
+```
+How does Desk Management connect to Parking Management?
+What entities does the Visitor Management module own?
+Which modules use SSO?
+What was decided about MS Teams Integration auth?
+Show me all modules owned by Kavya's team.
+```
+
+The AI reads `wiki/index.md` and the relevant wiki pages (NOT the raw PDFs) and answers with citations like `(see [[modules/desk-management]])`.
+
+**To save the answer permanently:** say `save this as a wiki page`.
+
+---
+
+## Recommended First-Run Order
+
+For best cross-module linking, ingest **foundational features first**, then their consumers:
+
+1. **Foundation layer** (no dependencies on others):
+   - `sso` — auth foundation, used by everything
+   - `employee-provisioning` — creates the User entity everyone references
+   - `access-management` — permissions layer
+2. **Core domain modules** (depend on foundation):
+   - `desk-management`
+   - `meeting-rooms`
+   - `parking-management`
+   - `visitor-management`
+   - `meal-management`
+3. **UX / surfaces**:
+   - `mobile-app`
+   - `floor-kiosk`
+   - `digital-wayfinding`
+   - `admin-experience`
+   - `employee-experience`
+4. **Integrations & extensions**:
+   - `ms-teams-integration`
+   - `third-party`
+   - `safe-reach`
+   - `guard-app-kiosks`
+   - `esg-dashboard`
+   - `tags-desk-parking`
+   - `delegation`
+   - `create-employee-form`
+   - `implementation`
+
+This order means by the time you ingest `desk-management`, the AI already knows what `sso` is, so it can build proper cross-links automatically.
+
+---
+
+## Health Check
+
+Every 10–15 ingests run:
 ```
 lint the wiki
 ```
-
-The AI will check for:
-- Broken dependency links (module A depends on B but B has no page)
-- Orphan pages (no other page links to them)
-- Missing cross-module pages (two modules share an entity but no cross-module page exists)
-- Contradictions (same entity described differently on two pages)
-- Stubs (pages with `status: stub` and suggestions for how to fill them)
-- Stale pages (sources ingested 30+ days ago with no updates since)
-
-The AI will **report everything first** before changing anything. You choose what to fix.
-
----
-
-## Session Start Convention
-
-Every Cursor session opens with the AI reading:
-1. `CLAUDE.md` — the AI's rulebook
-2. `wiki/index.md` — current wiki state
-3. `wiki/log.md` (last 10 entries) — what was recently done
-4. `wiki/overview.md` — big picture
-
-The AI will then tell you the current state (module count, recent ingests, open flags)
-and ask what you want to do.
-
----
-
-## File Naming Conventions
-
-| Type | Location | Naming |
-|------|---------|--------|
-| Module spec | `raw/modules/<module>/` | `<module>-spec-v<N>.md` |
-| Meeting transcript | `raw/meetings/` | `YYYY-MM-DD-<topic>.md` |
-| PRD | `raw/prds/` | `<feature>-prd.md` |
-| Design doc | `raw/design/` | `<feature>-design.md` |
-| API spec | `raw/api/` | `<module>-api.md` |
+This finds broken links, orphan pages, contradictions, and stubs that need filling in.
 
 ---
 
 ## Rules for Contributors
 
-1. **Never edit `wiki/` directly** — let the AI maintain it. Manual edits will be
-   overwritten on the next ingest and won't be tracked in the log.
-2. **Never edit `wiki/log.md`** — it is append-only. The AI manages it.
-3. **Raw docs are permanent** — once a doc is in `raw/`, don't rename or move it.
-   The wiki pages cite their sources by path. Renaming breaks the audit trail.
-4. **When in doubt, create a stub** — it's better to have a stub with open questions
-   than to have a module mentioned in cross-references with no page at all.
+1. **Never edit `wiki/` directly** — let the AI maintain it.
+2. **Never edit `wiki/log.md`** — append-only, AI-managed.
+3. **Raw docs are permanent** — once a PDF is in `raw/`, don't rename or move it (the wiki cites it by path).
+4. **Stubs are fine** — if a feature is referenced before its own doc is ingested, the AI creates a stub. It will be filled in automatically when you ingest that feature's docs.

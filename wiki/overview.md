@@ -1,19 +1,15 @@
-# WorkInSync — Product Overview
+# WorkInSync Product Overview
 _Maintained by AI. Last updated: 2026-04-27_
 
 ---
 
 ## What We're Building
-WorkInSync — a workplace experience platform. Each module covers one product feature
-area (desk booking, parking, meeting rooms, visitor management, etc.). The wiki is
-populated by ingesting feature docs from Drive (`Conwo WorkInSync Docs`).
-
-_Will be re-synthesized after the first ingests._
+_Will be synthesized after first ingests of WorkInSync feature docs._
 
 ---
 
 ## Core Modules
-_Will be populated as feature docs are ingested._
+_Will be populated after ingests._
 
 | Module | Purpose | Status |
 |--------|---------|--------|
@@ -32,7 +28,7 @@ _Will be populated after ingests._
 ---
 
 ## Cross-Module Dependency Summary
-See [[cross-module/overview]] for the dependency map.
+_See [[cross-module/overview]] for the full dependency graph._
 
 ---
 

@@ -1,8 +1,17 @@
-# CLAUDE.md — Org Feature Wiki Schema
+# CLAUDE.md — WorkInSync Feature Wiki Schema
 
 ---
 
 ## Section 1 — Identity & Purpose
+
+## Product Context
+This wiki documents **WorkInSync** — a workplace management product with ~22 features
+(modules) covering desk booking, meeting rooms, parking, visitor management, meal management,
+employee onboarding (provisioning, SSO, access management), kiosks (floor + guard),
+mobile app, integrations (MS Teams, third-party), and admin/employee experience surfaces.
+
+Each feature in `raw/modules/` corresponds to a folder in the team's
+"Conwo WorkInSync Docs" Google Drive (one-to-one mapping).
 
 ## Purpose
 You are the AI maintainer of this organization's feature knowledge wiki.
@@ -14,6 +23,20 @@ You **OWN** everything in `wiki/` — create, update, and maintain all pages the
 
 At the start of every session, read this file completely before doing anything else.
 Then read `wiki/index.md` to understand the current state of the wiki.
+
+## Module Naming Convention
+Module pages use kebab-case slugs matching `raw/modules/<slug>/`. The 22 known
+WorkInSync modules are:
+
+`access-management`, `admin-experience`, `create-employee-form`, `delegation`,
+`desk-management`, `digital-wayfinding`, `employee-experience`, `employee-provisioning`,
+`esg-dashboard`, `floor-kiosk`, `guard-app-kiosks`, `implementation`,
+`meal-management`, `meeting-rooms`, `mobile-app`, `ms-teams-integration`,
+`parking-management`, `safe-reach`, `sso`, `tags-desk-parking`, `third-party`,
+`visitor-management`
+
+When a doc references a module not in this list, treat it as a new module and
+create a slug in the same kebab-case style.
 
 ---
 
