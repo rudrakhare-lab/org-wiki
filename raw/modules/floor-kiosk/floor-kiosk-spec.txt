@@ -1,0 +1,62 @@
+Android-based Device
+	•	Device recommended specs: 
+
+Parameter
+Specification
+Screen Size
+25" or more
+Visual Ratio
+16:9
+System Version
+Android 12.0 or higher
+Chipset Solution
+Qualcomm 
+Core
+Quad-core/ARM Cortex
+RAM
+12GB+
+ROM
+128GB
+GPU
+Integrated - Latest GPU  Best for Android Devices — Adreno 619, 642, 650, 730
+Working Frequency
+As per Ryzen 5 baseline (typically ~2.1–3.7 GHz)
+System Behavior on Patch Updates
+Supports patch updates without forced restarts (configurable)
+Touch Technology
+Capacitive
+Touch Point
+10 Points
+Sound Track
+2
+Speaker
+2 × 5W
+Bluetooth Version
+5
+Operation Frequency (Bluetooth)
+2.4GHz
+Operation Distance (Bluetooth)
+0–10m
+Remark (Bluetooth)
+Built-in Bluetooth
+Wi-Fi Version
+802.11 b/g/n/a/ac/ax (Wi-Fi 6)
+Operation Frequency (Wi-Fi)
+2.4GHz / 5GHz
+Operation Distance (Wi-Fi)
+0–10m
+Remark (Wi-Fi)
+Built-in Wi-Fi mode (Wi-Fi 6)
+USB 3.0
+1
+USB-C Type
+1 (Full-featured, without charging function)
+Audio Out
+1
+DC-IN
+1
+LAN
+To be supported 
+Kiosk/Screen Lock Mode Support	Available
+Disables back button Restricts URL exit Locks user in guided mode
+

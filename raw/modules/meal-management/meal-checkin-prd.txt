@@ -1,0 +1,115 @@
+Meal Check-in via Access Card PRD 
+
+Document Control
+Document  Name
+Meal check-in via access card PRD 
+Version No
+1.0
+Classification
+Internal	
+Date
+05/05/2025
+
+ 	 	
+Version Control
+Ver No.
+Author	
+Approved by
+		
+Approved Date
+Description
+
+1.0
+Aditya Dutta
+  Ujjwal Trivedi
+05/05/2025
+Initial Doc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Problem Statement
+
+Employees at certain organizations do not like using their personal mobile phones due to which check-in mechanisms that require a mobile phone to scan a QR cannot be done.  A certain challenge that has arisen is that while employees use their laptops to check in to their desks or rooms, they cannot use their laptop to do the same for their meals. It is not practical to carry a laptop in order to signal to the MoveInSync system that a certain meal has been consumed.  Due to this, there is a need for an alternate method to register consumption of meals without the use of a mobile phone. 
+
+Epic - 
+Design - 
+
+Flow Diagram -
+
+
+
+ 
+Solution
+Part 1
+RFID based check-in 
+
+	•	User has a meal booking
+	•	If a user has a meal booking, the user arrives at the cafeteria and swipes at a device that has an RFID/HID access card reader. 
+	•	As the swipe data is received, the data is transmitted to the MoveInSync system, the user sees the details of his/her meal booking appear on a screen (Android/iOS tablet)
+	•	This screen shall consist of the meal booking details - 
+	•	Office & Cafeteria
+	•	Ability to select which meal to consume 
+	•	Show if there are multiple meals else show only single meal directly
+	•	Meal category & Meal item(s)
+	•	Description (if set)
+	•	Price (if set)
+	•	The user then selects which meal they want to consume. 
+	•	After the selection, the system registers the consumption, the vendor provides the meal to the user.  
+	•	User does not have a meal booking
+	•	User arrives at the cafeteria and does not have a meal booking for that day.
+	•	User swipes at the access card reader and the tablet reads the data. 
+	•	The tablet shows the user’s details upon which the user can create a standalone meal booking. 
+	•	The meal booking would entail the same flow of booking as per the office booking creation. 
+	•	Once the booking is created, the user can then check-in to the meal of their choice.  
+	•	Audits & Reports work the same way.  
+Part 2 
+Admin view
+	•	The admin view consists of a dashboard (reuse Vendor Dashboard - Vendor Dashboard PRD  where the admin/vendor can see the details of the meal booking for the user who just swiped at the access card reader.  
+	•	This is required as the admin/vendor might not be able to see the tablet screen which the user can see due to which they cannot verify the user’s details. 
+
+Part 3
+
+Employee workflow 
+
+	•	There should be an option to create a standalone meal booking via the mobile app and the web app. 
+	•	This will be a new entity just like the New Room Type that was created
+	•	If a meal booking has already been created for that day as part of the office booking, then a user cannot create another meal booking via this feature
+	•	Similarly, if a meal booking has been created via the new entity, a user cannot create an office booking with meal and it would have to be an office booking without meals selected 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Acceptance Criteria // TO DO
+Analytics 
+MoveInSync & WorkInSync Google Analytics Central Repository (WorkInSync Web sub-sheet)
+Accessibility - (will be picked up when Manager Accessibility is a priority)
+	•	ARIA labels will be provided
+Localisation 
+Localization (Emp-Exp sub-sheet)
+Privacy & Security:
+	•	If there is any data that constitutes as Personally identifiable information (PII) such as empID, name, phone number, etc. should be handled in the standard way such data is handled. 
+	•	Ensure there are no vulnerabilities in the API endpoints and they follow the standard Security Guidelines. Run Sonarqube and ensure the same. 
+
+Success Metrics // TO DO
+

@@ -1,0 +1,257 @@
+
+Document Control
+Document  Name
+Delegation PRD
+Version No
+1.2
+Classification
+Internal	
+Date
+10/12/2022
+
+ 	 	
+Version Control
+Ver No.
+Author	
+Approved  by
+		
+Approved Date
+Description
+
+1.0
+Aditya Dutta
+Rishabh M
+10/12/2022
+Initial Document
+1.1
+Aditya Dutta
+Rishabh M
+10/01/2023
+Feedback integrated
+1.2
+Aditya Dutta
+Rishabh M
+31/01/2023
+Tech Feedback integrated
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DELEGATION PRD
+
+Problem Statement:
+	•	CXOs and other senior corporate employees often have executive assistants who take care of all the bookings that are required by them. 
+	•	In the event, a team manager who plans and creates bookings for his/her team is not available, there is no one else who can create bookings on their behalf. 
+This creates a problem for such people as they cannot make important bookings for themselves or their team in the event of unavailability. 
+
+Bookings are one part of the problem. The same problem can be extended to delegation of other resources such as desk allocation, visitor management, ability to organize meetings etc.  Eg: Capability to add a delegation person to a meeting (that person receives modification rights and meeting notifications should go to that person) (useful if e.g. the organizer is sick)
+
+Objective:
+Creation of a workflow by which employees can delegate their privileges to executive assistants or any other employee(s) of their choice. 
+
+Who is it for?
+	•	CXOs / corporate employees
+	•	Team/Project managers
+
+Why build it?
+	•	WorkInSync as a product has always strived to be highly employee centric. Creating a workflow that caters to the employee’s wishes to allow booking delegation further strengthens our USP. 
+	•	Clients expect that delegation of bookings and other resources be a part of a workflow/product that is as extensive as WorkInSync. 
+
+Epic - Delegation workflow 
+Design - Delegation workflow - Figma
+
+Competitor Analysis
+Competitor
+Modules
+Condeco
+Meeting Rooms
+Robin
+Calendar events (Google + O365)
+Envoy
+Desk reservation
+
+Configurations:
+	•	The delegation workflow will be a configuration based feature.
+	•	isDelegationEnabled - True/False
+	•	 [Enables/Disables Delegation as a feature from the UI]
+	•	Default - False
+	•	enableDelegationForAdmins
+	•	The visibility of this for admins in the Employee page will be property controlled. 
+	•	Configuration Name - enableDelegationForAdmins
+	•	Value - Boolean (True/False)
+	•	Default - True
+	•	Service - emp-exp
+	•	blockDelegationEmail - True/False 
+	•	[Enabled/Disables the email that goes to a delegatee when a delegator assigns privileges]
+	•	Default - False
+	•	delegatorDelegateeEmailsEnabled 
+	•	[Enables/disabes the emails that are going to the delegatee only]
+	•	Value: True/False (Boolean)
+	•	emailSentOnDelegateeActions 
+	•	[Enabled delegatee emails to go to the delegator also]
+	•	Value: True/False (Boolean)
+	•	Delegation on app:
+	•	Even if delegation workflow is enabled (isDelegationEnabled) a user can only see “Switch Profile” if they have been assigned to a user
+	•	Enabling the different modules for the delegation:
+	•	Project Management Service > delegation
+	•	Enter the necessary values, below is list of possible values:
+	•	{
+	•	  "MEETING_ROOM_ENABLED": "Meeting Rooms",
+	•	  "WORK_PLANNER_ENABLED": Work Planner,
+	•	  "BOOKING_HISTORY": "Booking History",
+	•	  "UPCOMING_VISITOR": "Visitor Management",
+	•	  "FRONT_DESK": "Front Desk",
+	•	  "EMPLOYEE_WEB_EXPERIENCE": "Employee Web",
+	•	  "MOBILE_APP": "Mobile App"
+	•	}
+
+Personas involved:   A persona is a profile of a product’s typical consumer.  A user may be an employee, team manager or a site/global admin. 
+	•	Delegator - Someone who can delegate their resources for booking 
+	•	Delegatee - Someone who has been delegated resource booking rights for another user 
+All employees will see the option to delegate their resource booking rights to other user(s). This workflow will be available in the Profile section for every user. 
+Scope for v1
+Prerequisites
+	•	User navigates to the WorkInSync web portal or the app. 
+	•	User selects the sidenav menu on the web or the hamburger menu on the app and selects their Profile.
+	•	User sees options like - 
+	•	Personal Details
+	•	Addresses
+	•	Preferences
+	•	Privacy Settings
+	•	Delegation (only if property is enabled)			
+	•	User selects the Delegation menu option
+Delegator - User transfers resource booking privileges
+	•	Applicable to users who are team managers, global/site admins & employees. 
+	•	Use-case for this workflow is when the user is not available and needs to transfer resource booking ownership to someone so that bookings for his/her team/self can be made. 
+	•	Resource bookings/actions that can be delegated (overall workflow)-
+	•	Admin Dashboard
+	•	Employee Web (03-2023)
+	•	Work Planner (02-2023)
+	•	Premises
+	•	Meeting Rooms (02-2023)
+	•	Desk Management
+	•	Reports
+	•	Vaccination Review
+	•	Broadcast Message
+	•	Visitor Management
+Note - Only resources that are available for that business unit (BU) will be available for delegation.  
+	•	Transfer of resource booking privileges - 
+	•	The delegator selects the Manage button after which they can search for and select the employee(s) they want to delegate their rights to.
+	•	On  selecting an employee, by default the employee is given rights to all the available features/workflows.  With v1, there will be no limit on how many users a delegator can assign privileges to.  A user can be a delegatee for a maximum of 10 people.
+	•	On adding an employee, a toast is shown “Delegate [employee name] added”
+	•	If the delegator wants to assign different workflows to different delegatees, the delegator can add more delegatees after which features can be individually selected and delegated. 
+	•	The delegator can also delete a delegatee from the list entirely after which they cease to have access.  Only on selecting the Save button shall the deletion come to effect.  The duration for which a delegatee has access to a delegator’s rights is controlled here.  (In the future, there can be a requirement to have a control on duration, perhaps by a date picker)
+	•	The delegator can then save the current state. On selecting the “Save” button is when the validation occurs. A toast is shown on a successful save, “Settings saved successfully”.  In the event that a user who is assigned privileges has reached the limit of being a delegatee, show a failure message.  Eg: There are 3 users who are added as delegatees.  User A has not reached the limit but user B & C has reached the limit already.  When the delegator selects the “Save” button, the delegation assignment shall be successful for user A but not for user B & C.  Message to show -  “1 user(s) successfully added.  2 user(s) were not successful”.
+	•	Messages - 
+	•	100% Success -  1 was attempted to add, 1 was successful -  “Settings saved successfully.”
+	•	Partial Success/Failure - 
+	•	Eg: 2 were successful, 1 was not successful -  “Delegation partially successful. Please review the settings and try again.”
+	•	100% Failure -  1 was attempted to add, 1 was not successful -  “Settings were not saved. Please try later.”
+	•	On successful addition of a delegatee, the email below shall be sent - 
+
+	•	(Proper template is provided in Figma) Email details - (Every component must be configurable) From: bookings@workinsync.io  To: All the employee(s) who got delegated rights Subject: Privilege to book/perform actions granted Email body: Hi [Employee Name],  You’ve been granted privileges by [Name of delegator] and you can now make bookings or perform actions on their behalf.  Regards,  The WorkInSync Team
+   
+Delegatee - User is delegated resource booking privileges.  When an employee has been delegated team booking privileges they should receive an email as mentioned above.  
+	•	Once a user has been granted privileges, in the bottom of the sidenav, there will be a profile switcher button (assuming the property is enabled). On selecting the profile switcher, a panel expands that contains a list of all the users that a delegatee has been granted privilege for.
+	•	On selecting the profile of a delegator(s), the page reloads and the modules for which they are given access to will be displayed on the sidenav.  Eg:  Delegator - Aditya | Delegatee - Darshan Aditya allows Work Planner and Meeting Rooms privileges for Darshan. When Darshan switches profiles to Aditya, Darshan will only see the Work Planner and Meeting Rooms features available in the sidenav. 
+	•	On switching profile, the page will display the first module for which privilege was given. 
+	•	Along with the allowed features, at the bottom of the sidenav will be the profile and the logout option. The “Switch to MIS” button should not be shown as well. 
+	•	The delegatee will not be allowed to select the delegator’s profile. It will be a read-only state. This is done to ensure that the delegator’s privacy is honored. 
+	•	In the event the session expires or the user is logged out, on re-logging, the page that opens will be the default page for the delegatee (Darshan).  No page belonging to Aditya (Delegator) will open by default after re-logging. 
+Audit
+	•	As the scope for v1 is only for the two modules, Work Planner and Meeting Rooms, the audit scope shall remain the same. 
+	•	Work Planner -  For an employee who’s booking was planned on the behalf of a delegatee, in the Audit History for that employee, the “Updated By” column shall consist of the name of the delegatee.  Note -  If the Audit module in Work Planner is deprecated and only Employee Bookings in Audit History is considered, follow the same convention where the “Updated By” column shall consist of the name of the delegatee. 
+
+ 
+	•	Meeting Rooms - 
+	•	As of now meeting rooms audit is not built on the UI.  However, on the backend, it should reflect that the meeting was organized by the delegate where the creator & organizer were different people. 
+	•	Communicate to Outlook & Google regarding the delegator/delegatee behaviour. 
+	•	Delegatee should not be part of the meeting or in the meeting email/calendar invite
+Reports
+	•	Similar to Audit.  If a booking or an action is made by a delegatee, mention that it was done by the delegatee by modifying the “Updated By” column.   
+Acceptance Criteria
+Analytics -
+MoveInSync & WorkInSync Google Analytics Central Repository (WorkInSync Web sub-sheet)
+Delegation
+To track usage of sidenav feature - Delegation. 
+(for delegator)
+delegation
+Delegation
+Employee has been searched and selected
+(for delegator)
+delegatee_selected
+Delegation
+To track usage of the Manage button
+(for delegator)
+delegation_manage_button
+Delegation
+To track usage for Profile switcher
+(for delegatee).
+Set event when a user is actually clicked and the page refreshes to the new user
+delegation_profile_switched
+Accessibility - (will be picked up when Manager Accessibility is a priority)
+	•	ARIA labels will be provided
+Localisation - 
+Localization (Emp-Exp sub-sheet)
+
+Delegation
+Delegación
+Délégation
+وفد
+When turned on, you can assign your booking rights to others and let them perform actions on your behalf
+Cuando se enciende, puede asignar sus derechos de reserva a otros y dejar que realicen acciones en su nombre
+Une fois allumé, vous pouvez attribuer vos droits de réservation à d'autres et les laisser effectuer des actions en votre nom
+عند التشغيل ، يمكنك تعيين حقوق الحجز الخاصة بك للآخرين والسماح لهم بإجراء إجراءات نيابة عنك
+Add Delegates
+Agregar delegados
+Ajouter les délégués
+إضافة المندوبين
+Search for employees here
+Busque empleados aquí
+Rechercher des employés ici
+ابحث عن الموظفين هنا
+Employees
+Empleados
+Employés
+موظفين
+Meeting Rooms
+Salas de reuniones
+Salles de réunions
+غرف الإجتماعات
+Work Planner
+Planificador de trabajo
+Planificateur de travail
+مخطط العمل
+
+Privacy & Security:
+	•	If there is any data that constitutes as Personally identifiable information (PII) such as empID, name, phone number, etc. should be handled in the standard way such data is handled. 
+	•	Ensure there are no vulnerabilities in the API endpoints and they follow the standard Security Guidelines. Run Sonarqube and ensure the same. 
+Success Metrics: 
+Upsell would be the primary mode of selling the Booking Delegation module. 
+Existing customers can be provided with an additional feature for a slightly higher cost per user such that it greatly reduces their troubles in creating bookings, especially  in times of unavailability.  
+Goals to achieve within the first quarter of the release of the module - 
+	•	Sell to 2 clients
+
+Metrics to track -
+	•	NPS | ESAT
+	•	Number of clients onboarded
+	•	Frequency of usage
+	•	Delegatees added
+	•	Profile switched by delegatee
+Scope for v2 - 
+[To be updated later, ignore for now]
+	•	Have a time window for which resource booking delegation is valid. 
+	•	How to handle the case where a delegatee has already 10 people’s privileges and then someone else gives that same person right

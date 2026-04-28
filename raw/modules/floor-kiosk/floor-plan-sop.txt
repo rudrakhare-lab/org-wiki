@@ -1,0 +1,74 @@
+WorkInSync Floor plans - Add | Update
+Standard Operating Procedure Document
+
+Document Control
+Document  Name
+WorkInSync Floor plans - Add | Update SOP Document
+
+Version No
+1.0	
+Classification
+Confidential	
+Date
+26 August 2022
+
+ 	 	
+Version Control
+Ver No.
+Author	
+Approved by
+		
+Approved Date
+Description
+
+1.0
+Aditya Dutta
+Ujjwal Trivedi
+26 August 2022
+Initial Document
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+Purpose
+This document aims to provide an in-depth overview of the internal procedures that are undertaken to integrate a client’s floor plan into the WorkInSync system.
+Prerequisites
+	•	Floor plan from client (.dwg). 
+	•	DWG file that is converted to SVG must be less than 2 MB. Otherwise, convert it to PNG format so that floor plans do not take excessive time to load. 
+	•	Floor plans should have amenities marked clearly. If not marked, communicate with the client stating this is a requirement.  For - Pre-Sales/Sales/Implementation Teams.
+	•	If a client has a specific naming convention for their desks/amenities, that needs to be formally communicated. 
+Implementation Steps
+	•	The floorplans integration team receives the CAD floor plans from clients. These floorplans are generally in the format of .dwg. The plans are then cleaned up, digitized and are uploaded to the internal DIY Floorplanner tool where they are converted to .svg format such that the various components of a floor plan are interactable.  The floor plan upload and conversion is done here - DIY Floorplanner 
+	•	Once a floor plan is successfully converted and uploaded into the DIY Floorplanner, all the amenities (points of interest) need to be marked. An amenity or a point of interest can be anything from a meeting room, washroom, lift, cafeteria, etc.  A sample of an uploaded floor plan that requires marking of amenities can be found here: Sample floorplan 
+	•	In most cases, clients will have an established naming convention for their amenities. Ensure that this convention is strictly followed as all the seats and other amenities that are to be marked on the DIY Floorplanner must be manually labeled with the right name. 
+	•	Clients either give us the naming convention of their amenities via an Excel file or an image/PDF that has the labels of the amenities marked.  In the event that there is no naming convention given, the floorplan implementation team establishes a standard naming convention. 
+	•	Every seat that is marked on the tool must have a name and should be given an orientation (angle). 
+	•	Ensure that the names of the meetings rooms are the same as the Google/Outlook calendar.  
+	•	In order to preserve progress and not risk loss of effort, keep saving the project by clicking the Save project button.  
+	•	DIY Floorplanner Path toolkit - In the top-center of the screen of the DIY Floorplanner when a floor plan is loaded, there is a toolkit that has useful tools to build paths.  These paths are used to connect all the amenities in a floor such that a mapping is connected which is required to compute their relative positions. Toolkit - 
+	•	Mouse pointer - Used to change the state of the cursor from another state to a pointer. 
+	•	Amenity selector - Used to mark and assign a space on the floor plan as an amenity. On marking a space, the type of amenity, amenity label, colour (optional), Mark as exit (optional) and icon assignment can be done. 
+	•	Draw line -  This tool is used to draw walkways and create paths on a floor plan.  If a line is drawn, a tool appears which can be used to delete a section of a line that is drawn .
+	•	Edit line - This tool is used to edit already drawn lines.  
+	•	Paths can be drawn across the floor plan using the toolkit. A good approach to construct paths is a top-down approach. Draw the longest walkways across the floor and gradually work your way to reach the edges of the floor plan.  
+	•	Click on the button ‘Seat Paths’ to map all the amenities to the paths created. Upon clicking of this button, the entire floor will be connected (assuming paths are drawn correctly).  In case paths are not drawn correctly, there will be an option to remove all the paths that were created.  
+	•	Once navigation data is drawn correctly, the ‘Verify Data’ button verifies if it can be fed into the database. This button basically checks the validity of the mappings that were created.  
+	•	Once verification is successful, export navigation data as json using the ‘Export as JSON’ button. This export is required for computation. This json data for path generation is fed to the Premise service where parameters like (premiseID and parentPremiseID) are used for computation. The Premise service has a database which keeps a record of all the data.  
+	•	The creation of navigation data for one floor is done. Do the same for the other floors of the office. After this, data for single office; multi-floor is ready.  
+Note 
+In the event that navigation needs to be updated due to missing amenities or incorrect mappings, update the floorplans/mappings/paths, re-generate the mappings and export the data as JSON again after which the data can be fed back to the Wayfinding service. 
+
+
+
+
+

@@ -9,6 +9,26 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 
 ---
 
+## [INGEST 2026-04-28] INGEST | floor-kiosk, delegation, employee-experience, digital-wayfinding, meal-management, implementation
+
+**Sources ingested (8 more):**
+- `DIY Floor Planner Version Control PRD.docx` → [[sources/diy-floor-planner-prd]]
+- `Floor Kiosk Device Specification Data Sheet.docx` → [[sources/floor-kiosk-device-spec]]
+- `WorkInSync Floor plan - Add | Update - SOP.docx` → [[sources/floor-plan-sop]]
+- `Delegation PRD.docx` → [[sources/delegation-prd]]
+- `Digital Wayfinding Implementation SOP.docx` → [[sources/digital-wayfinding-sop]]
+- `Meal Check-in via Access Card PRD.docx` → [[sources/meal-checkin-prd]]
+- `SOP for Launching WorkInSync on Live ETS Server.docx` → [[sources/launch-ets-sop]]
+- _(emp-exp delegation doc = duplicate of delegation PRD — not re-ingested)_
+
+**New module pages:** floor-kiosk, delegation, digital-wayfinding, employee-experience, meal-management, implementation
+**New entity:** meal-booking
+**New cross-module:** meal-access-management
+**New decisions:** delegation-stateless-session, standalone-meal-booking-constraint
+**Updated:** index.md, log.md, overview.md, cross-module/overview.md, glossary.md
+
+---
+
 ## [INGEST 2026-04-28] INGEST | parking-management — 3 source documents
 
 **Sources ingested:**

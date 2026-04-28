@@ -1,0 +1,115 @@
+Digital Wayfinding
+Implementation SOP Document
+
+Document Control
+Document  Name
+Digital Wayfinding Implementation SOP Document
+Version No
+2.0	
+Classification
+Confidential	
+Date
+27 February 2024
+
+ 	 	
+Version Control
+Ver No.
+Author	
+Approved by
+		
+Approved Date
+Description
+
+1.0
+Aditya Dutta
+Ujjwal Trivedi
+17 August 2022
+Initial Document
+	
+2.0
+Aditya Dutta
+Ujjwal Trivedi
+27 Feb 2024
+Support for parking 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Purpose
+This document aims to provide an in-depth overview of the internal procedures that are undertaken to implement Digital Wayfinding.
+Prerequisites 
+(For Pre-Sales/Sales/CS Team)
+	•	Floor plan from client(DWG/PNG/PDF). 
+	•	A DWG file that is converted to SVG must be less than 2 MB. Otherwise, convert it to PNG format so that floor plans do not take excessive time to load. 
+	•	Floor plans should have amenities marked clearly. If not marked, communicate with the client stating this is a requirement. 
+	•	If a client has a specific naming convention for their desks/amenities, that needs to be formally communicated. 
+	•	Upload all floor plans and related information to the floor plan team (Vikas Upadhyay) using this Google Form
+	•	The Floorplan and SE team will take care of the rest and you should have Wayfinding enabled once they are done!
+Guide & Implementation Steps 
+(For Floor Plan team)
+	•	The floorplans integration team receives the CAD floor plans from clients. These floorplans are generally in the format of .dwg. The plans are then cleaned up, digitized and are uploaded to the internal DIY Floorplanner tool where they are converted to .svg format such that the various components of a floor plan are interactable.  The floor plan upload and conversion is done here - CADViewer 
+	•	Once a floor plan is successfully converted and uploaded into the DIY Floorplanner, all the amenities (points of interest) need to be marked. An amenity or a point of interest can be anything from a desk, parking slot, meeting room, washroom, lift, cafeteria, entry/exit, reception, etc.  A sample of an uploaded floor plan that requires marking of amenities can be found here: Sample floorplan     
+	•	CADViewer Blue Button Legend - 
+	•	Toggle B/W Color 
+Changes from Light mode to Dark mode
+	•	Sync UUID This button is used when a project is edited such that there is a change in the amenities and their unique identifiers. Eg: If a floor plan had 50 desks and a request was made to add 5 more desks, the same project is edited and after the new edits are added, select the “Sync UUID” button so that the integrity of the unique identifiers is maintained. 
+	•	Sync Project  If shifting from one project to another, the “Sync Project” button is helpful to ensure the current settings and path work is retained in the new project.
+	•	Upload Project  This is used to upload the floorplan and related data into the database. 
+On selecting this, select the environment (SG/EU - Singapore or Europe, depending on the customer site URL) Select the respect office, seat/floor or parking/zone/level that this floor plan belongs to.  This can also be done via Postman API, done by the SE Team. 
+	•	Upload Way Path  This is used to upload the data for wayfinding into the database. 
+On selecting this, select the environment (SG/EU - Singapore or Europe, depending on the customer site URL) Select the respect office, seat/floor or parking/zone/level that this floor plan belongs to. 
+This cannot be done via Postman. Has to be done in the tool. 
+	•	Export as SVG Used to export the floor plan as an SVG file.
+	•	Export as JSON Used to export the JSON data of the floor plan. 
+	•	Save Project Retain the current progress of your project in case you need to come back to it later so that you don’t have to start over.
+	•	Logout
+Logs you out of the current instance of the CADViewer
+	•	Navigation
+	•	Check Paths - Checks the integrity of the paths draws and shows errors (if any)
+	•	Seat Paths - Connects all the nearest POIs to a line
+	•	Remove Paths - Removes all the paths
+	•	Path Validation - Ensures every POI is connected
+	•	Save Data  - Saves your current progress 
+	•	CADViewer Path toolkit - In the top-center of the screen of the DIY Floorplanner when a floor plan is loaded, there is a toolkit that has useful tools to build paths.  These paths are used to connect all the amenities in a floor such that a mapping is connected which is required to compute their relative positions. Toolkit - 
+	•	Mouse pointer - Used to change the state of the cursor from another state to a pointer. 
+	•	Direction selector - This is used once a line (path) has been drawn across a floor plan. Select a path, and then click on the line to set the direction of this line.  While plotting way paths across the floor plan, mention the direction of the waypath. 
+	•	Directions in a parking floor plan are unidirectional
+	•	Directions in an office floor plan are bi-directional
+	•	You can further have a RTL (Right to left) or LTR (Left to right) unidirectional path. 
+	•	Amenity selector - Used to mark and assign a space on the floor plan as an amenity. On marking a space, the type of amenity, amenity label, colour (optional), Mark as exit (optional) and icon assignment can be done.  This is also where you can set a parking slot as a stacked parking/bike slot.  Furthermore, you can set the mapping of the type of parking slot for a particular slot - Eg: SUV/Hatchback/Sedan. 
+	•	Rounded dotted circle icon (#4) - Not required 
+	•	Disconnected lines - Shows you which lines are disconnected.  All lines need to be connected so that the system can compute Wayfinding across the floor. 
+	•	Delete - Removes a path drawn
+	•	Draw line -  This tool is used to draw walkways and create paths on a floor plan.  If a line is drawn, a tool appears which can be used to delete a section of a line that is drawn .
+	•	Edit line - This tool is used to edit already drawn lines.  
+	•	In most cases, clients will have an established naming convention for their amenities. Ensure that this convention is strictly followed as all the seats and other amenities that are to be marked on the DIY Floorplanner must be manually labeled with the right name. 
+	•	Clients either give us the naming convention of their amenities via an Excel file or an image/PDF that has the labels of the amenities marked.  In the event that there is no naming convention given, the floorplan implementation team establishes a standard naming convention. 
+	•	Every seat that is marked on the tool must have a name and should be given an orientation (angle). 
+	•	Ensure that the names of the meetings rooms are the same as the Google/Outlook calendar. 
+	•	Entrance/exits, stairs/elevators, meeting rooms and other amenities are marked in this stage of the process. 
+	•	Mark a reception that will serve as a de-facto starting point (source). There can be multiple receptions if present on the floor plan but only 1 reception will be considered as the source. 
+	•	While marking amenities that traverse multiple floors, ensure that they have the same name even though they may be present in another floor.  Eg: Stairs 1 or Elevator 1 should be present throughout all the floors while marking in the DIY Floorplanner. 
+	•	If the floorplan is a parking floor plan, ensure to add the appropriate vehicle for the slot (2/4 wheeler).  
+	•	In order to preserve progress and not risk loss of effort, keep saving the project by clicking the Save project button.  
+	•	Paths can be drawn across the floor plan using the toolkit. A good approach to construct paths is a top-down approach. Draw the longest walkways across the floor and gradually work your way to reach the edges of the floor plan.  
+	•	Click on the button ‘Seat Paths’ to map all the amenities to the paths created. Upon clicking of this button, the entire floor will be connected (assuming paths are drawn correctly).  In case paths are not drawn correctly, there will be an option to remove all the paths that were created.  
+	•	Once navigation data is drawn correctly, the ‘Path Validation’ button verifies if it can be fed into the database. This button basically checks the validity of the mappings that were created.  
+	•	Once verification is successful, upload the Way paths. select the environment (SG/EU - Singapore or Europe, depending on the customer site URL).  Select the respect office, seat/floor or parking/zone/level that this floor plan belongs to.  
+	•	Export navigation data as JSON and SVG using the ‘Export as JSON & SVG’ button. This export is required for Wayfinding computation. This JSON data for path generation is fed to the Wayfinding service where parameters like (premiseID and parentPremiseID) are used for computation. The Wayfinding service has a database which keeps a record of all the data.  Share these files (2 files/floor) with the SE Team.  
+	•	The creation of navigation data for one floor is done. Do the same for the other floors of the office. After this, wayfinding for single office; multi-floor is ready. 
+(For SE team)
+
+	•	Upload the SVG & JSON file via Postman for each floor. (Documentation for this is already present with the SE team).  
+	•	This is a property based configuration that can be enabled/disabled to view on the mobile. Raise a SE ticket and enable the configuration for the respective bu - “ENABLE_INDOOR_NAVIGATION”.  Default state is ‘False’.  
+Note 
+In the event that navigation needs to be updated due to missing amenities or incorrect mappings, update the floorplans/mappings/paths, re-generate the mappings, sync UUID and export the data as JSON again after which the data can be fed back to the Wayfinding service. 

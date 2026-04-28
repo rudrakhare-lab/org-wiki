@@ -1,0 +1,90 @@
+
+Document Control
+Document  Name
+DIY Floor Planner Version Control - PRD
+Version No
+1.0
+Classification
+Internal	
+Date
+17/06/2022
+
+ 	 	
+Version Control
+Ver No.
+Author	
+Approved by
+		
+Approved Date
+Description
+
+1.0
+Aditya Dutta
+Ujjwal Trivedi
+17/06/2022
+Initial Document
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+DIY Floor Planner Version Control - PRD
+What?
+The DIY Floor Planner is an internal tool that is used by WorkInSync. When a floor plan is received from a client generally in the format of .dwg (AutoCAD), the floor plans are then cleaned up, digitized and are uploaded into this tool where they are converted to .svg format such that the various components of a floor plan are interactable and can be consumed for end-user interaction. DIY Floor Planner
+Why?
+A version control system on the DIY Floor Planner is required to ensure efforts on the development of floor plans can be preserved. If required, previous versions of floor plans should be restored so that work can begin from that point instead of starting from scratch. The ability to restore to previous versions is important in the event that there is a change in a client’s ask. An example of a potential use-case -  Client A who is live wants to remove 10 seats, convert it into a meeting room and add 5 seats at a different place.  At the moment as there is no way to restore the development of the floor plan to a certain stage, the team has to take an untouched floor plan and spend extra time to redesign the floor plan according to the new requirement by the client.  In some cases, there is a possibility that an untouched floor plan is not available which would require the team to ask for the original file from the client. 
+
+A version control system also helps in auditing as it is easy to find out exactly who made what change in the floorplan. This makes accountability easy because when it comes to large floor plans of MNCs, it can become very difficult to track changes. 
+
+Thus, these issues lead to a waste of time and there is needless back and forth between teams and the client. Implementing a version control system such that versions of the floor plan, either in the form of DWG or SVG can be restored to a previous version. 
+Phase 1: WorkInSync Integration - 
+Why?
+
+	•	At the moment, the DIY Floor Planner is available to any user including users outside of MoveInSync as  it is a publicly available website with no form of user authentication. 
+	•	This is a security risk as floor plans of our clients are exposed and anyone can browse, replicate and potentially misuse this confidential data. 
+	•	In order to fix this, the best long term solution is to integrate this into the WorkInSync ecosystem. The reason this is deemed as the best solution is because: 
+	•	The issue of user authentication lacking in the current website is fixed which improves the overall security.
+	•	Auditing of floor plans becomes much easier as the existing user accounts present in WorkInSync can be leveraged to implement a version control system.
+	•	Integrating this into WorkInSync also can become an upsell in the future because the DIY Floor Planner can be made available to the users where they can update and modify their floor plans without being dependent on WorkInSync. This gives the client a sense of control which also reduces workload on our side.
+	•	From a technical perspective, the integration means that the DIY Floor Planner does not require a new Jenkins job to be created. Currently, manual deployments are required to make any changes in the DIY Floor Planner. Presence of a Jenkins job means that making new changes and ensuring that they are done the right way without breaking other things happens smoothly. 
+How?
+	•	Integrating the DIY Floor Planner into WorkInSync begins by porting it as-is into the WorkInSync ecosystem. For now the scope will be limited to Workinsyncio. 
+	•	Integration begins by adding another item in the side-nav present. The name of this section will be ‘DIY Floor Planner’ and will be available to users who are of a certain role. [Side-nav icon to be provided]
+	•	The only other role that will have access to the DIY Floor Planner in WISIO will be the Global Admin. 
+	•	The inception of the DIY Floor Planner began as a POC due to which there are some broken flows in the website at the moment. However, in order to close the security gap that exists, the DIY Floor Planner will be first ported into WorkInSync and in Phase 2, fixes can be planned and prioritized along with implementing version control in Phase 2. 
+Phase 2: Implementing version control - 
+In order to implement version control on the DIY Floor Planner, files can be saved on the basis of timestamps and can be uploaded at any point in time where it is restored and can be worked on from that state.
+Flow - 
+	•	On the main menu of the DIY Floor Planner, if a DWG file is imported via the ‘Import DWG’ button, it gets stored in the list that is present under ‘My Files’. In the event that a DWG file is imported with the same name, show a prompt asking if you want to overwrite the files, “There is already a file present with the same name. Are you sure you want to overwrite it?” with two CTAs, ‘Yes’ and ‘No’. On clicking ‘Yes’, the file that is being imported replaces the existing file. Save both the versions of the file on the basis of timestamps and assign a de-facto naming scheme for the files. [v1, v2…, vN] can be used.  On clicking ‘No’, the pop-up gets dismissed and no other action is taken. 
+	•	On the main menu of the DIY Floor Planner, for every entry present under ‘My Files’, place a button that  allows the user to to open a specific version of the DWG file that will be later converted to SVG. As shown in the image below, if the CTA is clicked, the user can choose a different DWG file that will replace and overwrite the existing one. A similar pop-up as described above will be shown. At this moment,  behind the scenes, save the previous version of the DWG, JSON and the new version of the files that are being loaded. This will be done via timestamps and the de-facto naming scheme as mentioned above. 
+
+
+	•	Once a floor plan opens, the ‘Save Project’ button will save the JSON on the basis of timestamps and assign a de-facto name as mentioned.  
+	•	In the event that a floor plan is opened but the JSON containing all the mappings is not present, all the user needs to do is be able to restore the JSON that is present in the database. Thus, there should be a new CTA ‘Restore JSON’ where the user can select the JSON by timestamp and name. 
+	•	JSON and DWG will be saved into an S3 bucket. They will no longer be saved in a folder present in the server that has a limit of ~5 GB. 
+Appendix
+This section is to highlight other issues that are not a part of the version control for DIY Floor Planner but are relevant to the ultimate experience to the internal users.  
+	•	If there is a very large and expansive floor plan with 100+ seats, it becomes very difficult to identify which seats are unlabelled. It is important to ensure every seat is labeled in the right naming convention.  A fix for this could be to highlight the unlabelled seats (name is ‘null’) such that the seat becomes red in color. 
+	•	In the event that seats have the same name, while saving a project, notify the user that there is a duplication.
+	•	UI improvements to group common buttons and features in the DIY Floor Planner once a floor plan is loaded.  [PB-218870 - Implement UI Fixes on DIY Floor Planner]
+
+Re-visit -
+	•	What is the use-case for ‘Export to DWG’?
+	•	We are not using the paid version of DIY Floor Planner Library (DWG to SVG, splitting into layers)
+
