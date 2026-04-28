@@ -75,7 +75,7 @@ _Note: Exact paths not confirmed from docs — above is inferred. Update when AP
 | Config Key | Type | Default | Description |
 |---|---|---|---|
 | `MEETING_ROOM_ENABLED` | boolean | false | Master switch to enable Meeting Rooms |
-| `MEETING_ROOM_RELEASE_IF_NO_CHECKIN` | integer (min) | 180 (deployment), 15 (app PRD) | Minutes before auto-releasing unchecked room |
+| `MEETING_ROOM_RELEASE_IF_NO_CHECKIN` | integer (min) | 180 (deployment default); **15 min recommended setting** | Minutes before auto-releasing unchecked room |
 | `RELEASE_MEETING_ROOM` | boolean | false | Whether auto-release is active |
 | `SHOW_UPCOMING_BOOKINGS_TIME` | integer (min) | 6 | Minutes before start to show check-in prompt on kiosk |
 | `MEETING_EMAIL_OTP_TO_AUTHENTICATE` | boolean | true | Whether PIN email is sent for kiosk cancel/end |

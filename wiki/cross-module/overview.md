@@ -7,10 +7,12 @@ _Auto-maintained. Updated when new dependencies are discovered._
 | Module | Depends On | Used By |
 |--------|-----------|---------|
 | [[modules/meeting-rooms]] | tags-desk-parking (tag engine), floor-kiosk (kiosk infra), mobile-app (app container), ms-teams-integration (Outlook sync) | meal-management (cafeteria entity) |
-| [[modules/tags-desk-parking]] | _(none known yet)_ | meeting-rooms (Dynamic Policy) |
+| [[modules/parking-management]] | tags-desk-parking (tag engine), mobile-app (booking surface), desk-management (WFO form entry point) | desk-management |
+| [[modules/tags-desk-parking]] | _(none known yet)_ | meeting-rooms (Dynamic Policy), parking-management (vehicle-type policy) |
 | [[modules/floor-kiosk]] | _(none known yet)_ | meeting-rooms (kiosk surface) |
-| [[modules/mobile-app]] | _(none known yet)_ | meeting-rooms (booking surface) |
+| [[modules/mobile-app]] | _(none known yet)_ | meeting-rooms (booking surface), parking-management (booking surface) |
 | [[modules/ms-teams-integration]] | _(none known yet)_ | meeting-rooms (Outlook/Google sync) |
+| [[modules/desk-management]] | _(none known yet)_ | parking-management (WFO form entry point) |
 
 ---
 
@@ -37,3 +39,4 @@ _Auto-maintained. Updated when new dependencies are discovered._
 | [[cross-module/meeting-rooms-tags-desk-parking]] | meeting-rooms, tags-desk-parking | Dynamic Policy — tag-based room access control |
 | [[cross-module/meeting-rooms-floor-kiosk]] | meeting-rooms, floor-kiosk | Room kiosk hardware, MDM, status display, PIN auth |
 | [[cross-module/meeting-rooms-mobile-app]] | meeting-rooms, mobile-app | Mobile booking flow, QR check-in, maintenance banners |
+| [[cross-module/parking-tags-desk-parking]] | parking-management, tags-desk-parking | Vehicle-type Dynamic Policy + BLOCK_HOTSEAT policy for parking slots |

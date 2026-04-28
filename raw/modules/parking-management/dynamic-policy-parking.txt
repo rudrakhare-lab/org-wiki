@@ -1,0 +1,157 @@
+Dynamic Policy for Parking
+
+Document Control
+Document  Name
+Dynamic Policy for Parking
+Version No
+1.0
+Classification
+Confidential	
+Date
+10-07-2024
+
+ 	 	
+Version Control
+Ver No.
+Author	
+Approved by
+		
+Approved Date
+Description
+
+1.0
+Aditya Dutta
+Ujjwal Trivedi 
+10-07-2024
+Initial document
+1.1
+Aditya Dutta
+Ujjwal Trivedi
+29-07-2024
+Added SOP for new additions of resources
+1.2
+Aditya Dutta
+Ujjwal Trivedi
+01-08-2024
+Added specific parking scenarios
+1.3
+Aditya Dutta
+Ujjwal Trivedi
+22-10-2025
+Added an edge case 
+
+
+
+
+
+What is it?
+	•	Dynamic policies are specific instructions that can be configured to allow specific workflows. 
+	•	In the context of parking, dynamic policies can be assigned to create specific parking zones/areas.  These areas can be on the basis of the type of slot, the kind of slot it is, etc
+	•	Eg -  If slots at a parking space are differentiated via the type of vehicle that will park there, they can be created on a vehicle build level such as Hatchback, SUV, Sedan. 
+Why?
+	•	Dynamic policies are useful so that you can allow users to create bookings for resources that only they have access to. This ensures fair and optimal usage/booking of resources. 
+	•	Example #1 - If a user has a hatchback and dynamic policies are not applied, the user might park at a slot reserved for SUVs just because that slot is bigger and easier to park at. 
+	•	Example #2 - If a user is an executive and has a specially reserved slot, if dynamic policy is not done, a user who does not have special access parking for reserved employees could park there. 
+
+
+
+How does it work?
+	•	Decide on the kind of dynamic policies that you want to ensure optimal usage of resources. 
+	•	Assume the following scenario - 
+	•	Dynamic policies of slots need to be done on a vehicle build level so that users with the right vehicle park at the respective slots.  
+	•	Dynamic policies required - 
+	•	Policy for Crossover,SUV,MUV
+	•	Policy for Sedan
+	•	Policy for Small,Hatchback
+	•	Policy for preventing parking booking (BLOCK_HOTSEAT) 
+	•	Once the policy strategy has been decided, the next step is to configure the policies in the system. This is done in a two-pronged manner - 
+	•	Assignment of policies to an employee
+	•	Assignment of policies to the resource Example - 
+	•	User A - Sedan 
+	•	Level 1, Slot 69 - Sedan
+	•	This dual mapping is what allows a user with a sedan to ensure he/she is able to book slots that are only reserved for sedans.  
+	•	Navigate to the tool.  Sidenav -> Desk Allocation -> Desk Bulk Upload -> Employee Tagging
+	•	Download the sample file present and fill information accordingly. 
+	•	Sample - 
+  
+
+
+
+
+
+	•	Sidenav -> Desk Allocation -> Desk Bulk Upload -> Parking Tagging
+	•	Download the sample file present and fill information accordingly. 
+	•	Sample - 
+
+
+	•	Upload each of these files. If successful, the relevant policies will show up in the “Other Details” section in the user’s profile 
+
+Understanding the policies
+	•	Values a policy can have - 
+	•	Yes (Any value can be given as it is a pattern match)
+	•	The policy system looks to see if a policy has a value for it or not. “Yes” is a value. There can be other values for it as well depending on the kind of policy. 
+	•	Null/null 
+	•	The value is used to remove the policy from the user. If you want to disassociate a policy for a user, the “Null/null” value is used. 
+	•	Blank 
+	•	The value, if left blank, tells the system to ignore this entry. 
+
+In the scenario that we have taken there are two kinds of dynamic policies.  Prerequisite - Tags are applied to an employee and parking slot. 
+
+	•	To apply/remove policies to/from parking slots:  (Available policies:  Crossover,SUV,MUV | Sedan | Small,Hatchback | Micro, Hatchback)
+	•	When ‘Yes’ is marked for policy type against a parking slot, then the slot will be available to users who are marked ‘Yes’ under the same policy type.  Basically, the system matches the policy in the parking slot with that of the employee profile and if both the policies are matched, that parking slot is available to book by that employee. For Eg: If ‘Sedan’ is marked ‘Yes’ against parking slot ‘P1-100’, then the slot will be available to employees who will be tagged ‘Yes’ under ‘Sedan’ parking type.
+	•	To remove the parking policy from any parking slot, we mark that policy type as ‘Null/null’ against that parking slot.
+	•	If the policy type is kept blank against any parking slot, then the existing policy will be unmodified. 
+	•	To apply/remove policies to/from employee/user profiles  (Available policies:  Crossover,SUV,MUV | Sedan | Small,Hatchback | Micro, Hatchback)
+	•	When “Yes” is marked for employee/user, the user is able to see that slots marked under the same policy type and can create a parking booking. 
+	•	When “Null/null” is marked for employee/user, the parking policy is removed from the user’s profile
+	•	When the cell is blank, for employee /user, then there is no change in existing parking policies for the user. 
+     3. Policy for preventing parking booking (BLOCK_HOTSEAT)
+	•	When “Yes” is marked for employee and user, the user is able to see that slot and can create a parking booking. 
+	•	When “Null/null” is marked for employee and user, it is used to remove the policy from the user
+	•	When the cell is blank, for both employee and user, it is ignored
+
+Note - The BLOCK_HOTSEAT policy is used to block only those slots that are marked as hotslots. If a user has a sedan policy in Employee and Parking policy, they can still create a parking booking for a sedan slot. 
+
+
+Scenarios
+Scenario 1
+If there is a case, where the organization wants users to book parking slots for only the vehicle types that they are assigned to via policies, upload the “Employee Tagging” document like so - 
+
+
+	•	The BLOCK_HOTSEAT tag ensures that users cannot block hot slots. 
+	•	The “Yes” values under the vehicle types is the assignment of that vehicle type for that particular user. 
+Scenario 2
+If there is a case, where the organization wants to block users from creating any parking bookings at all due to non-compliance of the process, upload the “Employee Tagging” document like so - 
+
+
+	•	Setting “Null” for the vehicle build type that the user is given ensures that users can not book slots for the vehicle build type that they are given access to. 
+	•	The behaviour of the “BLOCK_HOTSEAT” policy remains the same. 
+
+Scenario 3
+An admin has uploaded tags for a user for a future date. For some reason, they need to update the future date to today. The admin needs to first upload the tag file by putting null in the columns where the tag is to be applied. This removes the effect of the earlier tag and then the admin can re-upload with the new start date and the tag config. 
+SOP for new additions
+New employee
+	•	If there is an addition of a new employee, the following needs to be done - 
+	•	Get details of the new employee’s vehicle status
+	•	A new entry for this new user has to be added in the “Employee Tagging” file assigned the right tags
+	•	Eg - If the user has a SUV, the entry will contain the user’s employee ID, start date trigger and type “Yes” under the “SUV” tag. 
+	•	Optionally, if you want the user to only see SUV slots, mark “Yes” under the “BLOCK_HOTSEAT” tag. 
+New parking slot
+	•	If there is a new parking slot that is to be added into the system, write an email to the MoveInSync team giving the following information - 
+	•	Office, Zone, Level and Slot No. 
+	•	The MoveInSync team will get this added into the server from the backend. 
+	•	The Parking tagging file needs to be uploaded with the above information as well as the trigger start date as well as the tag that is to be associated with this new slot. 
+(Follow the process mentioned above in the “How does it work” section for the Parking Tagging file)
+Edge cases
+
+	•	There can sometimes occur a case where, during the tagging upload process, the start date in the tagging file gets modified into the in the future due to a formatting issue.
+	•	Since this date had not yet elapsed, the updated tags are not mapped to the users, which leads to a discrepancy in users seeing incorrect vehicle levels.  
+	•	Here’s how it can be corrected:
+	•	In the event the tag setup is done such that the date is in the incorrect format, upload a new file where the dates are in the right format and for the right starting date. Apply "null" for the relevant tags and upload this file.
+	•	This upload will ensure that all the tags are removed for these affected users and a fresh tagging setup can be done.
+	•	Apply "yes" for the relevant tags with the start date in the right format to re-apply the tags as desired.
+
+
+
+
+

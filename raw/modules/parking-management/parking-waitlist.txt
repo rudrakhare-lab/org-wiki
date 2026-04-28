@@ -1,0 +1,28 @@
+MoveInSync Parking Waitlist - Overview & Screenshots
+What is it?
+The MoveInSync Parking Booking Waitlist system is a way for users to join a queue such that they can enroll for potential parking slots that can open up if users do not show up or cancel their bookings due to a change in plans. 
+The system works a lot like the IRCTC system and works on the concept of First-Come-First-Serve. 
+Why is it needed?
+A system like this is paramount for a setup where there is a high demand for parking slots but low supply of slots. 
+This system ensures there is an optimal utilization of parking slots and everyone gets a fair chance at getting a slot. 
+How does it work?
+	•	It works on the basis of First come, first serve once all slots are booked.  
+	•	Users can choose to join a single waitlist or join all waitlists, depending on their flexibility.
+	•	Waitlists here are on a level basis. In the event a particular level is far from their desk or not favourable, they can choose only the waitlists that are convenient for them. Else, they can choose to be a part of all the waitlists that would increase their chances of getting a slot if they are flexible. 
+	•	Users may be a part of a waitlist for one level, but if they find an open slot for a different level, they can go ahead and book that slot.  
+	•	Users are shown real-time W/L # so they get an idea if they will get a slot or not.  Eg - If W/L #3, there is a good chance they might get a slot, but if W/L #72, they are unlikely to get a slot and can consider working from home, or commuting via public transport or carpooling. 
+Product Screens
+Scenario 1
+No Available Slots  
+Scenario 2
+Join a single waitlist 
+
+
+
+Scenario 3
+Join multiple waitlists as per your choice to increase chances of getting a slot
+
+
+Scenario 4
+Book a slot in another level different from your waitlist level in case a slot opens up
+ 

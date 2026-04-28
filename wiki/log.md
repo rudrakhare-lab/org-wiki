@@ -9,6 +9,32 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 
 ---
 
+## [INGEST 2026-04-28] INGEST | parking-management — 3 source documents
+
+**Sources ingested:**
+1. `Copy of Copy of Parking PRD.docx` → [[sources/parking-prd]]
+2. `MoveInSync Workplace - Dynamic Policy for Parking.docx` → [[sources/dynamic-policy-parking]]
+3. `Copy of Parking Waitlist - Overview & Screenshots.docx` → [[sources/parking-waitlist]]
+
+**Pages created:**
+- `wiki/modules/parking-management.md` (new)
+- `wiki/entities/parking-slot.md` (new)
+- `wiki/entities/parking-booking.md` (new)
+- `wiki/cross-module/parking-tags-desk-parking.md` (new)
+- `wiki/decisions/2026-04-28-parking-slot-allocation-priority.md` (new)
+- All 3 source pages in `wiki/sources/`
+
+**Pages updated:** `wiki/index.md`, `wiki/log.md`, `wiki/overview.md`, `wiki/cross-module/overview.md`, `wiki/glossary.md`
+
+**Also fixed:** `MEETING_ROOM_RELEASE_IF_NO_CHECKIN` config note — 180 min is deployment default; 15 min is recommended setting.
+
+**Open questions flagged:**
+- Parking cut-off time property name left blank in PRD
+- Waitlist: does it auto-assign slot or notify employee to manually book?
+- New slot onboarding requires MoveInSync team email — not self-serve
+
+---
+
 ## [INGEST 2026-04-27 17:45] INGEST | meeting-rooms — 8 source documents
 
 **Sources ingested:**

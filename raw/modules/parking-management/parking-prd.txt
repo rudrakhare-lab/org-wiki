@@ -1,0 +1,388 @@
+
+Document Control
+Document  Name
+Parking Management PRD
+Version No
+1.2
+Classification
+Internal	
+Date
+30/03/2022
+
+ 	 	
+Version Control
+Ver No.
+Author	
+Approved by
+		
+Approved Date
+Description
+
+1.0
+Jovil Nazareth
+Ujjwal Trivedi
+14/10/2021
+Initial Document
+1.1
+Jovil Nazareth
+Ujjwal Trivedi
+26/10/2021
+Review Comments added
+1.2
+Binoy Dedhia
+
+
+
+
+
+
+PARKING MANAGEMENT PRD
+
+Problem Statement:
+Prior to the pandemic, parking spaces in organizations were often reserved to a few employees. With the increased trend in hybrid working, these reserved parking spaces are often underutilized. These spaces are now opened for all employees on a first come, first serve basis. Most companies have limited parking spaces available for utilization by their employees as compared to desk availability which creates ambiguity leading to inconvenience to the employees planning to work from the office.
+Further, in larger tech parks, employees/visitors of a particular office are often clueless on where the parking premises are located, resulting in in-efficient utilization of the parking spaces. 
+
+Objective:
+Parking management solution aims to provide a real time status and visibility of the parking space. Employees can book parking slots in advance. Unclaimed parking slots will be available again for booking which will help companies better manage their parking spaces and ensure efficient utilization of the resources. 
+
+Who’s it for?
+	•	Companies with limited spaces available for parking
+	•	Owners that lend parking spaces to various companies and individuals
+
+Why build it?
+	•	Sales leads are generated requesting for this feature. It would help us sell better
+	•	Helps us enrich our product suite
+
+Parking Management Universe
+Flow 1: Employees create a booking
+
+
+
+	•	Users book parking premise from the web browser or mobile app
+	•	Web → Work from Office booking from the “My Bookings” tab
+	•	App → Work from Office booking from the fab button
+
+
+
+	•	For first time parking users, vehicle number is to be stored in the system. This can be asked after they select car or bike parking. For frequent users, when they select car or bike parking, the vehicle number can be shown below it, with an editable field.
+	•	The vehicle number should be stored for that particular day’s booking and should not override the previous vehicle number
+	•	Similar to booking form, at the time of entering or editing the vehicle number, the “Update Preference” should also be visible
+	•	Parking slots can be booked “n” minutes before the cut-off time. The cut-off time property that is present for desk booking will be applicable to parking booking as well 
+Property name → 
+	•	Unlike desk booking, parking slots should be available “MM” minutes before the selected login time, to ensure a buffer 
+For E.g, If the user has selected 8:00 AM as login shift time, and the buffer is set as 30 mins, then the parking slot should be free from 7:30 AM.
+	•	Unlike desk booking, parking slots should be available “MM” minutes after the logout time to ensure a buffer. Similar use case as above, but for check-out
+	•	Parking is treated as a separate premise with its own check-in series challenges (Need to define more)
+
+Parking as a Premise
+	•	When a parking premise is configured, by default the capacity should be set to zero
+	•	The name of the parking premise should be editable at all times
+	•	The premise should be scalable to include multiple levels i.e.,
+	•	One office can have multiple parking facilities mapped to it
+	•	One parking facility can have multiple floors associated with it
+	•	One floor can have multiple Car and Bike Parking
+	•	All names of these multiple parking levels should be editable
+
+
+
+
+
+Summary View (Wireframe):
+
+
+
+Drill-down View (Wireframe):
+
+
+Parking Slot Numbers (without floor plan)
+	•	The number of available slots will be defined by the organization
+	•	Number of available parking slots will be visible to the user while making a booking
+	•	When a user selects a particular parking, a slot number will be automatically allocated to the user
+Flow 2: Employee checks-in to the booking
+	•	Premises that should support check-in for any organization should be configurable. i.e., some organizations may require few premises like cafeteria, parking, etc to have separate check-ins and few may only require check-in for parking, office and not for cafeteria (Use cases covered below)
+	•	The order of challenges that appear during check-in should be configurable premise wise
+	•	Whether check-in is required at each premise or check-in to the first premise is sufficient should be configurable. I.e., some organizations may require that the employee check-in into both the parking and main office, whereas some organizations may consider employee as checked-in into all premises when they scan QR code or the digipass at only one premise
+	•	Use cases to be covered: (Property controlled)
+	•	Case 1: Check-in into the parking premise, 
+	•	checks-in the user into the office premise as well
+	•	does not check-in the user into office premise
+	•	Case 2: Check-in into office premise, 
+	•	checks-in the user into parking premise
+	•	does not check-in the user into parking premise 
+	•	Case 3: Check-in into parking premise, checks user into the office premise but not into any other premises (like cafeteria, meeting room, etc)
+
+
+Check-in using Scan QR code (Multiple Premises)
+
+	•	Employee can use the fab button on the home screen of the app to scan the QR code pasted at various premises to check-in to the respective premise 
+	•	Defined flow for parking premise: 
+	•	Employee scans the QR code → Configurable check-in steps like geofence violation, mask check, etc → Employee is checked-in to the parking premise
+
+Check-in using Digipass (Multiple Premises)
+
+	•	Employee can access the digipass from the mobile app booking card
+
+
+	•	Employee chooses the digipass required for check-in to the respective premise, i.e., on the UI, employee has an option to choose a respective premise
+	•	When an employee selects digipass generation for a parking premise, the series of challenges associated with that parking premise is visible to the employee. These challenges are configurable based on the organization
+	•	Use cases to be covered:
+	•	Check-in separately at parking and office: 
+	•	Employee chooses check-in at parking → digipass for parking is generated with respective configurable challenges which checks the employee into parking premise only
+	•	Employee chooses check-in at office → digipass for office is generated with respective configurable challenges which checks the employee into office premise only
+	•	Check-in at one premise:
+	•	Employee checks-in at parking → 
+
+
+
+	•	How does the employee check-in into the parking premises?
+	•	Do they check-in at the parking entrance? Or the office entrance? Should we support both use cases as 2 different series of challenges?
+	•	If they have to check-in separately at the parking entrance and office entrance, where do we show the series of challenges (mask, declaration, etc)? Is it possible to show it multiple times and keep it configurable based on organization’s requirements?
+	•	Can a single digipass be used to check-in at both the premises (office and parking)?
+	•	Scan QR code, is it possible to support the below?: 
+	•	If a user has to scan QR code, then scanning the parking QR code would check-in the user at only parking premise
+	•	Scanning the QR code at office entrance would check-in the user at office premise
+	•	Does the parking lot have a security guard who would mark the user’s vehicle as checked-in?
+	•	If yes, how would we support that?
+	•	If there’s no security guard, who verifies the vehicle number?
+	•	Would a GPS violation check be valid for parking check-in?
+	•	Should we show reports separately for parking only check-in or combine it with office check-in?
+
+Flow 3: Employee checks-out of the booking
+	•	How does the employee check-out of the parking premises?
+	•	Do we automatically check-out if time has passed?
+
+Flow 4: Default Loading
+Problem Statement: Presently, the user has to select all details of parking for making a booking each time.
+Solution:
+	•	Parking selection to be defaulted from the previous booking (n=30 days) until preferences for parking are configured
+	•	Type of vehicle selection to be defaulted from previous booking
+	•	Parking zone and level to be defaulted from previous booking
+	•	Incase the level from the previous booking is full, then another level from the same zone should be selected
+	•	Registration number to be loaded based on the profile
+	•	Can store both car and bike registration number in the profile
+	•	The selection should be visible when the WFO form loads
+	•	In case the user has selected car parking yesterday and bike parking day before, then the most recent booking should be visible i.e., the car parking
+	•	Use cases when default loading shows blank →
+	•	First time parking booking
+	•	Previous booking is more than the configured time (n=30 days)
+	•	Parking for the type of vehicle selected is full i.e., in case user had selected car parking previously but all zones and slots are full
+	•	Parking is available in another zone, but not in any of the levels of the previously booked parking zone
+
+Parking: Specifications for Performance, Privacy and Security (PIIs)
+	•	The registration number of the user if requested by the organization has to be stored in compliance with the privacy and security regulations
+	•	Registration number is configurable and will only be enabled if an organization requests it
+	•	Data stored of the user should be compliant with regulations governing data privacy and security
+
+
+
+Wireframe:
+
+
+
+
+
+Grouping the parking slot and assigning it to certain employees. 
+
+Problem: As an Admin, I want to assign a certain number of parking slots for certain employees such that only those certain employees can book it. 
+
+There are 2 ways of assigning parking:
+	•	Assign to a specific employee or Teams/Org/BL
+	•	Eg. Assigning a slot to Ujjwal or Assigning 10 slots to the marketing team
+Solution: 
+	•	Admin should be allowed to assign parking slots as one of the following:
+	•	Hotslot: Multiple slots open for anyone to book
+	•	Employee: Single slot open to be booked only by a single assigned employee
+	•	Team: Multiple slots open to be booked only by members of assigned team 
+	•	Blocked: Multiple slots Not open for booking by anyone
+	•	Unallocated: Multiple slots that don’t have any of the above assignments. These slots are not open for booking by anyone
+	•	By Default all the slots are Hotslots
+	•	When employees opts for parking: 
+	•	Dedicated slots should be sequentially assigned to them.
+	•	Rules: 
+	•	Employees associated with a dedicated “Employee” slot should get that slot assigned to them. Auto populate the slot in the WFO booking form.
+	•	Employees belonging to a team associated with the “Teams'' slot should be able to select a slot from within those groups of slots assigned to their teams
+	•	Employees with no dedicated “Employee” slots or not associated with any team (which has dedicated slots) should be able to assign from hotslots. 
+	•	If the slots are over for a particular team, the employees should be able to select a slot from hotslot
+	•	No employee should be able to book parking slots which are unallocated or blocked.  
+
+	•	Assignment based on Tags
+	•	Eg: I want 10 slots reserved only for PWD (person with disability) employees, 15 slots for pregnant women etc.
+Solution: 
+	•	Admin should be able to create a tag type - tag values pair and assign it to a certain parking slots
+	•	Eg: Tag Type:IsPWD? Tag Value: Yes/No
+	•	Admin should be able to create and assign tags to employees
+	•	Eg; Is tag Type: PWDEligible? Tag Value: Yes/No
+	•	Rule: The rule engine should allow to map these tags and assign properties
+	•	Eg: slots with IsPWD - Yes should be able to be booked by employees with PWDEligible - Yes
+	•	Rule: There should be a property assigned to every tag type - tag value pair that defines the restrictions level.
+	•	Users are allowed to only book from those tagged slots
+	•	Users are allowed to book from those tagged slots but others also 
+	•	We should enable other properties on these tags as well. 
+	•	Eg slot with Tag Type: WeekendOnly Tag Value: Yes should only be allowed to be booked on weekends.
+	•	One slot can have more than one tags type, but only 1 tag type - tag value pair
+	•	One employee can have more than one tags type, but only 1 tag type - tag value pair
+
+Important Note: The solution should take care of bifurcation b/w 2 wheeler or 4 wheeler
+Eg: if an employee is assigned a dedicated “employee” slot which only accommodates 2 wheeler, and if  the employee tries to book a 4 wheeler booking, he should be assigned 4 wheeler parking from hotslot or from his team slot (if he is a part of any team that has dedicated slots). 
+
+Assigning parking slots to employees/ team/org/BL
+	•	Following are the assignment types:
+	•	Hotslot: Multiple slots open for anyone to book
+	•	Employee: Single slot open to be booked only by a single assigned employee
+	•	Team: Multiple slots open to be booked only by members of assigned team 
+	•	Blocked: Multiple slots Not open for booking by anyone
+	•	Unallocated: Multiple slots that don’t have any of the above assignments. These slots are not open for booking by anyone
+	•	By Default all the slots are Hot slots
+	•	A parking slot should be associated with only 1 type of assignment type
+
+There would be 3 ways to allocate parking slots an assignment type
+	•	Bulk Upload of slot tags and slots assignment type:
+	•	Admin should have an option to allocate slots in bulk through excel based bulk upload
+	•	This should be a separate card called “Parking slot tags assignment” in the bulk upload module
+	•	Admin will be asked to fill and upload an Excel file with details of slots and their assignment type
+	•	Once the file is uploaded the slots in the list must be assigned those tags
+	•	We need to ensure that all the details are audited with timestamp
+	•	Column headers for Tag bulk upload:
+	•	Office Name: Mandatory
+	•	Zone: Mandatory
+	•	Floor: Mandatory
+	•	Slot Name: Mandatory
+	•	Start date (DD/MM/YYYY) - Should tell when should the upload take effect
+	•	End date (DD/MM/YYYY) - Should tell when the upload actions end, slots become hotslot
+	•	Client specific Tag Type (dynamic) - the row values would be the tag value
+	•	The associated tag type/ tag values should be enabled for employee as well
+	•	Column headers for assignment bulk upload:
+ 
+
+	•	Grid plan to assign slots
+Slot allocation page
+	•	This will be a summary page
+	•	It will show the following field for all parking zone and levels
+	•	Fields to show:
+	•	Office
+	•	Zone
+	•	Level
+	•	QR code
+	•	Total parking slots
+	•	Unallocated count
+	•	Allocated (Teams + employees)
+	•	Hotslots
+	•	Blocked
+	•	There would be following filters:
+	•	Date: Should only have current date and future dates enabled | Default value current date 
+	•	Office | Default: All offices
+	•	Zone | Default: All zones
+	•	Level | Default: All levels
+	•	Vehicle Type| Default: All types 
+	•	Last field would be a hyperlink to the list view page
+Floor page - List view
+	•	
+Floor page - grid view
+	•	Employee slots: 
+	•	Admin would be able to select only 1 slot from the grid plan
+	•	Admin would click on assign slot
+	•	Admin would get 
+	•	Data Sync
+
+How can the employee book a parking slot(Teams/org/bl): 
+Note: In both the cases of Auto Allocation and Grid based booking the tag rules should be handled. Eg: if the employee has a dedicated slot but the tag type - Tag value pair rule enforces that the slot shouldn’t be enabled for that employee. The employee should see that slot as grayed out and unable to book.
+Auto Allocation:
+I. Employee with dedicated “Employee” slot:
+	•	If s/he has only one dedicated slot: When the employee tries to create the WFO booking the page should have the dedicated slot preselected (even before he clicks on “Add parking”)
+	•	However if the employee wants to change vehicle type s/he can and get auto allocated from hotslots available, if no hotslots available (Show message: “No parking slots available for ## wheeler”)
+	•	If s/he has more than one dedicated slots: 
+	•	One 2-wheeler and One 4-Wheeler: The employee should have the 4 wheeler parking slot pre-selected by default when s/he opens the WFO card (even before he clicks on “Add parking”)
+	•	However if the employee selects a 2 wheeler s/he should automatically get the 2 wheeler slots assigned without having to search for zone, level
+	•	Multiple 4 wheeler or 2 wheeler: Not handled as of now
+II. Employee is part of a “team” slots
+	•	If the slots are available: 
+	•	When the employee clicks on “Add parking” s/he should have the zone and level selected for respective available slots for that team
+	•	Eg: if there are 2 slots assigned to Marketing team: one is zone A: level 2 and second on Zone B: Level 1, if employee A of the team comes to book he should get he should have Zone A, Level 2 preselected and later if emp tries to book he should have Zone B, Level 1 preselected
+	•	 If the “Team” slots are unavailable: 
+	•	If the “Team” slots are unavailable but hotslots available:
+	•	The employee should have zone and level selected for the available hotslots and there should be a message displayed saying “All the slots for your team are booked, please try to select from other available slots”
+	•	If neither team slots nor hot slots available:
+	•	Show a message saying:Show message: “No parking slots available for ## wheeler”
+	•	Same process should follow if the employee chooses to change vehicle type
+III. Employee neither has a dedicated “Employee” slots nor “Team” slots:
+	•	If hotslots available, the employee should have preselected zone and level for the hotslot available  (sequential)
+	•	If hotslots unavailable, Show a message saying:Show message: “No parking slots available for ## wheeler”.
+	•	Same process should follow if the employee chooses to change vehicle type
+
+Grid based (Manual Selection)
+I. Employee with dedicated “Employee” slot:
+	•	If s/he has only one dedicated slot: Only that slot should be available for booking and be preselected . Rest of the slots will be grayed out
+	•	However if the employee wants to change vehicle type s/he can choose from hotslots available, if no hotslots available (the radio button for that vehicle type should be disabled)
+	•	If s/he has more than one dedicated slots: 
+	•	One 2-wheeler and One 4-Wheeler: The employee should have the 4 wheeler parking pre-selected by default, rest of the slots should be grayed out. 
+	•	However if the employee selects a 2 wheeler s/he should automatically get the 2 wheeler slots highlighted and selected while the rest of the slots should be grayed out
+	•	Multiple 4 wheeler or 2 wheeler: Not handled as of now
+II. Employee is part of a “team” slots
+	•	If the slots are available:
+	•	When the employee clicks on “Add parking” s/he should have the zone and level selected for available slots enabled for the team
+	•	Employee can pick and select from those slots
+	•	 If the “Team” slots are unavailable: 
+	•	If the “Team” slots are unavailable but hotslots available:
+	•	All the booked slots should be shown in a different color (User should be able to understand that his team slots are booked intuitively). He can then look at other available slots 
+	•	If neither team slots nor hot slots available:
+	•	Show a message saying:Show message: “No parking slots available for ## wheeler”
+	•	Same process should follow if the employee chooses to change vehicle type
+III. Employee neither has a dedicated “Employee” slots nor “Team” slots:
+	•	If hotslots available, the employee should have preselected zone and level for the hotslot available  (sequential). User can select from those available slots. 
+	•	If hotslots unavailable, Show a message saying:Show message: “No parking slots available for ## wheeler”.
+	•	Same process should follow if the employee chooses to change vehicle type
+IV. All the Unallocated slots and blocked slots would be grayed out. 
+
+How can the employee book a parking slot(tags):
+Auto Allocate
+Use case1: An employee is tagged to a slot where he can only select parking from those slots
+	•	When the employee clicks on “Add parking” s/he should have the zone and level pre-selected for available tagged slots
+	•	User should be shown the zones and levels in the dropdown only where there are available tagged slots
+	•	If the slots are available, When the user clicks on confirm he should be assigned a slot sequentially
+	•	If all of those slots are booked, users should be shown a message saying: “No slot available for ## wheeler”
+	•	Same process should follow if the employee chooses to change vehicle type
+Use Case 2: An employee is tagged to a slot where he can select parking from those slots or any other available bookable slots
+	•	When the employee clicks on “Add parking” s/he should have the zone and level pre-selected for available tagged slots
+	•	User should be shown the zones and levels in the dropdown only where there are available slots
+	•	If the slots are available, When the user clicks on confirm he should be assigned a tagged slot sequentially
+	•	If the tagged slots are booked the they should be assigned other available slots sequentially
+	•	If all of those slots are booked, users should be shown a message saying: “No slot available for ## wheeler”
+	•	Same process should follow if the employee chooses to change vehicle type
+Use case 3: An employee is not assigned any tagged slot
+	•	When the employee clicks on “Add parking” s/he should have the zone and level pre-selected for available slots
+	•	User should be shown the zones and levels in the dropdown only where there are available slots
+	•	If the slots are available, When the user clicks on confirm he should be assigned a slot sequentially
+	•	If all of those slots are booked, users should be shown a message saying: “No slot available for ## wheeler”
+	•	Same process should follow if the employee chooses to change vehicle type
+Grid based parking plan
+I. Use case1: An employee is tagged to a slot where he can only select parking from those slots
+	•	When the employee clicks on “Add parking” s/he should have the zone and level pre-selected for available tagged slots
+	•	If all tagged slots are booked the default zone and level should handle it in realtime and deauft to sequentially first bookable slot
+	•	On the grid view user should only be able to see those tagged slots as available
+	•	Rest of the slots would be grayed out
+	•	User should be shown the zones and levels in the dropdown only where there are available tagged slots
+	•	Filters for these employees should show only filters for those tags they’re assigned to
+	•	If all of those slots are booked, users should be shown a message saying: “No slot available for ## wheeler”
+	•	Same process should follow if the employee chooses to change vehicle type
+II. Use case2: An employee is tagged to a slot where he can select parking from those slots or any other available bookable slots
+	•	When the employee clicks on “Add parking” s/he should have the zone and level pre-selected for available tagged slots 
+	•	If all tagged slots are booked the default zone and level should handle it in realtime and deauft to sequentially first bookable slot 
+	•	On the grid view users should be shown all the tagged slots and other bookable slots as available for booking. 
+	•	User should be shown the zones and levels in the dropdown only where there are available tagged and bookable slots
+	•	Filters for these employees should show only filters for those tags they’re assigned to
+	•	If all of those slots are booked, users should be shown a message saying: “No slot available for ## wheeler
+	•	Same process should follow if the employee chooses to change vehicle type
+III. Use case3: An employee is not assigned any tagged slot
+	•	When the employee clicks on “Add parking” s/he should have the zone and level pre-selected for bookable slots available
+	•	On the grid view users should be shown only the bookable slots as available for booking. 
+	•	User should be shown the zones and levels in the dropdown only where there are available bookable slots
+	•	Tags filter should be disabled for those users
+	•	If all of those slots are booked, users should be shown a message saying: “No slot available for ## wheeler”
+	•	Same process should follow if the employee chooses to change vehicle type
+IV. All of the cases will have a search bar that allows to search the slots available to them
+V.  Illustration for No parking available
+VI. UI: 
+	•	The grid view should show available slots categorized based on tags, followed by other available bookable slots followed by booked slots (This will be grayed out).
+	•	Only bookable slots should be shown under tag categories and available slots category
+	•	There would be 1 row of slots for tags, 3 for available slots and 1 for booked
+Figma Link

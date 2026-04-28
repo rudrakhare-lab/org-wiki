@@ -20,9 +20,8 @@ is removed.
 
 ## Config
 `MEETING_ROOM_RELEASE_IF_NO_CHECKIN` (integer, minutes)
-- Deployment default per `resources` doc: **180 minutes**
-- App PRD default: **15 minutes**
-⚠️ Inconsistency — actual production default needs confirmation.
+- Deployment default (config baseline): **180 minutes**
+- Recommended / suggested setting: **15 minutes** (confirmed by team)
 
 `RELEASE_MEETING_ROOM` (boolean): Must be `true` to activate auto-release.
 

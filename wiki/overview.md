@@ -18,6 +18,7 @@ Remaining ~21 modules TBD as docs are uploaded.
 | Module | Purpose | Status |
 |--------|---------|--------|
 | [[modules/meeting-rooms]] | Room booking, check-in, kiosk, Outlook sync, catering, dynamic policy, maintenance | active |
+| [[modules/parking-management]] | Parking slot booking (WFO add-on), dynamic policy tags, waitlist, check-in | active |
 | modules/desk-management | Desk booking and employee seating management | _not yet ingested_ |
 | modules/parking-management | Parking bay allocation | _not yet ingested_ |
 | modules/visitor-management | Visitor registration, access control | _not yet ingested_ |
@@ -50,6 +51,8 @@ Remaining ~21 modules TBD as docs are uploaded.
 | [[entities/cafeteria]] | meeting-rooms ⚠️ (shared with meal-management — ownership TBD) |
 | [[entities/room-tag]] | tags-desk-parking |
 | [[entities/maintenance-period]] | meeting-rooms |
+| [[entities/parking-slot]] | parking-management |
+| [[entities/parking-booking]] | parking-management |
 
 ---
 
@@ -61,11 +64,13 @@ Known dependencies discovered so far:
 - [[modules/meeting-rooms]] → [[modules/floor-kiosk]] (shares kiosk device infrastructure)
 - [[modules/meeting-rooms]] → [[modules/mobile-app]] (feature surface inside mobile app)
 - [[modules/meeting-rooms]] → [[modules/ms-teams-integration]] (Outlook calendar sync)
+- [[modules/parking-management]] → [[modules/tags-desk-parking]] (tag engine for vehicle-type slot access)
+- [[modules/parking-management]] → [[modules/desk-management]] (WFO booking form is entry point for parking)
 
 ---
 
 ## Open Questions
 - Who owns the `Cafeteria` entity — `meeting-rooms` or `meal-management`?
-- `MEETING_ROOM_RELEASE_IF_NO_CHECKIN` default discrepancy: 180 min (resources doc) vs. 15 min (App PRD).
+- ~~`MEETING_ROOM_RELEASE_IF_NO_CHECKIN` discrepancy~~ — resolved: 180 min is deployment default; **15 min is the recommended setting**.
 - Is Outlook calendar integration managed inside `ms-teams-integration` or a standalone `outlook` backend service?
 - Meeting Rooms module owner team name is not mentioned in any ingested doc.

@@ -1,0 +1,1259 @@
+Discovery questions to ask 
+	•	Understanding the Current Process:
+	•	Can you describe your current visitor management process?
+	•	What are the primary challenges you face with your current system?
+	•	
+	•	 Identifying Specific Needs and Requirements:
+	•	What specific features are you looking for in a visitor management solution?
+	•	Are there any compliance or regulatory requirements your solution needs to adhere to 
+	•	(e.g., data privacy laws, industry-specific regulations)?
+	•	
+	•	Volume and Type of Visitors:
+	•	What is the average volume of visitors you receive daily/weekly?
+	•	Do you have different types of visitors (e.g., contractors, clients, delivery personnel) that require different handling?
+	•	
+	•	Integration with Existing Systems:
+	•	Do you have any existing systems (like access control, employee databases, etc.) that the visitor management solution needs to integrate with?
+	•	How do you envision the integration of the visitor management solution with your current infrastructure?
+	•	
+	•	Security and Data Management:
+	•	What are your security requirements for visitor data?
+	•	How do you plan to store and manage the data collected from visitors?
+	•	
+	•	User Experience:
+	•	What is the desired experience for your visitors when they arrive?
+	•	How tech-savvy are your visitors and staff, and how might this impact their interaction with the system?
+	•	
+	•	Scalability and Flexibility:
+	•	How do you anticipate your visitor management needs changing in the future?
+	•	Are you looking for a solution that is scalable and adaptable to changing needs?
+	•	
+	•	Budget and Timeline:
+	•	What is your budget for implementing a visitor management solution?
+	•	What is your timeline for deployment?
+	•	
+	•	Reporting and Analytics:
+	•	Are you looking for reporting or analytics capabilities in your visitor management system?
+	•	What kind of data or insights are most important for your organization?
+	•	
+	•	Support and Training:
+	•	What level of support and training will be required for your staff?
+	•	How do you plan to handle ongoing maintenance and updates to the system?
+
+Implementation Questions:
+	•	Do they see traffic from invited visitors, walk-in visitors or both?
+	•	Who does the visitor check in? Is it the security guard or receptionist, both or self-checkin?
+	•	When the invite is sent to the visitor or for a walk-in visitor - what information do they want from the visitor/the visitor to enter? I.e Identity Proof upload, How many days they are visiting, License plate number of the vehicle, if the visitor requires accommodation, etc
+	•	What information will the receptionist/security need to check when a visitor comes to the office? i.e NDA, Identification, belongings, etc. 
+	•	Are there any resources that need to be given to a visitor? Ex - Parking? We do not support desks and meals currently. 
+	•	What is the notification flow expected from the host, the front desk, and the security? Ex - If a visitor checks in, should there be an email notification sent to the host
+Terms to Keep in Mind:
+	•	Host → Employee/User creating the invitation
+	•	Scheduled visitor → Invited Visitor
+	•	Visitor Registration Flow → Process where an invited visitor uploads data or fills in necessary information before visit
+	•	Digipass → QR code given to an invited visitor for faster check-in
+	•	Front Desk Dashboard → Dashboard for front desk/receptionist
+	•	Invite form → where the host creates an invitation
+	•	Invite Dashboard → List of invites on Invite Visitor tab
+
+
+
+
+Setup of Visitor Management
+
+First step: Get the client site moved onto the latest deployment/release
+How? → Contact Tech team/raise a TO to get the client site moved onto an environment with the latest deployment (i.e latest sprint that was deployed to customers)
+
+Second Step: Raise a TO and ensure that all the Visitor Email templates are uploaded onto the database of that client/that environment otherwise emails will not get triggered for that client after setup.
+
+Enabling VMS tabs on a new site:
+
+Enable
+Configuration/Property Name
+Ticket Type
+Role/RBAC Controlled
+Invite Visitor tab on side nav
+-
+SE
+No - default for any employee
+Front Desk tab on side nav
+-
+
+Yes
+Scheduled Visitor button in front desk page
+scheduleInviteEnabled
+
+Yes
+Walkin visitor button on the front desk page
+walkInEnabled
+
+Yes
+*This applies for SG, EU and Mumbai Region
+ 
+
+
+
+
+
+
+
+List of Configurations & Property Names
+
+	•	All VMS configurations will be at an Office level
+	•	All VMS configurations can be raised by SE ticket 
+
+Feature
+Property Name
+Default
+What it does
+Details to specify
+Invite Form Configurations
+Bulk Upload of Visitor
+Guest_Bulk_Upload
+False
+Shows the bulk upload of visitors option in the invite form
+-
+Fields setup - Bulk Upload of Visitors
+visitorProfileFields
+[]
+Helps to setup columns for bulk upload
+Reference JSON - Link
+Adding Invite to Host Calendar
+enableCalendarInvite
+False
+When enabled, after creation of invite the event is saved as a calendar event in the host’s registered email calendar (gsuite, outlook, etc)
+-
+Setting a default Invite Title in the Invite Form
+showDefaultInviteTitle
+False
+Property allows you to set a default title in the Invite Form to make it easier for hosts to create Invites
+Specify what is the text you want as default
+Note to receptionist/security
+noteToFrontDesk
+False
+Enables an optional input field to send notes to receptionist/ security via email.
+Use the same configuration to enable notes on outlook add-in as well.
+
+Note to Admins
+notesToAdmins
+False
+Enables an optional input field to send notes to admins via email  Use the same configuration to enable notes on outlook add-in as well.
+
+Sending Note to Admin to Office-wise Stakeholders
+emailListToAdmin
+{}
+Property allows you to send notes to admin to office-specific stakeholders
+Specify recipients name and email ID
+Sending note to receptionist/security to Office-wise Stakeholders
+emailListToReceptionist
+{}
+Property allows you to send notes to reception/security to office-specific stakeholders
+Specify recipients name and email ID
+Pre-fill visitor’s photo
+preFillVisitorPhotoForExistingVisitor
+False
+
+
+Invite for someone else
+allowBookingsForOthers
+False
+Property displays an option to invite for someone else’s behalf
+
+Individual checkboxes for - Visitor, Host & Creator
+sendVisitorInviteEmail
+
+sendInviteEmail
+
+Display email preferences checkboxes on invite flow
+For visitor: sendVisitorInviteEmail = true
+ For organizer and creator: sendInviteEmail = [ ‘host’, ‘creator’] 
+
+NDA on Invite flow
+NDA (within front_desk_configurations)
+True
+Display NDA on visitor registration form
+
+Custom fields - Host Side
+formsMetaDataForHostPWC
+
+To add custom forms on the invite visitor form when a host tries to add a visitor 
+
+Custom fields - Visitor Side
+formsMetaDataForVisitorPWC 
+
+To edit custom fields on visitor registration form
+
+Recurring Invite Max Duration
+recurringInviteMaxDays
+90 days
+Defines the maximum number of days into the future a recurring visitor invite can repeat. Applies across all recurrence patterns — Daily, Weekly, Monthly, and Custom
+Maintained at BUID level. Raise SE to change the value. Recurrence options available: Does not repeat, Daily, Weekly on [day], Monthly on [Nth weekday], Custom (specific weekdays). A "Repeat Until" end date field appears when any recurrence type is selected
+Delegates in Host search field (ifse)
+showDelegateeBookForSomeoneElse
+[]
+To display delegates in host search for inviting for someone else
+[“VISITOR”] → In book for someone else (VMS), host search field will only display delegatees.
+
+VMS over SMS
+vmsInviteTrigger
+[]
+Controls visitor communications over SMS
+[“email”, “sms”]
+Bulk Upload (under Bulk Operations)
+profileFieldsMetaData, addCustomFieldsWithVisitorBulkUpload, addRoomWithVisitorBulkUpload
+-
+To enable visitor bulk upload under ‘Bulk Operations’
+Multiple properties involved, refer to this - Link
+                                              ming Visitor Notification
+triggerListForLandlords
+[]
+To trigger visitor invitation notification to external stakeholders
+
+Default Selection of ‘Type of Visit’
+defaultVisitTypeSelection
+True
+To select a default value for “type of visit’ dropdown
+
+Invite Acceptance Workflow
+Digpass for Visitor’s Entry/Check In
+VISITOR_DIGIPASS
+True
+This property controls whether the invited  visitor receives the digipass via email or not
+
+For Both Invite Acceptance Flow and Front Desk
+Enabling/Disabling Identity Proof
+Visitor_Profile_ID
+True
+Allows you to enable/disable the requirement for a visitor to upload their identity proof
+Enable/Disable
+Configuring Identity Proof documents
+Visitor_Profile_ID_Document_Upload_Field_Inputs
+False
+Allows you to set what documents the client wants visitors to be able to upload (applies to both invited and walkin)
+Choose from this set list of documents mentioned in release notes (Link)
+
+Profile Photo Upload on registration flow
+visitorProfilePhotoUpload
+False
+This property allows us to enable/disable the profile photo requirement on invited visitor registration flow
+
+Dynamic Fields on the invited flow and walk-in visitor flow
+enableDynamicField
+
+False
+Enables the various extra fields in the walkin flow or invited visitor flow
+Mention exactly the question you want to ask and what field you want to enable - refer to release notes 11-2023 for the types of fields
+Custom Fields in Walk-In
+formsMetaDataForWalkIn
+[]
+To enable custom fields in the walk-in flow
+Refer to this detailed doc for setup - Link
+DigiPass Auto-Send (without visitor acceptance)
+digipassAutoSend
+False
+When true, DigiPass is sent automatically after invite creation without waiting for visitor acceptance
+Set at office level. Ensures visitor gets QR/pass even if they never accept/decline the invite
+DigiPass Auto-Send Buffer
+
+digipassAutoSendBuffer
+0
+Defines a delay in minutes after invite creation before DigiPass is auto-sent. 0 = send immediately
+Only applicable when digipassAutoSend = true. Set at office level. Only one DigiPass email is sent per invite
+Non-Interactive Visitor Invite Email
+enableNoninteractiveVisitorInvite
+False
+When true, sends a generic informational invite email (no Accept/Decline buttons) instead of the standard interactive template
+Visitor receives visit details and instructions only. Must also be configured in Notification Panel under Visitor Notifications
+Front Desk Configurations
+Checkout message on Front Desk Dashboard
+receptionDashboardCheckOutBox
+
+receptionDashboardCheckOutMessage
+False
+If property is true, the checkout message will be visible on checkout  If false, there will be no checkout message shown
+
+The first config enables/disables the checkout message, the second config defines the message
+If true, specify what text should be displayed in the checkout message - only for the “check” marks
+OTP to Host in OTP Walk-in Visitor Workflow
+otpApprovalFlow
+False
+In walkin visitor, after typing in the host, there is an otp that goes to the host that must be shared with visitor and then front desk
+-
+Additional Text Box to enter details for visitor
+visitorDetailsTextBox
+False
+For front desk and Security Guard - a small text box to record additional information
+-
+Badge Printing
+Print_Visitor_Badge
+False
+For printing visitor badges
+-
+Identification Tab on the Front Desk
+identification
+True
+The identification tab on the front desk - which requires the front desk to verify profile photo or ID
+-
+Belongings on Front Desk
+showBelongings
+True
+Items of the visitor to be recorded 
+Mention what type of belongings you want in the drop down and the placeholder text next to the dropdown
+Enabling NDA section and adding the content - on front desk
+NDA
+True
+NDA that visitor needs to acknowledge
+What content should be added here
+Standard Guest From (I.e walkin without OTP) in Walkin Visitor Form
+enableStandardWalkinVisitorForm
+False
+This is a simple walkin form where you can set what is optional and mandatory, without OTP walkin workflow
+-
+Approval Workflow Form in Walkin Visitor
+isApprovalFlowEnabled
+
+
+
+Visitor List Download button on Front Desk
+visitorInformationDownloadFrontdesk
+True
+
+
+Edit invite’s End time on front desk
+isEditEndTimeOnFrontDeskEnabled
+False
+Property allows you to edit invite’s end time from frontdesk itself
+
+Host and Visitor Number on front desk
+phoneNumberVisibility
+
+(within front_desk_configurations )
+{}
+This property will allow you to show guest/host or both’s numbers on frontdesk
+
+Badge Number
+badgeNumberOnFrontdesk  (within front_desk_configurations )
+False
+Allows users to input badge number (issued to the visitor on visit day) on the front desk
+
+Visitor Approval/Rejection from Front desk - Self Check-in Flow
+entryApprovalFromFrontdesk
+False
+Allows front desk personnel to approve or reject visitors coming from self check-in flow
+new privilege, Front_Desk_Approve_Reject_Entry, will appear in the ‘Role’ section under Visitor Management with “Edit” access
+Search by Visitor, Host & Meeting Details
+controlSearchSections
+[]
+Helps to set the search criteria on the front desk
+
+Visitor Photo on Front Desk Dashboard
+visitorPhotoOnFrontDesk
+False
+Displays captured visitor photo in the summary and detailed visitor panel on Front Desk. Click to enlarge.
+Photo is shown in summary panel and detailed view. Enlargement modal dismisses on cross or outside click
+Column Selector on Front Desk Dashboard
+columnSelectorFrontDesk
+False
+Allows front desk users to choose which columns are displayed (max 4). Default columns: Visitor Name, Host Name, Type of Invite, Entry Time, Exit Time, Status
+Supported columns: Visitor Photo, Visitor Type, Type of Invite, Custom Fields, Belongings, Notes, Meeting Details, Creator Details, Host Details, Floor, Office. Order: Photo first, then name fields, last 3 always Entry/Exit/Status
+2 Step Checkin and Checkout Configurations
+2-Step Checkin and Checkout of Visitor
+is2StepCheckInEnabled
+False
+Enables the 2 step process (security guard and front desk) of checking in and checking out the visitor
+
+Temporary Checkout of a Visitor
+isTemporaryCheckoutEnabled
+False
+Enaled the temp-checkout button on front desk dashboard
+
+
+tempEntryTimeLimit
+
+
+
+Storage of Visitor Documents
+Storage of Visitor Data
+Visitor_Document_Storage
+False
+When TRUE, it allows us to set a time for data storage
+Specify for which document you want this to apply to - profile photo or identity proof
+Duration of storage of visitor data
+Visitor_Document_Storage_Duration
+False
+This property allows us to configure the number of days we want the visitor data to be stored for
+Specify the number of days for data storage, default is 180 days 
+Visitor Docuemnt Storage Document Type
+Visitor_Document_Storage_Document_Type
+NA
+This list defines which types of documents the storage of data would apply to 
+Specify the document types from the types of documents already enabled for Profile ID
+Integration Configurations
+MS Teams Notification for Approval/Reject Message to Host
+visitorApprovalMsTeamsNotification
+False
+When this configuraiton is true and approval flow is true, then when the visitor is entered in walkin/slefcheckout, there is a teams notification that is sent to the host’s MS Teams on their registered email id associated with teams
+-
+Visitor Check-in MS team Notification
+isVisitorCheckinMsTeamsNotificationEnabled
+
+False
+Property will allow you to send visitor check-in trigger to host and office-wise stakeholders
+To enable it for office-specific stakeholders,mention recipients name and email ID in this property -  externalEmployeeList
+
+Self Checkin Configurations
+Customising the Checked In message at the end of the flow
+selfCheckinSuccessMessage
+True
+Allows you to set the success message after a visitor checksin
+Default: "The host will meet you shortly, please wait in the lobby"
+
+Please raise SE and tell them what to change it to. If the text is too long the UI can break, so please choose accordingly.
+Customizing default visit duration
+defaultKioskBookingDurationInMinutes
+30 mins
+Allows you to set a fixed visit duration for each visitor check-in.
+
+Self checkout QR code sent via email
+visitorSelfCheckOutDigiPass
+False
+Allows you to send an email with check-out digipass to visitors once they have self checked-in
+
+Enabling check-in and check-out via QR options
+kioskInviteOptions
+Null
+
+Eg: 
+Duration of Visit Dropdown
+visitDurationHours
+
+
+To control the dropdown options for duration of visit field
+
+
+Custom fields
+visitorFormsmetadataPWC
+
+To handle other details (custom fields) on self check-in flow 
+
+Employee Flow
+isEmployeeFlowEnabled
+isEmployeeFlowEnabled, employeeDescriptionHeaderText, Set DefaultEndTimeOfEmployeeBooking
+
+To Setup Employee Flow
+Refer to this detailed doc for setup - Link
+Settings CTA on Home Page
+enableSettingsOnVMS
+[]
+To show settings CTA on kiosk homescreen
+Sample Value: enableSettingsOnVMS = ["print_badge"]
+Enable/Disable OTP Validation
+enableOTPValidationSelfCheckinList
+[“phoneNo", "emailId"]
+To enable or disable OTP validation in the self check-in flow
+
+Photo Capture on Self Check-in (Configurable)
+isVisitorPhotoCaptureEnabled
+{Visitor, Employee}
+Controls whether photo capture is required for Visitor and/or Employee during self check-in. Array-based: {Visitor}, {Employee}, or both
+Set at office level. Does not impact Invite or Walk-in flows. Reports will show photo URL as NA if disabled. Audit captured
+Face Recognition for Employee Check-in 
+faceRecognitionEnabled (within visitorKioskConfigs)
+False
+When true, replaces the existing employee flow on kiosk with face recognition check-in. Camera opens and matches face against employee records.
+Office level property. Success: checks into existing booking or creates one in nearest shift. Failure messages for unrecognized face, camera errors, network loss. POC phase
+Scroll-Gated NDA Consent & Signature
+enableScrollToConsentEnforcement
+False
+When true, consent checkbox and signature pad remain disabled until visitor scrolls to bottom of NDA content. Applies to Self Check-in, Invite, and Walk-in flows (including Front Desk view)
+Short content that does not overflow enables checkbox immediately. Once enabled, stays enabled on upward scroll. Disabled checkbox shows greyed-out with toast: "Please scroll to the end to enable consent."
+Rename Submit CTA on Self Check-in
+finalScreenCTATextSelfCheckinFlow
+Kiosk: Submit | Invite: Accept Invite | Walk-in: Accept
+Allows renaming the final Submit/Accept CTA on different flows
+Key-value pair configuration. Raise SE with the new CTA text and the flow it applies to
+NDA Screen Header
+ndaScreenHeader
+Non Disclosure Agreement
+Configures the header text shown on the NDA screen
+String type. Raise SE with desired header text
+First / Middle / Last Name in Self Check-in
+visitorFormsMetaDataPWC (existing property)
+Existing default JSON
+Extends self check-in flow to capture structured name fields (First, Middle, Last Name) consistent with Invite and Walk-in flows
+Field order: First Name → Middle Name → Last Name. Labels configurable. Impacts badge printing, reports, front desk display, and audit logs. No data migration for existing records
+Face Check-in/Check-out Mode in Reports
+N/A (data model enhancement)
+N/A
+Adds "Face" as a valid check-in/check-out mode captured in the Visitor Management Report. Handles both visitor and employee (including marshals) face-based check-ins
+Impacted report: Visitor Management Report. New column values: Face (in Check-in Mode and Check-out Mode columns). Invite and walk-in flows not impacted. Backward compatible with existing data
+Visitor Digipass Configurations
+QR Code on Badge and emails
+digipass
+Null
+To control the digipass visibility on various channels like email and visitor badge
+1.If digipass property contains "INVITE_EMAIL" → enables digipass for the BUID and includes digipass in the invite accepted email sent to the visitor
+2.If digipass property contains "INVITE_BADGE" → Include the digipass on the visitor badge allowing the receptionist to print this badge from front desk before checking-in an invited/ walk-in visitor.
+3.If digipass property contains "SELF_CHECK_OUT_EMAIL" → Send check-out digipass email to the visitor after they have self checked-in.
+4.If digipass property contains "SELF_CHECK_OUT_BADGE"  → Include the digipass on the visitor badge allowing the receptionist to print this badge for a self check-in visitor.
+Configuration Settings
+Notification Panel
+notificationMetaData
+[]
+To enable VMS Notification panel on UI (under configuration settings)
+Refer to this doc for setup - Link
+Notifications property-controlled
+hostNotifications, creatorNotifications, externalNotifications
+[]
+To make notifications sent to host and creator property-controlled
+Refer to this doc for setup - Link
+Visitor Notifications (Office-Level Control)
+visitorNotifications
+[]
+Extends the Notification Matrix to include Visitor persona. Allows offices to enable/disable individual visitor notification types independently
+Configurable in Notification Panel. Covers all VMS flows: Invite (Outlook, native, bulk upload), Self Check-in, Walk-in. Migration ensures zero disruption to existing clients
+VMS Form Configuration UI (Self-Serve Setup)
+enable_VMSForm_Configuration_UI
+False
+Enables a self-serve UI for configuring VMS flows (Invite, Self Check-in, Walk-in) at BUID and Office level. Path: Settings > Configuration > Visitor Management > Form Configuration
+RBAC controlled. Privilege: enable_VMSForm_Configuration_UI. Supports visit type setup, field configuration (Profile, Custom, Belongings) per persona (Host/Visitor/Front Desk), drag-and-drop field ordering
+Visitor Blacklisting
+enableBlacklistVisitorProfiles
+False
+When true, allows admins to blacklist visitors from the Visitor Profile Management page. Blacklisted visitors cannot be invited, checked in (QR/walk-in/self check-in), or bulk uploaded
+RBAC: visitor_blacklist_manage (Read = view blacklisted profiles, Edit = blacklist/unblacklist). Cancels all future bookings on blacklisting. Past bookings get "Blacklisted" tag. Property: blacklistKioskPopup controls kiosk error message text. Office-level. Audit captured
+OTP Failure Fallback & Front Desk Override PIN
+enableOtpOverride
+False
+When true, enables a structured OTP fallback for self check-in (kiosk) and walk-in flows. On self check-in: visitor selects an issue reason and front desk generates a 6-digit override PIN (valid 15 mins, single-use). On walk-in: visitor selects OTP issue reason and front desk can skip OTP without a PIN — walk-in flow proceeds directly
+Property: failureReasonsOtp (List, default []) controls selectable reasons shown to visitor. OTP failure reason stored against booking in Visitor Management Report (column: OTP Failure Reason). RBAC controlled - only authorised FD roles can generate override PINs. Does not impact OTP success flows
+Visitor Profile Management
+visitor_profile_management
+—
+RBAC privilege that controls access to the Visitor Profile Management page (Settings → Configuration → Visitor Management → Visitor Profiles). Allows authorized users to search, view, create, edit, and delete visitor profiles without backend intervention
+Raise SE to enable the privilege. Specify the role and the access level: Read (view only), Edit (view + edit), or Delete (view + edit + delete). Can be granted to any role. Global Admins see all offices; Office Admins see only their managed offices
+Absolute Duration of Visit
+absoluteVisitDurationHours
+[]
+Defines an explicit list of visit duration options (in minutes) shown in the Duration of Visit dropdown. When set, overrides the existing visitDurationHours property. If empty ([]), falls back to visitDurationHours behaviour
+Specify values in minutes as an array e.g. [60, 120, 240, 360, 480]. Options are displayed in the order set. Applies to both self check-in and walk-in flows
+Visitor PII Retention Period (DPDPA)
+visitorDataRetentionDays
+0
+Defines the number of days visitor PII data (name, phone, email, photo, signature) is retained before permanent deletion. 0 = indefinite retention (current behaviour). Once expired, PII is irreversibly deleted. Non-PII metadata (booking ID, visit date, host, status) is retained for reporting
+Maintained at BUID level. Raise SE with the number of days. After deletion, PII fields across FD dashboard, reports, audit, and invite pages will display "NA". Clicking into a deleted visitor's booking on FD is blocked with an error toast
+Enable DPDPA PII Cleanup
+enabledBuidForDPDPACleanUP
+[]
+List of BUIDs for which automated PII deletion is active. Only BUIDs included in this list will have visitor data deleted after the retention period defined in visitorDataRetentionDays
+Maintained at BUID level. Raise SE with the BUID(s) to enable. Must be set alongside visitorDataRetentionDays
+
+For SE Team, please refer to this doc with recent enhancements and properties, covered in detail - Link
+Whom to raise tickets to
+
+Ticket Type
+Assignee of the ticket
+SE
+Vindhya(Lead),Afroz ,Rohith, Keerthana, Akshaya 
+TS
+Yogesh/Varun/Bhavya
+Clarification from PM
+Kavya/Vaishnavi
+How the Configurations look in the code
+	•	This will help you pinpoint exactly where the SE team must change the code
+
+
+
+In-depth Setup Details
+Setting up Roles for VMS
+	•	There are 2 roles that can be enabled w.r.t VMS: Receptionist and Visitor Security Guard
+	•	These roles can be assigned to either internal employee or an external employee (external = not an employee of the company, i.e vendor)
+	•	Raise an SE ticket to get the role enabled on the Roles page, please ensure you mention the correct format of the roles i.e RECEPTIONIST and VISITOR_SECURITY_GUARD (otherwise it would be invalid) 
+	•	Internal Employee setup
+	•	Once role has been enabled for that tenant, ensure that the required employee is also present in the system (Check Employees page)
+	•	Mapping:
+	•	Create a new Employee User Group - labeled whatever the client wants ex - Front Desk Executive
+	•	Create a Resource Group i.e the Office - name it accordingly
+	•	Add the Employee User Group Permission (see image below)
+
+
+	•	Add the required employee to the User Group
+
+	•	External Employee setup
+	•	Raise an SE ticket mentioning that you need an external user created
+	•	What info you need to include to create external user 
+	•	Name of user, email id OR phone number
+	•	You can also specify how long you want the user to be in the system ex till 2026
+	•	Map user in roles & privileges page
+	•	After SE team creates the external user, that user needs to login to this link - https://mis-security-ui-beta.moveinsync.com to access VMS. (Note: external users wll not be able to login through WIS web)
+	•	To login, the user would have to enter their email/phone number and go through an OTP process
+	•	Once logged in, they would be able to see the Front Desk dashboard and perform VMS actions
+	•	RBAC for VMS
+	•	The following are RBAC controlled for VMS - check RBAC sheet for more details RBAC RACI
+	•	To enabled these features for a particular role you must mention the role and these properties
+
+
+Function
+Property Name
+Manage status of visitor invites - to see Front Desk Dashboard tab
+Front_Desk_Visitor_Invite_Verification
+Walk-In Visitor Button on Front Desk
+walk_in_visitor
+Scheduled Visitor Button on Front Desk
+scheduled_visitor
+Visitor List Download Button
+visitor_front_desk_visitor_list_download
+Visitor Reports
+VISITOR_MANAGEMENT_DETAILED_REPORT
+Configure visitor kiosk button on FD
+visitor_kiosk_config configureVisitorKiosk  (mention to remove read and only keep the edit privilege)
+
+Using the Internal Workbench Tool to Assign RBAC Privileges
+Rather than raising an SE ticket to enable RBAC permissions, you can use the internal RBAC Access Viewer tool to assign role-based privileges directly.
+Tool URL: https://mis-workbench.moveinsync.com/
+Steps to assign a privilege to a role:
+	•	Log in to the workbench using your MoveInSync credentials
+	•	Click on RBAC Access Viewer
+	•	Select the Environment the client site is on — Stage, Singapore, Europe, or India (Mumbai)
+	•	Select the Business Unit ID (BUID) of the client
+	•	Select the Role you want to configure (e.g. RECEPTIONIST, VISITOR_SECURITY_GUARD, or any custom role)
+	•	The permission matrix for that role will load — find the relevant privilege (refer to the RBAC properties table above)
+	•	Assign the required access level — Read or Edit — and save
+You can also create a new role or a new privilege directly from the tool using the + Create Role and + Create Privilege buttons in the top right.
+Note: Only users with access to the workbench can perform this action. If you do not have access, raise a request with Yogesh or Anshul to get access. 
+Setting up Guard App for VMS Digipass Scanning (Not Visitor SecGuard)
+
+	•	Only android app, works best on tablet but works on mobile phone as well
+	•	 11 and above Suggested
+	•	Download the APK for guard app (shared to WIS PM’s email via drive) Guard App APK's
+	•	Can also ask Android App team who will share the apk
+	•	There is a different apk for a Mumbai Region, UAT server and a Production server
+	•	Works on any android device
+	•	Mumbai apk is for prod and UAT
+	•	Prod apk and UAT apks is for other regions i.e SG and EU
+	•	Raise an SE ticket to setup guard profile for the tenant:
+	•	Sample of the SE Ticket: https://moveinsync.atlassian.net/browse/SE-32489 
+	•	Mention the following:
+	•	URL: https://moveinsync.atlassian.net/browse/SE-32744 
+	•	Office Name - Dell 10
+	•	Username: can be anything text or phone number
+	•	Phone Number - 9599220168
+	•	If using username provide a password - 12345
+	•	No need to enable a config to scan vms digipass, it’s inbuilt
+	•	If there is an error on scanning VMS digipass -> ask the tech team to see if VMS url is present for that tenant or share the relevant error message
+	•	To test the visitor digipass scan, create an invite with digipass configuration enabled and scan the QR code on the guard app
+	•	For internal testing: You would need to install a fake GPS app to mimic the GPS of the office you are testing for
+	•	After scanning there would be a succes screen of “Visitor has been checked in”
+	•	Status of the visitor on Front Desk should be “Checked-In”
+	•	For troubleshooting, reach out to:
+	•	Sristi Tiwari: App Team
+	•	Pranjal/Reet: Backend
+	•	Akhilesh L: Frontend
+	•	PM: Mohit/Jovil
+Making Visitor Profile Fields Optional/Mandatory and Editable or Not Editable
+	•	There are 3 places where we show visitor profile data i.e
+	•	Name
+	•	Email
+	•	Phone Number
+	•	Company 
+	•	Designation
+	•	Optional Config reflects:
+	•	Add Guest Modal in Invite Form
+	•	In the Invite Acceptance Flow
+	•	Walk-in Visitor Workflows
+	•	Editable Config:
+	•	In the Invite Acceptance Flow
+	•	These fields can be made optional or mandatory by controlling the properties in profileFieldsMetaData configuration
+	•	This single configuration will control the optional/mandatory for each of the fields and that would apply across the three areas
+	•	CREATE: {editable: true, optional: true}
+	•	UPDATE: {editable: true, optional: true}
+Invite Form Features
+	•	Capability to set the type of visitors list. Raise an SE to changes the list from default of “Business Guests, Potential New Hire, etc” to the list of visitors client wants
+	•	There should always be atleast one type of visitor
+	•	This would be under typeOfVisit configuration
+	•	Capability to add default title in the invite which would be auto-populated on invite opening:
+	•	example: "Awaited guest for [Host name]
+	•	Property Names:
+	•	 "showDefaultInviteTitle" → to enable config
+	•	"defaultInviteTitle": "Business Meetings for VMS" → to define the message
+	•	Capability for the host to add the invite to their calendar
+	•	Property Name: enableCalendarInvite
+	•	Adding of invite to calendar is controlled by a checkbox on UI - for checkbox to show the property has to be enabled
+	•	Type of Visit list
+	•	Configurable Names based on client requirement - raise SE
+	•	No limitations on number of visitor types
+	•	Default values: 
+	•	
+	•	Bulk Upload of Visitors
+	•	Configurable property
+	•	Not default
+	•	After setting up the bulk upload configuration for a tenant, ensure that when the template is downloaded there is dummy data present in the file to let the user know how to fill in the details
+	•	Recurring Invite - Multi-day Invites
+	•	The date picker on the invite form supports single date and consecutive date selection to support recurring invite i.e multi-day invite
+	•	If host creates a multi-day invite, ex Feb 2-5 then there would be invites created for each of those dates
+	•	Each of those invites would have a badge label “Recurring Invite”
+	•	Host can edit/cancel a single invite or all the invites of a recurring invite
+	•	If digipass flow is enabled → there would only be a single digipass (QR) for that recurring invite and should be valid on all the days of the recurring invite (date & time)
+	•	The invites should show up on FD dashboard for all days the visitor was invited in the recurring invite
+	•	Custom Fields for Visitor Type on Web
+	•	Two property controls this:
+	•	formsMetaDataForHost: What the host sees
+	•	formsMetaDataForVisitor: What the visitor sees
+	•	Fields handles:
+	•	Text fields i.e Company Address
+	•	Device fields:
+	•	Storage device
+	•	description
+	•	To remove these custom forms entirely, please ask SE team to leave the json empty i.e {} -> json
+	•	Personal Note to Guests
+	•	Default
+	•	This info shows up in invite email
+	•	Optional for a host to enter details or not
+	•	Note to Admins:
+	•	Configurable field - notesToAdmins
+	•	Optional field, input not required to send an invite
+	•	Office Admin role must be setup for the email to go to them regarding this workflow
+	•	Can be done in roles and prileveges page
+	•	When there is any input in this field, then an email is sent to the configured Office Admin of the selected office in the invite
+	•	Otherwise there should be no email that goes to the Office Admin
+	•	Note to Reception/Security Guard:
+	•	Configurable field - noteToFrontDesk
+	•	Optional field, not required to send an invite
+	•	When there is any input in this field, then an email is sent to the configured Receptionist/Visitor Security Guard of the selected office in the invite
+	•	Otherwise there should be no email that goes to the Receptionist/Visitor Security Guard
+	•	VMS-Parking: Where only for the Employee/host to assign a parking slot to a visitor (Front Desk cannot assign parking to visitor) *Please note currently parking feature is not functional
+	•	Creating Visitor Tag
+	•	Setup to be done by implementation → Raise a TO to get a Visitor tag created for parking
+	•	Admin setup
+	•	Admin will go to the Desk Bulk Upload section in the sidenav bar
+	•	Admin selects on Parking Tagging
+	•	They download the excel sheet
+	•	In the excel sheet, there will be a column of visitor
+	•	The admin will add the office, zone, level, parking tagging start date and write Yes under Visitor tag
+	•	Admin will upload the excel and the specified parkings will be tagged as Visitor
+	•	These slots will not be viewable to employees when they are making parking bookings
+	•	Nothing else needs to be done by admin
+	•	Employee Flow:
+	•	When the parking property is enabled, they will see ‘+ parking’ in invite form 
+	•	The employee can only assign parking after adding visitors to the invite form
+	•	They can assign any type of parking to the visitor
+	•	Note: Once parking has been added against a visitor, if the details such as Date, time or office are changed, the parking gets reset
+	•	Visitor Workflow
+	•	The visitor would be able to view their assigned parking slot in the visitor emails they receive
+	•	If a parking has not been assigned to the visitor, they would not see the parking ‘P’ field 
+	•	 Where does it show up in reports?
+	•	Under VMS reports
+Invite Emails 
+	•	Available configurations on registration flow (i.e the process after a visitor “Accepts Invite”
+	•	Profile Photo
+	•	Profile ID
+	•	Dynamic Fields
+	•	Guest Wifi
+	•	NDA
+
+‘
+	•	When a visitor accepts the invitation
+	•	If digipass: ["INVITE_EMAIL"],  the visitor will receive an email with the invite acceptance and the digipass included in the same email. They can use this digipass for both check-in and check-out at the reception.
+	•	If digipass doesn’t contain "INVITE_EMAIL", the visitor will receive only the invite acceptance email, and the digipass will not be included.
+	•	Plus declined email if declined
+	•	Email communications on the host side
+	•	When an invitation is sent to the visitor, the host is notified that their invite has been sent and is in pending status 
+	•	When the visitor accepts the invitation, host receives a confirmational communication that their invite has been accepted 
+	•	If invite is declined,  
+	•	Host also receives other email and MS team communications like - visitor check-in, overstay and checkout
+	•	Guest Policy
+	•	Each email template includes a link labeled with the relevant policy name based on the recipient's persona:
+	•	Visitor Emails: Display “Privacy Policy.”
+	•	Non-Visitor Emails: Display “Guest Policy.”
+	•	The policy text is configurable, allowing clients to customize it to suit their needs. For instance, they can refer to it as "Privacy Policy" for visitors and "Guest Policy" for non-visitors.
+	•	Raise a TO to Karthik Sharma/Monit Dangi, specifying:
+	•	The policy text to display.
+	•	The persona (Visitor or Host) for which the policy applies.
+	•	Policy links redirect users to persona-specific policy pages. These pages now support custom titles and content to accommodate tenant-specific requirements.
+	•	Policies remain read-only, and visitors cannot perform any actions on them (e.g., accepting the policy) at this time.
+	•	Currently handles only simple text
+
+
+Registration Workflow Features
+	•	Accept Invite Flow i.e Registration Workflow
+	•	After the visitor clicks on Accept Invite, they are navigated to another page where they would see their event details and personal information (Name, Email, Phone, Comp, Designation)
+	•	These input fields can be controlled in the following manner:
+	•	Can be be made as optional/mandatory (same would apply to the fields in Add Guest modal of the invite form)
+	•	If there are no other configurations enabled for a visitor to complete before coming to the visit then the flow ends here, otherwise other enabled configurations would come in the next page i.e dynamic fields, custom fields, profile photo, profile ID upload and NDA
+2. Dynamic Fields
+	•	When dynamic fields are setup of VMS, it would be shown on this page and it is mandatory data that the visitor must input
+	•	It is under a section called “Required information”
+	•	When you raise SE mention it is for Dynamic Field:
+	•	The type of the field
+	•	Headers and input texts
+	•	Enabled in invited flow and walkin flow by default
+	•	We currently handle the following types of dynamic fields:
+	•	Boolean i.e toggle
+	•	Short Input Fields/text field
+	•	Dropdowns with number and value selections
+	•	Date selectors
+	•	Profile ID Upload
+	•	Identity Proof Documents Options that need to be mentioned in SE ticket - hat to be enabled within this config
+	•	The following is the super-set of document fields that can be enabled for a client within this property:
+	•	Passport
+	•	PAN card
+	•	Voter ID
+	•	Aadhar Card
+	•	Driver's License
+	•	Banking Book
+	•	Employee ID Card
+	•	Student ID Card
+	•	Public Services Card
+	•	National Identity Card
+	•	Citizen Identity Card
+	•	Resident Identity Card
+	•	Proof Of Age Card
+	•	Residence Permit
+	•	Work Permit
+	•	Social Security Card
+	•	Storage of Visitor Data (information other than PII i.e profile details)
+	•	This configuration handles the duration of storage of visitor data i.e documents/files and its duration
+	•	If the property is FALSE → data is stored indefinitely
+	•	Each tenant can specify the # of days the documents/files will be stored for their visitors
+	•	This gives Tenants the ability to set the duration they would like to store visitor data
+	•	Currently, this only applies to the documents/files uploaded by the visitor during registration flow/walk-in visitor ie. Visitor Profile Photo and Visitor Identity Proof 
+	•	The documents/files of visitors are stored in an encrypted manner
+	•	When the duration of storage is over, there would be a Hard Delete of the above-mentioned data 
+	•	Visitor Information such as - Visitor Name, Visitor Email, Visitor Phone Number will continue to be treated as PII data
+	•	We will not be showing the visitor how long their data will be stored for.
+Front Desk Features
+	•	Download of Visitor Data Button
+	•	RBAC controlled - make sure to mention the role and give them READ access	
+	•	Configuration controlled
+	•	Property: visitorInformationDownloadFrontdesk
+	•	Default: false
+	•	Allowed for the FD to download the list of visitors and their status on the Front Desk
+	•	File type: csv
+	•	NDA
+	•	Is there for invited, walkin and self checkin
+	•	Front Desk will accept the NDA after visitor reads
+	•	Configureable
+	•	NDA content needs to be configured by raising a TO to Karthik Sharma/Monit Dangi
+	•	Mention the content of NDA to be configured for each office
+	•	Set at office level
+	•	Belongings
+	•	Configurable
+	•	To show up on the Front Desk or not
+	•	To define the type of belonging you want to enabled i.e Personal Devices, Suitcases etc
+	•	By default “Others” type is enabled
+	•	The name of the belonging must be configured via SE ticket
+	•	After belongings are entered they must reflect against that visitor under the belongings section 
+	•	This section should only be visible if belongings configuration is enabled and belongings are captured successfully
+	•	Identification
+	•	First enable Identification
+	•	Then enable with either Profile Photo, Profile ID or both
+	•	Refresh button on Front Desk
+	•	Default feature no enablement
+	•	If there is an issue w.r.t to “time” on the refresh button, it’s a timezone issue - UI needs to check.
+	•	Cancel Toggle
+	•	Allows users to filter out canceled invites, showing only active ones. This helps front desk personnel focus on actionable invites.
+	•	Default feature no enablement
+	•	Other Details
+	•	Allows users to view and edit visitor-provided information directly on the front desk dashboard
+	•	Property controlled
+	•	Property - formsMetaDataForVisitor, formsMetaDataForHost, visitorFormsMetaData 
+	•	Walk-in Visitor Flows (these workflows apply only for walkin visitor on WEB)
+	•	Regular OTP Flow - default flow of VMS Walk-in Visitor (Only on Web)
+	•	OTP Flow has 2 steps to verify a visitor:
+	•	FD will select to verify the visitor via email/phone
+	•	Enter the visitors email/phone
+	•	OTP to be sent to visitor, and visitor would tell the FD
+	•	Then the FD enters details such as Visitor Name, Email, Phone, Host, Office, Duration
+	•	There would then be another OTP sent to the host (this is the OTP Approval of host - which can be disabled)
+	•	Visitor would get this OTP from host and relay to FD
+	•	Then FD would type Visitor Business and Designation and enter them into the system
+	•	Constraint of this flow: We cannot define optional/mandatory on the fields of this workflow i.e visitor name, email, etc.
+	•	Approval Flow
+	•	Works for both Walkin on web and VMS Kiosk flow
+	•	Visitor details are entered by the FD
+	•	Approval is sent to the host, note visitor is not registered in the system 
+	•	Host receives an email notification (if MS teams integration is enabled for this, then the host receives a teams message as well)
+	•	Host can accept/reject the visitor from the email → will take them to the invite dashboard where:
+	•	If they accept the visitor, it will show that visitor has been accepted. They can also reject the visitor if they accidentally pressed accept
+	•	If they reject the visitor, they will have to provide a reason for rejection → here they cannot accept a visitor once rejected
+	•	After acceptance/rejection by host, the FD can check the dashboard and see if the visitor has been accepted/rejected
+	•	There would also be a notification to the visitor via email of acceptance/rejection
+	•	Accepted vsiitors would get checked in as usual
+	•	Here we can define what fields are mandatory and optional
+	•	Standard Guest Form (Only on Web)
+	•	Benefit of this form is no OTP process or approval, it’s a simple and straightforward registration of visitor
+	•	Same fields are other walkin flows
+	•	Here we can define what fields are mandatory and optional
+	•	Please note: If standard guest form is enabled that configuration supersedes the other two configurations. ( Std guest form config > approval flow config  > otp config) 
+	•	Another note: If verify via email is done, then that field should be auto-filled in coming screens and same applies for verify via phone
+	•	2-Step Checkin and Checkout & Temporary Checkout
+	•	These two configurations are inter-dependent, they cannot be enabled without the other 
+	•	When raising SE, mention the properties to enable this flow but also mention:
+	•	Time limit between check-in of security to front desk
+
+
+What the Visitor Security Guard can do vs Front Desk
+
+
+Visitor Security Guard
+Front Desk/Receptionist
+Allow Entry
+Yes
+Yes
+Checkout
+Yes
+Yes
+Temp Checkout
+Yes
+Yes
+Print Badge
+Yes (without 2step enabled)
+Yes (without 2step enabled)
+Capture Belongings
+Yes
+Yes
+Additional Text Box
+Yes
+Yes
+NDA
+No
+Yes
+Identification
+No
+Yes
+Visitor List Download
+Yes
+Yes
+Walkin Visitor
+Yes
+Yes
+Scheduled Visitor (Invite)
+Yes
+Yes
+
+
+	•	Flow of 2-Step Checkin and Checkout & Temporary Checkout: https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management---Admin?type=design&node-id=9036-740081&mode=design&t=hdhyXvtEUorIBA9E-4  
+VMS Kiosk Workflow
+	•	The VMS self checkin worklow currently is only available on IOS via an apk file. There has not been an app release yet (as of May 2024). App release set for June’24
+	•	Name of app: MoveInSync Workplace
+	•	APK can be shared by iOS team, please ask the iOS team to share it with the concerned client’s email id.
+	•	The apk will be shared via firebsed
+	•	Any iOS device will work, any resolution - just test it once
+	•	The workflow supports:
+	•	Self-checkin and check-out of a visitor
+	•	With QR and without QR 
+	•	Custom forms based on the type of visitor, with
+	•	Badge printing
+	•	NDA - with signature and with checkbox (config based)
+	•	Guest Wifi
+	•	Approval flow of visitor
+	•	With QR code checkin/checkout
+	•	Configuration based
+	•	Custom Forms enablement
+	•	Raise an SE with the list of type of visitors and define what fields need to be enabled for each type
+	•	Ex ticket: https://moveinsync.atlassian.net/browse/SE-33393
+	•	Fields and info supported
+	•	Generic:
+	•	Dropdown (mention the title of the dropdown and the options)
+	•	Input text field (short form) - mention the title of the field
+	•	Specific information which are components:
+	•	Adding a device selection (this is a specific type of field and only works with defining a type of device, make and model)
+	•	NDA + NDA Signature/Checkbox
+	•	Raise a TO to  Employee Experience team i.e Karthik Sharma/Monit to update NDA content
+	•	Badge Print
+	•	Approval Flow 
+	•	Guest Wifi
+	•	Success message at the end of Checkin is customizable, config mentioned in table.
+
+	•	VMS Self Checkin Visitor Configurations document for setting up the different configurations
+	•	Example of a setup for a client i.e what needs to be shared with SE team for enablement: Setup for PWC India VMS
+	•	https://www.figma.com/file/LWosWNUgdH4k0tr1gQOeH7/Visitor-Management--Self-Check-in?type=design&node-id=0-1&mode=design&t=PL3bHL9JS6kEb3CK-0 
+
+Walk-in Visitor Flow
+Step-by-Step Flow (Regular OTP - Default)
+Step 1 - Select Visitor Type
+
+FD clicks "Walk-in Visitor" on the Front Desk Dashboard
+Modal opens with a dropdown to select visitor type (e.g. Business Guests, Contract Employees, Delivery Personnel)
+Visitor types are configurable - raise SE to update the list
+
+
+Step 2 - Verify Visitor
+
+FD selects verification method: Verify via Email or Verify via Phone Number
+OTP is sent to the visitor; visitor shares it with the FD
+Visitor's profile fields (Name, Email, Phone) are auto-populated once verified
+
+
+Step 3 - Enter Visitor Details
+
+
+FD fills in visitor information across two screens:
+
+Screen 1: Name, Email, Phone Number (pre-filled from OTP step)
+Screen 2: Host Name (mandatory), Office (mandatory), Duration (mandatory), + additional fields
+
+
+Additional fields visible on Screen 2 depend on visitor type configuration:
+
+Company, Company Address, Designation, Purpose of Visit, Location - Coming From
+Each field can be enabled/disabled and set as optional or mandatory per visitor type
+Raise SE to configure which fields show and their mandatory/optional state
+
+
+Step 4 - Check-in
+
+
+On Save, visitor is checked in
+Relevant notifications go to host (email / MS Teams if configured)
+
+Invite Visitor Flow
+Step 1 - Initiate Invite
+The host navigates to Visitor Management → Invite Visitor and clicks Create Invite.
+The Invite form opens with the following sections:
+	•	Invite Details (left panel)
+	•	Visitor Selection (right panel)
+Step 2 - Fill Invite Details
+The host is required to enter:
+	•	Inviting On
+	•	My Behalf
+	•	Someone else’s behalf (if allowBookingsForOthers is enabled)
+	•	Title (mandatory)
+	•	Type of Visit (mandatory)
+	•	Configurable list (e.g., Business Guests, Contractors, etc.)
+	•	Office (mandatory)
+	•	Auto-populated based on host’s default office
+	•	Editable based on configuration
+	•	Start Date & End Date (mandatory)
+	•	Start Time & End Time (mandatory)
+	•	Repeat Booking
+	•	Supports recurring/multi-day invites
+Step 3 — Add Visitors
+On the right panel, visitors can be added via:
+	•	Search existing visitor (by name/email/phone)
+	•	+ New Guest (manual entry)
+	•	Bulk Upload (if Guest_Bulk_Upload is enabled)
+Each visitor includes:
+	•	Name
+	•	Email
+	•	Phone Number
+	•	Additional fields (based on configuration)
+
+Step 4 - Additional Inputs (Optional)
+Based on configuration, the host may also:
+	•	Add Personal Note to Guest
+	•	Add Note to Admins (notesToAdmins)
+	•	Add Note to Front Desk (noteToFrontDesk)
+	•	Configure email notification preferences
+	•	Assign parking (if enabled — currently limited support)
+	•	Fill custom fields
+
+Step 5 - Create Invite
+On clicking Confirm Invite:
+	•	Invite is created for each visitor
+	•	For recurring invites:
+	•	Separate invites are created per day
+	•	UI shows “Recurring Invite” tag (as seen in dashboard)
+
+Post Invite Creation (What Happens Next)
+Invite Visibility
+	•	Appears in:
+	•	Invite Dashboard (host view)
+	•	Front Desk Dashboard (on the scheduled date)
+
+Visitor Communication
+Visitors receive communication based on configuration:
+Invite Email
+Controlled via:
+	•	sendVisitorInviteEmail
+	•	vmsInviteTrigger
+
+DigiPass (QR Code)
+Controlled via:
+	•	VISITOR_DIGIPASS
+	•	digipass
+	•	digipassAutoSend [NEW]
+Behavior:
+	•	If DigiPass is enabled:
+	•	QR is sent via email
+	•	If digipassAutoSend = true:
+	•	DigiPass is sent immediately after invite creation
+	•	No dependency on visitor acceptance
+	•	If disabled:
+	•	DigiPass is sent only after visitor accepts the invite
+
+Non-Interactive Invite Email [NEW]
+Controlled via:
+	•	enableNoninteractiveVisitorInvite
+When enabled:
+	•	Visitor does not need to accept/reject the invite
+	•	Invite acts as informational communication only
+
+Visitor Registration Flow (If Enabled)
+If registration is required, the visitor must complete:
+	•	Profile details (Name, Email, Phone, etc.)
+	•	Profile Photo upload (visitorProfilePhotoUpload)
+	•	Identity Proof upload (Visitor_Profile_ID)
+	•	NDA acceptance
+	•	Dynamic/custom fields (enableDynamicField, formsMetaDataForVisitorPWC)
+
+Host Notifications
+The host receives notifications for:
+	•	Invite created
+	•	Visitor accepted / declined
+	•	Visitor check-in
+	•	Visitor checkout / overstay
+Controlled via:
+	•	hostNotifications
+	•	visitorNotifications [NEW]
+
+
+Integrations
+	•	MS Teams:
+	•	For Approval Flow message enable the related configuration: visitorTeamsMsTeamsNotification
+	•	Guest Wifi
+	•	 Cisco
+	•	Property controlled: isGuestWifiEnabled
+	•	Default: FALSE
+	•	Raise an SE
+	•	This property controls wifi enablement on the Invited workflow
+Email Templates of Visitor Management
+*Please note that email templates are default in the visitor workflow, email templates should not have to be enabled separately, if any of the below email templates are not getting triggered during sanity/on production raise a TS. 
+
+VMS notifications are managed from the Notifications panel (Settings → Configuration → Visitor Management → Notifications). The templates below are grouped by notification type, showing who receives them, the channel, and the relevant property where applicable.
+Invitation
+Notifications triggered when an invite is created.
+Notification
+Triggered When
+Channel
+Sent To
+Property
+Invitation Email
+Host completes invite registration
+Email
+Visitor
+—
+Invitation Email (Without Action CTAs)
+Host completes invite registration; non-interactive mode enabled
+Email
+Visitor
+enableNoninteractiveVisitorInvite
+Guest Invitation — Awaiting Response
+Host completes invite registration and visitor has not yet responded
+Email
+Host, Creator
+—
+Upcoming Visitor
+Visitor is invited to the office
+Email
+Additional Recipients (configurable)
+triggerListForLandlords
+Invite Response
+Notifications triggered after any action taken on an invite.
+Notification
+Triggered When
+Channel
+Sent To
+Property
+Invite Acceptance Email
+Visitor accepts the invitation
+Email
+Host, Creator
+—
+Invite Accepted Email
+Visitor accepts the invitation
+Email
+Visitor
+—
+Invite Declination Email
+Visitor declines the invitation
+Email
+Host, Creator
+—
+Invite Declined Email
+Visitor declines the invitation
+Email
+Visitor
+—
+Invite Canceled Email (Host)
+Host cancels the invitation
+Email
+Host, Creator
+—
+Invite Canceled Email (Visitor)
+Host cancels the invitation
+Email
+Visitor
+—
+Approval
+Notifications triggered as part of the visitor approval/rejection flow.
+Notification
+Triggered When
+Channel
+Sent To
+Property
+Request for Approval Notification
+Visitor completes self check-in or walk-in and is sent for host approval
+Email, MS Teams
+Host
+isApprovalFlowEnabled
+Entry Approved Email
+Host approves the visitor's entry
+Email
+Visitor
+—
+Entry Rejected Email
+Host rejects the visitor's entry
+Email
+Visitor
+—
+Visitor Arrivals and Check-ins
+Notifications triggered on the day of visit.
+Notification
+Triggered When
+Channel
+Sent To
+Property
+Visitor Check-in Notification
+Visitor checks in
+Email, MS Teams
+Host, Additional Recipients
+externalEmployeeList, isVisitorCheckinMsTeamsNotificationEnabled
+Visitor Check-out Notification
+Visitor checks out
+MS Teams
+Host, Additional Recipients
+isVisitorCheckoutMsTeamNotificationEnabled
+Visitor Overstay Notification
+Visitor stays beyond planned checkout time
+Email, MS Teams
+Host, Additional Recipients
+overstayTriggerList, overStayAlertRecipients
+Notes
+Notifications triggered when notes are added during invite creation.
+Notification
+Triggered When
+Channel
+Sent To
+Property
+Note to Reception/Security
+A note is entered in the "Notes to Reception/Security" field
+Email
+Reception/Security, Additional Recipients
+noteToFrontDesk, emailListToReceptionist
+Note to Admin
+A note is entered in the "Note to Admin" field
+Email
+Admin, Additional Recipients
+notesToAdmins, emailListToAdmin
+Other Triggered Emails (Not in Notification Panel)
+The following are triggered automatically and are not configurable from the Notifications panel:
+	•	OTP Email — sent to visitor whenever an OTP is triggered in VMS. Same template across all OTP flows
+	•	DigiPass / Checkout QR Email — sent to visitor based on digipass configuration. Controlled via digipass, digipassAutoSend, visitirSelfCheckOutDigiPass
+
+Common Issues and how to troubleshoot 
+	•	Logo/branding not coming on VMS related pages
+	•	The Side nav icon of VMS not visible on a new site
+	•	Something went wrong on the Front Desk Dashboard
+	•	Invites not getting triggered
+	•	When searching for a visitor there is an error shown

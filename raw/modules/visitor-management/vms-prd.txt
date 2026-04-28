@@ -1,0 +1,1265 @@
+Visitor Management PRD
+
+
+Document Control
+Document  Name
+Visitor Management PRD
+Version No
+1.4
+Classification
+Internal	
+Date
+11/07/2023
+
+ 	 	
+Version Control
+VerNo.
+Author	
+Approved by
+		
+Approved Date
+Description
+
+1.0
+Jovil Nazareth
+Ujjwal Trivedi
+14/10/2021
+Initial Document
+1.1
+Jovil Nazareth
+Ujjwal Trivedi
+26/10/2021
+Review Comments Added
+1.2
+Jovil Nazareth
+Ujjwal Trivedi
+
+Walk-In Visitor
+1.3
+Jovil Nazareth
+Ujjwal Trivedi
+-
+-
+1.4
+Kavya Sridharan
+
+
+Updating PRD
+1.5
+Vaishnavi Raghav
+
+
+Updating PRD
+
+
+
+VISITOR MANAGEMENT PRD
+
+Problem Statement:
+Ensuring compliance and safety with dynamic policies can no longer be managed with
+traditional pen and paper visitor management. Increase in trend of hybrid workplaces, with remote-first employees, has further added to the planning time required to host in-person
+clients and visitors. 
+
+Personas involved:
+	•	Employee
+	•	Visitor
+	•	Invited
+	•	Walk-in
+	•	Receptionist
+	•	Security Guard
+	•	Admin
+
+Designs:  
+
+Visitor Management – Admin
+Visitor Management - Employee+Visitor
+ Note: Designs posted here are for reference only to provide context. Kindly refer to figma file for the complete designs
+
+The Employee Persona
+Use Case 1.0: As an employee/host I want to invite a visitor on the web browser
+	•	Employee invites a visitor through the web browser from the employee dashboard through quick actions or a separate tab of visitor management
+	•	Employee can either invite from an existing database or add a new visitor
+	
+	•	Host can enter the following details:
+	•	Event Title: “Meeting with <Employee Name>”. This can be edited by the user. Number of characters in the field: No limit.
+	•	Mandatory field
+	•	Type of visit: Type of visit to be a dropdown with fields:
+	•	 Default: Business guests, Personal guests, Contract employees, Potential New Hire, Delivery Personnel
+	•	Other option. When someone selects on Other, a box will appear next to the dropdown where in the person can enter the purpose (free text box) - Not built
+	•	These fields are configurable 
+	•	Date: Scheduled date of the event. 
+	•	Past date cannot be selected
+	•	Future date can be selected
+	•	Time: Duration of the event 
+	•	Handled for time zones
+	•	Follows the time zone of the user profile
+	•	Location: Location of the event. At present, we would only support the existing offices stored in the respective organization’s database.
+	•	Default: By default the location would be the office of the employee creating the invite and would appear as in the design -Not built
+	•	Incase a user wants to change location: When clicked on the office, it would open a dropdown menu where-in the employee can select any other office location
+	•	Once the user selects a location, the dropdown box would remain as is
+	•	Add Guests: Visitors to be invited to the event. (Explained in detail below)
+	•	Guest Permission: This allows the employee to let the visitor avail certain amenities like Parking, Wifi-Access → V2
+	•	Add Room: Configurable field. Only available to organizations using our meeting room solution. (Explained in detail below) → V2
+	•	Add Desk: Configurable field. Available only to organizations who would like to book a desk for the visitor. (Explained in detail below) → V2
+	•	Add Parking: Configurable field. Available only to organizations who would like to book a parking spot for the visitor. (Explained in detail below) → V2
+	•	Personal note to guests: Free text box which can be used by the user to either describe the event or write a note to the invitees
+	•	Note for admin: This is a separate text which only the admin would be able to see where-in the user can enter requests for resources required, etc. 
+	•	Content in the text box will be sent to the admin as email (configurable) 
+	•	This text box would appear in the admin dashboard with the list of meetings -- V2
+	•	Email sent to admin: would consist of the Event Title, Type of visit, Guest list, location of the event, note to guests, and the note to admins 
+
+	•	Once the employee completes the form and clicks on “Confirm”, the email notification would be sent to the guests, front desk and admin
+	•	This is explained in the “Notifications” section of the PRD
+	•	Post confirmation, the user would be asked if they would like to add additional amenities like meeting rooms, desk, etc -- V2
+	•	Once an employee clicks on finish, they will be redirected to the dashboard of visitor management where they can view today’s and upcoming invites. (Explained in detail below)
+
+Use Case 1.1: EMPLOYEE CAN VIEW THE INVITE (DASHBOARD)
+	•	The employee is notified through status in the dashboard or through email when a visitor accepts the invitation
+	•	Email notification will be configurable
+	•	Employee can view following status with respect to the invited visitors -
+	•	Invited → Visitor has been sent the invite
+	•	Accepted → Visitor has accepted the invitation
+	•	Rejected → Visitor has rejected the invitation
+	•	Digipass generated → Once the visitor fills all the necessary fields, employee is notified that the digipass is generated
+	•	Profile Completed → Once the visitor fills all fields of information mandated by the organization, the employee is notified that the visitor has completed their profile. This is valid when digipass flow is disabled
+	•	Digipass Scanned → Once visitor scans the digipass, this status is visible
+	•	Checked-in → Once the visitor is checked-in by the front desk, the status of the visitor changes to checked-in
+	•	In case the digipass flow is disabled, then the status of the visitor remains as Profile Completed.
+	•	Post check-in by the front desk, it would change to Checked-in
+	•	Once the visitor is checked into the premises at the front desk, employee is notified by email or desktop notification
+Use Case 1.2: EMPLOYEE EDITS / CANCELS THE INVITE
+	•	Post creation of the invite, the employee can edit/cancel the event “n” minutes prior to the event. “N” → configurable time limit
+	•	On cancellation of an event, all resources associated with that event would be canceled. For example, desks, meeting rooms, etc
+	•	Edit Invite: Employee can edit multiple fields in the invite. Behavior of the system on change of each fields is as described below - 
+	•	Event Title: Title of the event can be changed
+	•	Date and Time: Event date and duration can be changed
+	•	Personal note to guests / admin: Both these fields are editable
+	•	Add / Remove Guests
+	•	On change of the following fields, the guest is notified of the change through an email (mandatory) - 
+	•	Date of the event: All guests
+	•	Time of the event: All guests
+	•	Personal note to guests: All guests
+	•	Adding of a new guest: Invite email, only to the new guest added
+	•	Removing of a guest: Canceled invite email, only to the guest removed
+	•	On change of the following fields, the employee is asked if they would like to send emails to the guest - 
+	•	Event Title
+	•	On change of following fields, the guest is not notified - 
+	•	Type of visit
+	•	Note to admin
+	•	Cancel Invite:
+	•	Invite canceled sends email to all the guests informing them of the cancellation
+	•	Employee can view this invite on their dashboard
+	•	All the guests would be marked as canceled against the status in dashboard
+
+Use Case 1.3: DOWNLOAD OF GUEST LIST
+
+	•	When the number of guests in a invite crosses the threshold of 5 guests, then the employee can view the guests details only through download
+	•	This downloaded file consists of the following headers:
+	•	Name: Name of the visitor
+	•	Email ID: Email ID of the visitor
+	•	
+Use Case 2.0: ADDING ONE GUEST AT A TIME
+
+	•	New visitor: Employee has to enter basic information of the visitor like name, email address and phone number. 
+	•	All fields can be made configurable as either optional or mandatory based on requirements of the organization. To note: If phone number is optional then email should be mandatory and vice versa. This is to ensure that we have some security check in-place
+	•	Existing user: User should be able to search the visitor through the name or email address of the visitor. In case there are similar names, the search would show multiple results for the same name, with different email IDs 
+
+Use Case 2.1: ADDING GUEST VIA BULK UPLOAD
+
+Figma: https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=7217%3A292974&t=jG0PxlXFsGm2YnIk-4
+
+
+	•	The employee can add visitors in bulk through an option – “Bulk Upload”
+	•	This feature is controlled by a configuration - “Guest_Bulk_Upload”. 
+	•	Its default value is set to “True” always
+	•	It is to be added in the default configuration list of visitor management
+	•	Employees can upload only 100 guests at a time.
+	•	How it works: 
+	•	When employee clicks on “Bulk Upload” → 
+	•	A modal opens up which can be used to download the sample file and upload the details
+	•	The “Upload” CTA should be grayed out until the user uploads a file successfully
+	•	If the user clicks on “X” CTA, the user is redirected to the “Invite screen” without any action of bulk upload
+	•	The employee can download the excel file for sample upload. Following fields are to be present in the file (All the fields mentioned below pertain to the visitor’s profile)
+	•	Name: Name of the visitor
+	•	Email ID: Email ID of the visitor
+	•	Country code: The country to which the phone number belongs to
+	•	Phone number: Phone number of the visitor
+	•	Any other field that the admin would like to add to capture the profile of the visitor - V2 Kavya S( Broken flow - let’s pick it up in upcoming sprints)
+	•	The employee then chooses the file to upload which has necessary information
+	•	On upload, the system verifies if the file and all the information added in the file is in a consumable format
+	•	If it is consumable → “Successfully Uploaded” is seen
+	•	If any of the fields in the file is not consumable → A message - “There was an error while uploading the file” is seen. Further error / conflict states are explained below
+	•	Once uploaded, the CTA changes to “Submit”. When the employee clicks on “Submit”, a pop-up opens with a message – “This would create the profile of the guest in the system. Do you want to proceed?”  
+	•	If employee clicks on “Proceed” → profile of the guest is created (please refer to upcoming points for more information on profile creation)
+	•	If employee clicks on “Decline” → the user is navigated to the modal where they can click on the “Submit” CTA
+	•	If an employee drops off at this stage, i.e., if they click on the “x” CTA, then the profile of the guests would not be created. Previously uploaded file would not be stored
+	•	Once the guests are created / uploaded, they are added to the invite and the following screen is seen   
+	•	Mandatory fields
+	•	In case a field is mandatory, then the words “Mandatory” should appear in the header of the field in the excel file
+For e.g., if email ID is mandatory, then the header in the file would be “Email ID (Mandatory) If phone number is not mandatory, then the header in the file would be “Phone number”
+	•	This would be applicable to all the fields that the admin would like to capture in the “visitor’s profile” that they would define for their organization
+	•	Error / Conflict States
+	•	If the file uploaded is not in a consumable format → “There was an error while uploading the file” is seen 
+
+	•	If the file uploaded has more than 101 rows (100 guests + 1 header) → “Only 100 guests can be uploaded at a time. Please update the file and try again”
+	•	If the file uploaded has conflicts → 
+	•	This occurs when the information in the fields are not in consumable format or is wrong
+	•	“There was an error while uploading the file” is seen with the number of conflicts called out 
+	•	The employee can then download the file to check the erroneous rows and upload the file again
+	•	Conflicts in the file can occur for the following reasons and their corresponding error message is to be present in the downloaded file in a separate column:  
+	•	Email ID: “The Email ID format is wrong”
+	•	Phone number entered does not match the number of digits as required by that country: “Phone number should have X digits as per the country code entered”
+	•	Country code: If the country code does not exist → “This country code does not exist”
+	•	Profile Creation
+	•	On completion of the bulk upload action, the profile of the visitor is created in the system
+	•	In case the visitor already exists in the database, then the following steps occur -
+	•	A new profile of the visitor is NOT created. Existing profile continues.
+	•	In case any of the information in non-mandatory fields is to be updated against the visitor’s profile, then the corresponding information will be updated based on the information in the uploaded file
+	•	
+
+
+
+APPROVAL WORKFLOW
+
+Objective: According to office policies of some clients, it is required to review the visitors invited by an employee before allowing them inside the premises.
+
+Prerequisite and Acceptance Criteria: 
+	•	Employee should have a manager defined in their profile
+	•	
+
+Figma: Visitor Management – Figma
+There are different types of emails for approve / reject / auto approve / auto reject. Please go through them all
+
+Use Case 1.0: The employee’s manager needs to approve the invite sent to the visitor within a certain period of time
+
+	•	Once the employee clicks on the “Invite Visitor” CTA, the invite opens where there is a banner which says “This invite requires approval from your manager”
+	•	The employee fills the form and clicks on “Confirm” CTA, the following actions occur - 
+	•	Employee is redirected to the dashboard where they see the event invite 
+	•	The invite’s status would be in “Waiting for Approval” state
+	•	Manager receives an email for approving the invitation
+	•	None of the visitors receive the email invitation i.e., visitors booking is in “Pending” state
+	•	If the manager approves the event invite within a certain defined time
+	•	Employee is notified through an email that their invitation has been approved
+	•	The status of the invite changes to “Approved” state in the dashboard
+	•	Manager receives an email notification that they have approved the invite
+	•	The visitors in the invite receive the email invitation i.e., visitors booking is in “Confirmed” state
+	•	If the manager denies the invitation within a certain defined time
+	•	The manager has to enter a rejection note along with the rejection
+	•	The status of the invite changes to “Rejected” state in the dashboard along with the note
+	•	Employee is notified through an email that their invitation has been rejected with a note from the manager
+	•	Manager receives an email notification that they have rejected the particular invite
+	•	The visitors do not receive any notification i.e., visitors booking is in “_____” state
+	•	Manager:
+	•	When the manager receives the email, they can click on either “Accept” or “Reject” button
+	•	Once they click on the CTA in the email, the user will be redirected to the browser where the manager would be authenticated on Workinsync
+	•	In case of “Accept” invite, once it is authenticated, the manager will see the success message “The invite has been successfully approved”
+	•	In case of “Reject” invite, once it is authenticated, the manager would have an option to enter the rejection note. Once rejection note is entered, the message “Invite has been rejected” would appear
+	•	Front desk: Until the invite is approved by the manager, the front desk would not see the invite. Once the invite is approved, then the front desk would see the visitors invited
+
+
+Use Case 1.1: In case the manager does not approve the invitation within the defined time, there should be some action taken on the invitation
+
+	•	In case the manager does not take any action on the invite within the defined time -
+	•	The invite gets auto-approved (as a default configuration)
+	•	An organization can also set it to “auto-reject”
+	•	The above 2 options should be configurable properties with auto-approval being the default flow when approval workflow is setup
+
+BOOK A DESK (Version 2)
+	•	Employee who is inviting can book a desk for the guest using the web browser during the invite or at a later date or even after start of the event
+	•	The booking interface is similar to that of employee desk booking except in the case of booking for multiple visitors
+	•	Employee can select the entire duration of the visit or specific time duration within the visit to book a desk for the visitor
+	•	The desk can be booked from the pool of hotdesks
+	•	Use Cases:
+	•	Employee to be able to book a specific desk for one visitor
+	•	If employee wants to book for multiple visitors, admin should be able to select multiple desks and assign them
+	•	When multiple desks are selected, the selected desks should be auto-allocated to the visitors at random
+
+BOOK A MEETING ROOM (Version 2)
+
+BOOKING A PARKING FOR VISITOR
+Problem Statement:
+	•	The employees / admin are not able to inform the visitors if there’s parking that they can avail when visiting their office
+	•	In case parking is available in the organization, currently, employees are not able to check the availability or book the same for visitors
+Figma: https://www.figma.com/file/EfaWNaNGp8PQZGIObVOpEa/VM---Employee%2Bvisitor?type=design&node-id=1310-235597&mode=design&t=6GiHaFrOfDYub40C-0   Acceptance Criteria:
+	•	Create ‘Visitor’ tag
+	•	VMS-Parking Configuration
+	•	Property Name: Visitor_Parking_Auto_Allocation
+	•	True → Enable Parking Selection in Visitor Invite
+	•	False → Disable Parking Selection in Visitor Invite
+	•	Default: False
+	•	Use Parking Module to allow for auto-allocation of parking bookings for visitors
+	•	For allocation parking slots to visitors, consider the Visitor tagged slots in the whole premise for that office
+	•	Do not allow employees to view Visitor tagged parkings
+	•	Only allow visitor tagged parking slots to be considered and allocated for visitors
+	•	Parking should be booked even if registration number is required (only for visitors)
+	•	There would be no changes to premises page, parking report (do not consider visitor parkings in this page)
+Use Case 1.0 As an employee I want to be create an invite and book a slot for a visitor in the invite form so that I can assign a parking slot to a visitor and provide them a dedicated parking slot 
+	•	They open the invite form and fill out the details of the event
+	•	When property (Visitor_Parking_Auto_Allocation) is true, there will be an “ + Parking” button above the list of added guests.
+	•	The button should be disabled if there are no visitors added to the invite, button only gets enabled when at least 1 visitor has been added
+	•	‘Added Guests’ title to be added to distinguish the added visitors
+	•	The format of visitor details will also be altered to have Name, Email and phone number in subsequent lines, the rest of the format stays the same
+	•	The order in which visitors are added to the invite form will be reserved, going from bottom - top to top - bottom.
+	•	When “ + Parking” is selected, a modal will open
+	•	Modal:
+	•	Title: Add Guest Parking
+	•	First line: Added guests & parking slot chips with the number of slots per vehicle type (only car and bike for now)
+	•	List of visitors added with CAR and BIKE selection chips next to their details - none selected by default
+	•	Cancel button: if selected should close the modal and go back to the invite form
+	•	Done button: Saves the selections for each visitor
+	•	If there is no chip selected for a visitor, treat it as “0” slot selected
+	•	Car chip selected = 1 car slot selected, Bike chip selected = 1 bike slot selected
+	•	In the create state - when the host selects Car/Bike for a visitor, the count should decrease for the vehicle type. When the host deselects Car/Bike, then the count should increase fir that vehicle type.
+	•	Only show Car or Bike IF there are Visitor tagged parkings for that visitor type. Ex. If there are 0 visitor tagged bike parkings, do not show the Bike option, only show Car. - Not Built
+	•	If there are 0 slots available for that vehicle type, the Car/Bike chip should be disabled
+	•	Once the host clicks on Done, the parking selections would get saved - not created in backend - and a parking symbol - P - would show up against the visitor on the invite form. This symbol would only appear for those visitors who had parking selected for them.
+	•	The employee would proceed to Confirm the Invite
+	•	Once the invite has been confirmed, there should be a check in the system whether the parking slots are still available at the time of selecting ‘Confirm Invite’
+	•	Hence there would be a delay in triggering the invite email immediately after the confirm invite button is selected
+	•	If even one slot is not available for one visitor at the time of checking the system for slot allocation, there would be a toast message displaying “Parking Slots Unavailable. Please Try Again.”
+	•	The screen would be taken back to the editing state of the invite
+	•	After confirming the invite, the employee can see the assigned zone, level and parking slot in the invite preview 
+	•	Invite Email will be sent to the visitor
+Use Case 1.1 As an employee I want to be able to edit my invite and visitor parkings - Not Built
+	•	The employee is allowed to edit the invite
+	•	Only when they click on OFFICE or TIME
+	•	A modal should tell the visitor that “Making this change will reset visitor parking(s). Would you like to proceed?”
+	•	Back to editing and proceed buttons
+	•	Back to editing  will take them back to editing the form in the previous prefilled state
+	•	Proceed would cancel the previous parking slots and reset the dropdown selections back to “Select Vehicle”
+	•	The new selection of Office, date and time should also be displayed
+	•	The employee will then have to go through the same flow as use case 1.1
+	•	In the current scope we will not let employees edit the parking of individual visitors
+	•	In the case where an employee selects OFFICE, DATE, TIME but doesn't choose a different value and selects the same value → no modal should show up
+Affects on Reports and Analytics - visitor related parking bookings will not show up on premise page, parking allocation, or other analytics pages in WIS.
+
+The Visitor Persona
+Use Case 1.0: VISITOR RECEIVES AN EMAIL INVITE
+	•	Once the employee schedules an event, the visitor would receive an email which redirects them to a web browser
+	•	The form on the web browser should be compatible with phone, tablet and laptop/desktop
+	•	The email consists of a “Confirm & Accept Invite” which would redirect them to the web browser
+	•	Event title, duration, location, personal note to be taken from the invite and shown in the email
+	•	Number of guests invited to the event would be visible but not details of the guests
+	•	Location: Direction should either open a web browser link or redirect to google maps application which shows the coordinates of the selected location in the map
+	•	Guest amenities: Version 2
+	•	Design template as below
+
+
+
+	•	Once redirected, the basic information filled by the employee would be visible to the visitor, where-in they can fill the information and click on “Confirm & Accept Invite”
+
+	•	Basic information: Once the visitor enters the basic information as required by the organization, they would accept the invite
+	•	The fields available for basic mandatory information should be configurable based on a particular organization i.e., Some organizations may choose to show “designation of the visitor” as it is mandatory and some may not. 
+	•	These configurable fields will be handled from the backend (BUID configuration) (Version - 1) which will later be brought to the frontend for the admin to personalize based on their company guidelines (frontend Version - 2)
+	•	Event details here would be hidden by default as seen in the design
+	•	If the visitor chooses to click on the arrow to view the details then following information would be displayed - 
+	•	Title of the event
+	•	Date and time of the event
+	•	Guest list: List of all guests with their name and email address
+	•	Location
+	•	Post confirmation of invite below screen would appear. If the visitor at any time goes back to the email (post accepting invite) and clicks on the same link from the email, then the below screen should appear
+
+
+
+	•	Once visitor accepts the invitation -
+	•	The visitor can still continue on the web page to fill further information
+	•	Visitor receives another email which notifies them that they can access their profile at any time to complete the process to generate digipass (detailed in the next steps)
+
+
+	•	Once a visitor completes the information, they would receive an email with digi-pass for contactless access. 
+
+
+	•	Digipass Email contents:
+	•	Digipass to scan on the guard app
+	•	Event Name, Date and time of the event
+	•	Location of the event (Directions would be Version -- 3)
+	•	General Instructions: These set of instructions would be specific to an organization and will be configurable based on that organization. Incase an organization has no general instructions, the section would not appear
+	•	Profile picture on the access pass is visible only if the visitor has uploaded their picture, else it would be a general profile icon
+	•	Email that the visitor receives to complete their profile by accessing later (to be detailed)
+	•	Link that redirects directly to the the complete profile section
+	•	In case a visitor has completed their profile and not yet generated the access pass, when they click on the email link, it will redirect them to the below screen which has all their details filled 
+
+
+
+Use Case 1.1: VISITOR EDIT PERMISSIONS (Version 1)
+	•	Visitors can edit profile “n” hours prior to the event. “N” → configurable based on organization
+	•	In case of a frequent visitor, if the details are edited at any time after a particular visit, the information of the previous visit remains intact.
+	•	Visitor cannot edit the event or any particulars associated with the event
+
+Use Case 1.2 Simplifying the Invited Email Flow for an Invited Visitor
+Problem Statement:
+Invited Visitors find it difficult to keep track of the emails that are currently sent when they are invited by a host. The profile completion process is also time consuming and confusing.
+With the digipass now being configurable property, the email flows to the invited visitor would be different based on what the company has enabled (digipass/no digipass flow)
+Solution:
+	•	Reducing the overall number of emails that get triggered to the invited visitor
+	•	Simplifying the invited visitor registration flow
+	•	Cater to the new ‘no digipass’ flow
+Acceptance Criteria:
+	•	The digipass should be controlled property specific to a particular office
+	•	Property for digipass -VISITOR_DIGIPASS
+Use Case 1.2.1 Invited Visitor Email Flow ---> When digipass is enabled
+	•	Invitation email - First Email
+	•	Subject Line: You're invited! Don't miss [Event Title] at [Company Name]
+	•	Email Body: as per Figma design
+	•	When the visitor clicks on the ‘Accept Invite’ button it will open a new tab in the browser for the visitor to enter their profile details
+	•	‘Accept Invite’ button to expire just before the event starts - allowing the visitor to change their details multiple times before the visit (already exists)
+	•	New Tab: Complete Profile Flow
+	•	First Screen: where the visitor will verify their personal details
+	•	There will be a collapsible card for the Event Details
+	•	Addition of the country code drop-down for phone number (replaces the old design of writing the country code country)
+	•	Visitor will have to check if their personal details are filled in correctly
+	•	Behavior of Email ID, Phone Number fields:
+	•	When Email ID and Phone Number have been input by the host at the time of invite creation → visitor cannot edit email ID, phone number, they will be ‘Read Only’
+	•	Field should be in disabled text state on the screen
+	•	When host does not enter the phone number during the time of invite creation → visitor can write the phone number
+	•	Field should be in enabled text state on the screen
+	•	Behavior of other fields
+	•	Name, Phone Number is mandatory
+	•	Company, Designation would be non-mandatory fields
+	•	Email would already be input - mandatory
+	•	Only when the visitor fills in mandatory fields will the ‘Next’ button be highlighted
+	•	Second Screen: where the visitor will upload their profile and photo ID
+	•	Should work like the previous flow
+	•	Change of button → Accept Invite
+	•	When Accept Invite button is clicked, the digipass email should be generated to the visitor
+	•	There will be NO ‘Complete Profile’ or ‘Get Access Pass’ email triggered to the visitor
+	•	Third Screen: success screen for accepting the invite
+	•	Digipass Email - Second Email
+	•	Subject line: Welcome to [Company Name]: Your Digital Access Pass is Here!
+	•	New template will have changes to text
+	•	Declined Email
+	•	Flow remains the same for invited visitor
+Use Case 1.2.2 Invited Visitor Flow ----> When digipass is disabled
+	•	Invitation Email -----> New Tab: Complete Profile Screens (Same flow as mentioned in Use Case 1.0)
+	•	Third Screen: success screen for accepting the invite
+	•	Text would be different to notify the visitor to report to the office (no mention of digipass)
+	•	Confirmation Email of Invite Acceptance - Second Email
+	•	Subject Line: Invite Confirmed! All You Need to Know About [Event Name]
+	•	Body: As per Figma design
+	•	Declined Email
+	•	Flow remains the same for invited visitor
+Old vs New Flow explained -https://whimsical.com/invited-visitor-flow-WiiQ3T3jkJrSLJ1XPSWKVY  Designs: https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=9626-428455&t=dKf2zzXNbOv9qIjs-4
+
+Use Case 2.0: WALK-IN VISITOR (Version 3)
+
+Workflow for walk-in visitor → will be in Version 3
+Use Case 3.0  As a visitor, I want to know what parking slot has been assigned to me so that I have a smooth experience getting into the office
+	•	Visitor opens the first invite email and can see the parking slot in the event details
+	•	The visitor goes through the registration flow and sees the parking slot in the event details section where they have to confirm their details
+	•	The visitor can view the parking slot on the digipass email 
+	•	This field should only be visible when there is a parking slot populated in that field, otherwise it should not be visible in the template
+Use Case 4.0 Making profile ID configurable for invited visitors
+Problem Statement:
+	•	Certain organizations do not make it mandatory for invited visitors to upload their profile ID during the profile completion process
+Solution:
+	•	Make the uploading of a profile ID in the invited flow registration process a configurable option
+Use Case 4.1 Invited visitor is completing their profile (Profile ID upload is disabled)
+	•	Once the invited visitor clicks on Confirm and Accept Invite email → they would enter their basic details and confirm the invite → the user is redirected to complete their profile
+	•	The profile ID should be controlled by a property specific to a particular office
+	•	Property should be at tenant level - i.e., few offices in the organization may have profile ID, whereas few may not
+	•	Visitor_Profile_ID : True → profile ID option should be visible
+	•	Visitor_Profile_ID : False → profile ID option should not be visible i.e, when they click on the ‘Complete Profile' page → only upload Profile Photo should be visible
+	•	The visitor uploads profile photo and selects Finish to end the profile creation process
+Use Case 4.2 Front desk role → Identification → Disable profile ID
+	•	Under guest details in the front desk dashboard, the profile ID should be controlled by a property specific to a particular office
+	•	Visitor_Profile_ID: True → profile ID option should be visible
+	•	Visitor_Profile_ID: False → profile ID option should not be visible i.e, only the option to upload profile photo and NDA should be visible
+Acceptance Criteria
+	•	Office Admin Role should be honored: Office Admin should be able to control the property only for their office and not for other offices
+
+
+Use Case 4.1 Making the profile ID documents configurable in complete profile flow
+Problem: In the invited visitor flow, the documents required for the visitor to upload in the profile ID step are hard-coded and not configurable. This would be an issue for international clients, especially as they do not have an Aadhar card as an ID proof.
+Solution: To make the document fields configurable, so that WorkInSync can enable fields based on what documents are needed at an office level for a client
+	•	This property must be at office level
+	•	Property Name:
+	•	Visitor_Profile_ID_Document_Upload_Field_Inputs
+	•	The following is the super set of document fields that can be enabled for a client in this property:
+	•	Passport
+	•	PAN card
+	•	Voter ID
+	•	Aadhar Card
+	•	Driver's License
+	•	Banking Book
+	•	Employee ID Card
+	•	Student ID Card
+	•	National Identity Card
+	•	Citizen Identity Card
+	•	Resident Identity Card
+	•	Proof Of Age Card
+	•	Residence Permit
+	•	Work Permit
+	•	Social Security Card
+	•	Public Services Card
+	•	Aadhar Card
+	•	For any given client we can choose what can be enabled from the above list, for each office.
+	•	There will be no limit set for how many can be enabled, we will give an option to scroll if there are more than 3 choices.
+VISITOR and GUARD APP
+	•	Visitor uses the digipass received on the email to scan at the guard app
+	•	Guard app may have configurable set of challenges like temperature scan, etc which is specific to the organization and would remain same for the visitor in Version - 1
+
+VISITOR and FRONT DESK
+	•	Once the visitor scans the digipass at the guard app, they are directed to the front desk to validate the information that they have uploaded, complete any other security checks and access the pass
+
+VISITOR - SPECIFICATIONS FOR PERFORMANCE, SECURITY AND PRIVACY DATA (PIIs)
+	•	Visitor’s basic information like official email ID, phone number and name can be stored in the database for future use by the employee 
+	•	The employee would be asked if they would like to store the visitors basic details for future reference
+	•	If yes → data would be stored
+	•	If no → data would not be stored
+	•	Validity of NDAs 
+	•	Visitors who regularly visit certain organizations may prefer to sign the NDA only once for the entire duration of their visit
+	•	Based on the employee’s organization regulations, the signed NDAs can be considered to be valid for “n” days, where n → configurable days the NDA is valid for a respective organization
+	•	Data stored of the visitor should be compliant with regulations governing data privacy and security. The PII data should be stored separately - in the way other employee PII data is handled. 
+	•	Data of the visitor should be forgotten after “x” days as per GDPR
+	•	Performance: 
+	•	The employee invite dashboard should load within 4 seconds
+	•	The front desk dashboard should load within 3 seconds
+	•	Capturing of photo / ID should occur within 1 second
+	•	Upload of files should occur within 2 seconds
+	•	<Add Data Purge specs>
+The Receptionist Persona
+Use Case 1.0: FRONT DESK CAN VIEW THE INVITES
+	•	A separate tab for the front desk is present where the personnel at front desk can validate the details entered by the visitor and check them into the premises
+	•	The front desk has a dashboard where-in they can view the meetings for the day and the visitors for the particular meeting
+	•	Front desk then manually verifies the details uploaded by the visitor like government ID proof, laptop serial number, etc
+	•	They can then use their laptop or any other associated hardware to capture the image of the visitor for compliance purposes
+	•	Once the visitor is checked-in, the front desk then proceeds to print a customized badge for the visitor
+
+Broken flows:
+	•	PDF uploaded is not visible – to be fixed in V2
+Use Case 2.0: FRONT DESK CAN INVITE WALK-IN VISITORS 
+
+	•	Front desk (Receptionist) clicks on the “New Visitor” CTA, which shows two options based on their role
+	•	Front desk only → Walk-In Visitor
+	•	Front desk + Employee → Schedule Invite; Walk-In Visitor
+	•	Front desk + Admin → Schedule Invite; Walk-In Visitor
+	•	This should be a configurable workflow where-in admin can either enable or disable the front desk - walkin flow with the above roles in place
+	•	When the receptionist clicks on “Walk-In Visitor” a pop-up opens up
+	•	User is asked to enter the email address or phone number of the visitor. This helps to identify a repeated user or a first time visitor. Once the user enters the required information, an OTP is triggered to the visitor. 
+	•	4 digit OTP
+	•	Validity of the OTP: 10 minutes
+	•	The user enters the OTP shared by the visitor. The OTP helps to authenticate the visitor irrespective of them being a first time / recurring visitor
+	•	Once the user enters the OTP, the profile of the visitor is fetched:
+	•	First time visitor: The mandatory fields will be blank
+	•	Recurring Visitor: The mandatory fields will be pre-filled
+	•	The user captures the details of the visitor:
+	•	First time visitor: All the details will be entered manually
+	•	Recurring visitor: Details will be displayed, they can be edited. NOTE: The change in field info here will not change the previous information of the visitor. It is hence important to store the information on a date basis
+	•	Name: Name of the visitor
+	•	Email: Email address of the visitor
+	•	Phone number: Phone number of the visitor
+	•	Type of Guest: The type of guest varies based on the visitor
+	•	The form and its fields would change based on the type of visitor. This will be specified in the visitor persona under Use Case 3.0
+	•	Point of Contact: The receptionist needs to enter the name of the employee that the guest is here to visit
+	•	The point of contact can vary based on the type of visit. Certain types of visit would have a default employee selected from the organization. For instance, a delivery personnel would have the “point of contact” as “admin” by default. Whereas a business guest would need to share the name of the employee they would like to visit
+	•	The point of contact list should be configurable for the office (not entire organization, but for every office)
+	•	Purpose of Visit: Either dropdown or a free text field to capture the purpose of the visit / type of visit (used interchangeably here)
+	•	Duration of visit: A dropdown is available for choosing the number of hours the visitor is permitted to visit the premises. 
+	•	Dropdown has values: 30 mins, 1 hour, 2 hours, 3 hours, ….. 12 hours
+	•	If the visitor stays beyond the time, it would be tagged as “Overstay”
+	•	Once the above mentioned details are captured, the booking would be created against the host and visitor. Few details for the booking to be created is as follows - 
+	•	Subject of the booking invite in the host’s dashboard – “Visit by XXXX” ; here XXXX refers to the name of the visitor. E.g. – Visit by Aditya
+	•	Start time of the booking: The time the user enters the visitor’s details and creates the booking is considered as the start time of the booking
+	•	End time of the booking: The “x” number of hours post the start time based on the “Duration of visit” will be the booking end time
+	•	Further, this step would also trigger the approval flow (configurable)
+	•	Employee_Approve_WalkInVisitor: True → Enables the approval flow for walk-in visitor
+	•	Employee_Approve_WalkInVisitor: False → Disables the approval flow for walk-in visitor
+	•	Approval flow explained below
+	•	Once approved, a form is visible with details needed for different types of visitors
+	•	Post the form filled, the screen loads to show the list of all visitors (Front desk’s Dashboard)
+	•	Visitor then goes through the previously defined flow (Use Case 1.0) of the front desk. Self check-in field will not be present
+	•	In this entire workflow of walk-in, visitor invite emails should not be triggered
+	•	A column in the DB against a visitor whether it is a “Walk-In” or “Scheduled Invite” so that we can differentiate between scheduled and walk-in visitors
+	•	In case the user clicks on “cross mark” → 
+	•	Solutioning: booking status at different steps
+	•	Camera: external if we can procure
+	•	If the user clicks on “cross mark” how should it work in different screens
+Use Case 2.1 New Walk-in Visitor Design 
+	•	Task → to handle the new design on UI for the walk-in visitor flow incorporating the country code drop down + using phone number/email
+	•	Design to be followed: https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=8974-410003&t=4L6cy8uTUfMLhXgY-4
+
+Use Case 3.0: Approval workflow
+
+	•	When Approval flow is enabled (Employee_Approve_WalkInVisitor), the employee (or the host) that the visitor is planning to visit, will receive an email / SMS with OTP.
+	•	Receiving email or SMS should be configurable for the office; i.e., admin should be able to configure if the host receives email / SMS / both
+	•	This OTP will be valid for 15 mins
+	•	When approval flow is disabled (Employee_Approve_WalkInVisitor), the front desk enters the form, and the booking is created
+
+Use Case 4.0 As a receptionist, I want to be able to view what parking slot has been assigned to the visitor and if needed I want to enter details regarding the parking slot for that visitor, so that I can keep the records up to date. 
+	•	The zone, level, and parking slot detail should be viewable by the receptionist under the guest details drawer
+	•	The receptionist can note down any changes made regarding the parking slot manually in the additional text box area (already developed)
+	•	When the visitor checks in that can be taken as the check-in time for the parking booking, when the visitor is checked-out that can be taken as the check-out of parking booking
+	•	Once a visitor is checked out, the parking is released
+	•	For the Overstay scenario, we will alloa w for parking which buffer (already exists in the parking module) - this is configurable
+Use Case 5.0 Front desk wants to take a new photo of the visitor to update their profile photo
+Problem Statement: 
+Front desk:  The profile photo and the profile ID uploaded in the visitor details is not always clear and the front desk has no way of capturing a new photo on the spot to update the fields  Solution: Allow the front desk a way to capture a new profile photo and profile ID of the visitor   Acceptance Criteria: Must apply for invited visitor and walk-in visitor flow  Design: https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=8475%3A384380&t=0MYK1DzIRzSvmmem-4
+Use Case 5.0 Front desk wants to take a new photo of the visitor to update their profile photo
+	•	Front desk clicks on proceed for Identification
+	•	The front desk clicks on view for guest photo
+	•	Front desk clicks on the ‘Re-take photo’ button 
+	•	Capture Photo flow should be followed (already exists in the walkin visitor flow - image references attached)
+	•	When front desk clicks on done it will go back to the verify photo modal
+Use Case 5.1 Front desk wants to take a new photo of the visitor’s profile ID (if profile ID is enabled)
+	•	Front desk clicks on proceed for Identification
+	•	The front desk clicks on view for government ID
+	•	Front desk clicks on the ‘Re-take photo’ button 
+	•	Capturing photo flow will happen as in Use Case 1.0
+	•	When front desk clicks on done it will go back to verify govt id modal
+Acceptance Criteria
+Photo taken by the front desk using the capture another button must override the photo that has already been uploaded previously
+Use Case 6.0 Printing of visitor badge for a single visitor (invited/walk-in)
+Problem Statement: Organizations need a way to quickly identify who is a visitor in their office premises.   Solution: Provide a badge printing solution for the receptionist on the receptionist dashboard, allowing them to print badges for invited visitors and walk-in visitors  Acceptance criteria:
+	•	Print_Visitor_Badge
+	•	This has to work for both flows - invited and walk-in visitor
+	•	This is only for the Receptionist dashboard and can only be done by receptionist role and admin role
+	•	Logo on the visitor’s badge preview should be configurable - can be the same logo that is uploaded by the organisation at the time of onboarding
+	•	Audit to be published for prints in VMS audit:
+	•	Who authorized the print
+	•	Time of print
+	•	Number of prints against the visitor (how many times the receptionist clicked on print)
+	•	Print Badge Button Behaviors (designs can be viewed in the PRD under the Print Single Visitor Badge Flow section)
+	•	When the status of the visitor is:
+	•	Pending: The Print Badge button will not be visible
+	•	Checked Out: The Print Badge button would not be visible
+	•	For Upcoming, Check-in and Overstay statuses: the Print Badge will be visible next to the allow entry button
+Use Case 6.1 As the receptionist I want to print a badge for a single invited visitor
+	•	On the receptionist dashboard, there will be a list of visitors for the day
+	•	The receptionist will click on the visitor that they want to print the badge for
+	•	The visitors status is Upcoming, therefore when the receptionist clicks on the visitor’s name, they will be able to see the Print Badge button next to the Allow Entry button 
+https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=9656-438004&t=C4Xc7dK9fftrq9mc-4
+	•	The receptionist will click on the ‘Print Badge’ button
+	•	A modal should open with a preview of the visitor’s badge
+https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=7687-355147&t=0Fo7JYAAUd7whASp-4
+3. When Print button is clicked, the system’s (laptop/desktop) print dialog box will open. This will allow the Receptionist to take the following actions:
+	•	Cancel the print
+	•	Reprint
+	•	Get the appropriate error and success messages
+Use Case 6.2 As the receptionist I want to print a badge for a single walk-in visitor
+	•	The walk-in visitor goes to the reception and the reception go through the flow as per the Walk-in Visitor Persona in the VMS PRD to complete the entry for the walkin visitor
+	•	The walkin visitor will show up on the dashboard with the status ‘Upcoming’
+	•	The Receptionist can click on the visitors name and the Print Badge button will be highlighted
+	•	The Receptionist can go through the same flow as Use Case 1.0 under the Print Single Visitor Badge Flow
+Use Case 6.3 As the receptionist I want to print a badge for a single visitor (invited or walk-in) where the visitor does not have their photo uploaded onto the system
+	•	If there is no photo of the visitor in the system, there will be a visitor badge format without the photo of the visitor displayed on it
+	•	The below design/preview must be shown in such a scenario
+https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=7687-355147&t=0Fo7JYAAUd7whASp-4
+Specifications of Badge Printers: 
+	•	Printer Model used by client: Zebra ZD620d
+	•	Widely used printer model: Brother QL-820NWB
+	•	Standard: 300 dpi × 300 dpi
+	•	High-resolution mode: 300 dpi × 600 dpi
+
+Use Case 7.0 Creation of Office Filter for Front Desk Dashboard
+Problem:
+	•	Certain companies can have more than one office in the same city.
+	•	Some receptionists have to manage the visitors for two buildings of the same company. They cannot logout and login every time they need to access the FD of the respective office.
+	•	Some receptionists have to manage two different buildings of a company in a business park - In a week they will spend three days in Office A and the other three days in Office B. The receptionist does not have a way to filter out the visitors for each office when they are on duty in that office on a given day.
+	•	Some companies have one security guard to manage multiple office buildings, the security needs a way to view the visitors for the respective buildings and allow entry
+Solution: Adding a single select office filter that enables a receptionist to view different offices that have assigned to them.
+Acceptance Criteria:
+	•	This will be visible on the front desk dashboard for admin role
+	•	When receptionist and security guard roles are created, then this would also be visible to them on their dashboard
+Use Case 7.1 As a front desk executive, I want to see the visitors for Office A where I work Monday to Wednesday and visitor for Office B where I work Thursday to Saturday
+	•	Creation of a single select ‘Office Filter’ for the Front Desk and Security dashboards
+	•	When the FD/SG is assigned to multiple offices, they will see the offices in the filter.
+	•	On login to dashboard, their profile office should be default selection in the office filter
+	•	If a FD or SG is not assigned multiple office, they will not be able to see other office options - filter can still be viewed by them
+	•	If office admin logs in, they can only see the offices assigned to them; If global admin logs in, they can see all the offices assigned to them
+	•	Multiple office - single select - drop down - https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=8826-425093&t=b6dMgekTamgJn7hK-4
+	•	Single Office Filter Design - https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=9261-412584&t=b6dMgekTamgJn7hK-4
+
+Use Case 8.0 As a Front Desk/Reception I want to input the visitor’s parking slot number against their profile for the day
+Problem Statement:
+	•	The front desk finds it difficult to remember specific details about each visitor that needs to be documented
+	•	If a visitor has any sudden special requests, the front desk must note things down manually, which increases the margin if error. It also doubles the work of the front desk
+	•	Front desk finds it difficult to keep track of the visitor’s badge number or parking slot number
+	•	Front desk finds it difficult to relay information to the office admin or security - - if needed
+Solution:
+	•	Provide a way for the front desk to note down extra points about the visitor during the check-in process
+	•	Allow this information to be instantly shared with office admin, parking space manager, and security - v2
+
+	•	On the front desk dashboard, under the Guest Details for a specific visitor, when the front desk scrolls down they will see a text box labeled ' Additional Information'
+	•	Keep this as a long text box with limit of 1,000 characters Figma - https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=8047%3A363279&t=QAvxdlAyvHjrXOj2-1
+	•	Should be enabled by a property for every office
+	•	Property name: Visitor_Details_Text_Box
+	•	If true → visible for that particular office in the organization
+	•	If false → not visible
+	•	The data in this box should populate in the reports as an extras field with header “Additional Information”
+	•	Data is saved when Front Desk 'Checks Out' visitor, until then it must always be visible under the visitors guest details and be in an editable state
+	•	Send the data when Check Out api is triggered
+GDPR:
+	•	This information is not a profile information of the visitor whereas specific to the visitor’s booking entry into the office
+	•	This information should be stored for reconciliation and published to reporting service
+Acceptance:
+	•	The box must be editable until the visitor has been checked out 
+The Admin Persona
+V1 -- the admin persona is similar to that of front desk which allows them to check the visitor into the premises
+V1 -- admin can see the events scheduled for the future and requests placed for the particular event
+Use Case 1.0 As an admin, I want to update the parking slots that can be booked by employees for visitors so that visitors can be allotted a dedicated parking slot and have a good experience
+	•	Admin will go to the Desk Bulk Upload section in the sidenav bar
+	•	Admin selects on Parking Tagging
+	•	They download the excel sheet
+	•	In the excel sheet, new column to be added ‘Visitor’
+	•	The admin will add the office, zone, level, parking tagging start date and write Yes under Visitor tag
+	•	Admin will upload the excel and the specified parkings will be tagged as Visitor
+	•	These slots will not be viewable to employees when they are making parking bookings
+	•	Admin can keep the visitor slots as hotseats in the parking allocation page
+
+Use Case 1.1 As an admin I want to view visitor checkin/checkout and other data so that I can better prepare the office for upcoming visitors
+Task: Create a report for visitor management
+Summary View →
+	•	The following columns are to be added to the report: a. Date of Visit: The date that the visitor came to the office mentioned  b. Office: Name of the office where the visitor checked-in c. Organizer Name: Name of the employee who invited the visitor d. Organizer Email ID: Email ID of the above-mentioned employee e. Organizer Employee ID: Employee ID of the above-mentioned employee f. No. of visitors: Total number of visitors invited by organizer
+	•	In option f, the number displayed “XX” should be a clickable hyperlink which redirects to a detailed view of the visitor details   Detailed View →   1. Following columns to be added in the detailed view  a. Visitor Name: Visitors Name  b. Visitor Number: Phone Number of the above-mentioned visitor  c. Visitor Email ID: Visitors Email ID of the above-mentioned visitor  d. Visit Type: Purpose of the visit  e. Security Check-In Time: The time at which the visitor scanned the digipass at security gate  f. Front Desk Check-In Time: The time at which the visitor checked in at the front desk  g. Front Desk Check-Out Time: The time at which the visitor checked out at the front desk  h. Duration of visit: Total time of the visit (front desk check-in time → front desk checkout time)  i. Status: Various status of the visitor, “Invited, Digipass generated, Checked-in, Checked-out, Overstay”   Downloaded View →
+	•	The downloaded file should contain the entire details of the visitor details requested for the entire time period requested by the user
+	•	Download option should be available in both summary and detailed view
+	•	Both downloads should offer the same data
+Use Case 1.2 As an admin I want to view what parking slots the visitor was assigned and if they utilized them or not 
+	•	Add new columns in the detailed view of “No. of Visitors” in the Visitor Management report:
+	•	Parking Zone: The designated area within the parking facility where the parking slot is located.
+	•	Parking Level: The floor or level of the parking facility where the parking slot is situated.
+	•	Parking Slot: Unique identifier or number assigned to a particular parking space.
+	•	Type of Parking: The classification or category of the parking space - premise type (e.g., car, bike)
+
+
+
+Dynamic Fields
+Dynamic fields are fields in a database that have different data types or values for different records. They are used to store data that vary from one record to another and that does not fit neatly into a predetermined data structure. They can be helpful to store data in a flexible format that can adapt to changing needs
+
+Different types of dynamic fields include:
+
+(Text in yellow were part of Feb 2023 sprint’s scope and have been developed by backend)
+
+	•	Text fields: Text fields can be used to store text strings of varying lengths. They might be used to store strings of varying lengths like short descriptions (comments), longer descriptions (notes, etc)
+	•	Boolean fields: These fields can be used to store True/False values. They might be used to store things like flags or indicators
+	•	Numeric fields: These fields can be used to store numbers including integers, decimals, and floating point values. They might be used to store things like prices, quantities or ratings
+	•	Data fields: These fields can be used to store dates and times. They might be used to store things like event dates, timestamps, etc
+	•	Object fields: These are for storing complex data like arrays or nested objects. They might be used to store things like lists, trees or graphs
+	•	Geospatial fields: These fields can be used to store geographical coordinates and other geospatial data. They might be used to store things like addresses, locations or maps
+	•	Binary fields: Fields to store binary data such as images, audio or video. They might be used to store things like attachments, media files, digital documents etc
+
+Parameters to define dynamic fields:
+
+A user can define a dynamic field based on the following parameters:
+	•	Title: The header of the dynamic field
+	•	For instance, dynamic field for entering the information of the person who is creating the catering order would have label as “Organizer’s Contact Information”
+	•	Data structure (or Subtype): The structure of the data inside the dynamic field can be defined by the user. 
+	•	For instance, if one is storing customer information, they might want to create separate fields for Customer’s name, address and phone number
+	•	Or if one is storing a date range, they may want to create separate fields for start date and end date
+	•	Default value: The value that would be present by default in the field can be defined by the user creating the dynamic field
+	•	Placeholder text: The user creating the data field may want to define a placeholder text to provide the user a format for entering the data
+	•	Other things to consider:
+	•	Data type: To consider the appropriate data type for each field, based on the type of data being stored. E.g., a numeric field for storing numbers, a text field for storing strings
+	•	Data validation: Rules to ensure that only valid data is entered into the fields. E.g., only numbers are entered into numeric fields, validate that a date field contains a valid date, URL consists of a valid type of URL link, etc
+	•	Min and max value: Certain numeric fields may have constraints like, minimum and maximum value that can be entered
+	•	Maintainability: The option to add and remove fields as the data changes should be simple and scalable 
+Working of these Dynamic fields:
+	•	The dynamic fields will be setup by the admin (Out of scope)
+	•	Applicable places: 
+	•	Visitor persona: While uploading profile details such as image and documents, the visitor would see the fields to be filled
+	•	Walk-in visitor (Receptionist persona): Once the receptionist has entered the basic details, then the fields are to be visible
+Notifications
+Problem Statement: 
+
+Invited visitors: The host and front desk don't know when the person arrives at the office. The host goes through a tedious process of keeping track of where the visitor is. The host also doesn’t know if the visitor has approved / completed the front desk process so that they can go get them from the lobby.
+Walk-in visitors: Even though the host is notified of the unscheduled walk-in visitor via the OTP email notification, they don’t know when the visitor has been approved/check-in processes are done so that they can go and meet them at the lobby. 
+Notifications will be of different types:
+	•	Email notifications 
+	•	SMS notification
+	•	Desktop notification if WIS site is open - V2
+	•	Mobile app notifications - V2
+	•	Notification in the notification center - main dashboard of the employee (all notifications irrespective of which service they’re associated with) - V2
+	•	Notification in the visitor management dashboard - in the notification center - only those notifications which are associated with visitor management - V2
+EMPLOYEE:
+Use Case 1.0: The employee is notified when the visitor has scanned the digipass
+
+	•	When the visitor has scanned the digipass, the employee receives an email notification
+	•	Email Subject: Visitor <XXX> has arrived at the security gate
+	•	Body: As in the email template; Content:Hello, a visitor has entered the premises. Visitor’s name, email address and phone number. If any of the fields are not present, the header of the field should also not be present
+
+Figma - https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=7118%3A441777
+ 
+	•	When the visitor has scanned the digipass, the employee receives a SMS
+	•	Body of the SMS: Hello, visitor <XXX> has entered the premises and is now proceeding to the front desk for check-in.
+
+Use Case 1.1: The employee is notified when the visitor has checked-in at the reception as an invited visitor or as a Walk-in visitor
+
+	•	When the visitor has checked-in at the reception, the employee receives an email notification
+	•	Email Subject: Visitor <XXX> has checked-in into <YYYY> office
+	•	Body:  As in the email template; Content: Hello, your visitor has checked-in successfully. Visitor’s name, email address and phone number. If any of the fields are not present, the header of the field should also not be present
+Figma - https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=7118%3A441777
+
+
+	•	When the visitor has checked in into the office, the employee receives a SMS
+	•	Body of the SMS: Hello, visitor  <XXX> has checked-in successfully, meet them at the front desk. 
+
+Acceptance Criteria: 
+	•	All the above use cases would have a configuration to trigger the email and SMS notification. The configurations should be updated by the development team - 
+	•	Use Case 1:
+	•	Email:
+	•	SMS
+	•	Use Case 1.1:
+	•	Email:
+	•	SMS:
+
+
+
+2-Step Check-In and Check-out
+Problem Statement: 
+For Employee Security: There is a concern for security for invited visitors who cross the security gate by only scanning a QR code. There is also no way to check if the person who scanned the QR code is the same person who goes to the reception to continue the check-in process
+Security Guard: Security guards find it difficult to match the QR code with the person scanning it and there is no way for them to document their authentication of visitor
+Front Desk: The front desk does not have a way to document the visitor’s movements in and out of the office making it difficult to keep tabs on them. If the host is taking the visitor to lunch/step outside for a small meeting, the front desk must go through the tedious process of checking them out and checking them in again 
+
+
+Objective:
+Provide a 1st check-in screening at the security gate and then a 2nd check-in screening at the front desk. 
+Allow the front desk to be able to be able to record the visitors actions while they are within the office premises.
+Who is it for?
+	•	Security Guard
+	•	Front Desk/Receptionist
+Configurations:
+
+Flow chart: Flow
+Stories: PB-28937, PB-28864
+ 
+Security Guard
+Use Case 1.0  As a security guard, I want to check-in an invited visitor
+	•	Invited visitor arrives at the security gate
+	•	Status of the visitor should be ‘Upcoming’
+	•	The security guard will check the security dashboard for the visitors name and ‘Allow Entry’
+	•	Once security selects ‘Allow Entry’:
+	•	The status against the invited visitors name will be displayed as ‘Security Complete’
+	•	Required Info to be added by security - v2
+	•	Photo Upload 
+	•	Dynamic fields:
+	•	Bag Scanned: Yes/No (boolean field)
+	•	List of belongings (tech and non-tech items) (text field)
+	•	Notifications to go to host and front desk:
+	•	Front desk receives notification - to be built-in this sprint:
+	•	Email:
+	•	Subject Line: Visitor <XXX> has arrived at the security gate
+	•	Body: As in the email template; Content: Hello, a visitor has entered the premises. Visitor’s name, email address and phone number. If any of the fields are not present, the header of the field should also not be present
+	•	SMS: “Visitor <Name> has been checked-in by security, they will make their way to the front desk”
+	•	Host receives notification: built in last sprint
+	•	Email 
+	•	Subject: Visitor <XXX> has arrived at the security gate
+	•	Body: As in the email template; Content: Hello, a visitor has entered the premises. Visitor’s name, email address and phone number. If any of the fields are not present, the header of the field should also not be present
+	•	SMS
+	•	Body: Hello, visitor <XXX> has entered the premises and is now proceeding to the front desk for check-in.
+	•	Invited visitor will make their way to the front desk
+
+Use Case 1.1 As the security, I want to check out the visitor
+	•	Security will see the dashboard and click on the visitors name
+	•	Security will check out the visitor by selecting the ‘Check-out’ button
+	•	Status against the visitor will be displayed as “Security CheckOut'
+Receptionist
+Use Case 1.2 As the Receptionist, I want a way to know if the visitor does not come to the front desk on time after security check in
+	•	The visitor should be given 'N minutes' to go to the front desk from the security gate
+	•	If the current time minus the ‘Allow Entry’ at security is more than 'N minutes', the status of the visitor should be displayed as “Delayed Checkin”
+	•	Duration can be configurable
+	•	The front desk can then take necessary actions
+Use Case 1.3  As a receptionist, I want to check-in a visitor who has been allowed entry by the security guard
+	•	Front desk will see the dashboard with visitor’s name and other information
+	•	Front desk will enter the required information as described in 
+	•	“The Front Desk Persona” → Use Case 1.0 to Use Case 2.0 :
+	•	Receptionist will ‘Allow Entry’ to visitor ---> button becomes ‘Check Out’
+	•	Temporary Check Out button appears next to ‘Check Out’ button
+	•	Notification goes to the host:  built-in last sprint
+	•	Email:
+	•	Email Subject: Visitor <XXX> has checked-in into <YYYY> office
+	•	Body:  As in the email template; Content: Hello, your visitor has checked-in successfully. Visitor’s name, email address and phone number. If any of the fields are not present, the header of the field should also not be present
+	•	SMS:
+	•	Body:  Hello, visitor  <XXX> has checked-in successfully, meet them at the front desk. 
+	•	Status against the visitor will be displayed as “Checked-In”
+Use Case 1.4 As receptionist, I want to check out the visitor
+	•	Receptionist will see the dashboard and click on the visitors name
+	•	Receptionist  will check out the visitor by selecting the ‘Check-out’ button
+	•	Status against the visitor will be displayed as “Reception CheckOut'
+Temporary Checkout
+Problem Statement:
+The Receptionist  does not have a way to document the visitor’s movements in and out of the office making it difficult to keep tabs on them. If the host is taking the visitor to lunch/step outside for a small meeting, the front desk must go through the tedious process of checking them out and checking them in again by creating a new invite.
+Objective:
+	•	Allow the front desk to be able to temporarily check out the visitor when they step out of the office for a specified duration
+	•	Adding a timer that starts when the visitor has been temporarily checked out - v2
+	•	Documenting the purpose of why the visitor temporarily checked out (Lunch, external meeting, demo, etc) - v2
+	•	Quick security check for visitor when they check back in - v2
+Use Cases:
+Use Case 1.2 As the front desk, I want to temporarily check out the visitor when the visitor and host step out for lunch and check the visitor back in without disturbing the visit booking
+	•	While leaving the office, the host and visitor will inform the front desk that the visitor is leaving the premises
+	•	The temporary check-out should be a configurable property specific to a particular office
+	•	Visitor_Temp_Check_Out : True → Temporary check out should be enabled i.e button to be enabled on dashboard
+	•	Visitor_Temp_Check_Out : False → Temporary check out should be disabled
+	•	The front desk will check out the visitor by clicking on ‘‘Temp Check Out’ button
+	•	‘Temp Check Out’ button at the bottom of the Guest Details window next to the Check Out button
+	•	Once ‘Temp Check Out’ is selected it should become the ‘Allow Entry’ button
+	•	Once the front desk selects ‘Temp Check Out’ the status of the visitor will be - Temp Check-Out
+	•	When the visitor and host come back to the office, the visitor will walkthrough security gate with host - does not require to be allowed entry by security
+	•	Once the visitor is at the front desk, the front desk will log them back in by selecting the ‘Allow Entry' button
+	•	The status of the visitor should change to ‘Checked In’
+Acceptance Criteria:
+	•	Creation of Visitor Security Guard Role
+	•	Creation of Front Desk/Receptionist Role
+	•	Creation of a security dashboard (same design as front desk dashboard)
+	•	Store timings and the user who clicked on the following buttons:
+	•	Allow entry by security
+	•	Allow entry by front desk
+	•	Check out by front desk
+	•	Check out by security
+	•	Temporary checkout by front desk
+	•	Second ‘Allow Entry’ by front desk
+	•	Audits should be published to audit service for all the above mentioned cases
+	•	Front desk can only ‘Temp Check out’ the visitor if they have already been ‘Checked In’ by the front desk
+	•	Visitor can only be checked out by the security once they have been checked out by front desk
+
+Broken Flows:
+Tasks:
+	•	Visitor - Not allowing guests to edit fields that are mandatory
+	•	At present, when the employee creates the profile of the visitor, they enter details in the mandatory fields
+	•	When the visitor accesses the page to view the invite details, they are able to edit the details that are mandatory → this should not be allowed. For e.g., employee has invited user → jovil.xyz@gmail.com; visitor is able to edit this field and change it to rishabh@gmail.com. This should not be allowed
+	•	To be handled for both phone number and email
+	•	Error and exception handling → Backend has been completed in 01-2023, UI needs to handle the changes
+	•	Add country code dropdown in walk-in visitor pop-up
+	•	2 different options to select phone number or email ID
+	•	the phone number should have country code in it
+	•	Acceptance Criteria → the number of digits of the phone number varies for various countries. That needs to be handled
+	•	Figma: https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=7279-337235&t=VgfBvGUYt5lqZj4o-4
+	•	Guest field enhancements → Backend has been completed in 01-2023, UI needs to handle the changes
+	•	Localization of email templates
+	•	All the email templates need to converted into Spanish and French-Canadian. Will update the excel file here - Not Built
+	•	Visitor - Time zone to be handled for all the roles
+	•	Employee: When the employee logs-in, the time should be that of the employee’s profile office and not the system time zone
+	•	Admin: When the admin logs-in, the time should be that of the admin’s profile office and not the system time zone
+	•	Front desk: When the front desk logs-in, the time should be that of the front desk’s profile and not the system time zone
+	•	Users should first see their ‘profile/default’ office in the office selection section of the invite form
+	•	Error Messages -
+	•	Creation: Unable to create invite. Please try again.
+	•	Updating: Error while updating invite. Please try again.
+	•	Persistence Error: Unable to load required details. Please try again.
+	•	Fetch API/Event ID: Unable to load required details. Please try again.
+	•	Invalid Action: The requested action is not permitted.
+	•	Making the country code preview wider:
+	•	In country code dropdown preview, if it is a longer country code it should show the whole code in the preview.
+	•	Ex. for :+358 Currently shows "+3.." - needs to be changed to show “+358”
+	•	In walk-in visitor flow
+	•	Bulk Upload Re-do
+	•	Need to relook at UI for bulk upload and go over testcases to see what is breaking and fix the modals
+	•	Figma: ttps://www.figma.com/file/EfaWNaNGp8PQZGIObVOpEa/VM---Employee%2Bvisitor?type=design&node-id=30-20425&t=YPpct2S2TuqnVxRF-4
+	•	Make the Checkout message configurable:
+	•	At office level
+	•	Property:
+	•	Reception_Dashboard_Check_Out_Message
+	•	True → It should display message after Check Out is selected
+	•	False → Message should not be displayed and the visitor should be checked out
+	•	The content (next to the check marks) should be configurable
+	•	Default text: Collected Visitor’s Badge
+	•	Receptionist and Security Dashboard: Hover, selected states of visitors
+	•	Selected state of visitor should be green
+	•	Currently only when you hover over the visitor it is green
+	•	When the visitor is selected it should be green as well Hover state: https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management---Admin?type=design&node-id=7687-355147&t=u2OeINx1oahhvdk1-4
+	•	Selected state: https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management---Admin?type=design&node-id=7687-355147&t=u2OeINx1oahhvdk1-4
+	•	Phone Number Validation the number of digits on UI across VMS
+	•	The number of digits a user is allowed to enter into the mobile number field should be validated according to the country code selected by user.
+	•	Should be incorporated across VMS
+	•	Ex - France country code is chosen (+33), the user will have to enter 10 digits.
+	•	If they try to enter more than 10 digits, it should not be allowed.
+	•	If they enter less than 10 digits, an error should be shown - 'Phone number incomplete, please re-enter.”
+	•	 In the Invite Edit state, if the host removes all the visitors, they are still able to send the invite. - Desired behavior: If there are no visitors in the invite, the host should not be able to send the invite. UI should block the host from being able to send the invite → grey out Confirm Invite button
+	•	 In the Invite Edit State, if you remove the existing visitor and try adding them to the invite again it throws an error → needs to be handled by UI
+	•	Configurable Profile ID Document Upload→ UI to handle this on the Receptionist Dashboard where profile ID is shown for invited visitors and walk-in visitor profile ID dropdown
+	•	Changing the header format in registration screens of invited visitor flow from text to logo - In the profile completion screen of invited visitor flow, currently the client’s name is in text on the header of the screens as default, we need to change it to show the clients (BUID) logo as default.
+	•	Enabling camera/webcam access in the invited visitor flow when using desktop/web (front-end)
+	•	On the desktop, when the visitor is trying to capture an image of a profile photo/profile ID they will select 'Take Picture'
+	•	When they do so, it should open their camera/ask for camera access
+	•	Build this for Chrome and Safari on priority, can explore other browsers later
+	•	Adding a refresh button to the dashboard
+	•	Currently, the pages do not refresh on their own unless and until a new action is carried out
+	•	Refresh button to be added to let the receptionist/security they can refresh whenever they need
+	•	Should have a tooltip to display the last updated time which is in the timezone of the Receptionist profile
+	•	Should be present in both the security and receptionist dashboard
+	•	If a Receptionist is on Office A, and they go to Office B and refresh → it should still display Office B visitor
+	•	If the Receptionist changes the date to a future date and is on the page for sometime, then hits refresh → page should still be on that specific date
+	•	If Receptionist is in the middle of checking in a visitor and they refresh the page whatever actions they have completed should be saved and other items refreshed
+	•	Visitor Emails - Conditions to trigger emails
+	•	·UI to consume status – backend done: o   When host changes the invite for the following fields, status of the visitor should revert to ‘Pending’
+	•	Date of the event: All guests
+	•	Time of the event: All guests
+	•	Personal note to guests: All guests
+	•	Adding of a new guest: Pending status only new guest added
+	•	Removing of a guest: cancelled status only for the guest removed
+	•	·  On change of following fields, status should not revert to pending, remain as is:  o  Type of visit  o   Note to admin
+	•	API call to save data on the confirm details page
+	•	Integrate API and call API when details have been edited When an invited visitor clicks on the ‘Confirm and Accept Invite’ button they are taken to the a new window to confirm their basic details
+	•	The visitor will make changes to their data and click on ‘Confirm and Accept Invite'
+	•	Once they click on this button an api should be called to save the visitor’s data in backend
+	•	API: Update Booking
+	•	UI - edit - true
+	•	Audit to be published for VMS
+	•	Date of Booking: The day the invited visitor is expected to arrive at the office/the date when the walk-in visitor arrives at the office
+	•	Booking Start Time: start time of the visitors visit to office
+	•	Booking End Time: end time of the event visit to office
+	•	Office: The office where the visitor is visiting for that booking/where the walkin visitor is visiting
+	•	Host: Employee who has invited the visitor/who the walk-in visitor is there to visit
+	•	Type: Purpose of visit (personal guest, business guests, etc)
+	•	Change Time: Time of edit/modification
+	•	Updated By: User who updated the information (Employee, Admin)
+	•	Field Changed: What input field was changed  for the following scenarios -
+	•	Event Title
+	•	Event Start Time
+	•	Event End Time
+	•	Office of the event
+	•	Notes to admin
+	•	personal note to guests
+	•	added guests
+	•	belongings
+	•	allow entry
+	•	security checkout
+	•	front desk checkout
+	•	temporary checkout
+	•	identification
+	•	belongings
+	•	Old Value: Original value that was there
+	•	New Value: Value that replaces the old value
+	•	Event: Create, Edit, Cancel, Update
+	•	Channel: Web, Front Desk Dashboard, Security Dashboard
+	•	There is no notification that goes to the admin (set of configurable users and admin of the office (office admin) when the invite is created to notify them of the ‘Admin notes’
+	•	When an invite is created, an email should go to the admin of the office with event details and admin note highlighted https://www.figma.com/file/fCZKv6zvpTlvUWLyl7ZM8y/Visitor-Management?node-id=8901-401103&t=DvpkqeEUprhP1UOd-4
+	•	Acceptance criteria: The admin should be notified only if there is a note present, else the above would not occur
+	•	Email Subject: Line Notes to Admin for Upcoming Visitor at <Office> invited by <Employee who created invite> Body: As in Template above
+	•	Admin,
+	•	Should go to a set of users, configure using email-id’s
+	•	Time Fix in Invite Form
+	•	Scenario 1: In the invite visitor form, there should be auto-scroll for the time selection → If I select 1:00 PM as the start time, when I go to edit the time (on the same screen) it should show 1:30 PM as the first option but still allow me to scroll up/down based on the user’s profile office time.
+	•	Scenario 2 - After the invite has been created, when the host goes back to edit the invite time, it does not allow the host to scroll back.
+
+
+Visitor Self - Check In Flow:
+Visitor Management - Self-Checkin Kiosk Flow PRD
+Setup of Receptionist and Visitor Security Guard Role:
+	•	Currently need to create external employee through backend
+	•	Ensure that backend will mark them as External in the API
+	•	There should be no spaces in the BUID
+	•	Backend will need the following information regarding the external user:
+	•	Name
+	•	Phone Number OR Email OR both
+	•	Setup the User Group of Receptionist and Security Guard, and assign them the permissions i.e permission for one or more offices. 
+	•	Let the external user login through the https://mis-security-ui-beta.moveinsync.com/ 
+Configurations:
+
+	•	FRONT_DESK: normal front desk for anybody to see
+	•	Admin front desk: for admin role only
+	•	Upcoming visitor:  invite visitor on side nav for all roles
+Google Analytics: Not Implemented
+The details are as follows:
+
+S. No
+Event
+Event Name
+Action
+Description
+Side Nav
+1
+Visitor Management Side Nav
+Visitor_Side_Nav_Tapped
+On click
+Number of users navigating to the visitor management page
+2
+Invite Visitor Tab
+Visitor_Side_Nav_Invite_Visitor_Tapped
+On click
+Number of users clicking on invite visitor form
+3
+Visitor Invite Tab
+Visitor_Side_Nav_Visitor_Invite_Tapped
+On Click
+Number of users clicking on invite visitor form
+4
+Front Desk Tab
+Visitor_Side_Nav_Front_Desk_Tapped
+On Click
+Number of users clicking on front desk tab 
+Invite Visitor Section
+5
+Create Invite button
+Visitor_Invite_Visitor_Tab_Create_Invite_Tapped
+On Click
+Number of users clicking on ‘Create Invite’ in the Invite Visitor section
+6
+Confirm Invite
+Visitor_Invite_Form_Confirm_Invite_Tapped
+On click
+Number of users creating an invite
+7
+New Guest
+Visitor_Invite_Form_New_Guest_Tapped
+On click
+Number of guests navigating to New Guest form
+8
+“Add” - From add guest form
+Visitor_Invite_Form_New_Guest_Add_Tapped
+On click
+Number of guests added in the system
+9
+Bulk Upload
+Visitor_Invite_Form_Bulk_Upload_Tapped
+On Click
+Number of users adding guests via bulk upload
+10
+Add Parking
+Visitor_Invite_Form_Add_Parking_Tapped
+On Click
+Number of users adding parking for visitors
+11
+‘Car’ parking slot
+Visitor_Invite_Form_Add_Parking_Car_Tapped
+On Click
+Number of users selecting a car parking slot for visitors
+12
+‘Bike’ parking slot
+Visitor_Invite_Form_Add_Parking_Bike_Tapped
+On Click
+Number of users selecting a bike parking slot for visitors
+13
+Remove Visitor button ‘x’
+Visitor_Invite_Form_Remove_Visitor_Tapped
+On Click
+Number of users removin the visitor from the invite
+Invites Dashboard
+14
+Inite Details Button “>”
+Visitor_Invite_Dashboard_More_Details_Tapped
+On Click
+Number of users clicking on the ‘>’ to view detailed view of the event
+15
+Invite Tapped
+Visitor_Invite_Dashboard_Invite_Tapped
+On Click
+Number of users clicking on the invite to view the brief details
+16
+View Status - Employee dashboard
+Visitor_Invite_Dashboard_View_Status_Tapped
+On click
+Number of times a user clicks on “View Status”
+Receptionist Dashboard
+15
+Front Desk - Scheduled Visitor
+Visitor_Front_Desk_Scheduled_Visitor_Tapped
+On click
+Number of front desk (users) clicking on invite visitor form
+16
+Front Desk - Walkin Visitor
+Visitor_Front_Desk_Walk_In_Visitor_Tapped
+On click
+Number of front desk (users) clicking on walk-in visitor 
+17
+Front Desk Search Bar
+Visitor_Front_Desk_Search_Bar_Tapped
+On Click
+Number of front desk (users) who click on search
+18
+Front Desk Office Filter
+Visitor_Front_Desk_Office_Filter_Tapped
+On 
+Number of front desk (users) who use the office filter to switch offices
+19
+Front Desk Date
+Visitor_Front_Desk_Date_Selector_Tapped
+
+Number of front desk (users) who click on date picker
+20
+Front Desk Refresh button
+Visitor_Front_Desk_Refresh_Tapped
+
+Number of front desk (users) who refresh the dashboard
+21
+Front Desk Re-take photo
+Visitor_Front_Desk_Identification_Retake_Photo_Tapped
+
+Number of front desk (users) who retook a visitors photo
+22
+Belongings Added - “Save” CTA after opening the belongings section
+Visitor_Fonrt_Desk_Belongings_Save_Tapped
+On click
+Number of belongings added
+
+Front Desk Dashboard - Version 2
+Objective - To improve scalability and performance of the front desk dashboard by migrating all frontend logic (status, filtering, and sorting) to the backend.   Additionally, introducing pagination on front desk dashboard to help users with easy tracking and managing visitors and improve user experience
+
+
+Front desk dashboard - Overview
+The Frontdesk Dashboard is a comprehensive tool designed to help users manage and track visitors efficiently. It offers a range of filters, including office, date and time range, and status. These options enable users to search, sort, and filter visitors with ease, streamlining their workflow.
+By clicking on a visitor's name, a side panel opens, providing detailed information about the selected visitor, ensuring all necessary data is readily accessible.
+
+
+Problem Statement- The current front desk dashboard processes all visitor records, filtering, and status logic on the frontend. This results in:  
+1. Performance Issues: As data volume increases, the frontend struggles to handle filtering and sorting, causing delays.
+2. Scalability Challenges: Managing filtering, sorting, and pagination on the frontend limits the system's ability to handle larger datasets or add new features.  
+
+Solution- 
+	•	Search bar
+	•	Functionality: Users can search for visitors using their name, email, or phone number.
+	•	Default state: Empty
+	•	Search Behavior:
+	•	When users start typing any character, results are populated if the character appears anywhere in the name, not necessarily at the beginning. Example: If a user searches for "Harsha" by typing 'H', "Harsha" will appear first, followed by other names containing 'H' in the order they appear.
+	•	Reset Behavior:
+	•	If the page is hard reloaded or refreshed using the refresh icon, the search bar resets to its empty state.
+	•	If any filter is changed on the front desk, the search bar also resets to its empty state.
+
+	•	Cancel Toggle
+	•	Purpose: Allows users to filter out canceled invites, showing only active ones. This helps front desk personnel focus on actionable invites.
+	•	Default State: Disabled
+	•	Disabled: Displays all invite statuses except 'Canceled'.
+	•	Enabled: Displays all invite statuses, including 'Canceled'.
+	•	When the “Office,” “Date,” or “Time Range” filters are applied, the toggle resets to its default state (disabled). If the toggle is manually enabled, other filters remain unaffected.
+	•	When the “Status” filter is applied, the toggle becomes grayed out (disabled). Users can enable or disable it only after the status filter is reset.
+	•	If the user applies the "Canceled Invites" filter, the toggle automatically enables.
+	•	When the page is refreshed (auto or via the refresh icon), the toggle resets to its default state (disabled). 
+	•	Office Filter
+	•	Purpose: Lists all offices for a particular build.
+	•	Default Value: Default office
+	•	If a specific office is selected, it remains unaffected by other filters or status changes.
+	•	The selected value persists across page refreshes but resets to the default office on a hard reload.
+
+	•	Date Picker
+	•	Purpose: Filters invites by the selected date.
+	•	Default Selection: Current date.
+	•	If the date is changed and the office filter is altered, the date resets to the current date.
+	•	Selected values persist across refreshes but reset to the default state on a hard reload.
+
+	•	Time filter
+	•	Purpose: Filters invites by a specific time range.
+	•	Default Value: 12:00 AM - 11:59 PM.
+	•	If altered and the date filter is changed, the time filter resets to its default state.
+	•	If altered and the office filter is changed, the time filter resets to its default state.
+	•	Selected values persist across refreshes but reset to the default state on a hard reload.
+
+	•	Refresh Icon
+	•	Purpose: Reloads the page and resets specific components.
+	•	Opens the first invite with its detailed side panel view.
+	•	If the side panel is closed, refreshing the page reloads it entirely and opens the first invite.
+	•	Interactions:
+	•	Cancel Toggle: Resets to its default state (disabled).
+	•	Other filters are not affected.
+
+
+	•	Type of Invite 
+	•	Purpose: Displays the type of workflow (invite, walk-in, self-check-in) and the type of visitor (e.g., business guests, vendors, delivery personnel). 
+	•	Entry and Exit time 
+	•	Purpose: Displays the start and end times of invites.
+	•	Default Order: Upcoming invites appear first, followed by others in chronological order.
+
+	•	Status
+	•	Provides information about the visitor's status.
+	•	Status includes - UPCOMING, CHECKED-IN, SELF CHECK-IN, QR CHECK-IN, OVERSTAY, CHECKED-OUT, QR CHECK-OUT, SELF CHECK-OUT, PENDING, CANCELLED, DECLINED, RECEPTION CHECKED-OUT, AWAY FROM PREMISES, SECURITY CHECK-IN, SECURITY CHECKED-OUT, DELAYED CHECK-IN, CONFIRMED, REJECTED, SIGNED_IN, SIGNED_OUT, EXPIRED
+	•	Default State: None selected.
+	•	Filter Options: Only displays statuses available for the current invites. For example, if invites only have statuses "Upcoming," "Expired," and "Pending," only these options appear in the dropdown.
+	•	Interaction with office filter - If the status filter is applied and office filter is altered, the status filter goes back to its default status
+	•	Interactions
+	•	Office Filter: Altering the Office filter resets the Status filter to its default state.
+	•	Date Picker: Altering the Date filter resets the Status filter.
+	•	Time Filter: Altering the Time filter resets the Status filter.
+	•	Search Bar: Results are displayed only if they align with the applied filter and visitor searched. Otherwise, no results are shown.
+	•	Refresh Icon: Resets the Status filter to its default state
+	•	Cancel Toggle: If the Status filter is applied and the Cancel toggle is enabled, only invites matching the selected status and canceled invites are displayed.
+
+
+

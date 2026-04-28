@@ -22,4 +22,9 @@ _All terms, abbreviations, and naming conventions. Updated on every ingest._
 | PIN (Kiosk) | One-time PIN emailed to the meeting organizer, used to authenticate cancel/end-meeting actions on the room kiosk. | [[modules/meeting-rooms]] | Controlled by `MEETING_EMAIL_OTP_TO_AUTHENTICATE`. |
 | RoomTag | A label assigned to a meeting room to restrict which employees can book it (Dynamic Policy). Must match EmployeeTag type + value. | [[modules/tags-desk-parking]] (owner), [[modules/meeting-rooms]] (consumer) | See [[entities/room-tag]] |
 | Tag Engine | The shared system owned by `tags-desk-parking` that creates, manages, and evaluates tags. Reused by Meeting Rooms for Dynamic Policy. | [[modules/tags-desk-parking]] | See [[cross-module/meeting-rooms-tags-desk-parking]] |
+| BLOCK_HOTSEAT | Special dynamic policy tag for parking. When applied to an employee, prevents them from booking any hotslot — forces use of only their dedicated or tagged slot. | [[modules/parking-management]] | Applied via Employee Tagging bulk upload. |
+| Digipass | A digital pass generated on the mobile app to authenticate check-in at premises (parking, office, cafeteria). | [[modules/parking-management]], [[modules/mobile-app]] | Alternative to QR code scan. |
+| Hotslot | A parking slot open for any employee to book (default assignment type). | [[modules/parking-management]] | Contrast with Employee/Team/Blocked slot types. |
+| Parking Waitlist | IRCTC-style FCFS queue for when all parking slots on a level are full. Real-time position number shown to employee. | [[modules/parking-management]] | Level-based; multi-level joining supported. |
+| WFO Booking | Work From Office booking — the parent booking record an employee creates when planning an office day. Parking and desk are add-ons to WFO booking. | [[modules/desk-management]] | Entry point for parking booking. |
 | WIS | WorkInSync — the product. | All | |
