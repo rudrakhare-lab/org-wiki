@@ -18,7 +18,7 @@ from backend.tools.registry import ToolRegistry
 # ── 1. Registry loads all 9 tools ─────────────────────────────────────────────
 
 def test_registry_loads_all_tools():
-    registry = build_registry()
+    registry = build_registry(user_role="contributor")  # contributor sees wiki_propose_edit
     names = {s["name"] for s in registry.schemas}
     expected = {
         "wiki_search", "wiki_read_page",
@@ -26,6 +26,7 @@ def test_registry_loads_all_tools():
         "pms_default_properties", "pms_runtime_values",
         "config_lookup",
         "feedback_record",
+        "wiki_propose_edit",
     }
     assert names == expected, f"Missing tools: {expected - names}"
 
@@ -126,3 +127,47 @@ def test_role_order_viewer_lt_contributor():
     from backend.tools.registry import _ROLE_ORDER
     assert _ROLE_ORDER["viewer"] < _ROLE_ORDER["contributor"]
     assert _ROLE_ORDER["contributor"] < _ROLE_ORDER["admin"]
+
+
+# ── 10. wiki_propose_edit tool ─────────────────────────────────────────────────
+
+def test_wiki_propose_edit_registered_for_contributor():
+    """contributor role should have wiki_propose_edit in schema list."""
+    registry = build_registry(user_role="contributor")
+    names = {s["name"] for s in registry.schemas}
+    assert "wiki_propose_edit" in names
+
+
+def test_wiki_propose_edit_blocked_for_viewer():
+    """viewer role gets permission_denied when calling wiki_propose_edit."""
+    import json
+    registry = build_registry(user_role="viewer")
+    result_json, trace = registry.execute(
+        "wiki_propose_edit",
+        {"page_path": "modules/foo.md", "proposed_change": "fix"},
+        round_num=1,
+    )
+    result = json.loads(result_json)
+    assert result["code"] == "permission_denied"
+
+
+def test_wiki_propose_edit_handler_writes_proposal(tmp_path, monkeypatch):
+    """Handler appends to wiki_proposals.jsonl, never touches wiki/."""
+    import importlib
+    import backend.wiki_proposals as wp_module
+    feedback_dir = tmp_path / "raw" / "feedback"
+    feedback_dir.mkdir(parents=True)
+    importlib.reload(wp_module)
+    monkeypatch.setattr(wp_module, "PROPOSALS_FILE", feedback_dir / "wiki_proposals.jsonl", raising=False)
+    monkeypatch.setattr(wp_module, "FEEDBACK_DIR", feedback_dir, raising=False)
+
+    from backend.tools.wiki_tools import _wiki_propose_edit_handler
+    result = _wiki_propose_edit_handler(
+        {"page_path": "modules/visitor-management.md", "proposed_change": "OTP is required"}
+    )
+    assert result.get("status") == "submitted"
+    assert "proposal_id" in result
+
+    proposals = wp_module.list_proposals()
+    assert len(proposals) == 1
+    assert proposals[0]["page_path"] == "modules/visitor-management.md"

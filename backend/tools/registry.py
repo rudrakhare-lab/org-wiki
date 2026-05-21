@@ -26,7 +26,9 @@ _SECRET_RE = re.compile(
 _ROLE_ORDER = {"viewer": 0, "contributor": 1, "admin": 2}
 
 # Map tool name → minimum role required. Empty = all authenticated users.
-_TOOL_PERMISSIONS: dict[str, str] = {}
+_TOOL_PERMISSIONS: dict[str, str] = {
+    "wiki_propose_edit": "contributor",   # viewer cannot propose edits
+}
 
 
 class ToolTraceEntry(TypedDict):

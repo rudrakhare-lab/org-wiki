@@ -16,6 +16,7 @@ from backend.tools.registry import ToolRegistry
 from backend.tools.wiki_tools import (
     WIKI_SEARCH_SCHEMA, WIKI_READ_PAGE_SCHEMA,
     _wiki_search_handler, _wiki_read_page_handler,
+    WIKI_PROPOSE_EDIT_SCHEMA, _wiki_propose_edit_handler,
 )
 from backend.tools.jira_tools import (
     JIRA_SEARCH_RANKED_SCHEMA, JIRA_GET_TICKET_SCHEMA, JIRA_NAMED_QUERY_SCHEMA,
@@ -30,7 +31,7 @@ from backend.tools.feedback_tools import FEEDBACK_RECORD_SCHEMA, _feedback_recor
 
 
 def build_registry(user_role: str = "viewer") -> ToolRegistry:
-    """Build a new ToolRegistry with all 9 tools registered."""
+    """Build a new ToolRegistry with all 10 tools registered."""
     r = ToolRegistry(user_role=user_role)
     r.register(WIKI_SEARCH_SCHEMA, _wiki_search_handler)
     r.register(WIKI_READ_PAGE_SCHEMA, _wiki_read_page_handler)
@@ -41,6 +42,7 @@ def build_registry(user_role: str = "viewer") -> ToolRegistry:
     r.register(PMS_RUNTIME_VALUES_SCHEMA, _pms_runtime_values_handler)
     r.register(CONFIG_LOOKUP_SCHEMA, _config_lookup_handler)
     r.register(FEEDBACK_RECORD_SCHEMA, _feedback_record_handler)
+    r.register(WIKI_PROPOSE_EDIT_SCHEMA, _wiki_propose_edit_handler)
     return r
 
 
