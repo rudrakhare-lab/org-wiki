@@ -34,7 +34,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field, model_validator
 
 from backend import admin_api, conversation_store, orchestrator, wiki_retriever
-from backend.config import local_claude_code_enabled, lookup_user_by_token
+from backend import config as _config
+from backend.config import local_claude_code_enabled
 from backend.feedback_service import log_answer, record_feedback
 from backend.providers.claude_code_agent import claude_available, stream_claude_code
 
@@ -84,7 +85,7 @@ def _get_user(authorization: str | None = Header(default=None)) -> dict | None:
     if not authorization or not authorization.startswith("Bearer "):
         return None
     token = authorization[7:].strip()
-    return lookup_user_by_token(token)
+    return _config.lookup_user_by_token(token)
 
 
 def _require_user(user: dict | None = Depends(_get_user)) -> dict:
@@ -218,6 +219,12 @@ class FeedbackRequest(BaseModel):
     sources: list[str] = []
     affected: list[str] = []
     reviewer: str = ""
+
+
+class CreateUserRequest(BaseModel):
+    email: str = Field(..., min_length=3, max_length=200)
+    role: Literal["viewer", "contributor", "admin"] = "viewer"
+    expires_at: str | None = Field(default=None)
 
 
 # ---------------------------------------------------------------------------
@@ -667,3 +674,51 @@ def apply_feedback_patch(feedback_id: str, admin: dict = Depends(_require_admin)
     if not result.get("success"):
         raise HTTPException(status_code=500, detail=result)
     return result
+
+
+@app.post("/admin/users")
+def admin_create_user(
+    req: CreateUserRequest,
+    _admin: dict = Depends(_require_admin),
+):
+    """Create a user and issue their first token. Returns the token once (not stored in plaintext)."""
+    from backend import auth_store
+    # Idempotent: if user already exists, just issue a new token
+    if not auth_store.get_user(req.email):
+        auth_store.create_user(
+            req.email,
+            role=req.role,
+            created_by=_admin.get("email"),
+        )
+    token = auth_store.create_token(req.email, expires_at=req.expires_at)
+    return {
+        "email": req.email,
+        "role": req.role,
+        "token": token,
+        "expires_at": req.expires_at,
+        "note": "Store this token securely — it will not be shown again.",
+    }
+
+
+@app.get("/admin/users")
+def admin_list_users(_admin: dict = Depends(_require_admin)):
+    from backend import auth_store
+    return {"users": auth_store.list_users()}
+
+
+@app.delete("/admin/users/{email:path}")
+def admin_delete_user(email: str, _admin: dict = Depends(_require_admin)):
+    from backend import auth_store
+    deleted = auth_store.delete_user(email)
+    if not deleted:
+        raise HTTPException(status_code=404, detail=f"User not found: {email}")
+    return {"deleted": True, "email": email}
+
+
+@app.delete("/admin/tokens/{token}")
+def admin_revoke_token(token: str, _admin: dict = Depends(_require_admin)):
+    from backend import auth_store
+    revoked = auth_store.revoke_token(token)
+    if not revoked:
+        raise HTTPException(status_code=404, detail="Token not found")
+    return {"revoked": True}
