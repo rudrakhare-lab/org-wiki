@@ -146,10 +146,11 @@ def lookup_token(token: str) -> dict[str, Any] | None:
     expires = row["expires_at"]
     if expires:
         try:
-            if date.fromisoformat(str(expires)) < date.today():
+            # Accept both "YYYY-MM-DD" and full ISO datetime strings.
+            if date.fromisoformat(str(expires)[:10]) < date.today():
                 return None
         except ValueError:
-            pass
+            return None  # fail closed on unparseable expiry
     return {"email": row["email"], "role": row["role"], "token": token}
 
 
