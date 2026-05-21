@@ -21,11 +21,24 @@ import re
 from dataclasses import dataclass, field
 from typing import Literal
 
-from backend import jira_retriever, wiki_retriever
+from backend import conversation_store, jira_retriever, wiki_retriever
 from backend.feedback_service import log_answer
 from backend.providers.anthropic_api import AnthropicAPIProvider
 from backend.providers.claude_code import ClaudeCodeProvider
 from backend.system_prompt import load_system_prompt
+
+
+def _load_conversation_context(conversation_id: str, max_turns: int = 6) -> list[dict]:
+    """Return last N user+assistant message pairs from conversation history.
+
+    Capped at max_turns * 2 messages so context stays within ~12K tokens.
+    """
+    conv = conversation_store.get_conversation(conversation_id)
+    if not conv:
+        return []
+    msgs = [m for m in conv.get("messages", []) if m["role"] in ("user", "assistant")]
+    tail = msgs[-(max_turns * 2):]
+    return [{"role": m["role"], "content": m["content"]} for m in tail]
 
 
 @dataclass
@@ -61,6 +74,7 @@ def run(
     roomid: str | None = None,
     role: str | None = None,
     user_role: str = "viewer",
+    conversation_id: str | None = None,
 ) -> OrchestratorResult:
     """
     Execute the full QUERY workflow and return a structured result.
@@ -74,7 +88,7 @@ def run(
         return result
     return run_deep(
         question, mode, claude_api_key, server, buid, functional_area,
-        service, officeid, roomid, role, user_role,
+        service, officeid, roomid, role, user_role, conversation_id,
     )
 
 
@@ -90,6 +104,7 @@ def run_deep(
     roomid: str | None = None,
     role: str | None = None,
     user_role: str = "viewer",
+    conversation_id: str | None = None,
 ) -> OrchestratorResult:
     """Agentic deep search via Anthropic tool_use loop with deterministic preflight."""
     from backend.deep_system_prompt import load_deep_system_prompt
@@ -122,10 +137,12 @@ def run_deep(
     # 3. Run tool loop (using the SAME registry that the preflight used)
     system_prompt = load_deep_system_prompt()
     provider = DeepQueryProvider(api_key=claude_api_key or "")
+    history = _load_conversation_context(conversation_id) if conversation_id else []
     deep_result = provider.generate_with_tools(
         system_prompt=system_prompt,
         user_message=user_message,
         tool_registry=registry,
+        prior_messages=history,
     )
 
     # Preflight tool calls (round_num=0) appear first in the trace

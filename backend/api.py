@@ -332,6 +332,7 @@ def query(
         roomid=req.roomid,
         role=req.role,
         user_role=user_role,
+        conversation_id=conversation_id,
     )
 
     # Persist the assistant message — even on error we save something so the
