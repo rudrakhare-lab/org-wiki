@@ -1,6 +1,4 @@
-import os
 import pytest
-from datetime import date
 from unittest.mock import patch
 
 from backend.config import resolve_api_key, lookup_user_by_token
