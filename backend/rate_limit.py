@@ -22,9 +22,9 @@ def check_rate_limit(token: str, role: str) -> bool:
         return True
 
     global _RESET_DATE
-    today = datetime.now(timezone.utc).date()
 
     with _LOCK:
+        today = datetime.now(timezone.utc).date()
         if today != _RESET_DATE:
             _COUNTS.clear()
             _RESET_DATE = today

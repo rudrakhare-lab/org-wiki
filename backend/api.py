@@ -278,10 +278,22 @@ def query(
             ),
         )
 
-    # Resolve / create conversation up front so we can persist the user message
-    # even if the orchestrator fails downstream.
     user_email = (user or {}).get("email")
     user_role = (user or {}).get("role", "viewer")
+
+    # Rate limit check before any DB writes (skip for unauthenticated users).
+    if user:
+        from backend.rate_limit import check_rate_limit
+        # Use token as key; fall back to email when token is absent/empty.
+        rate_key = user.get("token") or user.get("email", "")
+        if not check_rate_limit(rate_key, user_role):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Daily query limit reached (30/day). Resets at midnight UTC.",
+            )
+
+    # Resolve / create conversation up front so we can persist the user message
+    # even if the orchestrator fails downstream.
     conversation_id = req.conversation_id
     if conversation_id:
         if not conversation_store.get_conversation(conversation_id):
@@ -301,17 +313,6 @@ def query(
         server=req.server,
         buid=req.buid,
     )
-
-    # Rate limit check (skip for unauthenticated — they'll fail at mode level)
-    if user:
-        from backend.rate_limit import check_rate_limit
-        token = user.get("token", "")
-        role = user.get("role", "viewer")
-        if not check_rate_limit(token, role):
-            raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Daily query limit reached (30/day). Resets at midnight UTC.",
-            )
 
     from backend.config import resolve_api_key
     try:
