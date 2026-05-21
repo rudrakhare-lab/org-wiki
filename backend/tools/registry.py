@@ -72,7 +72,7 @@ class ToolRegistry:
                 "round": round_num,
                 "tool_name": name,
                 "input": self._sanitize_dict(tool_input),
-                "output_summary": result[:300],
+                "output_summary": self._sanitize_str(result)[:300],
             }
             return result, entry
 
