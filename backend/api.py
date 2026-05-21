@@ -302,6 +302,17 @@ def query(
         buid=req.buid,
     )
 
+    # Rate limit check (skip for unauthenticated — they'll fail at mode level)
+    if user:
+        from backend.rate_limit import check_rate_limit
+        token = user.get("token", "")
+        role = user.get("role", "viewer")
+        if not check_rate_limit(token, role):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Daily query limit reached (30/day). Resets at midnight UTC.",
+            )
+
     from backend.config import resolve_api_key
     try:
         resolved_key = resolve_api_key(req.claude_api_key)
