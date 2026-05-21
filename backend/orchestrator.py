@@ -38,6 +38,9 @@ def _load_conversation_context(conversation_id: str, max_turns: int = 6) -> list
         return []
     msgs = [m for m in conv.get("messages", []) if m["role"] in ("user", "assistant")]
     tail = msgs[-(max_turns * 2):]
+    # Ensure even count so history always ends on a complete user+assistant pair.
+    if len(tail) % 2 != 0:
+        tail = tail[1:]
     return [{"role": m["role"], "content": m["content"]} for m in tail]
 
 
