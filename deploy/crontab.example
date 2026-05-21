@@ -1,0 +1,14 @@
+# Conwo VM crontab — deploy/crontab.example
+# Install with: crontab -e  and paste these lines.
+# Replace /opt/conwo with actual deploy path.
+# Jira sync credentials must be set in /opt/conwo/.env or as system env vars.
+# Google Drive rclone must be configured: rclone config (run once as deploy user).
+
+# Jira incremental sync — daily at 02:00 UTC
+0 2 * * * cd /opt/conwo && ./venv/bin/python scripts/jira_sync.py --incremental >> /var/log/conwo/jira-sync.log 2>&1
+
+# Drive staging pull — daily at 03:00 UTC (rclone must be configured)
+0 3 * * * cd /opt/conwo && rclone sync "gdrive:Conwo WorkInSync Docs" ./raw/_drive_staging/ >> /var/log/conwo/drive-staging.log 2>&1 && ./venv/bin/python scripts/sync_drive.py --source ./raw/_drive_staging >> /var/log/conwo/drive-sync.log 2>&1
+
+# Log rotation — keep last 30 days
+0 4 * * * find /var/log/conwo -name "*.log" -mtime +30 -delete
