@@ -62,6 +62,16 @@ def resolve_api_key(request_key: str | None = None) -> str:
 
 
 def lookup_user_by_token(token: str) -> dict | None:
+    # Check SQLite auth store first (Layer 2 users)
+    try:
+        from backend import auth_store
+        result = auth_store.lookup_token(token)
+        if result is not None:
+            return result
+    except Exception:
+        pass  # auth_store unavailable or DB not yet initialized — fall through to TOML
+
+    # Fall back to TOML (Layer 1 / migration compatibility)
     for _name, user in _load_users().items():
         if user.get("token") != token:
             continue
@@ -69,9 +79,9 @@ def lookup_user_by_token(token: str) -> dict | None:
         if expires:
             try:
                 if date.fromisoformat(str(expires)) < date.today():
-                    return None   # expired
+                    return None
             except ValueError:
-                pass  # malformed date — don't block, let it through
+                pass
         return user
     return None
 
