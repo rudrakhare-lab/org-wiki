@@ -16,6 +16,10 @@ Endpoints:
   GET  /admin/feedback          → List pending feedback (admin only)
   POST /admin/feedback/{id}/patch-plan → Dry-run patch preview (admin only)
   POST /admin/feedback/{id}/apply     → Apply patch to wiki (admin only)
+  GET  /admin/wiki/proposals    → List wiki proposals (admin only)
+  POST /admin/wiki/proposals/{id}/apply  → Apply a proposal (admin only)
+  POST /admin/wiki/proposals/{id}/reject → Reject a proposal (admin only)
+  POST /admin/trigger-drive-sync → Trigger Drive sync (admin only)
 
 Auth (Phase 1):
   Bearer token in Authorization header, validated against config/allowed_users.toml.
@@ -225,6 +229,10 @@ class CreateUserRequest(BaseModel):
     email: str = Field(..., min_length=3, max_length=200)
     role: Literal["viewer", "contributor", "admin"] = "viewer"
     expires_at: str | None = Field(default=None)
+
+
+class WikiProposalRejectRequest(BaseModel):
+    admin_note: str = ""
 
 
 # ---------------------------------------------------------------------------
@@ -722,3 +730,39 @@ def admin_revoke_token(token: str, _admin: dict = Depends(_require_admin)):
     if not revoked:
         raise HTTPException(status_code=404, detail="Token not found")
     return {"revoked": True}
+
+
+@app.get("/admin/wiki/proposals")
+def admin_list_wiki_proposals(
+    status: str | None = None,
+    _admin: dict = Depends(_require_admin),
+):
+    return {"proposals": admin_api.get_wiki_proposals(status=status)}
+
+
+@app.post("/admin/wiki/proposals/{proposal_id}/apply")
+def admin_apply_wiki_proposal(
+    proposal_id: str,
+    _admin: dict = Depends(_require_admin),
+):
+    result = admin_api.apply_wiki_proposal(proposal_id)
+    if not result.get("success"):
+        raise HTTPException(status_code=404, detail=result.get("error", "Apply failed"))
+    return result
+
+
+@app.post("/admin/wiki/proposals/{proposal_id}/reject")
+def admin_reject_wiki_proposal(
+    proposal_id: str,
+    req: WikiProposalRejectRequest,
+    _admin: dict = Depends(_require_admin),
+):
+    result = admin_api.reject_wiki_proposal(proposal_id, admin_note=req.admin_note)
+    if not result.get("success"):
+        raise HTTPException(status_code=404, detail=result.get("error", "Reject failed"))
+    return result
+
+
+@app.post("/admin/trigger-drive-sync")
+def trigger_drive_sync(_admin: dict = Depends(_require_admin)):
+    return admin_api.trigger_drive_sync()
