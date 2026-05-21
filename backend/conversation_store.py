@@ -68,7 +68,11 @@ def _apply_migrations(conn: sqlite3.Connection) -> None:
     """Idempotently apply schema migrations. Safe to call on every startup."""
     cols = {row[1] for row in conn.execute("PRAGMA table_info(conversations)")}
     if "user_email" not in cols:
-        conn.execute(_MIGRATION_ADD_USER_EMAIL)
+        try:
+            conn.execute(_MIGRATION_ADD_USER_EMAIL)
+        except sqlite3.OperationalError as exc:
+            if "duplicate column name" not in str(exc).lower():
+                raise
 
 
 def _now() -> str:
