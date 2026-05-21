@@ -1,0 +1,22 @@
+# allowed_users.toml — Phase 1 auth (replace with SSO in Phase 5)
+# Tokens are SHA256(email) truncated to 32 chars — admin issues them manually.
+# Roles: viewer, contributor, pms_debug, admin
+#
+# expires_at (optional) — ISO date string (YYYY-MM-DD). Token rejected after this date.
+# Omit for no-expiry (recommended for admin accounts only).
+# Example: expires_at = "2026-12-31"
+
+[users]
+
+[users.admin]
+email = "rudra.khare@moveinsync.com"
+role = "admin"
+# Generate with: python -c "import hashlib; print(hashlib.sha256(b'rudra.khare@moveinsync.com').hexdigest()[:32])"
+token = "1f45d149ff8cd563415eefce0bc6c3c8"
+
+# Add more users below as needed:
+# [users.alice]
+# email = "alice@moveinsync.com"
+# role = "contributor"
+# token = ""
+# expires_at = "2026-12-31"
