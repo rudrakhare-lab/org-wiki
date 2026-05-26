@@ -1,0 +1,44 @@
+Property Name,Data Type,Description
+SHUTTLE_TRACKING_PROPERTIES,JSON,-
+LATEST_IOS_APP_VERSION,STRING,-
+CLICK_TO_CALL,JSON,-
+TRIP_DETAILS,JSON,-
+SOS,JSON,-
+CONFIGURABLEFEATURE,JSON,-
+ENGINEERING,JSON,-
+BOOKING,JSON,"This property controls app-side configs for seat and WFH booking rules, checkin cutoff timings, permissions, eligibility settings, and feature configurations within the booking module."
+DEVICECONFIGURATIONS,JSON,"This property controls mobile device authentication, SSO settings, session expiry rules, app security options, and related access configurations."
+FRESHCHATCONFIGURATIONS,JSON,-
+privilegedPhoneNumbers,LIST,-
+VEHICLE_TRACKING,JSON,-
+ADHOC_BOOKINGS_BOTTOM_SHEET_DESCRIPTION,STRING,-
+SAFETY,JSON,-
+appVersionSupportedIOS,STRING,-
+B2B2C,JSON,-
+SPOT,JSON,-
+TRIP_HISTORY,JSON,-
+COMMUNICATIONREGISTRY,JSON,-
+appVersionSupportedAndroid,STRING,-
+PROFILE,JSON,"This property controls user profile settings, address edit permissions, transport visibility options, profile validation, completion rules, and related display configurations within the application."
+IVR,JSON,-
+APP_FEEDBACK_EXPRESSIONS,LIST,-
+FAB_ITEMS_DISPLAY_ORDER_LIST,LIST,This property controls the FAB button menu in app.
+APP_UPDATE_CONTENT,JSON,-
+SCHEDULE,JSON,"This property controls app-side employee shift future scheduling rules, edit/cancel permissions, adhoc and bulk scheduling options, multi-office support, transport integrations, notifications, indemnification rules, and related schedule feature configurations."
+GRAND_LAUNCH_ENABLED,BOOLEAN,-
+CARBON_SAVINGS_CONTENT,JSON,-
+APP_GRAND_LAUNCH_CONTENT,LIST,-
+VERSION_STATS,JSON,-
+LATEST_ANDROID_APP_VERSION,STRING,-
+TRIP_FEEDBACK_MODEL,JSON,-
+PRE_SIGNED_URL_EXPIRATION_SECONDS,INTEGER,-
+REFRESH_TOKEN_EXPIRY_IN_SECONDS,INTEGER,-
+GRAND_LAUNCH_START_TIME,STRING,-
+GRAND_LAUNCH_END_TIME,STRING,-
+SAFETY_TOOLKIT_MODEL,JSON,-
+ACCESS_TOKEN_EXPIRY_IN_SECONDS,INTEGER,-
+DYNAMIC_TRIP_FEEDBACK_URL,STRING,-
+SEAT_BELT_NON_FUNCTIONING_AND_REPORTING_REASONS,JSON,-
+SEAT_BELT_REPORT_BUTTON_COOLDOWN_DURATION_MINUTES,INTEGER,-
+PROJECT_MAPPING_NOT_FOUND_MESSAGE,JSON,update
+TRIP_CARD_FLOW,JSON,-

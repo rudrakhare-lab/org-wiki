@@ -1,0 +1,34 @@
+Property Name,Data Type,Description
+radius,DOUBLE,-
+districts,LIST,-
+listPropertyExample,LIST,-
+wisSafeReachCcList,LIST,Controls the list of email IDs to be CC'd in Safe Reach communications.
+wisManualSuccessEmailSubject,STRING,Controls the email subject template used when Safe Reach confirmation is manually completed.
+wisFailDropEmailSubject,STRING,Controls the email subject template used when Safe Reach drop verification fails.
+wisDropVerificationFailedEmail,BOOLEAN,Controls whether email is triggered when drop verification fails.
+wisDropVerificationManualSuccessEmail,BOOLEAN,Controls whether email is triggered when drop verification is manually marked successful.
+wisSafeReachReportingManagerEnabled,BOOLEAN,Controls whether Safe Reach notifications are sent to the reporting manager.
+cabArrivalIVR,JSON,-
+wfhType,STRING,Controls the default type of Work From Home booking.
+wfhClockinCutOffInMinute,INTEGER,Controls the cutoff time in minutes for allowing WFH clock-in.
+shareRideCallDriver,BOOLEAN,-
+cacheTimeInHoursOfAarogyaSetuUserStatus,INTEGER,Controls the cache duration in hours for Aarogya Setu user status (covid feature).
+bookingEnabledOnTag,BOOLEAN,"Controls whether booking is allowed based on a tag (e.g., even on weekly off, allow booking for employees/resources carrying a specific tag)."
+enableTimezoneWithOfficeName,BOOLEAN,Controls whether the office name is displayed along with its timezone.
+bufferTimeInSecondsOfAarogyaSetuUser,INTEGER,Controls the buffer time in seconds applied to Aarogya Setu user validation (covid feature).
+cutoffTimeForSkipWISAppFeedback,INTEGER,Defines the interval (in hours) after which the internal app feedback will appear post booking creation.
+enableGeofenceCheckForCheckin,BOOLEAN,Controls check-in from defined geofence limit from office.
+madatoryFieldforScheduling,LIST,-
+remoteSignCutoffInMinute,INTEGER,Cutoff for contactless sign-in for Bus solution.
+seatBookingV2,BOOLEAN,Enables seat booking v2.
+showRegistrationNumberInputFieldForParking,BOOLEAN,Enables field for entering registration number while selecting parking slots in booking form.
+employeeStatusModuleEnabled,BOOLEAN,"When set true, starts using configuration under employeeStatusList."
+singleShiftOperations,BOOLEAN,"Removes shift selection on booking form, sets booking time 00:00 to 23:59. Hides time components in Team Calendar (day/week view) and Preferences for single-shift environments."
+autoProvisionEnabled,BOOLEAN,Enables auto registration process.
+ssoExpiryInternalEmailRecipients,LIST,-
+allowEmployeeToBooKAnySeatInB,BOOLEAN,-
+parkingReminderEmailEnabled,BOOLEAN,Controls whether parking reminder emails are enabled.
+showLanguageOptionInHamburgerMenu,BOOLEAN,-
+meetingRoomsWidgetEnabled,BOOLEAN,Controls whether the meeting rooms widget is displayed in the employee home page on web.
+isDynamicFieldsMandatory,BOOLEAN,Makes dynamic field mandatory.
+xlEtsBuids,LIST,-

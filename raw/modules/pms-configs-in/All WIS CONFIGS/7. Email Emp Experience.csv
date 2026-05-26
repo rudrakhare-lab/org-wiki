@@ -1,0 +1,32 @@
+Service: EMAIL_EMPLOYEE_EXPERIENCE,
+Total properties: 28,
+,
+Property Name,Description
+NO_SHOW_POLICY_RE_INSTANTIATION_EMAIL,Defines the email template sent to a manager/admin requesting approval to restore an employee's transport rights after a suspension.
+NO_SHOW_ACTION_EMAIL,Defines the email template notifying an employee that their future schedules have been deleted and/or scheduling rights revoked due to exceeding the No-Show limit.
+NO_SHOW_WARNING_EMAIL,Defines the email template warning an employee that they are approaching the maximum allowed No-Shows before penalties apply.
+NO_SHOW_AUTO_APPROVAL_EMAIL,Defines the email template notifying an employee that their transport scheduling rights have been successfully restored.
+NO_SHOW_PERMISSION_ACTION_EMAIL,Defines the email template notifying an employee of the Approved/Rejected status of their No-Show enforcement appeal.
+MONTHLY_NO_SHOW_WARNING_EMAIL,Defines the warning email template specifically tied to the monthly No-Show threshold (rather than a rolling date range).
+MONTHLY_NO_SHOW_ACTION_EMAIL,Defines the penalty email template tied to exceeding the monthly No-Show limit.
+NO_SHOW_ACTION_AT_MONTH_END_BANNER_MESSAGE,The warning banner displayed inside the employee app regarding impending month-end No-Show penalties.
+LOGOUT_SCHEDULE_CANCELLATION,Defines the email template notifying an employee that their Evening (Logout) cab was auto-canceled because they didn't show up for their Morning (Login) cab.
+LOGOUT_CANCELLED_HEADER,The subject line/header for the automatic logout cancellation notification.
+LOGOUT_CANCELLED_MESSAGE,The body text for the automatic logout cancellation push notification.
+CAB_ARRIVAL_MESSAGE_FOR_NOTIFICATION,The push notification text sent to an employee when their cab reaches the pickup point (includes driver wait time).
+CAB_ARRIVAL_TITLE_FOR_NOTIFICATION,The title/header for the cab arrival push notification.
+SCHEDULE_REMINDER_NOTIFICATION_SUBJECT,The subject line reminding an employee to create their commute schedule before the cutoff time.
+SCHEDULE_REMINDER_NOTIFICATION_BODY,The body text for the commute schedule reminder notification.
+SPECIAL_SCHEDULE_TITLE_TEMPLATE,"The default header for ad-hoc or ""On-demand"" cab booking notifications."
+SPECIAL_SCHEDULE_MESSAGE_TEMPLATE,"The default body text for ""On-demand"" cab booking notifications."
+TRANSPORT_BOUNDARY_VALIDATION_FAILED_MESSAGE,Error message displayed when an employee tries to set a home address outside the company's approved transport geofence.
+RADIAL_DISTANCE_VALIDATION_FAILED_MESSAGE,Error message displayed when an employee's address exceeds the maximum allowed straight-line (radial) distance from the office.
+OFFICE_TO_HOME_DISTANCE_VALIDATION_FAILED_MESSAGE,Error message displayed when the actual driving route distance exceeds the company's allowed limit.
+RESTRICTED_AREA_VALIDATION_FAILED_MESSAGE,"Error message displayed when an employee tries to book a cab to/from a blacklisted zone (e.g., forests, water bodies, unsafe areas)."
+SEAT_BELT_NON_COMPLIANCE_EMAIL_SUBJECT,The subject line for the automated safety alert regarding seatbelt violations.
+SEAT_BELT_NON_COMPLIANCE_EMAIL_TEMPLATE,Defines the warning email template sent to employees flagged by the vehicle's monitoring system for not wearing a seatbelt.
+ssoExpiryEmailHeaderTemplate,Subject line for the initial warning email that the site's SSO (Single Sign-On) metadata file is expiring soon.
+ssoExpiryEmailBodyTemplate,Defines the email template warning IT admins of an impending SSO certificate expiration (prevents login outages).
+ssoExpiryFollowUpEmailHeaderTemplate,Subject line for the urgent follow-up warning regarding SSO expiration.
+ssoExpiryFollowUpEmailBodyTemplate,Defines the follow-up email template for SSO expiration.
+MASS_MAIL_SENDER_LIST,"Defines the default ""From"" email address (e.g., transport@moveinsync.com) used when broadcasting mass communications."

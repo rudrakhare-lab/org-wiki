@@ -1,0 +1,188 @@
+Property Name,Data Type,Description
+emailsForApprovalFlowRequest,LIST,-
+autoCheckinEnableFloorKiosk,LIST,Allow auto-checkin to the booking created from floor kiosk if the following logic stands true.
+autoApprovalTime,INTEGER,Auto approval of resource.
+requestorPersonaEmails,JSON,For approval flow email.
+wfhBookingAllowed,BOOLEAN,-
+isCalendarInviteEnabled,BOOLEAN,-
+resourceApprovalsPage,BOOLEAN,Resource approval page.
+approverPersonaEmails,JSON,-
+resourceRequestsPage,BOOLEAN,Resource request page for approval.
+allocationChangeCommunicationEnabled,BOOLEAN,-
+wfhCancelCutOff,INTEGER,-
+dynamicDataForDesk,JSON,-
+restrictMealSelectionTo,INTEGER,"Specifies the maximum number of meal items a user is allowed to select. Users can choose up to restrictMealSelectionTo items; they cannot select more. If 0, user can select unlimited items."
+maxTimeBeforeClockin,BOOLEAN,-
+workplannerNotificationControl,JSON,Controls the email flow of the workplanner.
+defaultLogoutShiftMinutes,INTEGER,-
+createBookingAfterSignedOut,BOOLEAN,-
+overrideMinMaxShiftDurations,JSON,Overrides minShiftDuration and maxShiftDuration configurations for bookings created from Workplanner and Booking Bulk Upload.
+vendorMealStatus,LIST,Types of meal statuses defined per office.
+lockerBookingEnabled,BOOLEAN,Update Desk/Office labels to Locker based on this configuration.
+resourceApprovalsPageApp,BOOLEAN,Enables resource approval page.
+resourceRequestsPageApp,BOOLEAN,-
+genericLabelForDesk,STRING,Resource name label to replace Desk keyword on all employee and admin pages.
+setFavoriteRooms,BOOLEAN,Allows user to set any meeting room as their favourite for easy access.
+enablePriorityWiseAutoSlotAllocate,BOOLEAN,"When enabled, slot is assigned in priority order based on display order value."
+multipleBookingsOnASeatInADayAllowed,BOOLEAN,-
+filterNoAvailableSeatInFloor,BOOLEAN,-
+TestPropertyOnPMS,BOOLEAN,-
+roomMaintenanceWorkflow,BOOLEAN,Property for enabling and disabling the room maintenance flow.
+isAmenitiesFilter,BOOLEAN,-
+employeeCancelCutOff,INTEGER,-
+maxTimeAfterClockin,BOOLEAN,-
+wfoReasonList,STRING,-
+emailBookingMessage,STRING,-
+booker,STRING,-
+enableRecurrenceOnTeamPlanner,BOOLEAN,-
+advanceBooking,BOOLEAN,-
+defOnCallLogoutDurationInMinute,INTEGER,-
+isCheckinNotificationEnabled,BOOLEAN,-
+enableBookingsOnHolidays,BOOLEAN,-
+removeMealSelectionOnHolidayAndWeeklyOff,BOOLEAN,-
+enableIndoorNavigation,BOOLEAN,-
+autoExpireHour,STRING,-
+checkTransportCutoffForBookingEdit,BOOLEAN,-
+rejectBookingIfNoDesk,BOOLEAN,-
+minHoursAllowedForCheckin,DOUBLE,-
+allowBookingAfterSignOut,BOOLEAN,-
+autoRequestApprovalEnabled,BOOLEAN,-
+defaulBookingHoursIfExtCheckin,DOUBLE,-
+timeDiffShiftsMin,DOUBLE,-
+showCabs,BOOLEAN,-
+attendanceManagementDisabled,BOOLEAN,-
+autoAllocate,BOOLEAN,-
+wfhMaxDurationForBooking,DOUBLE,-
+createBookingWhenCheckinReceived,BOOLEAN,-
+recordCheckInOutViaAccessCardAPI,BOOLEAN,-
+wfhClockinBuffer,DOUBLE,-
+showParking,BOOLEAN,-
+showFirstCheckInRecord,BOOLEAN,-
+seatValidation,BOOLEAN,-
+seatAllocationAction,STRING,-
+limitEmployeeBookingDays,BOOLEAN,-
+extCheckinToBookingBuffer,DOUBLE,-
+wfhMinBetweenClockinClockout,DOUBLE,-
+seatMandatory,BOOLEAN,-
+minShiftDuration,DOUBLE,-
+maxShiftDuration,DOUBLE,-
+limitEmployeeBookingDaysUnit,DOUBLE,-
+checkInFirstPremise,BOOLEAN,-
+bookingLogoutEditCutOff,DOUBLE,-
+disableWfhWfoOverlapping,BOOLEAN,-
+selectShiftsAfterSpecificTime,DOUBLE,-
+wfhDisabled,BOOLEAN,-
+autoAbsentHours,INTEGER,-
+maxHoursAllowedForCheckin,DOUBLE,-
+bookingEditCutOff,DOUBLE,-
+buidsEnabledForPMS,LIST,-
+customPlannerViewEnabled,BOOLEAN,-
+externalChannelCheckIn,BOOLEAN,-
+maxBufferForCheckin,DOUBLE,-
+bookingPerDayEmp,DOUBLE,-
+enableWeeklyOffBookings,BOOLEAN,-
+gatepassDelaycutoff,DOUBLE,-
+defLogoutDuration,DOUBLE,-
+limitEmployeeBookingDaysType,STRING,-
+wfhMinDurationForBooking,DOUBLE,-
+isSeatValidationEnabled,BOOLEAN,-
+checkInWithoutAarogyasetuValidation,BOOLEAN,-
+countBookingBySomeOneElseAsEmployeeBooking,BOOLEAN,-
+enableBookingEmail,BOOLEAN,-
+autoSlotAllocate,BOOLEAN,-
+bookingRequestApprovalFlowEnabled,BOOLEAN,-
+wfhMonthlyLimit,INTEGER,-
+blockUserIfNotVaccinated,BOOLEAN,-
+approvalFlowEnabled,BOOLEAN,-
+autoApproveEnabled,BOOLEAN,-
+blockGenerateDigiPassOnSeatMandatory,BOOLEAN,-
+limitMealDuringBookingCreation,BOOLEAN,-
+isAutoAbsentEnabled,BOOLEAN,-
+expiredRequestNotificationEnabled,BOOLEAN,-
+CutOffTimeBetweenBookingsOnSeatInMinute,INTEGER,-
+deleteFutureSchedulesOnDeactivation,BOOLEAN,-
+onCallMinShiftDurationInMinute,INTEGER,-
+isAppFeedbackEnabled,BOOLEAN,-
+wfhScheduleCutOff,INTEGER,-
+seatSanitizationCheck,BOOLEAN,-
+expiryNotificationCutOffInMinutes,INTEGER,-
+mobileNumberLength,INTEGER,-
+pendingRequestsNotificationEnabled,BOOLEAN,-
+parkingSlotBufferTimeInMin,INTEGER,-
+autoLogoutMinutes,INTEGER,-
+approvalFlowInWfoEnabled,BOOLEAN,-
+remoteSignInAllowed,BOOLEAN,-
+autoExpireBeforeNoOfdays,STRING,-
+tagsEnabled,LIST,-
+wfhWeeklyLimit,INTEGER,-
+mealPlanningEnabled,BOOLEAN,-
+roomMaintenanceMessage,STRING,"Controls the message displayed after the maintenance message, to allow admins to give further instructions for maintenance related messages."
+defWfhLogoutDurationInMinute,INTEGER,-
+onCallMaxShiftDurationInMinute,INTEGER,-
+showVaccinationOptionInSideMenu,BOOLEAN,-
+employeeEndTimeScheduleCutoff,INTEGER,-
+isSeatValidationEnabledOnQrScan,BOOLEAN,-
+isAutoLogoutEnabled,BOOLEAN,-
+wfhEditCutOff,INTEGER,-
+wfhSpocSchecduleCutOff,INTEGER,-
+otpOverIvrForVisitor,BOOLEAN,-
+vaccinationMaxApprovalDays,INTEGER,-
+overlappingTimeInMinutes,INTEGER,-
+isPhoneValidationOptional,BOOLEAN,-
+wfhSpocEditCutOff,INTEGER,-
+noResourceBookingConfirmation,BOOLEAN,Defines if there is no resource then the popup to confirm booking without resource should be displayed or not.
+hideParkingSlotInfo,BOOLEAN,-
+spocCancelCutOff,INTEGER,-
+showSanitizationDetails,BOOLEAN,-
+numOfDays,INTEGER,-
+employeeEndTimeBookingCutoff,INTEGER,-
+seatScanEnable,BOOLEAN,-
+allowedBookingForContainmentZone,BOOLEAN,-
+empHomepageTodaysAvailabilityCard,BOOLEAN,"Once enabled, the user must see the complete availability card; modules inside the card will be visible based on whether the respective module is enabled for the user's office."
+mandatoryBookingRequiredForCounterScan,BOOLEAN,"Ensures only users with an active meal booking can scan the counter QR code to consume a meal, preventing scans without bookings."
+wfhMaxShiftDurationInMinute,INTEGER,-
+wfhMinShiftDurationInMinute,INTEGER,-
+showQRScanner,BOOLEAN,-
+qRScannerEndCutOffInMinute,INTEGER,-
+isAutoEntryAllowed,BOOLEAN,-
+showDigipassOptionForDedicatedSeat,BOOLEAN,-
+qRScannerStartCutOffInMinute,INTEGER,-
+wfhClockInBuffer,INTEGER,-
+cancelSchedulesEnabled,BOOLEAN,-
+bookingApprovalEmailsEnabled,BOOLEAN,-
+officeCheckInModeWeb,STRING,-
+enableDynamicFields,BOOLEAN,Defines if dynamic field is enabled.
+approvedRequestNotificationEnabled,BOOLEAN,-
+rejectedRequestNotificationEnabled,BOOLEAN,-
+expiryCutOffInMinutes,INTEGER,-
+approvalFlowInInWfhEnabled,BOOLEAN,-
+dynamicFieldNameOnBookingForm,STRING,Dynamic fields name description.
+isDynamicFieldsMandatory,BOOLEAN,Defines if dynamic fields is mandatory.
+nextDayLogoutEnabled,BOOLEAN,-
+officeCheckInModeApp,STRING,-
+enablePrivilegeOnApp,BOOLEAN,To show resources while booking based on privilege.
+allowOfficeCheckInWithoutDesk,BOOLEAN,Controls the separate checkin for office and desk checkin.
+seatBookingEnabled,BOOLEAN,Allow employees to create desk bookings.
+restrictScanQROnFabButton,BOOLEAN,"When enabled (default false), restricts that the check-in mode on an office level also needs to be ScanQR. If disabled, any QR code can be scanned regardless of the office check-in mode."
+spocScheduleCutOff,INTEGER,-
+employeeScheduleCutoff,INTEGER,-
+enableParkingAvailabilityWidgetWithoutBooking,BOOLEAN,"When the parking booking module is not enabled for the client, but they only want to consume the available slot numbers."
+floorKioskCheckInOutEmails,LIST,"Conditions to send check-in/checkout mail on, values should be of type [CHECKIN, CHECKOUT]."
+newRoomParticipantWorkflow,BOOLEAN,Determines whether participant addition should be allowed in the new room booking flow.
+enableOfficeCheckInWithParkingCheckIn,BOOLEAN,-
+showMealOrderStatus,BOOLEAN,-
+autoApprovalConfig,JSON,Config for auto approval.
+teamCalendarEnabled,BOOLEAN,-
+waitlistExpiryEnabled,BOOLEAN,Expire waitlist bookings once the start time has passed and no confirmed slot has been assigned to the parking booking.
+enableSeparateMealOption,BOOLEAN,Enable meal-only booking (coupled with existing property to enable meals).
+mealCancelCutoffInMinutes,INTEGER,Property to enable/disable booking cancellation option if created with meal and 'enableSeparateMealOption' is enabled.
+enableMealBookingNudge,BOOLEAN,-
+allowedMealBookingPerEmployee,INTEGER,Decides how many separate meal bookings the system should allow per user per day.
+vendorMealDisplayColumn,LIST,Tells which columns need to be shown on vendor-dashboard (only related to meal columns).
+isCustomShiftsRestricted,BOOLEAN,TO BE STRICTLY UPDATED ONLY FROM CONFIGURATION PAGE. Defines if the selection of custom shift would be allowed or not.
+mealFinalStage,LIST,Defines the final status of a meal booking.
+shouldAllowCustomTimingWhileEdit,BOOLEAN,STRICTLY TO BE UPDATED ONLY FROM CONFIG PAGE IN THE UI. Defines if employee will be allowed to select custom timing while editing a booking.
+vendorColumnMappings,JSON,To customize the column header labels in the Meal Dashboard.
+enableMealConfigureKiosk,BOOLEAN,To enable 'Configure Kiosk' button on meal dashboard.
+enableMealOnlyBulkUpload,BOOLEAN,-
+isShiftPairingEnabled,BOOLEAN,Defines the enablement of shift pairs.

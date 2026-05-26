@@ -1,0 +1,1124 @@
+
+MAXIMUM_DISTANCE_FROM_OFFICE_KM,Multicity distance increase from 100,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_COST_CENTER_ENABLED,Uncheck to disable cost center from ETS,,,,,,,,,,,,,,,,,,,,,,,,
+EMPLOYEE_SPECIAL_NEED_FEATURE_ENABLED,Uncheck to disable special needs from ETS,,,,,,,,,,,,,,,,,,,,,,,,
+
+",",,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+EMAIL_BODY_TEXT,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Billing,,Default values,Description,Dhiman,Central Implementation,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MAX_TRIP_KM,Configure the default value of max trip KM this will reflacting in issues page,Values are mentioned by default as soon as a server is created,Default value of Max trip km to be displayed during contract creation,,Max Km provided by the Client for Transportation  as per company policy,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MIN_DUTIES_IN_A_DAY,Configure the default value of minimum duties in a day,,Default value of Minimum duties in day to be displayed during contract creation,,"Min no. of duties to be performed  in a day, dependent on the Client contract(it could be one trip one duty or multiple trip one duty)",,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MIN_TRIPS_IN_A_DUTY,Configure the default value of minimum trips in a duty,,Default value of Minimum trips in a duty to be displayed during contract creation,,Min no. of trips to be performed  in a duty eg:1 Trip 1 Duty you will only perform a single trip,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MAX_DUTIES_IN_A_DAY,Configure the default value of max dutis of in day,,Default value of Maximum duties in day to be displayed during contract creation,,Max  no. of duties to be performed in a day,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MIN_DEAD_KM_PERCENT_IN_DUTY,configure the default value of minimum duty dead leg Km % in day,,Default value of minimum dead km percent to be displayed during contract creation for a client,,Min. dead Km approved by the Client for a trip. Based on the contract,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MAX_DEAD_KM_PERCENT_IN_DUTY,configure the default value of minimum duty dead leg Km % in day,,Default value of Maximum dead km percent to be displayed during contract creation for a client,,Max. dead Km approved by the Client for a trip. Based on the contract,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MIN_DUTY_KM,configure the default value minimum duty KM,,Default value of Minimum duty  km to be displayed during contract creation,,Min. km to be performed in a duty per day,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MIN_TRIP_KM,Configure the default value minimum duty KM,,Default value of Minimum trip km to be displayed during contract creation,,Min. km to be performed in a trip per day,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MAX_EMPLOYEES_IN_A_TRIP,Configure the default value of max trip employee,,Default value of Maximum employees to be displayed during contract creation,,Max. no of employee allowed to in a vehicle,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MAX_TRIPS_IN_A_DUTY,Configure the default value of max trip IN a day,,Default value of Maximum trips in a duty to be displayed during contract creation,,Min no. of trips to be performed  in a duty eg:1 Duty multiple trips will have more than one duty performed. We need to define a value in case of this model. ,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MAX_SECONDS_IN_A_DUTY,Configure the default value of max duty seconds in a day,,Default value of Maximum seconds in a duty to be displayed during contract creation,,Default value of Maximum seconds in a duty to be displayed during contract creation,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MIN_SECONDS_IN_A_DUTY,Configure the default value of Minimum seconds in a day,,Default value of Minimum seconds in a duty to be displayed during contract creation,,Default value of Minimum seconds in a duty to be displayed during contract creation,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MAX_DUTY_KM,Configure the default value max duty KM,,Default value of Maximum duty km to be displayed during contract creation,,Default value of Maximum duty km to be displayed during contract creation,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_IMPROPER_REPORT_OFF,Configure the default value of improper report off issue,,Default value improper on off duty to be displayed during contract creation for a client,,Default value improper on off duty to be displayed during contract creation for a client,,,,,,,,,,,,,,,,,,,,
+MAX_ALLOWED_DUTY_HOURS,Configure the maxmum duty hours,Values are created by default during new server setup,Maximum hours of duty that a cab is entitled for,,Maximum hours of duty that a cab is entitled for,,,,,,,,,,,,,,,,,,,,
+FEATURE_COST_CENTER_ENABLED,Feature enable transfer cost cneter option,Default value is DISABLED,Enable/Disable the option based in client requirement. Checking the box enables the cost center for billing,,If enabled we will view the name of the Cost center in Site adminstrator and Employee profile,,,,,,,,,,,,,,,,,,,,
+FEATURE_VENDOR_WISE_COST_CENTER_DOWNLOAD_ENABLED,Feature enable vendor wise cost center report option,Default value is DISABLED,"Feature for enabling the cost center, vendor wise. Available in reports ",,If required we can download the cost center report Vendor wise,,,,,,,,,,,,,,,,,,,,
+ENABLE_VENDOR_WISE_BILLING_FREEZE,Feature enable vendor wise billing freeze option,Default value is DISABLED,"Use this feature to freeze billing for ""individual vendors"". When feature is disabled, billing willbe frozen for all vendors.",,"Use this feature to freeze billing for ""individual vendors"". When this feature is disabled, billing willbe frozen for all vendors.",,,,,,,,,,,,,,,,,,,,
+FEATURE_SHOW_GOOGLEKM_OF_LEGS,feature enable show gogle KM leg option,Default value is ENABLED,Enable this feature to refer google km(FOR TRIP LEG) in case of incomplete trips. System will use google km as GPS backfill during issue clearance.,,Enable this feature to refer google km(FOR TRIP LEG) in case of incomplete trips. System will use google km as GPS backfill during issue clearance.,,,,,,,,,,,,,,,,,,,,
+FEATURE_USE_GOOGLE_DISTANCE_FOR_TRIP_KM,Feature enable use google distance trip KM option,Default value is ENABLED,Enable this feature to refer google km(FOR TRIP KM) in case of incomplete trips. System will use google km as GPS backfill during issue clearance.,,Enable this feature to refer google km(FOR TRIP KM) in case of incomplete trips. System will use google km as GPS backfill during issue clearance.,,,,,,,,,,,,,,,,,,,,
+FEATURE_TRANSFER_DUTY,Feature enable transfer duty option,Default value is ENABLED,Feature to transfer a completed trip sheet/Duty to replacement/secondary vehicle(Incase of breakdown),,This Feature will Transfer the Duty/Trips to a replacement/back up vehicle in case of vehicle breakdown,,,,,,,,,,,,,,,,,,,,
+BILLING_SEND_AUDIT_SMS_TO_DRIVER,Feature enable trip sheet audit SMS send to driver,Default value is DISABLED,SMS sent to driver when a particular trip sheet is audited(Changes/Approved/Auditedtrip detais),"SMS would be triggered to the Driver once a trip is audited by the billing team. If this is enabled, the property would be automatically enabled for every cab created, else this can be enabled manually when a cab is created.","SMS would be triggered to the Driver once a trip is audited(Approved/Changed) by the billing team( If this is enabled, the property would be automatically enabled for every cab created, else this can be enabled manually when a cab is created)",,,,,,,,,,,,,,,,,,,,
+FEATURE_ZONE_BASED_BILLING_ENABLED,Feature enable billing zone option,Default value is DISABLED,Feature to introduce ZONE BASED billing for the customer(Please reach out to billing before enabling),"To be enabled as per Billing requirement, to be configured after confirmation from the billing team",This Feature will enable Zone based Billing Model,,,,,,,,,,,,,,,,,,,,
+ONLY_ONE_TRIP_ALLOWED_PER_DUTY,Feature enable OTOD option based on client billing madule,Default value is DISABLED,Driver will be able to perform only a single trip per duty. Has to logout and login in case of multiple trips.,"Driver would be allowed to do only 1 Trip per Duty (OTOD - One Trip One Duty), this is mainly used in Trip/Slab based billing module","Driver would be allowed to do only 1 Trip per Duty (OTOD - One Trip One Duty), this is mainly used in Trip/Slab based billing module. Note: This needs to be managed on both ETS and device configuration page",,,,,,,,,,,,,,,,,,,,
+NUM_DAYS_REPORT_OFF_ISSUE,Device or BYOD off issues report,Default value will be -7,The no of days in date range from current date to list the cabs with the issues (-ve indicates into the past),"This feature helps to identify the Report On/Off feature available on the Dashboard, the days are configurable as per client requirement, -(-ve) represents number of  days in past",,,,,,,,,,,,,,,,,,,,,
+FEATURE_CALIBRATION_MANAGEMENT,,,,For backend team only,For backend team only,,,,,,,,,,,,,,,,,,,,
+FIX_PARTIAL_GPS_LOSS,,,,This is used specially for KM Based billing where the Billing team can fix the GPS loss and provide the actual kms clocked by the driver,This is used specially for KM Based billing where the Billing team can fix the GPS loss and provide the actual kms clocked by the driver,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Compliance,,,,,,,,,,,,,,,,,,,,,,,,,
+CITIES_WITH_MOVEINSYNC_OPERATIONS,Configure the Moveinsync opertions ares,All cities where MIS operates are available as default,List of cities where moveinsync is available(eg: applicable during creating a driver's profile and chosing the city),List of cities where moveinsync is available(eg: applicable during creating a driver's profile and chosing the city),List of cities where moveinsync is available. Note: applicable while creating a driver's profile and selecting the city,,,,,,,,,,,,,,,,,,,,
+FEATURE_DRIVER_VEHICLE_ASSOCIATION_ENABLED,Feature enable driver cab association option,Default value is ENABLED,Link a driver to a cab,This property reflects the Driver details against the cabs in the Manage Cab section,If enabled this property reflects the Driver details against the cabs in the Manage Cab section,,,,,,,,,,,,,,,,,,,,
+SHOW_MANAGE_DRIVER,Will enabling feature manage driver option,Default value is ENABLED,"Enabling this will display the ""Manage Driver"" option in ETS/vendor login)(Document uploads/Edits to driver profile)",,"If Disabled this will remove ""Manage Driver"" option from the Setting Dropdown List",,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Dashboard,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_DASHBOARD_CABS_DELAYED_IN_PICKUP_VISIBILITY,Will enabling featuere delayd cab tracking in the dashboard,,"Display ""Delayed Cabs"" link on Main dashboard",,"Display ""Delayed Cabs"" link on Tracking dashboard",,,,,,,,,,,,,,,,,,,,
+FEATURE_INCOMPLETE_TRIPSHEET_ON_DASHBOARD,In the billind dashboard will enabling featuere incomplete trips details,,"Display ""incomplete trips"" link on billing dashboard",,"Display ""incomplete trips"" link on Billing Dashboard""",,,,,,,,,,,,,,,,,,,,
+WOMEN_EMPLOYEE_SIGN_IN_ALERT_STOP_24_HOUR_FORMAT,Feature configure value of women employee sign in alert stop,,Dark hours stop duration- to be entered in hh:mm format(24 hours format),,Time Format to Stop the Alert,,,,,,,,,,,,,,,,,,,,
+WOMAN_EMPLOYEE_SIGN_OFF_VERIFICATION,Will be enabling feature female drop verification,,Enable safe reach confirmation for female employees,,"This will enable ""OLD Drop Verification"" option on Tracking Dashboard",,,,,,,,,,,,,,,,,,,,
+DRIVER_BEHAVIOUR_REPORT_OFF_TIME_SEC,Updating driver behaviour report off time value,,"Time in secs before trip start time, before which if duty reportin is not done, its flagged on the dashboard as Driver Report On/Off Issues
+",,"Time in secs before trip start time, before which if duty reportin is not done, its flagged on the dashboard as Driver Report On/Off Issues
+",,,,,,,,,,,,,,,,,,,,
+DRIVER_BEHAVIOUR_REPORT_ON_TIME_SEC,Updating driver behaviour report on time value,,"Time in secs before trip start time, before which if duty reportin is not done, its flagged on the dashboard as Driver Report On/Off Issues
+",,"Time in secs before trip start time, before which if duty reportin is not done, its flagged on the dashboard as Driver Report On/Off Issues
+",,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Data Sync,,,,,,,,,,,,,,,,,,,,,,,,,
+SYNC_FILE_UPLOAD_SERVER_URL,Configure the data sync file upload server URL,,Property to mention the data upload server link(Client's HRMS),,https://datafeed.moveinsync.com/DataSyncDashboard/ (Default Data Upload Server for All the Sites),,,,,,,,,,,,,,,,,,,,
+SYNC_FILE_DATA_UPLOAD,Feature enable data sync upload option,,Enable to activate dta upload option(Employee/Schedule/Escort etc.),"Enable to activate dta upload option(Employee/Schedule/Escort etc.), from the Site Admin > DataSync you can control which all fields should be visible to a particular role.","Enable to activate data upload option(Employee/Schedule/Escort etc.), from the Site Admin > DataSync you can control which all fields should be visible to a particular role.",,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Device,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_AUTO_ASSIGN_CAB_ON_PROVISIONING,In the V page which ever provisioning devices are there auto will configured,,Automatic configuration of driver devices once the driver app is installed,Automatic configuration of driver devices once the driver app is installed and registered,It will Automatically configure Drive Device once the Driver app is installed. Note: Only for BYOD,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Email,,,,,,,,,,,,,,,,,,,,,,,,,
+AUTO_PICKUP_DROP_EMAIL_BODY_SECONDCUTOFF,Pickup & drop email massage of scend cut off,,Cutoff timings for Automatic email- Pickup and Drop details,2 Cut-Offs can be configured in the Automatic E-mail configuration and separate texts can be configured to be triggered to the employees.,2 Cut-Offs can be configured in the Automatic E-mail configuration and separate texts can be configured to be triggered to the employees.,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Employee Login,,,,,,,,,,,,,,,,,,,,,,,,,
+ADDRESS_CHANGE_SUBJECT,Request for Address change Subject,,Email Subject for address change request for employee,"If the client allows address change permission to employees, this would be the  Subject Line of the email to the respective email id's",Email Subject Line for Address Change Request for all the empployees,,,,,,,,,,,,,,,,,,,,
+HIDE_REQUEST_ADDRESS_CHANGE_ENABLED,Hide reqest address change option,,Disable address change request for employee,,Disable address change request for employee,,,,,,,,,,,,,,,,,,,,
+ADDRESS_CHANGE_CC,Address change email of CC,,CC email ID for address change requests,,CC email ID for address change requests,,,,,,,,,,,,,,,,,,,,
+ADDRESS_CHANGE_RECIEPIENT,employee rasi the request of address change email will go to the transport team,,Primary email ID for address change requests,,Primary email ID for address change requests,,,,,,,,,,,,,,,,,,,,
+EMAIL_SIGNATURE,Any email will sent from transoport@moveinsync.com signature is showing tranpsort Team,Default Signature: Transport team,Default email signature for all mails sent from transport@moveinsync.com,,Default E-mail Signature of the Transport Department,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Employee Management,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_REPORTING_MANAGER,Eanble feature reporting manager option,,Enable Reporting Manager(RM) for employees,"Enable Reporting Manager would mean that if a Team Manager/SPOC is not avaibale against a team, then all emails would be triggered to the RM for that respective team.","Enable Reporting Manager would mean that if a Team Manager/SPOC is not avaibale against a team, then all emails would be triggered to the RM for that respective team.",,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+General,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_SERVER_REQUEST_LOGGING,"Before enabling this , set correct email id in property:- UI_CRASH_MAIL",,"Engineering property for server logging.Before enabling this , set correct email id in property:- UI_CRASH_MAIL",Only for Backend Team,Only for Backend Team,,,,,,,,,,,,,,,,,,,,
+TEXT_SHOWN_FOR_HIDDEN_INFO_TO_VENDORS,"Any data we have hidden in the vendor login page text will showing ""XXXXXXX""",,Hidden sensitive data to vendors will be displayed as XXXX,"We can hide phone numbers and address of employees from the vendors which is controlled by separate properties, since we can't hide the filed, texts would be shown like this.","We can hide phone numbers and address of employees from the vendors which is controlled by separate properties, since we can't hide the filed, texts would be shown like xxxxxxx",,,,,,,,,,,,,,,,,,,,
+SITE_NAME,Site name will come email subject line,,Email communications will have the mentioned site name in the Subject line,,Email communications will have the mentioned site name in the Subject line,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Mobile App,,,,,,,,,,,,,,,,,,,,,,,,,
+API_TRIP_EXPIRY_BUFFER_TIME_MIN,Trip expiry buffer time,,Trip expiry buffer time in minutes,"This property controls the Trip Expiry from the device, i.e, it would be removed from the driver screen and the Trip Status would be changed to Trip Expired","This property controls the Trip Expiry from the device, i.e, it would be removed from the driver screen and the Trip Status would be changed to Trip Expired",,,,,,,,,,,,,,,,,,,,
+API_EMPLOYEE_TRACKING_ENABLED,Featrue enable employee login,,To enable tracking in employee app,,Helps employee to Track Vehicle on Mobile App,,,,,,,,,,,,,,,,,,,,
+DEFAULT_NEW_EMPLOYEE_CREATE_MOBILE_APP,New employee createing in mobile App,,Allows employee to REGISTER FOR THE MOBILE APP WHEN A NEW EMPLOYEE PROFILE IS CREATED,,Allow Registeration of Employee on the Mobile App once Profile is Created,,,,,,,,,,,,,,,,,,,,
+FEATURE_EMPLOYEE_NOTIFICATION_ENABLED,Enable feature employee App notification,,Push notifications on mobile app will be enabled,,Enables all the Notification pushed on the Mobile App(Employee),,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Reports,,,,,,,,,,,,,,,,,,,,,,,,,
+ROUTE_SERVICE_TIME_LOGOUT_MINUTES,Feature configure the logout buffer time value,,"Logout buffer timings(Will be mentioned in SMS, mobile app, email, notifications, schedules)","This property defines the difference between Shift Time and Cab moving time, i.e. if logout is 1200 and the time mentioned here is 15, so employees would see 1215 as their Logout Departure Time. This is also the property to determine OTD (On Time Deperature) for the respective shifts.","This property gives buffer time for the logout shift. Eg: if logout is 12:00 and the time mentioned here is 15, so employees would see 12:15 as their Logout Departure Time. This is also the property to determine OTD (On Time Deperature) for the respective shifts.",,,,,,,,,,,,,,,,,,,,
+FEATURE_SCHEDULE_CHANGE_REPORT_ENABLED,Enable feature schedule change repoert option,,Any schedule changes for an employee will be logged and available in the respective report,,Any changes in the employee schedule will be saved and available in the schedule change report.,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Routing,,,,,,,,,,,,,,,,,,,,,,,,,
+ROUTING_SLAB_RANGE,,,"The number of iterations of routing algorithms based on the count of employees
+(Please contact routing team)",Only for Backend Team,Back End Team,,,,,,,,,,,,,,,,,,,,
+FEATURE_EMPLOYEE_TIME_AUTO_UPDATE,Enable feature employee pikup time auto update option,,"""If property FEATURE_EMPLOYEE_TIME_AUTO_UPDATE  is un-checked, there will be no change in employee times when any of the following route modification happens.
+1. Employee is removed from route
+2. Employee is added to a new route
+3. Employee is added to an existing route
+
+If property FEATURE_EMPLOYEE_TIME_AUTO_UPDATE is checked, employee times will be automatically updated based on speed calculated using their previous times and distances.
+Note: Time is calculated on the configured shift speed.""
+",,"""If property FEATURE_EMPLOYEE_TIME_AUTO_UPDATE  is un-checked, there will be no change in employee times when any of the following route modification happens.
+1. Employee is removed from route
+2. Employee is added to a new route
+3. Employee is added to an existing route
+
+If property FEATURE_EMPLOYEE_TIME_AUTO_UPDATE is checked, employee times will be automatically updated based on speed calculated using their previous times and distances.
+Note: Time is calculated on the configured shift speed.""
+",,,,,,,,,,,,,,,,,,,,
+ROUTE_SERVICE_TIME_LOGIN_MINUTES,Update the login buffer time,,"Login buffer timings(Will be mentioned in SMS, mobile app, email, notifications, schedules) Note: Not to be confused with Trip Grace timings","This property defines the difference between Shift Time and Cab Arrival time, i.e. if login is 1200 and the time mentioned here is 15, so employees would see 1145 as their Office Reaching Time. This is also the property to determine OTA (On Time Arrival) for the respective shifts.","This property defines the difference between Shift Time and Cab Arrival time, i.e. if login is 1200 and the time mentioned here is 15, so employees would see 1145 as their Office Reaching Time. This is also the property to determine OTA (On Time Arrival) for the respective shifts.",,,,,,,,,,,,,,,,,,,,
+FEATURE_BATCH_ROUTE_UPDATE_ENABLED,,,,Only for Backend Team,Only for Backend Team,,,,,,,,,,,,,,,,,,,,
+FEATURE_RELOAD_MAP_PERIODICALLY,,,,Only for Backend Team,Only for Backend Team,,,,,,,,,,,,,,,,,,,,
+FEATURE_INTER_SHIFT_ROUTE_COPY,Feature to allow route copy from a login shift to log out shift,,Will enable copying routes from a login shift to a logout shift,,It will copy the same login shift routes to Logout shifts.,,,,,,,,,,,,,,,,,,,,
+FEATURE_COPY_ROUTES_ENABLED,Feature to allow route copy from a Previous day respective shift,,Copies the respective shift routes from the previous day,,"If enable, it will allow the copying of routes from the previous Days.",,,,,,,,,,,,,,,,,,,,
+ROUTING_NEARBY_ROUTE_DISTANCE_METRES,Route Editor - Show all cabs/empty cabs within this radius,,Cabs without duties/empty cabs search radius,Only for Backend Team,Only for Backend Team,,,,,,,,,,,,,,,,,,,,
+FEATURE_CONVERT_SHUTTLE_TO_CAB,Feature convert to shuttle to cab route,,Enables feature to Convert all shuttle routes to cab routes,,Allow conversion of Shuttle routes to Cab routes ,,,,,,,,,,,,,,,,,,,,
+ROUTING_CALCULATE_DISTANCE_PAIRS,,,Routing quality(Do not modify without PM or routing team approval),Only for Backend Team,Only for Backend Team,,,,,,,,,,,,,,,,,,,,
+FEATURE_NODAL_POINT_ENABLED,Whether to show nodal points,,Nodal points(Pickup points) for employees,,It will enable Nodal Point Option for Employees,,,,,,,,,,,,,,,,,,,,
+COPY_ROUTE_TEXT,Copy route text name,,,,"We can give any text name for ""Copy Route"" on ETS.",,,,,,,,,,,,,,,,,,,,
+FEATURE_ENABLE_BULK_ROUTE_EDIT,Feature enable done the routing will downloading option,,Enabling this feature will allow downloading and uploading of routes in bulk(Excel),,In order to download the Excel from Manager Route section we need to enable this property,,,,,,,,,,,,,,,,,,,,
+ROUTING_DEFAULT_SHIFT_SPEED_KM_HR,Employees in newly created routes have the employee pick time based on this value,,Employees in newly created routes have the employee pick time based on this value,,Employee routes will show the pickup time based on the shift speed configured for the shift,,,,,,,,,,,,,,,,,,,,
+FEATURE_ENABLE_BULK_ROUTE_UPLOAD,Featue eanble bulk route upload option,,Enables admin/transport team to bulk upload routes through excel template,,Enables admin/transport team to bulk upload routes through excel template,,,,,,,,,,,,,,,,,,,,
+EMPLOYEE_SPECIAL_NEED_FEATURE_ENABLED,Enable feature SPLN option,,To mark or distinguish any employee as a Special need/Medical cab,,It will enable Special Need feature on Employee Profile,,,,,,,,,,,,,,,,,,,,
+ROUTING_NEARBY_GEOCORD_DISTANCE_METRES,Route Editor - the distance of employees for whom we have to show only one marker,,Routing distance radius ,Only for Backend Team,Only for Backend Team,,,,,,,,,,,,,,,,,,,,
+FEATURE_DRAG_DROP_ROUTE_EDITOR,Drag and drop feature on route editor page,,Enable drag and drop routes in New route editor page,Activates the Drag & Drop feature of Employees from One route to the other in the map page.,Activates the Drag & Drop feature of Employees from One route to the other in the map page. Note: New Route Editor only,,,,,,,,,,,,,,,,,,,,
+INTERSHIFT_COPY_ROUTE_TEXT,Inter shift copy route text name,,Inter shift copy route text name,,"We can give any text name for ""Inter shift copy"" on ETS.",,,,,,,,,,,,,,,,,,,,
+ROUTING_EMPLOYEE_SERVICE_TIME_MIN,Service time added to the pickup of each employee for newly created route,,Waiting time for each employee at pickup point,"Case:
+
+Employee Planned Pick Up time: 07:35 but Boarded at 07:41
+
+Driver Report Time: 07:38
+
+Employee delay reported with Boarding delay as 3mins.
+
+
+The driver reported within the Planned pickup+3mins=07:38.
+
+The employee boarded 3 mins late and the cab reached the office late. Hence employee delay. This would be applicable only for 1st Employee and not for all.",Waiting time for each employee at pickup point,,,,,,,,,,,,,,,,,,,,
+UPDATE_ROUTE_PICK_UP_TIME_USING_GOGLE_API,Update pickup time text name,,Auomatic pickup timing based on google api(based on traffic confitions for each day),For Backend team only,For Backend team only,,,,,,,,,,,,,,,,,,,,
+GEOCORD_LIES_IN_OFFICE_RADIUS_IN_METERS,Update the value of office geo-code radius meter,,Office proximity radius,Defines the radius of Auto Sign-Off when cab reaches the office with a login trip,Defines the radius of Auto Sign-Off when cab reaches the office with a login trip,,,,,,,,,,,,,,,,,,,,
+ROUTE_GENERATION_TEXT,Generate route text name,,,For Backend team only,"We can give any text name for ""Generate Routes"" on ETS.",,,,,,,,,,,,,,,,,,,,
+FEATURE_ZONE_BASED_AFFINITY_CAB_CONSTRAINT_CHECK_ENABLED,,,Routing parameter(Please check with routing team before modification),For Backend team only,For Backend team only,,,,,,,,,,,,,,,,,,,,
+FEATURE_GENERATE_ROUTES_ENABLED,Enable feature generate route option,,Generate routes option enabled and routes will be generated as per routing schema ,For Backend team only,Routes will be Generated as per the routing schema defined by client,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+SMS,,,,,,,,,,,,,,,,,,,,,,,,,
+SHUTTLE_PICKUP_SMS,Update the shuttle pikcup SMS formate,,SMS template for shuttle pickup,,SMS template for shuttle pickup,,,,,,,,,,,,,,,,,,,,
+GEOFENCE_HOME_RADIUS_METRES,On crossing this distance the proximity SMS is triggered. One can set different value for home pickup and nodal point pickup,,On crossing this distance the proximity SMS is triggered. One can set different value for home pickup and nodal point pickup,"Defines the radius from Employee Home to a defined radius,",We can define the radius for sending proximity SMS to the employee. Eg: Cab is 2 KM away from your destination.,,,,,,,,,,,,,,,,,,,,
+PICKUP_SMS_TEMPLATE,The template to be used for pickup sms,,The template to be used for pickup sms,"To be configured as per the preset defined paramters, SE ticket to be raised.","To be configured as per the preset defined paramters, SE ticket to be raised.",,,,,,,,,,,,,,,,,,,,
+USE_DISTANCE_PROXIMITY_SMS_TEMPLATE,enable custom proximity sms template,,SMS template for PROXIMITY SMS,"Once the cab reachis the defined radius, the employees are notified through an SMS called the Proximity SMS about their cab location. SMS template is predefined","Once the cab reaches the defined radius, the employees are notified through an SMS called the Proximity SMS about their cab location. SMS template is predefined",,,,,,,,,,,,,,,,,,,,
+GEOFENCE_SMS_TO_EMPLOYEES,Whether proximity SMS is enabled,,Enable or disable proximity SMS alerts,,Enable or disable proximity SMS alerts,,,,,,,,,,,,,,,,,,,,
+SECURITY_CONTACT_NUMBER,Update the security contact number,,Security desk contact number,"If this number is configured then a 4th option in IVR can be enabled and calls would land at the Security Desk, raise an SE to configure the 4th option.","If this number is configured then a 4th option in IVR can be enabled and calls would land at the Security Desk, raise an SE to configure the 4th option.",,,,,,,,,,,,,,,,,,,,
+GEOFENCE_NODAL_RADIUS_METRES,Update the value of nodal point proximity SMS readius,,Nodal point proximity,,Proximity SMS Trigger Distance in Meter for Nodal Point Pickup,,,,,,,,,,,,,,,,,,,,
+PICKUP_SMS_TEMPLATE_SECONDCUTOFF,Pikcup SMS template of second cut off,,SMS template for 2 cutoff(PICKUP),,"The Cut-off time SMS will be sent only to the employees for whom the Cab details, time has changed.
+",,,,,,,,,,,,,,,,,,,,
+PICKUPSMS_CAB_CONSTRAINT,"When false, the planned pickup message is sent to employee even when cab is not assigned to tripsheet",,"When false, the planned pickup message is sent to employee even when cab is not assigned to tripsheet",,"If checked, the planned pickup message is sent to employee even when cab is not assigned to tripsheet",,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+SPOT,,,,,,,,,,,,,,,,,,,,,,,,,
+SPOT_MANUAL_CAB_ALLOCATION_FROM_THD,Cab allocation from THD,,SPOT(RENTLZ) cab allocation allowed from THD,,SPOT(RENTLZ) cab allocation allowed from THD,,,,,,,,,,,,,,,,,,,,
+CUTOFF_TIME_FOR_VENDOR_ASSIGNMENT_IN_SPOT_BOOKING,Cut off time for vendor assign in the sport booking,,Cutoff timings for vendor to assign a spot booking cab,,Cutoff timings for vendor to assign a spot booking cab,,,,,,,,,,,,,,,,,,,,
+SEND_SPOT_NOTIFICATION_EMAIL_TO_REPORTING_MANAGER,Enable feature Send spot booking notification to the reporiting manager,,SPOT bookings notification will be sent to respective reporting manager,,SPOT bookings notification will be sent to respective reporting manager,,,,,,,,,,,,,,,,,,,,
+SPOT_VENDOR_EMAIL_SIGNATURE,Update the vendor email singature text,,,,,,,,,,,,,,,,,,,,,,,,
+UPCOMING_BOOKINGS_SHOW_FROM_SPOT_BOOKING_ROLES,Updating the rols will show upcoming booking details,,,,,,,,,,,,,,,,,,,,,,,,
+SPOT_RESTRICT_MANAGER_APPROVAL_FOR_JOB_TITLES,,,,,,,,,,,,,,,,,,,,,,,,,
+OFFICE_SELECTION_REQUIRED_FOR_SPOT_BOOKING,Enable feature office sellection option,,Office selection for all SPOT bookings,,Office selection for all SPOT bookings,,,,,,,,,,,,,,,,,,,,
+SHOW_SPOT_TRIPSHEETS_TO_ALL_VENDORS,Show spot booking trip sheet to all vendors,,SHow all trips available to all vendors ,,SHow all trips available to all vendors ,,,,,,,,,,,,,,,,,,,,
+SPOT_EMAIL_SIGNATURE,Spot email signature text name,,Email signature for SPOT emails from transport@moveinsync.com,,Email signature for SPOT emails from transport@moveinsync.com,,,,,,,,,,,,,,,,,,,,
+MANAGER_APPROVAL_REQUIRED_FOR_SPOT_BOOKING,Feature enable manager approvel option,,Enable manager approval for SPOT booking,,Enable manager approval for SPOT booking,,,,,,,,,,,,,,,,,,,,
+SPOT_CAB_ALLOCATION_FROM_THD,Feature enable Cab allocation option to THD team,,Allow Can allocation from THD team,,Allow Can allocation from THD team,,,,,,,,,,,,,,,,,,,,
+USER_BASED_CITY_AND_OFFICE_VIEW_IN_SPOT_BOOKING,Update the citiy office level details of spot booking,,Display city and office level details in SPOT bookings,,Display city and office level details in SPOT bookings,,,,,,,,,,,,,,,,,,,,
+TRIP_MERGE_REQUIRED_FOR_SPOT_BOOKING,Feature enable trip merge option,,Merge multiple trips into one single SPOT trip,,Merge multiple trips into one single SPOT trip,,,,,,,,,,,,,,,,,,,,
+VENDOR_ACCEPTANCE_REQUIRED_FOR_SPOT_BOOKING,Feature enable vendor acceptance option to spot booking,,Allow vendor to accept bookings to allocate cabs,,Allow vendor to accept bookings to allocate cabs,,,,,,,,,,,,,,,,,,,,
+SPOT_BOOKING_REQUEST_OFFICE_LEVEL_TM_RECIPIENTS,Update the team email ID's,,Booking request mail recipients- Transport team email IDs,,Booking request mail recipients- Transport team email IDs,,,,,,,,,,,,,,,,,,,,
+SPOT_MULTI_DAYS_BOOKING_ENABLED,Feature enable option multi day's booking,,Enable user to book for multiple days,,Enable user to book for multiple days,,,,,,,,,,,,,,,,,,,,
+VENDOR_ASSIGNMENT_FROM_SPOT_BOOKING,Feature enable option vendor assign,,Allow transport team to allocate vendor for SPOT booking,,Allow transport team to allocate vendor for SPOT booking,,,,,,,,,,,,,,,,,,,,
+VENDOR_ASSIGNMENT_FROM_SPOT_BOOKING_ROLES,Seature enable vendor assignment option showing spot booking roles,,Roles that are allowed to assign vendors for bookings,,Roles that are allowed to assign vendors for bookings,,,,,,,,,,,,,,,,,,,,
+CUTOFF_TIME_FOR_CAB_COLOR_CODE_IN_SPOT_TRIPS,enable cutoff time for cab color option _s spot trips,,,,,,,,,,,,,,,,,,,,,,,,
+SPOT_EMAIL_CC_RECIPIENTS,Update the CC email ID's,,CC recipients for SPOT bookings,,CC recipients for SPOT bookings,,,,,,,,,,,,,,,,,,,,
+SPOT_BOOKING_ENABLED,Feature enable Spot booking option,,Enable SPOT feature,,Enable SPOT feature,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Scheduling,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_SCHEDULE_UPLOAD_ENABLED,Feature enable schedule upload option in a team manger page,,Enables bulk scheduling option,Enablement not required,Enables the Bulk Upload Option- Need approval before activation,,,,,,,,,,,,,,,,,,,,
+FEATURE_MULTIPLE_SPOC,Feature enable option to multiple spoc,,Enables addition of multiple SPOCS for a single team,,Enables addition of multiple SPOCS for a single team,,,,,,,,,,,,,,,,,,,,
+FEATURE_ENABLE_LEAVE,Feature enable option av enable leave,,Mark employee as leave suring scheduling,This is a non-working feature so please don't use it,Not in use,,,,,,,,,,,,,,,,,,,,
+SCHEDULE_EXPIRY_MAIL_TO_EMPLOYEES,Feature enable scheudle expiry notification to the employee,,Automatic schedule expiry email will be sent to employees(Please configure the number of days),,Automatic schedule expiry email will be sent to employees(Please configure the number of days),,,,,,,,,,,,,,,,,,,,
+SCHEDULE_EXPIRY_MAIL_TO_PROJECT_MANAGER,Feature enable scheudle expiry notification to the project manager,,Automatuc Schedule expiry mail of employees to project manager,,Automatuc Schedule expiry mail of employees to Team manager,,,,,,,,,,,,,,,,,,,,
+HUB_LOCATION_ADDRESS,Heature enable option es location address,,,For backend team only,For backend team only,,,,,,,,,,,,,,,,,,,,
+SCHEDULE_CHANGE_ALLOWED_TIME_DAYS,The number of days for which the schedule can be changed. Beyond that the date selector will be greyed out,,The number of days for which the schedule can be changed(On mobile app and ETS). Beyond that the date selector will be greyed out,The number of days for which the schedule can be changed(On mobile app and ETS). Beyond that the date selector will be greyed out. SE to be raised for Mobile App config.,The number of days for which the schedule can be changed(On mobile app and ETS). Beyond that the date selector will be greyed out. SE to be raised for Mobile App config.,,,,,,,,,,,,,,,,,,,,
+FEATURE_BUSINESS_UNIT_ENABLED,Feature enable Business unit option,,To enable a business unit for billing,"Business Unit & Cost Centres are generally used by the clients for Bill Back to the Business, so please enable after clients consent.","Business Unit & Cost Centres are generally used by the clients for Bill Back to the Business, so please enable after clients consent.",,,,,,,,,,,,,,,,,,,,
+ENABLE_NO_SHOW_EMPLOYEE_NOTIFICATION,Feature enable no show notificatio to the recpetive employee,,Automatic notification sent to employee once he or she is marked as a no show,,Automatic notification sent to employee once he or she is marked as a no show,,,,,,,,,,,,,,,,,,,,
+NO_SHOW_EMPLOYEE_EMAIL_RECEIPIENTS,Feature enable no show notificatio to CC (transport team),,NoShow email recipients(Multiple email IDs can be added),,NoShow email recipients(Multiple email IDs can be added),,,,,,,,,,,,,,,,,,,,
+FEATURE_ADHOC_SHIFT_ALWAYS_AVAILABLE,Feature enalbe Adhoc shift option,,Show adhoc shift for employee always without restrictions,This allows the employees to select the ADHOC shift made avalable to them from the Site Admin > Shift Category > Schedule Adhoc. So if this feature is enabled then the Dropdown on the Site Admin page would appear for further configs.,This allows the employees to select the ADHOC shift made avalable to them from the Site Admin > Shift Category > Schedule Adhoc. So if this feature is enabled then the Dropdown on the Site Admin page would appear for further configs.,,,,,,,,,,,,,,,,,,,,
+FEATURE_ADHOC_REQUEST,Feature enalbe Adhoc shift option,,Enable adhoc request for employees on mobile app and ETS,,Enable adhoc request for employees on mobile app and ETS,,,,,,,,,,,,,,,,,,,,
+FEATURE_EDIT_SHIFT_CATEGORY,Feature enable shift category edit option,,Enable option to edit a particular shift category,,Enable option to edit a particular shift category,,,,,,,,,,,,,,,,,,,,
+UPDATE_SHIFT_CUSTOM_MESSAGE,,,,For backend team only,For backend team only,,,,,,,,,,,,,,,,,,,,
+ASK_FOR_PROJECT_ON_RESCHEDULE_NAGARRO,,,,Not to be enabled for any clients,,,,,,,,,,,,,,,,,,,,,
+FEATURE_ALLSCRIPTS_SCHEDULE_WARNING,,,,Not to be enabled for any clients,,,,,,,,,,,,,,,,,,,,,
+FEATURE_ADDITIONAL_REQUEST_ENABLED,Feature enable additional shift option (If employee want 2 login or logout shift on same day can use additional shift),,Lets the employee/admin/Spoc book an additional schedule for the employee (2 login and 2 logout on the same day),,Lets the employee/admin/Spoc book an additional schedule for the employee (2 login and 2 logout on the same day),,,,,,,,,,,,,,,,,,,,
+FEATURE_TRIP_CANCELLATION_ENABLED,Feature enable option for tirp cancellation option,,Cancel a particular trip(Employee),,Cancel a particular trip(Employee),,,,,,,,,,,,,,,,,,,,
+NUM_OF_DAYS_FOR_SCHEDULE_MAIL_EXPIRY,Update the value number of days for scheudle mail expiry,,Schedule expriy email days configuration,,Schedule expriy email days configuration,,,,,,,,,,,,,,,,,,,,
+FEATURE_MULTIPLE_SHIFT_CUTOFF,Feature enable update multiple shift cut off,,Different cutoffs for SPOC and EMPLOYEE,,Different cutoffs for SPOC and EMPLOYEE,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Security,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_DISTANCE_VIOLATION_METRES,Update the distance value of geo feance violatin metrs,,Geofence proximity radius for violations alerts,,Geofence proximity radius for violations alerts,,,,,,,,,,,,,,,,,,,,
+FEATURE_PANIC_ALARM,Enable featuer Panic alarm,,,,Enable to raise the Panic Alarm,,,,,,,,,,,,,,,,,,,,
+DASHBOARD_AUTO_REMOVE_ALERT,Update the time for auto close the alert,,Automatic closure of alerts on security dashboard timings configuration,,Automatic closure of alerts on security dashboard timings configuration,,,,,,,,,,,,,,,,,,,,
+EMERGENCY_L3_PHONE_NUMBER,Update the L3 SOS escalation contact no,,L3 escalation number for SOS alert matrix,SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,,,,,,,,,,,,,,,,,,,,
+EMERGENCY_L3_INTERVAL_MINUTES,Update the min of SOS raise alert on L3 level,,"SMS alert repeat interval. In case panic is not acted upon
+",SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,,,,,,,,,,,,,,,,,,,,
+EMERGENCY_L2_INTERVAL_MINUTES,Update the min of SOS raise alert on L2 level,,"SMS alert repeat interval. In case panic is not acted upon
+",SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,,,,,,,,,,,,,,,,,,,,
+ENABLE_PANIC_ALERT_FROM_MOBILE,Feature enable panic alert form Mobile App trough,,Allows employee to raise an SOS alert from the mobile app,,Allows employee to raise an SOS alert from the mobile app,,,,,,,,,,,,,,,,,,,,
+EMERGENCY_L2_PHONE_NUMBER,Update the L2 SOS escalation contact no,,L2 escalation number for SOS alert matrix,SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,,,,,,,,,,,,,,,,,,,,
+EMERGENCY_L1_INTERVAL_MINUTES,Update the L1 SOS exclation in min,,"SMS alert repeat interval. In case panic is not acted upon
+",SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,,,,,,,,,,,,,,,,,,,,
+FEATURE_WOMEN_SECURITY,Feature enable Women secuity option,,Enable women marshal,,Enable Women Marshal,,,,,,,,,,,,,,,,,,,,
+EMERGENCY_L1_PHONE_NUMBER,Update the L1 SOS escalation contact no,,Update the L1 SOS escalation contact no,SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,SOS escalation matrix to be updated in Site Administrator > Security Configurations only.,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Shuttle Routing,,,,,,,,,,,,,,,,,,,,,,,,,
+ALLOW_MERGING_SHUTTLE_ROUTES,Allow to merging shuttle routes,,Allows different shuttle routes to be merged,The property allows shuttle route merging for different routes. Now to do that you have to remove all employees to custom and then add those employees to the route else all Shuttle Points would be changed of the merged route.,The property allows shuttle route merging for different routes. Now to do that you have to remove all employees to custom and then add those employees to the route else all Shuttle Points would be changed of the merged route.,,,,,,,,,,,,,,,,,,,,
+SHUTTLE_MIN_OCCUPANCY,In shuttle route minmum route occupancy,,Minimum occupancy level required in a specified shuttle route,This property defines the min requirement to generate a shuttle route even though you have enabled it.,This property defines the min requirement to generate a shuttle route even though you have enabled it.,,,,,,,,,,,,,,,,,,,,
+FEATURE_EMPLOYEE_SHUTTLE_ASSOCIATION_ENABLED,Feature enable option for employee shuttle association,,Link employee to a particular shuttle point,,Link employee to a particular shuttle point,,,,,,,,,,,,,,,,,,,,
+FEATURE_SHUTTLE_ROUTING_ENABLED,Feature enable shuttle routing enalbe,,Enables shuttle routing,,Enables shuttle routing on Routing Dashboard,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Tracking,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_NO_SHOW_EMPLOYEE_EMAIL_NOTIFICATION,Feature enable no show E-Mail notification to the respective employee,,Feature enable no show E-Mail notification to the respective employee,,Feature enable no show E-Mail notification to the respective employee,,,,,,,,,,,,,,,,,,,,
+WOMEN_EMPLOYEE_SIGN_IN_ALERT_START_24_HOUR_FORMAT,Women employee sign in alert start time hour,,Dark hours start time,,Marshal Window Start time,,,,,,,,,,,,,,,,,,,,
+FEATURE_USE_SMS_CHANNEL_TO_MONITOR_GPS_STATUS,If set to true the last known location of the device will be made known to the server via sms,,If set to true the last known location of the device will be made known to the server via sms,To be enabled only after concurrence from Hardware Team,Back End Hardware Team,,,,,,,,,,,,,,,,,,,,
+ENABLE_NO_SHOW_EMPLOYEE_SMS_NOTIFICATION,Feature enable no show SMS notification to the respective employee,,Feature enable no show SMS notification to the respective employee,,Feature enable no show SMS notification to the respective employee,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Tripsheets,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_BACK2BACK_TRIPS_ENABLED,Feature enable Back to Back tirp option,,Enable vendors and admins to push back to back trips to drivers,,Enable vendors and admins to push back to back trips to drivers,,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_PDF_MESSAGE,Custom message shown in the pdf version of tripsheet,,"Custom message shown in the pdf version of tripsheet(If you are going on vacation for more than 2 days or offsite, Kindly drop a mail to transport@moveinsync.com. For assitance, please call ""Transport Helpline"" at +91 **********.
+)",,"Custom message shown in the pdf version of tripsheet(If you are going on vacation for more than 2 days or offsite, Kindly drop a mail to transport@moveinsync.com. For assitance, please call ""Transport Helpline"" at +91 **********.
+)",,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_PUSH_CHECK_HOURS,"Hours before the start of the trip, the remote wakeup is triggered in case tripsheet is not downloaded",,"Hours before the start of the trip, the remote wakeup is triggered in case tripsheet is not downloaded",,"Hours before the start of the trip, the remote wakeup is triggered in case tripsheet is not downloaded",,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_DOWNLOAD_WAKEUP_SMS_MINIMUM_TIME_MINUTES,The minimum minutes to wait before triggering Tripsheet download mechanism( Tripsheet Push Job),,The minimum minutes to wait before triggering Tripsheet download mechanism( Tripsheet Push Job),,The minimum minutes to wait before triggering Tripsheet download mechanism( Tripsheet Push Job) eg to change App status from Airplane mode to active mode,,,,,,,,,,,,,,,,,,,,
+VENDORMANAGER_CAB_ASSIGNMENT_ENABLED,Feature enable vendor cab assignment option,,Provide access to vendor manager to assign cabs,,Provide access to vendor manager to assign cabs,,,,,,,,,,,,,,,,,,,,
+FEATURE_CAB_DEPLOYMENT_ENABLED,Feature enable cab deployement option,,Provide access to admin/vendor to deploy cabs manually,,Provide access to admin/vendor to deploy cabs manually,,,,,,,,,,,,,,,,,,,,
+FEATURE_TRIPSHEET_PHYSICAL_ID_ENABLED,Feature enable PHY ID option,,Enable physical ID in tripsheets,,Enable physical ID in Manage tripsheet,,,,,,,,,,,,,,,,,,,,
+FEATURE_REMOVE_BULK_UPLOADED_FILES,,,,,Remove the Feature to Bulk upload the routing file from Manage Route section,,,,,,,,,,,,,,,,,,,,
+HIDE_EMP_ADDRESS_FROM_VENDORS,Hide the empl address details in the vendor manager role,,Hide the empl address details in the vendor manager role,,Hide the empl address details in the vendor manager role,,,,,,,,,,,,,,,,,,,,
+PHONE_NUMBER_PRINTED_IN_PICKUP_SMS,Add the THD no will showing the SMS massage,,THD number to be mentioned in the pickup SMS,,THD number to be mentioned in the pickup SMS,,,,,,,,,,,,,,,,,,,,
+FEATURE_FACILITY,If set to true prepends facility to the employee name which would reflect on the device,,If set to true prepends facility to the employee name which would reflect on the device,,Engineering,,,,,,,,,,,,,,,,,,,,
+MARSHALL_MESSAGE,Meature enable option ag marshall message,,"This is the message shown against a marshall required trip in the tripsheet pdf version
+",,"This is the message shown against a marshall required trip in the tripsheet pdf version
+",,,,,,,,,,,,,,,,,,,,
+FEATURE_MARSHAL_REQUIRED_FOR_ANY_FEMALE,Feature enable feature marshal option fe any female,,"If enabled, any female trip irrespective of first pickup/last drop will receive a marshall required alert",,"If enabled, any female trip irrespective of first pickup/last drop will receive a marshall required alert",,,,,,,,,,,,,,,,,,,,
+FEATURE_TRIPSHEET_MANAGEMENT,Feature enable option en tripsheet management,,"Enable the tripsheet push mechanism (via network reset) if not pushed onto device
+",,"Enable the tripsheet push mechanism (via network reset) if not pushed onto device
+",,,,,,,,,,,,,,,,,,,,
+HIDE_EMP_PHONE_NO_FROM_VENDORS,Featue enable Hide employe contact # in the vendor manger role,,Hides employee phone number from vendor and displays hidden text(XXXXX),,Hides employee phone number from vendor and displays hidden text(XXXXX),,,,,,,,,,,,,,,,,,,,
+FEATURE_CUSTOM_TRIPSHEET_CANCEL_CODE,Feature enable custom trip sheet cancel code,,"""False: Tripsheet cancel code is same as driver code
+True: Every tripsheet will get own 4 digit random cancel code.""
+","This property is linked to device side property called  ""End Trip"". If this ETS side property is enabled then driver would require the cancel code to end the trip, else they would not be able to end the trip.","This property is linked to device side property called  ""End Trip"". If this ETS side property is enabled then driver would require the cancel code to end the trip, else they would not be able to end the trip.",,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_NW_RESET_AFTER_MIN,,,"Server sends wake up call to device in case tripsheet is not downloaded. In case the tripsheet is not downloaded even after a buffer time a network reset is sent to device to fix the GPRS issue.
+",This is controlled by Hardware team,"Server sends wake up call to device in case tripsheet is not downloaded. In case the tripsheet is not downloaded even after a buffer time a network reset is sent to device to fix the GPRS issue.
+",,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+others,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_TRIPSHEET_UNASSIGNED_VENDOR,Feature enable option unassigned vendor trip sheet details,,Trip sheets without any vendor assigned will be visbile to all vendors,,Give Access to the Vendor to deny a Tripsheet,,,,,,,,,,,,,,,,,,,,
+FEATURE_DEFAULT_LOGIN_LOGOUT_SHUTTLE_ENABLED,Which one is select in login shuttle point by default system will be consider same shuttle point,,The shuttle point chosen by employee during login will be chosen automatically for logout,,The shuttle point chosen by employee during login will be chosen automatically for logout,,,,,,,,,,,,,,,,,,,,
+BACK_TO_BACK_MAXIMUM_DIFFERENCE_IN_LOGOUT_CAB_MAX_CAPACITY_AND_EMPLOYEES_IN_LOGIN_TRIP,Ieature enable back to back maximum difference in logout cab max capacity and option n_ login trip,,Maximum capacity of a vehicle allowed for back to back trips,,Min Capacity of the cab to qualify for B2B trip,,,,,,,,,,,,,,,,,,,,
+VENDOR_CAB_ALLOCATION_CUTOFF_FOR_LOGOUT_MINUTES,Vendor cab allocation cut off for logut shift,,Logout cutoff configuration in minutes for a vendor to allocate vehicles from vendor login,Allowance of Vehicle assignment for Vendors through their login for Logout shifts (for 730 shift - 15 would till 715 and (+15) would be till 745,Allowance of Vehicle assignment for Vendors through their login for Logout shifts (for 730 shift - 15 would till 715 and (+15) would be till 745,,,,,,,,,,,,,,,,,,,,
+CONTRACT_EMPLOYEE_JOB_TITLE_PREFIX,Jeature enable option title prefix,,Distinguish between contract employee and full time employee,,Distinguish between contract employee and full time employee,,,,,,,,,,,,,,,,,,,,
+ENABLE_CAB_ARRIVED,Feature enable cab arrived notification to the employee,,Enable cab arrived app notification to employees once the driver clicks on the button available on the Driver App.,,Enable cab arrived app notification to employees once the driver clicks on the button available on the Driver App.,,,,,,,,,,,,,,,,,,,,
+PRESET_DEFAULT_PASSWORD,For employee ETS login have set-up the default password,,Default passowrd for new employees to login,,Default passowrd for new employees to login(Add password before uploading the data),,,,,,,,,,,,,,,,,,,,
+TRANSPORT_HELPDESK_NUMBER,Update the THD No.,,THD number to be updated,"This property controls the THD number updation which is used for IVR 2nd option ""Contact THD""","This property controls the THD number updation which is used for IVR 2nd option ""Contact THD""",,,,,,,,,,,,,,,,,,,,
+BUS_TRACKER_WINDOW_RANGE_IN_MINS,Update the valute of Bus tracker window range,,Start timings to track an allotted bus before eployee pickup time,,Start timings to track an allotted bus before employee pickup time,,,,,,,,,,,,,,,,,,,,
+STORE_PLANNED_VENDOR_CABS_USING_FLAVOUR,,,,"Planned vendor can be decided on following configurable values : Disabled, First Vendor first cab, Previous vendor previous cab, Manual freeze, first cab.If the cut off is passed, then the planned vendor cannot be frozen for the selected shift for Manual freeze.","Planned vendor can be decided on following configurable values : Disabled, First Vendor first cab, Previous vendor previous cab, Manual freeze, first cab.If the cut off is passed, then the planned vendor cannot be frozen for the selected shift for Manual freeze.(Actual Vs Planned Report)",,,,,,,,,,,,,,,,,,,,
+NUM_ADDRESS_CHANGE_REQUESTS_ALLOWED_PER_MONTH,For employee no. of times address chage request in a month update the value,,Number of times an employee is allowed to change the address on the mobile app or ETS in month,,Number of times an employee is allowed to change the address on the mobile app or ETS in month,,,,,,,,,,,,,,,,,,,,
+NUM_TRIPS_RESTRICT_CAB_PER_DAY_START_HOUR,Restrict the no of trips cab for in a day,,,"Number (between 0 to 23). If blank, default to 0.","Number (between 0 to 23). If blank, default to 0.",,,,,,,,,,,,,,,,,,,,
+EMPLOYEE_TNC_ACCEPTANCE_ON_FIRST_LOGIN,,,popup to accept terms and conditions on the first login for employee,,popup to accept terms and conditions on the first login for employee,,,,,,,,,,,,,,,,,,,,
+GENERATE_ROUTES_USING_ROUTER_ROUTES,Ueature enable option es router routes,,Generates routes using prediction from past changes made to routes manually. Will work only if shuttle routing is disabled(Contact routing team before enabling),,Generates routes using prediction from past changes made to routes manually. Will work only if shuttle routing is disabled(Contact routing team before enabling),,,,,,,,,,,,,,,,,,,,
+IVR_DROP_VERIFICATION_RETRY_TIMER_MINUTES,Update the value of Retry drop verification call,,Interval to retry IVR call for safe home reach confirmation,,Diifference in Minutes to Trigger a IVR Call,,,,,,,,,,,,,,,,,,,,
+FEATURE_JOB_TITLE_ENABLED,Jeature enable option le title enabled,,Enable jobe title drop down in employee profile page(Custom titles can be chosen by raising a SE ticket),,Enable job title drop down in employee profile page(Custom titles can be chosen by raising a SE ticket),,,,,,,,,,,,,,,,,,,,
+FEATURE_HIDE_OLD_BILLING_REPORTS,Disable the,,Hide old billing report modules,,Hide old billing report modules,,,,,,,,,,,,,,,,,,,,
+DEVICE_TRIP_DISPLAY_TIME_LOGOUT_MINUTES,Update the mintes for logout trip display time,,Interval for displaying the trip sheet on driver's device beforen respective logout trip,,Interval for displaying the trip sheet on driver's device beforen respective logout trip,,,,,,,,,,,,,,,,,,,,
+ROUTE_CAB_EMPLOYEES_AS_CUSTOM,Eeature enable option to as custom,,Routing property not to be changed without contacting routing team,,Routing property not to be changed without contacting routing team,,,,,,,,,,,,,,,,,,,,
+PROXIMITY_SMS_WITH_DISTANCE_TEMPLATE,Weature enable option at distance template,,Displays distance of the cab to the pickup point in the prximity SMS,,Display distance of the cab to the pickup point in the proximity SMS,,,,,,,,,,,,,,,,,,,,
+VENDOR_ALLOWED_TO_UNALLOCATE_TRIP,Vendor can see unallocate trip,,Permit the vendor to reject a trip alotted to him,"If True, vendor can unallocate the trip from Vendor Supervisor screen. It will be mandatory to enter the comments when unallocating the trip.
+The comments should reflect in the audit history of the trip - 
+Vendor <Vendor Name>, <Vendor User Name>, unassigned the trip at time <Date Time> for the reason ""<Vendor Comment>""
+Vendor can unassign the trip only till a cut-off defined in MIS Admin → Operations","If True, vendor can unallocate the trip from Vendor Supervisor screen. It will be mandatory to enter the comments when unallocating the trip.
+The comments should reflect in the audit history of the trip - 
+Vendor <Vendor Name>, <Vendor User Name>, unassigned the trip at time <Date Time> for the reason ""<Vendor Comment>""
+Vendor can unassign the trip only till a cut-off defined in MIS Admin → Operations",,,,,,,,,,,,,,,,,,,,
+ENABLE_ESCORT_RULES_ON_DEVICE,Reature enable option ic on device,,Mandatory First sign in to be Escort Sign in,,Mandatory first Escort Sign in on  Driver Device,,,,,,,,,,,,,,,,,,,,
+SCHEDULE_CHANGE_NOTIFICATION_TEMPLATE,Ceature enable option la notification template,,Notification message template for employee schedule changes,,Notification message template for employee schedule changes,,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_DRIVER_SMS_LOGOUT_CREATION_MINS,Logout trip details send to the driver before the min,,Driver SMS interval time for logout trips,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_CAB_ARRIVED_EMAIL_NOTIFICATION,Enable cab arrived email notifcation to the employee,,Automatic email notification when cab arrives at employee pickup point,,E-mail notification when cab arrives at employee pickup point,,,,,,,,,,,,,,,,,,,,
+NO_SHOW_BUFFER_FOR_REFERENCE_KM_MINS,Reature enable no show buffer option in km mins,,Billing related property- to be discussed with billing team before making changes,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_DROP_VERIFICATION_EMAIL_ESCALATION,Featue enable Drop verification email escalation to the THD,,Failed Safe reach confirmation escalation email ID,,Failed Safe reach confirmation escalation email ID,,,,,,,,,,,,,,,,,,,,
+IVR_DROP_VERIFICATION_INVALID_PHONE_NUMBERS,Feature configure IVR drop verfication inavlid phone no.,,invalid phone numbers to be considered for IVR DROP VERIFICATION,,Invalid phone numbers to be considered for IVR DROP VERIFICATION,,,,,,,,,,,,,,,,,,,,
+IVR_DROP_VERIFICATION_CALLS_TOTAL_ATTEMPTS,,,Total number of attempts to employee by IVR for Safe reach confirmation,,Total number of attempts to employee by IVR for Safe reach confirmation,,,,,,,,,,,,,,,,,,,,
+WEEKDAY_WEEKEND_VENDOR_ALLOCATION_ENABLED,Feature enable weekday & weekend vendor allocation option,,Configuration for Automatic vendor allocation on weekdays and weekends,,,,,,,,,,,,,,,,,,,,,,
+CONTACTLESS_SIGN_IN_ENABLED,,,Sign in from employee device instead of driver device,,Sign in from employee device instead of driver device,,,,,,,,,,,,,,,,,,,,
+FEATURE_REFERENCE_KMS_FASTEST_ROUTE_FOR_EMPTY_LEG,Feature enable referance km fastest route for empty leg,,System considers fastest route km reference during the empty leg(Whether short or long),,,,,,,,,,,,,,,,,,,,,,
+FEATURE_COST_CENTER_ALLOW_GENERATE_REPORTS,Feature enable Generate cost center wise report,,Enable download of cost center reports in BA,,,,,,,,,,,,,,,,,,,,,,
+TRANSPORT_HELPDESK_EMAIL,Configure the help desk E-Mail,,THD email ID configuration,,THD email ID configuration,,,,,,,,,,,,,,,,,,,,
+ENABLE_BULK_UPLOAD_CABS_ON_ROUTES,Feature enable cab deployement file in route page also,,Enable cab bulk upload on Routes(not tripsheets),,Enable cab bulk upload on Manage Routes(Not in Manage Triphsheet),,,,,,,,,,,,,,,,,,,,
+BILLING_AUTO_MERGE_DELETE_EMPTY_DUTY_KM,In the billing auto deleted empty duty KM,,Billing related property- to be discussed with billing team before making changes,,,,,,,,,,,,,,,,,,,,,,
+OTP_MARSHALL_START_TIME,The marshal will start the time of OTP trough sign in,,,,,,,,,,,,,,,,,,,,,,,,
+DISABLE_SPECIAL_NEED_MALE_EMPLOYEE_AS_MALE_BUDDY,Diable SPLN option for Male emaployees,,System will not consider special need employee as male buddy for marshal routing,,System will not consider special need employee as male buddy for marshal routing,,,,,,,,,,,,,,,,,,,,
+VENDOR_CAB_ALLOCATION_CUTOFF_FOR_LOGIN_MINUTES,Vendor cab deployement login cut off,,Login cutoff time for vendor to allocate cab in vendor login,,Login cutoff time for vendor to allocate cab in vendor login,,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_EXPIRY_IN_MINUTES,Trip expiry minutes,,Time interval for trip sheet to expire if driver does not start duty,Time interval of Tripsheet to be expired from the Trip End Time.,Time interval of Tripsheet to be expired from the Trip End Time.,,,,,,,,,,,,,,,,,,,,
+SHOW_KMS_ON_DRIVER_DEVICE,Show the KM on driver divice Acatul/Refrance KM,,Display actual trip km or reference trip kkm on driver device,,Display actual trip km or reference trip km on driver device,,,,,,,,,,,,,,,,,,,,
+LOGIN_CUTOFF_MANUAL_TRIPSHEET_PUSH_TO_VENDORS,,,"Login cutoff time for transport team to push tripsheet to vendors, if not pushed then it would reflect automatically.",,,,,,,,,,,,,,,,,,,,,,
+DISPLAY_EMPLOYEE_NAME_IN_NOTIFICATION,Feature enable display emp name notification,,Employee name will be displayed in all notifications received by the employee,,Employee name will be displayed in all notifications received by the employee,,,,,,,,,,,,,,,,,,,,
+LOGIN_POPUP_TEXT,,,Engineering property,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_PROPRIETARY_TEXT_IN_REPORTS,,,Engineering property,"If any report requires any text prefixed to the Report Name, that text can be mentioned in this property",,,,,,,,,,,,,,,,,,,,,
+DROP_VERIFICATION_EMAIL_ESCALATION_TRIGGER_TIME_IN_HOURS,Trigger the drop verification escalation on each time,,Failed drop verification emails trigger time(in hours),,Failed drop verification emails trigger time(in hours),,,,,,,,,,,,,,,,,,,,
+PICKUPEMAIL_CAB_CONSTRAINT,Should deployed the cab employee can recived the pikcp detials in E-Mail,,Email notification about trip details is sent to employee only if a cab has been deployed,,Email notification about trip details is sent to employee only if a cab has been deployed,,,,,,,,,,,,,,,,,,,,
+FIXED_DEVICE_NOT_CONTACTING_SUSPICIOUS_AFTER_MINS,,,,"If Fixed Device/GPS is integrated and the client wants to monitor the connectivity of the devices, then the minutes can be configured here.","If Fixed Device/GPS is integrated and the client wants to monitor the connectivity of the devices, then the minutes can be configured here.",,,,,,,,,,,,,,,,,,,,
+MINIMUM_LOGOUT_LEG_DISTANCE_REQUIRED_FOR_BACK_TO_BACK,For b2b trip will generate based on logout leg distance,,"Minimum leg distance required for allocating a back to back logout trip, by the system automatically",,"Minimum leg distance required for allocating a back to back logout trip, by the system automatically",,,,,,,,,,,,,,,,,,,,
+SEND_LOGS_MAIL,,,Engineering,,,,,,,,,,,,,,,,,,,,,,
+TRIP_FEEDBACK_EMAIL_RECIPIENTS,Update the trip feedback email ID,,Employee trip feedback email recipients,,Email recipients of employee Trip feedback,,,,,,,,,,,,,,,,,,,,
+FEATURE_AUTO_MERGE_DUTIES,Auto merge the duties in billing,,Merges multiple duties into one- Billing property do not change without consulting  billing team,,Merges multiple duties into one- Billing property do not change without consulting  billing team,,,,,,,,,,,,,,,,,,,,
+ENABLE_MANAGE_BUS_BOOKINGS,Feature enable bus booking option,,Displays bus booking on dashboard,,"Display ""Manage Bus Booking"" Option under Routing Dashboard",,,,,,,,,,,,,,,,,,,,
+REMOVE_EMPLOYEE_FROM_ROUTE_IN_ADHOC_LOGOUT,Feature enable remove employee from route in adhoc logout,,,,,,,,,,,,,,,,,,,,,,,,
+EHS_ENABLED,Feature enable EHS option,,"Enable EHS in compliance, TS to be raised and mentioned that only EHS to be enabled rest all links to be disabled.",,,,,,,,,,,,,,,,,,,,,,
+DISABLE_IRREGULAR_TRIPS_CREATION,Feature enable irregular trip creation option,,Enable or disable non shift trips,,Non-Shift Trips will not appear on Tracking Dashboard if Disabled,,,,,,,,,,,,,,,,,,,,
+PREVIOUS_EMPLOYEE_BOARDED_APP_NOTIFICATION,The employee will get notification or previous employee boraded or not,,Displays previous employee boarded/not boarded on employee app during tracking,,Previous Employee Boarding notification will be Triggered on Employee App,,,,,,,,,,,,,,,,,,,,
+REAL_TIME_ANALYTICS_ENABLED,,,"Enable real time analytics dashboard, Only for Total team do not enable it for clients, this is a chargeable feature.",,"Enable real time analytics dashboard, Only for Total team do not enable it for clients, this is a chargeable feature.",,,,,,,,,,,,,,,,,,,,
+TRANSPORT_USAGE_REPORT_ENABLED,Feature enable transport usage report option,,Transport usage report availibility in BA,,Transport usage report availibility in BA,,,,,,,,,,,,,,,,,,,,
+BACK_TO_BACK_VERSION,,,"Engineerin, VO team decides on the version, create an SE as per the requirement.",,,,,,,,,,,,,,,,,,,,,,
+ENABLE_SEND_DRIVER_TRIPSHEET,The driver will get trip sheet details in SMS trough,,SMS tripsheet to driver,,,,,,,,,,,,,,,,,,,,,,
+AUTO_CAB_ALLOCATION_TO_SHUTTLE_ROUTES,Featrue enable auto cab allocation to shuttle route,,Automatic allocation of vehicles to shuttle routes,,Automatic allocation of vehicles to shuttle routes,,,,,,,,,,,,,,,,,,,,
+REJECT_SHIFT_REQUEST_ROUTE_MANAGEMENT,Feature enable shift reject request option in route management,,Routing property,"This feature can be used by those who are looking for accept/reject flow in schedule request. This can
+also be used in place of adhoc request accept/reject flow.Enable this property to enable the feature.
+1. Feature allows to cancel a schedule request.
+2. In the routed and custom section on route manage page, an icon dustbin shape is provided to
+reject that schedule request.
+3. Two additional columns are created Last updated time and Action. In the last updated time columns the time when the schedule request was raised is shown. In the action column a dustbin shape icon is provided to reject the schedule request.
+4. The last updated time helps the approver that what time the schedule request was raised and accordingly the approver can take action.
+5. When approver rejects the schedule, the schedule get ‘Cancelled’.
+6. An email is sent the employee informing that the schedule is cancelled.",,,,,,,,,,,,,,,,,,,,,
+ENABLE_TRIP_FEEDBACK_EMPLOYEE_APP_NOTIFICATION,Feature enable trip feedback In employee App location,,Display popup for employee for trip feedback,,Display popup for employee for trip feedback,,,,,,,,,,,,,,,,,,,,
+SHOW_ADDITIONAL_TRIP_DETAILS_VENDOR_SCREEN,Feature enable additnoal trip details in vendor screen,,,"Special need, B2B and Escort icons shown with the trip list","Special need, B2B and Escort icons shown with the trip list",,,,,,,,,,,,,,,,,,,,
+ENABLE_NO_SHOW_EMPLOYEE_APP_NOTIFICATION,The employee will get No-show notification in Mobile App,,Display a popup notification on employee app when marked as a no show,,Display a popup notification on employee app when marked as a no show,,,,,,,,,,,,,,,,,,,,
+VENDOR_ALLOCATION_VERSION,,,Engineering,VO team would decide on the version,VO team would decide on the version,,,,,,,,,,,,,,,,,,,,
+ENABLE_AUTO_EMPLOYEE_DELETION_ON_DUPLICATE_SIGN_IN,Auto deleted the employee will duplicate sign in,,Will delete any duplicate sign in of employees(Route which is not signed off by employee),"At the end of each trip the system will identify all employees in the trip who-
+1. Did not board the cab.
+2. Travel time and distance of the trip is less than a configured value.
+
+All these cases will be revisited after 6 hours (enough time for all the other trips in which the employee might have
+travelled). Till that time all the employees would be in Decision Pending status.
+
+Case 1: No matching trip found
+
+If the employee had not boarded the trip, it will be marked as no show and all no show related communications will
+be triggered.
+
+If the employee has signed in and signed out of the trip, it will be marked as Travelled in the trip.
+
+Case 2: Only 1 matching valid trip found
+
+Employee will be marked as travelled in another trip and ETS will store the trip id of such a trip.
+
+Case 3: More than 1 matching valid trips found
+
+Although most of the cases will be resolved in Case 1 and Case 2.
+
+If there are more than 1 matching trips found, all these trips will be flagged in a new billing issue bucket – “Trips
+with duplicate employee sign in”",,,,,,,,,,,,,,,,,,,,,
+FEATURE_TRIPSHEET_ACCEPT_REJECT_ENABLED,The vendor can able to rejection of the trip sheet,,Vendor will be allowed to accept or reject a trip sheet,,Vendor will be allowed to accept or reject a trip sheet,,,,,,,,,,,,,,,,,,,,
+NOTIFY_VENDOR_REJECTION_TO_TRANSPORT_MANAGER,The transport manage can get the vendor rejaetion trip detials,,Any rejection from vendors will be sent an email notification to transport manager,,Any rejection from vendors will be sent an email notification to transport manager,,,,,,,,,,,,,,,,,,,,
+FEATURE_HIDE_TEAM_SELECTION_FROM_EMPLOYEE_PROFILE_PAGE,Hide the team selection option in the employee profel page,,Hide team display on employee profile page,,Hide team display on employee profile page,,,,,,,,,,,,,,,,,,,,
+SHOW_NON_SHIFT_TRIPS_TO_VENDOR_MANAGER,Feature show the non shift trips to the vendor,,Display non shift trips to vendor manager role access,,Display non shift trips to vendor manager role access,,,,,,,,,,,,,,,,,,,,
+ENABLE_NO_SHOW_NOTIFICATION_TO_SPOC,feature enable no-show notification to the spoc,,no show notification is sent to SPOC,,no show notification is sent to SPOC,,,,,,,,,,,,,,,,,,,,
+NEW_BILLING_RESOLUTION_UI_ENABLED,Feature configure new billing resolution UI option,,Billing property,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_INDEMNIFICATION_AGREEMENT_ENABLE,Feature enable Indemnification agrement option,,Enable indemnification agreement for employees during app login,,Enable indemnification agreement for employees during app login,,,,,,,,,,,,,,,,,,,,
+ENABLE_OTP_BASED_SIGN_IN,Enable feature OTP based sign in option,,Enable OTP sign at site level- Deployment sheet to be filled to push property from backend,,Enable OTP sign at site level- Deployment sheet to be filled to push property from backend,,,,,,,,,,,,,,,,,,,,
+FEMALE_SCHEDULE_CANCELLATION_EMAIL_TIME_WINDOW,The feamle employee schedule cancellation email time window,,Cancellation time cutoff window for female employees,,,,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_DRIVER_SMS_LOGOUT_MINS,Logout trip sheet display time in the driver device,,Trip sheet sms interval duration for driver during logout,,,,,,,,,,,,,,,,,,,,,,
+TRIP_FEEDBACK_EMAIL_RATING_THRESHOLD,Feature enable trip feedback E-Mail option,,Number of feedbacks per employee threshold,,,,,,,,,,,,,,,,,,,,,,
+SHOW_CONTACT_SUPPORT,Feature enable show contact support option,,Engineering,,Shows Contact Support Window on MIS Page,,,,,,,,,,,,,,,,,,,,
+FIXED_DEVICE_NOT_CONTACTING_EMAIL_RECIPIENTS,which ever fixed device is not conating will send the email update the email ID,,,,If GPS Devices is not connected to the server then E-mail will be Triggered to configured E-mail ID's,,,,,,,,,,,,,,,,,,,,
+DEVICE_TRIP_DISPLAY_TIME_LOGIN_MINUTES,In the driver device login trip sheet display time,,Trip sheet display interval on driver device for login trips,,Trip Display time in minutes before pick up time of the first employee,,,,,,,,,,,,,,,,,,,,
+SCHEDULE_WEEK_START_FROM_MONDAY,Feature configure schedule week start day,,Week start day for scheduling,,"If value is Set to ""0"" then week will start from Monday",,,,,,,,,,,,,,,,,,,,
+FEATURE_HIDE_ADDRESS_LANDMARK_FOR_EMPLOYEE_LOGIN,Featue enable hide address and landmark option in employee login,,Hide address and landmark for employee in the employee login,,Hide address and landmark for employee in the Employee Login Page,,,,,,,,,,,,,,,,,,,,
+OTP_BASED_CAB_SIGNIN_TEMPLATE_HEADER,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+NEW_SPOT_BOOKING_ENABLED,Feature enable spot booking option,,Enable RENTLZ SPOT booking feature,,"Enable to access ""RENTLZ SPOT booking"" ",,,,,,,,,,,,,,,,,,,,
+ENABLE_CAB_ARRIVED_IVR_NOTIFICATION,Feature enable cab Arrived IVR notification,,Automatic IVR call when cab arrives at employee pickup location,,"It will enable ""IVR Call Notification over the employee App""",,,,,,,,,,,,,,,,,,,,
+SHOW_TRIP_HISTORY_TO_EMPLOYEES,Employee can able to see the trip history,,Trip history availability to employee on app,,Allow Employee to View Trip History On ETS,,,,,,,,,,,,,,,,,,,,
+FEATURE_CLICK2CALL_ENABLED,Feature enable click to call option (The driver will call to employee from the BYOD App or In cab device),,Click to call option(Number masking) ,,To Enable C2C Feature,,,,,,,,,,,,,,,,,,,,
+SECURITY_HELPDESK_NUMBER,Configure the security Helpdesk no,,Security helpdesk number configuration,"If called the IVR Number we can give the option 1,2,3 ,now you can put 4 and configure the calls to be landed to security Helpdesk","If called the IVR Number we can give the option 1,2,3 ,now you can put 4 and configure the calls to be landed to security Helpdesk",,,,,,,,,,,,,,,,,,,,
+SHUTTLE_PICKUP_SMS_SECONDCUTOFF,Configure the shuttle pickup SMS of second cout off,,Second cutoff duration for shuttle pickup SMS,,"The Cut-off time by which SMS would be sent only to the employees for whom the Shuttle  details, time has changed.",,,,,,,,,,,,,,,,,,,,
+SPOT_VENDOR_DATA_DOWNLOAD_ENABLED,Feature enable vendor data download option,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+FEATURE_DISPLAY_FEMALE_EMP_PHONE_NO,Feature enable click to call option for Feamle employee,,Display/Hide female employee phone number or chose number masking(click to call),,1) C2C will use no. masking while calling from the app.                                                                          2) Disable - to mask the female  employee phone no.                                                                                                                         3) DisplayNo. -  Will allow to view the no. on the Driver Device ,,,,,,,,,,,,,,,,,,,,
+GENERATE_CAB_ROUTES_USING_SHUTTLE_POINTS_WHEN_GENERATE_SHUTTLE_ROUTES_UNCHECKED,Generate cab routes using shuttle points when generate shuttle routes unchecked,,Generate cab routes using shuttle points when generate shuttle routes unchecked,Mandatory inputs of comments during editing tripsheets,"If this is checked cab routes will be generated but it will be using shuttle points in those routes, this was required because AVA was not available for shuttle routes. Secondly, for many org. shuttle routes are used monday to friday but same routes are used on weekends for home pick/drops ",,,,,,,,,,,,,,,,,,,,
+ENABLE_BUS_PASS_IDENTIFIER,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+IVR_CONTACT_SECURITY_ENABLED,Feature enable IVR contact secrity,,Safe reach confirmation failed IVR alerts will reach this security team number,,If Enabled then IVR Failed Verification will get Triggered to the Security Team,,,,,,,,,,,,,,,,,,,,
+ENABLE_CANCEL_TRIP_TO_BILLING_BUCKET,Feature enable delete trip readd option,,Will allow a deleted trip to be added to billing bucket,,If Enabled it will allow us to Restore the Cancelled Trip in Billing,,,,,,,,,,,,,,,,,,,,
+ENABLE_NO_SHOW_EMAIL_NOTIFICATION_TO_REPORTING_MANAGER,No-show email notification sed to the reporting manager,,No show email sent to respective reporting manager,,No show email sent to respective reporting manager mentioned in employee profile,,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_ACCEPT_REJECT_LOGOUT_CUTOFF_MINS,Configure the cut off time for the vendor accet or reject the trip sheet,,Cutoff time for driver to accept or reject trip sheet,,Cutoff time for Driver to Accept or Reject tripsheet,,,,,,,,,,,,,,,,,,,,
+COMMENTS_MANDATORY_ON_TRIPSHEET_EDIT,Feature enable if edit the trip sheet should be put some comments,,Mandatory inputs of comments during editing tripsheets,,Mandatory inputs of comments during editing tripsheets,,,,,,,,,,,,,,,,,,,,
+AUTO_EMPLOYEE_DELETION_ON_DUPLICATE_SIGN_IN_TiME_SECS,configur the same time auto employee deletin on duplicate sign in,,Time interval(in seconds) for deleting duplicate employee sign in,,Time interval(in seconds) for deleting duplicate employee sign in,,,,,,,,,,,,,,,,,,,,
+SHUTTLE_VENDOR_ALLOCATION_VERSION,,,Engineering,VO team to decide the version,VO team to decide the version,,,,,,,,,,,,,,,,,,,,
+NO_SHOW_EMPLOYEE_EMAIL_NOTIFIATION_TO_TM_RECIPIENTS,configure the CC email ID for No-show email notification,,Trasnport team email iD for no show notification,,Trasnport team email iD for no show notification,,,,,,,,,,,,,,,,,,,,
+VENDOR_UNASSIGN_CAB_ALLOWED,Feature enable nassign cab allowed option,,Allow vendor to unnasign a cab from vendor login,,Allow vendor to unnasign a cab from vendor login,,,,,,,,,,,,,,,,,,,,
+INDEMNIFICATION_EMAIL_ENABLED,Feature enable Indemnification email option,,Indemnification email sent to employees during profile creation,,Indemnification email sent to employees during profile creation,,,,,,,,,,,,,,,,,,,,
+FEATURE_SHOW_LAST_LOGIN_TIME,Feature enable ETS login last time details,,Last known time of employee logging into ETS,,Last known time of employee log-in into ETS,,,,,,,,,,,,,,,,,,,,
+INDEMNITEE_COMPANY,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+NO_SHOW_EMAIL_TEMPLATE_NAME,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+NEW_SPOT_BOOKING_LINK,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+FEATURE_MARSHAL_REQUIRED_FOR_SECOND_FEMALE,Feture enable 2nd feamele want to marshal requred in a trip,,Disable marshal required for 2nd female pickup,Enable Marshall required tag for 2nd employee for Login/Logout trips,Enable - Marshall is required for 2nd employee for Login/Logout trips,,,,,,,,,,,,,,,,,,,,
+FEATURE_REQUEST_ADDRESS_CHANGE_APPROVAL_ENABLED,feature enable address change approvel option,,Address change approval LINK in dashboard,,Address Change Approval Link on Tracking Dashboard,,,,,,,,,,,,,,,,,,,,
+BUSINESS_ANALYTICS_REPORT_DAYS,feature configure reports month,,Engineering,,Engineering - 30 days by default,,,,,,,,,,,,,,,,,,,,
+LOGOUT_CUTOFF_MANUAL_TRIPSHEET_PUSH_TO_VENDORS,,,Cutoff timings for transport team to push logout tripsheet to vendors,,This is bridge between creation of Tripsheet and pushing of Tripsheet to the Vendor while using AVA,,,,,,,,,,,,,,,,,,,,
+DOWNLOAD_AVA_LOGS_BY_SHIFT_DATE,,,Automatic vendor allocation logs download enabled,,Automatic vendor allocation logs download enabled,,,,,,,,,,,,,,,,,,,,
+FEATURE_COST_CENTER_BILLBACK_TRIP,Feature enable cost center bill back tirp,,Billing,,If Enabled it will Breakup the Billing Report Cost Center wise ,,,,,,,,,,,,,,,,,,,,
+BACK_TO_BACK_DEBUG_INFO_API_AUTH_TOKEN,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+ENABLE_NEW_ROUTE_EDITOR,Feature enable new route editor option,,Enable new route editor toggle on routing page,,Enable new route editor toggle on routing page,,,,,,,,,,,,,,,,,,,,
+ALLOWED_DISTANCE_FOR_SHUTTLE_POINT_LISTING,,,Displays the Number of shuttle points within the described radius(KM),If this is NULL then the Shuttle Routing Page would not load.,"Displays the Number of shuttle points within the described radius (eg:5 KM), If this is NULL then the Shuttle Routing Page would not load.",,,,,,,,,,,,,,,,,,,,
+AUTO_EMPLOYEE_DELETION_ON_DUPLICATE_SIGN_IN_DIST_MTS,Configure the some meters to auto deletion duplicate sign in,,distance in meters to trigger deletion of duplicate sign in,,distance in meters to trigger deletion of duplicate sign in,,,,,,,,,,,,,,,,,,,,
+FEATURE_SCHEDULING_WITH_SHIFT_PAIR_ENABLED,Feature enable shit pair option,,Enable shift pairing option for scheduling(Only corresponding login/logout shifts will be visible to employee),,Enable shift pairing option for scheduling(Only corresponding login/logout shifts will be visible to employee),,,,,,,,,,,,,,,,,,,,
+AUTO_PICKUP_DROP_EMAIL_SUBJECT,Feature enable shift pair option,,Email subject line for auto pickup/drop email,,Email subject line for auto pickup/drop email,,,,,,,,,,,,,,,,,,,,
+ENABLE_MALE_BUDDY,,,Routing property to first male employee pickup and last male employee drop,,Routing property to first male employee pickup and last male employee drop,,,,,,,,,,,,,,,,,,,,
+FEATURE_ADHOC_REQUEST_NOTIFICATION_EMAIL_ENABLED,Employee raise the adhoc request can configure the THD email ID,,Adhoc request by employee will trigger an email to the trasnport team,,Adhoc request by employee will trigger an email to the trasnport team,,,,,,,,,,,,,,,,,,,,
+PROXIMITY_SMS_WITH_TIME_TEMPLATE,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+COPY_ROUTES_ENABLE_BASE_DATE_RECOMMENDATION,Feature configure will do a copy route past days option,,System recommends a base date for copying routes ,,System recommends a base date for copying routes ,,,,,,,,,,,,,,,,,,,,
+DRIVER_TRIP_HISTORY_SHOW_ACTUAL_KM,Feature enable show the actul Km in the driver trip history,,Displays the actual kms travelled by the driver in the trip history,,Displays the actual kms travelled by the driver in the trip history,,,,,,,,,,,,,,,,,,,,
+RENAME_BILLING_DASHBOARD_LINKS,Feature configure the rename billing issues text neame in dashboard,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+COUNTRY_CODE,Feature configure the country code,,Country code for IVR call dialling,,Country code for IVR calling. Eg: +91 for India,,,,,,,,,,,,,,,,,,,,
+THRESHOLD_TRIPSHEET_NOT_DOWNLOADED,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+IVR_DROP_VERIFICATION_FAILED_EMAIL_ENABLED,Feature enalble IVR drop verfication failed email option,,Trigger email for safe reach confirmation failed cases,,It will trigger an email when safe reach confirmation failed.,,,,,,,,,,,,,,,,,,,,
+VENDOR_UNALLOCATE_TRIP_CUTOFF_LOGOUT_MINS,configure the Logout cut off time for vendor cab deployement,,Cutoff timings for vendor to unallacote a cab for logout,,Cutoff timing for vendor to unallocate a cab for logout.,,,,,,,,,,,,,,,,,,,,
+EMPLOYEE_REPORT_ENCRYPTION_TYPE,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+ENABLE_TRIPSHEET_NOT_DOWNLOADED_ALERT,Feature enable trip sheet not download alert option,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+AUTO_PICKUP_DROP_EMAIL_SUBJECT_SECONDCUTOFF,Feature enable auto pickup & drop email subject for secon cut off,,Second cutoff email subject line,,Email subject line for second Cutoff Pickup/Drop Email.,,,,,,,,,,,,,,,,,,,,
+ENABLE_CAB_ARRIVED_APP_NOTIFICATION,The employee will get App notification of Cab arrived,,In app notification on employee app when cab arrives at pickup point,,Enable notification on Employee App when cab arrives at pickup point.,,,,,,,,,,,,,,,,,,,,
+FEMALE_SCHEDULE_CANCELLATION_EMAIL,Feature enable female employee schedule cnacelatin mail notificaton to the THD team,,Email triggered when any female employee cancels her trip,,Triggers an Email to the Transport Team when any female employee cancel's her trip.,,,,,,,,,,,,,,,,,,,,
+PLANNED_EMPLOYEE_BOARDED_NOTIFICATION,Feature enable planned empployee boarded notification option,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+BILLING_AUTO_MERGE_DUTY_HOURS,Feature configure value of billing auto merge duty hours,,Engineering default,,Engineering default,,,,,,,,,,,,,,,,,,,,
+ENABLE_TRIP_REFERENCE_KMS,Feature enable trip refrance KM,,Engineering default,,It will show reference KM in billing. Done by VO Team. ,,,,,,,,,,,,,,,,,,,,
+FEATURE_SHUTTLE_ROUTE_COPY,Feature enable copy to the shuttle route,,Enable shuttle routes to be copied from a partcular shift,,Enable shuttle routes to be copied from a partcular shift.,,,,,,,,,,,,,,,,,,,,
+ENABLE_EMAIL_NOTIFICATION_FIXED_DEVICE_LAST_CONTACT,Feature enable send email notification to transport team for fixed devices last contact,,,,Enable email notification to the transport team about fixed devices last connected. Eg: GPRS device will be fixed in vehicle to track.,,,,,,,,,,,,,,,,,,,,
+BILLING_AUTO_MERGE_MAX_DUTY_HOURS,Feature configure the billing auto merge max duty hours time,,Engineering default,,Engineering default,,,,,,,,,,,,,,,,,,,,
+FEATURE_NO_EDIT_ALLOWED_TRIPSHEET_OFFICE_TIME,Feature enable the no edit the tripsheet office time,,Disables the option to edit trip end time on a trip sheet(Office time),,"If Checked, we are not able to change the office time in the manage tripsheet.",,,,,,,,,,,,,,,,,,,,
+MASK_EMPID_ON_DEVICE,Feature enable mask empID in device,,Engineering default,,"It will hide the Employee Id on the driver device while sign in. Also, changes need to be done on device device script.",,,,,,,,,,,,,,,,,,,,
+FIXED_DEVICE_NOT_CONTACTING_EMAIL_SEND_FREQUENCY_MINS,,,Engineering default,,Time frequency (In Minutes) when Fixed device is not connected to the system.,,,,,,,,,,,,,,,,,,,,
+IVR_DROP_VERIFICATION_SIGNOFF_VALIDITY_MINUTES,Feature configure the IVR drop verfication sign off validity time,,IVR call trigger interval after female employee sign off,,IVR call trigger interval after female employee sign off,,,,,,,,,,,,,,,,,,,,
+VENDOR_ALLOCATION_SEPARATE_SHIFT_TYPES,,,,Login & Logout is defined seperately for AVA,Login & Logout is defined seperately for AVA,,,,,,,,,,,,,,,,,,,,
+OFFICE_WISE_BILLING_SUMMARY_ENABLED,Feature enable office wise billing summary option,,Billing summary split office wise in BA,,Billing summary split office wise in BA,,,,,,,,,,,,,,,,,,,,
+FEATURE_HIDE_HOME_ON_ADDRESS_CHANGE_PAGE,Feature enable Hide address change option in a employee page,,Hide option to chose geolocation on address change page for employee,,Hide option to chose geolocation on address change page for employee,,,,,,,,,,,,,,,,,,,,
+FEATURE_ADDITIONAL_SHIFT_LAG_MINUTES,Configure the time addintional shift lag,,Lag time interval for employee to chose an addition shift,"Time difference between 1st & 2nd request, if it is mentioned as 12 hrs then if if an employee is scheduled at 10 AM then he/she would be able to select an additional shift only on or after 10PM","Time difference between 1st & 2nd request, if it is mentioned as 12 hrs then if if an employee is scheduled at 10 AM then he/she would be able to select an additional shift only on or after 10PM",,,,,,,,,,,,,,,,,,,,
+TRIP_CAB_ALLOCATION_RESTRICTION,,,,"TRIP_CAB_ALLOCATION_RESTRICTION=<cab_type_1>:<min>,<max>;<cab_type_2>:<min>,<max>, this would restrict the vendors to allocate the under capacity vehicles, like they cannot a 4S for a 6 employee route","TRIP_CAB_ALLOCATION_RESTRICTION=<cab_type_1>:<min>,<max>;<cab_type_2>:<min>,<max>, this would restrict the vendors to allocate the under capacity vehicles, like they cannot a 4S for a 6 employee route",,,,,,,,,,,,,,,,,,,,
+AUTO_EMPLOYEE_DELETION_ON_DUPLICATE_TIME_WINDOW_FOR_CHECKING,,,,,Engineering default,,,,,,,,,,,,,,,,,,,,
+NEW_EMPLOYEE_PROFILE_PAGE,,,Enable new employee profile page UI,,Enable new employee profile page UI,,,,,,,,,,,,,,,,,,,,
+COPY_ROUTES_ENABLE_AUTO_ADJUST,Feature enable copy adjust route option,,Adjust custom employees automatically during copy route,,Adjust custom employees automatically during copy route,,,,,,,,,,,,,,,,,,,,
+TICKET_MAIL_RECEIPIENTS,,,,"Once the mail ID's are updated in the  said property , in the mobile an option will be enabled ""Contact Travel Desk"" where the employees can give the feedback","Once the mail ID's are updated in the  said property , in the mobile an option will be enabled ""Contact Travel Desk"" where the employees can give the feedback",,,,,,,,,,,,,,,,,,,,
+RESET_PASSORD_AFTER_MAX_INVALID_ATTEMPTS,,,Maximum attempts allowed for wrong password. An email would be triggered to the employee with the new password which they need to change once they login again.,,"Maximum attempts allowed for wrong password, an email would be triggered to the employee with the new password which they need to change once they login again.",,,,,,,,,,,,,,,,,,,,
+SPOT_BULK_DEFAULT_PICK_DROP,,,upload default pickup and drop schedules in bulk for SPOT,,upload default pickup and drop schedules in bulk for SPOT,,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_ACCEPT_REJECT_LOGIN_CUTOFF_MINS,Configure the time The vendor accept or reject the trip sheet,,,,Configure the Time in Minutes Vendor Accept/Reject theTripsheet,,,,,,,,,,,,,,,,,,,,
+ADDRESS_CHANGE_REQUEST_PERMISSIBLE_DURATION_DAYS,the employee address change request permissble duration days,,,,No. of Time Employee can request Address Change in a month,,,,,,,,,,,,,,,,,,,,
+FEATURE_ADVANCE_CAB_CONFLICT_LOGIC,,,Engineering,Only for Backend Team,Only for Backend Team,,,,,,,,,,,,,,,,,,,,
+COPY_ROUTES_DATE_WINDOW_FOR_BASE_DATE_RECOMMENDATION,,,Date window interval to pull out a recommended date for copying routes,,Date window interval to pull out a recommended date for copying routes,,,,,,,,,,,,,,,,,,,,
+HSBC_READ_MULTIOFFICE_FROM_SYNC,,,Engineering,Only fro HSBC not to be enabled for any other client,Only for HSBC not to be enabled for any other client,,,,,,,,,,,,,,,,,,,,
+ENABLE_FORCE_END_VIEW_CODE_AND_REPORTING,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+VENDOR_ZONE_CAB_ALLOCATION_ENABLED,,,,VO team only,VO team only,,,,,,,,,,,,,,,,,,,,
+ENABLE_TRIPFEEDBACK_EMAIL_EMPLOYEE,The employee can get recived the trip feedback mail,,Trip feedback copy is sent to employee via email,,Trip feedback copy is sent to employee via email,,,,,,,,,,,,,,,,,,,,
+WOMAN_EMPLOYEE_SIGN_OFF_VERIFICATION_THROUGH_IVR,Feature enable female employee driop verfication,,Enable safe reach confirmation,,Enable safe reach confirmation,,,,,,,,,,,,,,,,,,,,
+SPOT_BULK_BOOKING_ENABLED,Feature enable spot bulk booking option,,Bulk booking upload for SPOT ,,Bulk booking upload for SPOT ,,,,,,,,,,,,,,,,,,,,
+MOVE_SHUTTLE_EMP_TO_CAB_SHOW_HOME_ADDR,,,,If GENERATE_CAB_ROUTES_USING_SHUTTLE_POINTS_WHEN_GENERATE_SHUTTLE_ROUTES_UNCHECKED is enabled then MOVE_SHUTTLE_EMP_TO_CAB_SHOW_HOME_ADDR should be unchecked. This property forces ETS to convert shuttle points to home/nodal when editing routes.,If GENERATE_CAB_ROUTES_USING_SHUTTLE_POINTS_WHEN_GENERATE_SHUTTLE_ROUTES_UNCHECKED is enabled then MOVE_SHUTTLE_EMP_TO_CAB_SHOW_HOME_ADDR should be unchecked. This property forces ETS to convert shuttle points to home/nodal when editing routes.,,,,,,,,,,,,,,,,,,,,
+MAX_EMPLOYEES_FOR_SEND_DRIVER_TRIPSHEET,Feature configure the max emp send driver trip detials,,"Now, if configured, ETS will send the entire tripsheet to the drivers over SMS. The tripsheet will be
+sent for all trips with less than configured number of planned employees i.e. say, if it has been
+configured to send for all tripsheets with less than 6 employees, then it will send the new SMS
+format for all tripsheets where up­to 6 employees are planned. For all other tripsheets, it will send
+the old SMS format.",,"Now, if configured, ETS will send the entire tripsheet to the drivers over SMS. The tripsheet will be
+sent for all trips with less than configured number of planned employees i.e. say, if it has been
+configured to send for all tripsheets with less than 6 employees, then it will send the new SMS
+format for all tripsheets where up­to 6 employees are planned. For all other tripsheets, it will send
+the old SMS format.",,,,,,,,,,,,,,,,,,,,
+NEW_BILLING_REPORTS_ENABLED,Feature enable New billing reports option,,SE,,Raise SE- To enable new Billing Reports,,,,,,,,,,,,,,,,,,,,
+PROJECT_MANAGER_DISABLE_TEAM_UPDATE,Disable the team updating option for project manager,,Disable the acess for SPOCS to add other SPOCS for  the same/respective team,,Team Manger will not be able to add Spoc,,,,,,,,,,,,,,,,,,,,
+INFOSYS_SCHEDULE_CHANGE_MAIL_FORMAT_ENABLED,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+ENABLE_MANUAL_TRIPSHEET_PUSH_TO_VENDORS,Feature enable trip sheet push manual to the vendor,,Enable the admin/transport team to push the trip sheet manually to vendors,,Allocation of Trips Manually to the Vendor by the Transport Team,,,,,,,,,,,,,,,,,,,,
+FEATURE_NODAL_POINT_ENABLED_ON_ADDRESS_CHANGE,Feature enable wants to noda point when address change,,Lets the employee chose a new nodal point after changing the address(App and ETS),,Let the employee choose a new nodal point after changing the address in App and ETS.,,,,,,,,,,,,,,,,,,,,
+NEW_REPORT_PAGE_ENABLED,Feature enable new reporting service option,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+SPECIAL_NEED_EMPLOYEE_HOME_PICKUP_DROP_FEATURE_ENABLED,Feature enable home pickup option for SPLN employees,,Enable home pickup/drop by default only for  sprcial need employees(if other employee are nodal pickup),,Enable home pickup/drop by default only for  special need employees (if other employee are nodal pickup),,,,,,,,,,,,,,,,,,,,
+ENABLE_PROXIMITY_APP_NOTIFICATION,Feature enable proximity APP notification,,Enables push notification on employee mobile when vehicle approches the configured proximity around the pickup point,,Enables push notification on employee mobile when vehicle approches the configured proximity around the pickup point,,,,,,,,,,,,,,,,,,,,
+FEATURE_BILLED_CAB_REGISTRATION_ENABLED,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+SPOT_ALLOW_DRIVER_SIGN_IN_FROM_DEVICE,,,,,,,,,,,,,,,,,,,,,,,,,
+DISABLE_PROJECT_EDITS_FROM_UI,Feature enable disable the project edit option in ETS by from all roles,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+ISSUE_CATEGORY,Feature configure generl feedback perameeter,,Engineering,,"Employee feedback from the UI, once login into the employee profile page",,,,,,,,,,,,,,,,,,,,
+ENABLE_SHUTTLE_VENDOR_ALLOCATION,Featrue enable shuttle route vendor allocation,,Provide access for admin/transport team to allocate vendors for shuttle routes,,Provide access for admin/transport team to allocate vendors for shuttle routes,,,,,,,,,,,,,,,,,,,,
+AUTO_DRIVER_BACKGROUND_VERIFICATION_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+DISPLAY_NO_SHOW_CANCELLED_TRIPS_ON_DEVICE_DRIVER_HISTORY,Feature enable no-show or cancelled trips detials in driver histroy,,Displays the trip history on driver app including no show and cancelled trip,,Displays the trip history on driver app including no show and cancelled trip,,,,,,,,,,,,,,,,,,,,
+CONSIDER_NO_SHOW_EMPLOYEES_IN_GPS_BACKFILL,Feature enable noshow employee KM will backfill from GPS trough,,Fist employee no show km is captured through GPS backfill and not actual route km,,First employee no show km is captured through GPS backfill and not the actual route km.,,,,,,,,,,,,,,,,,,,,
+ENABLE_MULTIPLE_SHUTTLES_BASED_ON_SHIFT,Feature enable multiple based_on KM will shift from ON trough,,To enable new shuttle feature,,We will be able to generate multiple shuttle route for the same shift,,,,,,,,,,,,,,,,,,,,
+ENABLE_MOVING_EMPLOYEE_TO_DIFFERENT_TRIP,feaute enable moving difrent tirp option in shuttle routing,,"This feature removes the duplicate employees from the trip.
+",,"This feature removes the duplicate employees from the trip.
+",,,,,,,,,,,,,,,,,,,,
+FEATURE_CAB_ID_EDITABLE,Feature enable Cab ID edit option,,Provides access to edit cab ID,,Provides access to edit cab ID,,,,,,,,,,,,,,,,,,,,
+FEATURE_BCP_ENABLED,Feature enable BCP option,,SE,,SE,,,,,,,,,,,,,,,,,,,,
+EMPLOYEE_SIGN_OFF_VERIFICATION_IVR_START_TIMER_MINUTE,Configur the time drop verification IVR start,,Time interval to start automatic IVR safe reach confirmation call to employee,,Time interval to start automatic IVR safe reach confirmation call to employee,,,,,,,,,,,,,,,,,,,,
+EMAIL_ON_PROFILE_CREATION_ENABLED,Feature enable Profile creation E-Mail to the transport manager,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+FREEZE_PLANNED_VENDOR_CABS_LOGIN_CUTOFF_MINS,Feature configure Login shift cab deployement cut off time,,Cutoff timings configuration for freeze planned vendor feature,,Allowance of Vehicle assignment for Vendors through their login for Log-in shifts (for 730 shift - 15 would till 715 and (+15) would be till 745,,,,,,,,,,,,,,,,,,,,
+ENABLE_MULTI_DRIVER,Feature enable multi driver option,,SE,,SE,,,,,,,,,,,,,,,,,,,,
+FEATURE_DISABLE_ETS_FOR_MOBILE_DEVICES,,,,Restrict opening the URL from Mobile ,Restrict opening the MIS URL from Mobile ,,,,,,,,,,,,,,,,,,,,
+SHOW_TRIP_EMPLOYEE_REPORT,Feature enable show the trip employee report option,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_SPLIT_EMPTY_LEGS_ENABLED,Feature enable splitng option in billing,,Provodes option to split empty leg km during billing audit,,Provide option to split empty leg km during billing audit,,,,,,,,,,,,,,,,,,,,
+DO_NOT_USE_EID_IF_PIN_NOT_SET,Featue enable option for do not use emp ID if pin not set,,Restrict sign in through EMP ID on drivers device if PIN is not set,,Restrict sign in through EMP ID on drivers device if PIN is not set,,,,,,,,,,,,,,,,,,,,
+ENABLE_OTP_BASED_SIGN_IN_FOR_ESCORT,Feature enable OTP based sign in for escort,,Enabe OTP feature for marshall/escort,,Enabe OTP feature for marshall/escort,,,,,,,,,,,,,,,,,,,,
+EMP_GEOCORDS_UPDATE_FROM_DATASYNC,Feature enable emp Geo-Code update in data sync trough,,Allow bulk geocode update through data sync,,Allow bulk geocode update through data sync,,,,,,,,,,,,,,,,,,,,
+ENABLE_MOVE_EMPLOYEES_MULTI_SHIFT_TOGETHER,can we able to merge the multiple shit schedules,,To enable merge schedules option in manage schedules drop down,"If True, on the Route Management page, when router selects multiple shifts enable a button for - Merge Schedules
+This option is only applicable if all selected shifts are only Logins or only Logouts.
+
+Show a pop-up and ask user to select the office and shift they want to move all employees to. The shift to which all employees are to be moved may be one of the selected shift or it could be a different shift.
+
+If the employees are moved to a single shift, auto edit employee schedules to the new shift. In the employee shift history logs, show the edit done by Merge Shift By Router Name.
+
+In audit history, capture who has made the edit and when.
+
+Any new schedule coming into these shifts will not be moved automatically. Router will need to move these again to the desired shift.",Allow merging of Two shifts ,,,,,,,,,,,,,,,,,,,,
+GUARD_REQUIRED_TIME_WINDOW,Featute configure escort requred time window,,Time windor to display escort/marshal trips,"This needs to be a comma seperated value such as 1900-2359;0000-0700, this property also overrides the ESCORT rule set against shift level. This should be configured only in cases where the ESCORT requirement is based on time and not aganst shift.","This needs to be a comma seperated value such as 19:00-23:59;00:00-07:00, this property also overrides the ESCORT rule set against shift level. This should be configured only in cases where the ESCORT requirement is based on time and not aganst shift.",,,,,,,,,,,,,,,,,,,,
+SPOT_SHOW_GUEST_DATA_IN_DRIVER_APP,Feature enable show the guest data in dirvier APP,,Display guest data in driver tripsheet for SPOT bookings,,Display guest data in driver tripsheet for SPOT bookings,,,,,,,,,,,,,,,,,,,,
+FEATURE_DISPLAY_BOTH_EMPLOYEE_MARKERS,Feature enable employee sig in & sig out location capture option,,Displays both sign in and sign out location markets on map ,,Displays both sign in and sign out location markers on map ,,,,,,,,,,,,,,,,,,,,
+ALLOW_ROUTER_BUFFER_PICK_TIME,Feature enable buffer pickup time,,Allow router to provide pickup buffer time for employees,This property adds an extra time to the ETA defined by the system. You can use negative value (-15) to reduce the ETA also.,This property adds an extra time to the ETA defined by the system. You can use negative value (-15) to reduce the ETA also.,,,,,,,,,,,,,,,,,,,,
+ENABLE_COMPLIANCE_CHANGES_APPROVAL_REQUIRED,Feature enable complaince approvel option,,Allows access for compliance manager to approve any changes made to compliance,,Allows access for compliance manager to approve any changes made to compliance,,,,,,,,,,,,,,,,,,,,
+FEATURE_INCLUDE_TOLLS_IN_DRIVING_DISTANCE_CALCULATION,Feature enable include tolls driving distance calculation,,Enables addition of toll during billing,,Enables addition of toll distances during billing.,,,,,,,,,,,,,,,,,,,,
+NO_SHOW_EMPLOYEE_BOARDED_NOTIFICATION,Feature enalbe no-show notification option,,Engineering,,"If No Show Employee Sign in Back again into the existing Trip, notification will be Triggered on the Employee App",,,,,,,,,,,,,,,,,,,,
+CONSIDER_ESCORT_FOR_REFERENCE_KMS,Feature enable added refrance KM in escort trip option (Two & Fro way),,Consider excort trips for billing reference kms,,Consider reference kms for excort trips for the billing.,,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_DRIVER_SMS_LOGIN_MINS,Feature configure login trip details send to the driver before the min,,Time interval before login to send SMS trip sheet to driver,,SMS will be triggered to the driver for Login before time interval mentioned. SMS will show the info. about first employee  ETA and location details.,,,,,,,,,,,,,,,,,,,,
+ESCORT_CONTRACT_EMPLOYEE_RULE_ENABLE,,,,"This needs to be checked to enable this feature. If checked, any employee whose job title starts with property in 1. will not be treated as a male buddy.",If any male contract employee has a last drop then escort will be provided in that trip.,,,,,,,,,,,,,,,,,,,,
+SHIFT_CATEGORY_CHANGE_EMPLOYEE_FUTURE_SCHEDULE_DELETE_BUFFER,Feature enable employee team change will get a schedule remove notfication,,"In case of a shift category change, the furure schedules of employees would be deleted- configure buffer as per operations",,If Shift Category of the Employee is changed then all his future schedules will get changed,,,,,,,,,,,,,,,,,,,,
+NUM_TRIPS_RESTRICT_CAB_PER_DAY_MAX_PLANNED_TRIPS_ALLOWED,Feature enable max trips in day of the cab,,,,Max no. of plan trips a cab can perform in a day as per Contract.,,,,,,,,,,,,,,,,,,,,
+CONSIDER_NO_SHOW_EMPLOYEES_FOR_COST_CENTER_BILLBACK,feature enable no show bill back of cost center,,Billing: Consider no show for billing,,No Show Employees will be considered for the Billing in Cost Center Report.,,,,,,,,,,,,,,,,,,,,
+FREEZE_PLANNED_VENDOR_CABS_LOGOUT_CUTOFF_MINS,Configure the cut off time will frezze the planned logout cab allocation,,Freeze planned vendor for logout cutoff timings configuration,,It will freeze the Vendor timing to allocate a cab for a logout shift.,,,,,,,,,,,,,,,,,,,,
+MAX_INVALID_LOGIN_ATTEMPTS,Feature configure Max invalid login attempts,,Maximum invalid login attemptes permissable. Post which the sysstem would ask for a mandatory pasword reset and verification,,Maximum invalid login attempts permissable. Post which the sysstem would ask for a mandatory password reset and verification.,,,,,,,,,,,,,,,,,,,,
+OTP_MARSHALL_VALIDITY,Feature configure marshal OTP validity time,,OTp Validity for escorts(in hours),,"OTP PIn Validity in hours for an Escort, default value is 24 hours.",,,,,,,,,,,,,,,,,,,,
+SHOW_HOME_TO_OFFICE_DISTANCE_IN_BA_RAW,Feature enable employee home to office distance in a BA raw data,,Disply home to oiffice distance in BA raw report,,Disply home to oiffice distance in BA raw report,,,,,,,,,,,,,,,,,,,,
+FEATURE_DISPLAY_MALE_EMP_PHONE_NO,Feature enable click to call option for Feamle employee,,Display employee phone number(Click to call),,1) C2C - will use no. masking while calling from the app.                                                                          2) Disable - to mask the male  employee phone no.                                                                                                                         3) DisplayNo. -  Will allow to view the no. on the Driver Device ,,,,,,,,,,,,,,,,,,,,
+ENABLE_VIRTUAL_CAB,Feature enable virtual cab option,,Enable virtual cab option,Main drawback of Virtual cabs is that the Compliance Status is unknown to the team.,Enable a Virtual Cab option under Manage cabs. Note: Main drawback of Virtual cabs is that the Compliance Status is unknown to the team.,,,,,,,,,,,,,,,,,,,,
+MARSHALL_REQUIRED_SPECIAL_NEED,Feature enable if requered marshal for SPLN employees,,Mark special need employees as marshal requied,,"Special Need/Non Moterable areas where vehicle cannot go, escort will be provided.",,,,,,,,,,,,,,,,,,,,
+ENABLE_NO_SHOW_APPROVAL_DASHBOARD,Feature enable no show approval option,,Display no show approval dashboard on main dashboard,,Manager will approve for a No show Employee on the Manager Dashboard,,,,,,,,,,,,,,,,,,,,
+FEATURE_HIDE_REPORTS_EXCEPT_SITE_ADMIN,,,"To ensure that some reports are available to site admin only a new property block has been
+created.
+Property Name: FEATURE_HIDE_REPORTS_EXCEPT_SITE_ADMIN
+Set the property with the Names of the reports to be hidden should be put (comma separated)",,"To ensure that some reports are available to site admin only a new property block has been
+created.
+Property Name: FEATURE_HIDE_REPORTS_EXCEPT_SITE_ADMIN
+Set the property with the Names of the reports to be hidden should be put (comma separated)",,,,,,,,,,,,,,,,,,,,
+ENABLE_CAB_ARRIVED_SMS_NOTIFICATION,Feature enable cab arrived sms Notification option,,Enable cab arrived SMS once cab reaches pickup point,,Enable cab arrived SMS once cab reaches pickup point,,,,,,,,,,,,,,,,,,,,
+SCHEDULE_EXPIRY_NOTIFICATION_LAST_DATE,Configure the last day for schedule expiry notification option,,"If an employee, say Emp1 has a schedule for today (7th March), and the property is set to 10 days.
+If the employee has a schedule on 18th March (10 days after today), the notification will not be sent.
+However, if no schedule is found on this date, the schedule expiry notification is sent to the
+employee.",,"If an employee, say Emp1 has a schedule for today (7th March), and the property is set to 10 days.
+If the employee has a schedule on 18th March (10 days after today), the notification will not be sent.
+However, if no schedule is found on this date, the schedule expiry notification is sent to the
+employee.",,,,,,,,,,,,,,,,,,,,
+MANDATORY_GENDER_SELECTION_ON_LOGIN,Feature enable Mandtory gender selection on Login,,Mark gender selection as mandatory during first login/account creation,,,,,,,,,,,,,,,,,,,,,,
+CONSIDER_NO_SHOW_FOR_REFERENCE_KMS,Feature enable system will consider for no show refrance KM,,Consider no show km refereance for billing,,Consider no show km refereance for billing,,,,,,,,,,,,,,,,,,,,
+ENABLE_EMPLOYEE_DETAILS_EDIT_ON_LANDING_PAGE,Feature enable employee details edit on landing page,,"For EMPLOYEE ROLE:
+
+1. Employee information page link is inactive.
+2. Employee id name, gender, home address, geocode is hidden
+3. Phone number is editable.
+4. Landmark, Nodal Point, Shuttle Stop can be editable if permissions are given to the employee.
+This is specially built for Wells Fargo, not to be enabled for any site",,"For EMPLOYEE ROLE:
+
+1. Employee information page link is inactive.
+2. Employee id name, gender, home address, geocode is hidden
+3. Phone number is editable.
+4. Landmark, Nodal Point, Shuttle Stop can be editable if permissions are given to the employee.
+This is specially built for Wells Fargo, not to be enabled for any site",,,,,,,,,,,,,,,,,,,,
+ENABLE_EMPTY_LEG_GPS_BACKFILL,Feature enable KM loss KM back fill,,GPS backfill for empty leg kms.,,GPS backfill for empty leg kms.,,,,,,,,,,,,,,,,,,,,
+CAB_CAPACITY_ALL_FEMALE_CONSTRAINT,Feature enable cab capacity of female constraint,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+ALLOWED_DISTANCE_FOR_NODAL_POINT_LISTING,Feature enable nodal selection with the reduce X KM if my address option is enabled,,Display nodal points within radius km,,Employee Distance from the Nodal Point mentioned in KM,,,,,,,,,,,,,,,,,,,,
+IVR_SHOW_SUCCESSFUL_RECORDS_IN_DROP_VERIFICATION_DASHBOARD,Feature enable IVR show success full records,,How safe home reach successful recors on security dash,,If Safe reach confirmation is Successful it will appear as Success on Drop Verification Dashboard,,,,,,,,,,,,,,,,,,,,
+ENABLE_PRESET_DEFAULT_PASSWORD,Set-up default password,,Set Default password for the employees. Note: This property needs to be enabled before any employee data is uploaded in the system.,,Set Default password for the employees. Note: This property needs to be enabled before any employee data is uploaded in the system.,,,,,,,,,,,,,,,,,,,,
+NUM_ADDRESS_CHANGE_REQUEST_ALLOWED_IN_DURATION,Configure the duration of address chage request,,Number of times an employee is allwoed to change address on the app or ETS in a month,,Number of times an employee is allowed to change the address on the App or ETS in a month.,,,,,,,,,,,,,,,,,,,,
+NEW_RBD_REPORT_ENABLED,Feature enable new RBD report,,New RBD report enable/disable toggle,,"Under Billing you will get the option to ""Download New RBD""",,,,,,,,,,,,,,,,,,,,
+INDEMNIFICATION_EMAIL_CC_RECIPIENTS,Configure the CC E-Mail INDEMNIFICATION feature,,Indemnification mail CC,,Indemnification mail CC recipient,,,,,,,,,,,,,,,,,,,,
+SITE24X7_SERVICE_AVAILABILITY_WIDGET_KEY,,,,,Letancy Check/Network Check,,,,,,,,,,,,,,,,,,,,
+SPECIAL_SHUTTLE_SHIFT_RANGE,Feature enable specile shuttle point,,,,,,,,,,,,,,,,,,,,,,,,
+IVR_CONTACT_DRIVER_ENABLED,Employee can contact driver trough form IVR,,Contact driver through IVR option if smartphone not available,,Contact driver through IVR option if employee doesn't have smartphone.,,,,,,,,,,,,,,,,,,,,
+FEATURE_TRIPSHEET_PHYSICAL_ID_UNIQUE,Feature enable Phy ID in Unique wise,,System generates uniwue physical ID(no duplicated will be allowed even manually),,System generates unique physical ID(no duplicated will be allowed even manually),,,,,,,,,,,,,,,,,,,,
+FEATURE_JOB_TITLE_DISPLAY_TEXT,Featue enable Job type contracter or on rolle employee,,Job title,,"We can give any  name to  ""Job Title"" text available in employee profile under personal information.",,,,,,,,,,,,,,,,,,,,
+IVR_CONTACT_THD_ENABLED,Employee can contact THD trough form IVR,,Contact THD through IVR option for employee,,Contact THD through IVR option for employee,,,,,,,,,,,,,,,,,,,,
+TEST_ADHOC_REPORT_ENABLED,Feature enable adhoc report oprion,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_BILLING_DASHBOARD_OFFICE_FILTER,Feature enable billing dashboard office filter,,Provide office wise drop down for billing,,Provide Office wise filter to check Billing,,,,,,,,,,,,,,,,,,,,
+FEATURE_TRIPSHEET_MANAGEMENT_JOB_ENABLED,,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+EMPLOYEE_INFO_REPORT_DISPLAY_PASSWORD,Feature enable emp info restricted file password display,,Display password for Emp Info restricted file,,Display password for Emp Info restricted file,,,,,,,,,,,,,,,,,,,,
+NEW_TEAM_MANAGER_PAGE,Teature enable option ag manager page,,Enable new team manager page,,Enable new team manager page,,,,,,,,,,,,,,,,,,,,
+ASSOCIATE_OFFICE_TO_CAB,Feature enable option of associate cab for office wise,,SE,,Used for Compliance Management,,,,,,,,,,,,,,,,,,,,
+FIXED_DEVICE_PANIC_ENABLED,Feature enable option panic alert of fixed device,,,,Panic Alarm will be raised if pressed on Fixed Devices,,,,,,,,,,,,,,,,,,,,
+SPOT_RESTRICT_MAIL_TO_TRAVELLER,Feature enable option send email to traveller,,No emails sent to SPOT booking traveller,,No emails sent to SPOT booking traveller,,,,,,,,,,,,,,,,,,,,
+RECORD_CABS_INPREMISE_JOB_CUTOFFTIME_IN_MINUTES,feature enable record cabs inpremise option in minutes value,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+MANAGE_EMPLOYEE_CALL_WITH_TRIP_DIRECTION,Feature configure the click to call option for Login/Logout shift type,,Manage when an employee can use click to call feature(login/logout/both),,Manage when an employee can use click to call feature(login/logout/both),,,,,,,,,,,,,,,,,,,,
+FEATURE_IVR_CAB_TRACKING_ENABLED,Featue enable IVR through cab tracking,,Employee will be able to track the cab by calling the IVR number,,Employee will be able to track the cab by calling the IVR number,,,,,,,,,,,,,,,,,,,,
+IVR_DROP_VERIFICATION_SHOW_NOSHOW_EMPLOYEES,Show the no show employee drop verfication dtails,,"To have a complete view of employees who were planned to travel in a certain shift, we now enable you to get data on No-show employees on drop verification dashboard. The verification status for these employees will remain be NOT_STARTED",,"To have a complete view of employees who were planned to travel in a certain shift, we now enable you to get data on No-show employees on drop verification dashboard. The verification status for these employees will remain be NOT_STARTED",,,,,,,,,,,,,,,,,,,,
+MAXIMUM_DISTANCE_FROM_OFFICE_KM,Feature enable option of office km,,Engineering,,Engineering,,,,,,,,,,,,,,,,,,,,
+ENABLE_NODAL_BILLING_ZONES,Feature enable option nodla billing zones,,Billing done by Nodal Zones(Contact billing before making changes or enabling),,Billing done by Nodal Zones(Contact billing before making changes or enabling),,,,,,,,,,,,,,,,,,,,
+VENDOR_UNALLOCATE_TRIP_CUTOFF_LOGIN_MINS,Update the value of login cab deployment cut off,,Cutoff for vendor to unallocate a cab for login trip through vendor login,,Cutoff for vendor to unallocate a cab for login trip through vendor login,,,,,,,,,,,,,,,,,,,,
+THD_ENABLED,Feature enable THD tracking page,,SE,,SE,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Eng-Page,,,,,,,,,,,,,,,,,,,,,,,,,
+IVR_DROP_VERIFICATION_RECIPIENTS,Feature configure the IVR drop verfication wants to male/female or both emaployees,,Drop verification email recipients list,,,,,,,,,,,,,,,,,,,,,,
+USERNAME_TYPE,Feature configure the multi type of user name option,,,,,,,,,,,,,,,,,,,,,,,,
+LOGOUT_TRIP_DELAY_GRACE_TIME_SECS,Feature configure the value of logout OTD grace min,,Logout buffer time(Shift time remains the same) buffer used fot OTD calculation,,,,,,,,,,,,,,,,,,,,,,
+TRIP_DELAY_GRACE_TIME_SECONDS,Feature configure the value of login OTA grace min,,Login buffer time(Shift time remains the same) buffer used fot OTA calculation,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,,,,
+Default Property,,,,,,,,,,,,,,,,,,,,,,,,,
+SECURITY_DASHBOARD_CONFIGURED_BUIDS,,,,,,,,,,,,,,,,,,,,,,,,,
+JASPER_BUSINESS_UNITS,,,,,,,,,,,,,,,,,,,,,,,,,
+DASHBOARD_TRACKING_WINDOW_END_MINUTES,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_JASPER_REPORTING,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_AUTO_CONFIGURE_DEVICE,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_SHOW_AFFINITY_INFORMATION,,,,,,,,,,,,,,,,,,,,,,,,,
+GPS_LOSS_KM_CALCULATION,,,,,,,,,,,,,,,,,,,,,,,,,
+IVR_DROP_VERIFICATION_EXOTEL_APPID_CALLERID,,,,,,,,,,,,,,,,,,,,,,,,,
+LOGOUT_TRIP_DELAY_GRACE_TIME_SECS,,,,,,,,,,,,,,,,,,,,,,,,,
+ROUTING_NUM_DAYS_TO_LOOK_BACK_IN_ROUTE_COPY,,,,,,,,,,,,,,,,,,,,,,,,,
+SECURITY_DASHBOARD_URL,,,,,,,,,,,,,,,,,,,,,,,,,
+CITIES_WITH_MOVEINSYNC_OPERATIONS,,,,,,,,,,,,,,,,,,,,,,,,,
+DEFAULT_NEW_EMPLOYEE_CREATE_MOBILE_APP,,,,,,,,,,,,,,,,,,,,,,,,,
+DISPLAY_EMPLOYEE_NAME_IN_NOTIFICATION,,,,,,,,,,,,,,,,,,,,,,,,,
+EMERGENCY_L1_INTERVAL_MINUTES,,,,,,,,,,,,,,,,,,,,,,,,,
+EMERGENCY_L2_INTERVAL_MINUTES,,,,,,,,,,,,,,,,,,,,,,,,,
+EMERGENCY_L3_INTERVAL_MINUTES,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_CAB_ARRIVED,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_CAB_ARRIVED_APP_NOTIFICATION,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_NO_SHOW_EMPLOYEE_APP_NOTIFICATION,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_NO_SHOW_EMPLOYEE_NOTIFICATION,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_SEND_DRIVER_TRIPSHEET,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_BUSINESS_UNIT_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_CLICK2CALL_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_COST_CENTER_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_DISPLAY_FEMALE_EMP_PHONE_NO,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_DISPLAY_MALE_EMP_PHONE_NO,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_ENABLE_BULK_ROUTE_UPLOAD,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_INTER_SHIFT_ROUTE_COPY,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_SCHEDULE_UPLOAD_ENABLEDtrue,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_SHUTTLE_ROUTING_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_TRIPSHEET_DRIVER_SMS,,,,,,,,,,,,,,,,,,,,,,,,,
+FIX_PARTIAL_GPS_LOSS,,,,,,,,,,,,,,,,,,,,,,,,,
+GEOCORD_LIES_IN_OFFICE_RADIUS_IN_METERS,,,,,,,,,,,,,,,,,,,,,,,,,
+GEOFENCE_HOME_RADIUS_METRES,,,,,,,,,,,,,,,,,,,,,,,,,
+GEOFENCE_NODAL_RADIUS_METRES,,,,,,,,,,,,,,,,,,,,,,,,,
+HIDE_EMP_ADDRESS_FROM_VENDORS,,,,,,,,,,,,,,,,,,,,,,,,,
+IVR_CONTACT_DRIVER_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+IVR_CONTACT_THD_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+MANAGE_EMPLOYEE_CALL_WITH_TRIP_DIRECTION,,,,,,,,,,,,,,,,,,,,,,,,,
+MAX_EMPLOYEES_FOR_SEND_DRIVER_TRIPSHEET,,,,,,,,,,,,,,,,,,,,,,,,,
+PREVIOUS_EMPLOYEE_BOARDED_APP_NOTIFICATION,,,,,,,,,,,,,,,,,,,,,,,,,
+SCHEDULE_CHANGE_ALLOWED_TIME_DAYS,,,,,,,,,,,,,,,,,,,,,,,,,
+SYNC_FILE_UPLOAD_SERVER_URL,,,,,,,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_DRIVER_SMS_CHECK_HOURS,,,,,,,,,,,,,,,,,,,,,,,,,
+TRIPSHEET_PUSH_CHECK_HOURS,,,,,,,,,,,,,,,,,,,,,,,,,
+WOMAN_EMPLOYEE_SIGN_OFF_VERIFICATION_THROUGH_IVR,,,,,,,,,,,,,,,,,,,,,,,,,
+SECURITY_DASHBOARD_BETA_URL,,,,,,,,,,,,,,,,,,,,,,,,,
+PUT_TRIP_TO_KINESIS_STREAM_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+PUT_TRIPSHEET_TO_KINESIS_STREAM_ENABLED ,,,,,,,,,,,,,,,,,,,,,,,,,
+PUT_EMPLOYEE_SIGNOFF_TO_KINESIS_STREAM_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+JASPER_REPORTS_AVAILABLE,,,,,,,,,,,,,,,,,,,,,,,,,
+NEW_ROUTE_EDITOR_SERVER_URI,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_NEW_ROUTE_EDITOR,,,,,,,,,,,,,,,,,,,,,,,,,
+EHS_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_COMPLIANCE_CHANGES_APPROVAL_REQUIRED,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_DISPLAY_BOTH_EMPLOYEE_MARKERS,,,,,,,,,,,,,,,,,,,,,,,,,
+NEW_BILLING_REPORTS_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+NEW_BI_DASHBOARD,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_TRIPSHEET_PHYSICAL_ID_UNIQUE,,,,,,,,,,,,,,,,,,,,,,,,,
+RENAME_BILLING_DASHBOARD_LINKS,,,,,,,,,,,,,,,,,,,,,,,,,
+FEATURE_HIDE_OLD_BILLING_REPORTS,,,,,,,,,,,,,,,,,,,,,,,,,
+THD_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+DEVICE_TRIP_DISPLAY_TIME_LOGOUT_MINUTES,,,,,,,,,,,,,,,,,,,,,,,,,
+DEVICE_TRIP_DISPLAY_TIME_LOGIN_MINUTES,,,,,,,,,,,,,,,,,,,,,,,,,
+STORE_PLANNED_VENDOR_CABS_USING_FLAVOUR,,,,,,,,,,,,,,,,,,,,,,,,,
+VENDOR_UNASSIGN_CAB_ALLOWED,,,,,,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MIN_TRIP_KM,,,,,,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MAX_TRIP_KM,,,,,,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MIN_DEAD_KM_PERCENT_IN_DUTY,,,,,,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MAX_SECONDS_IN_A_DUTY,,,,,,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MIN_DUTIES_IN_A_DAY,,,,,,,,,,,,,,,,,,,,,,,,,
+CONTRACT_ISSUE_DEFAULT_MAX_DUTY_KM,,,,,,,,,,,,,,,,,,,,,,,,,
+NEW_BILLING_REPORTS_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+ENABLE_BULK_UPLOAD_CABS_ON_ROUTES,,,,,,,,,,,,,,,,,,,,,,,,,
+BILLING_CALCULATION_URL,,,,,,,,,,,,,,,,,,,,,,,,,
+NEW_RBD_REPORT_ENABLED,,,,,,,,,,,,,,,,,,,,,,,,,
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

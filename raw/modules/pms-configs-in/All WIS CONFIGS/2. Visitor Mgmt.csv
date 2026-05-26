@@ -1,0 +1,87 @@
+Service: Visitor Management Service,
+Total properties: 83,
+,
+Property Name,Description
+controlSearchSections,Controls visibility of sections in Front Desk search dropdown.
+addCustomFieldsWithVisitorBulkUpload,Adds custom fields to visitor bulk upload headers.
+Print_Visitor_Badge,Enables Print Badge button on Front Desk dashboard.
+tempEntryTimeLimit,Defines buffer time for entry after temporary checkout in the 2-step check-in/checkout process.
+isTemporaryCheckoutEnabled,Enables temporary checkout option on Front Desk.
+is2StepCheckInEnabled,Enables 2-step check-in and check-out process.
+enableVisitorParking,Enables parking for visitors (currently not in use).
+Visitor_Profile_ID_Document_Upload_Field_Inputs,Defines allowed document types for visitor upload.
+visitorProfilePhotoUpload,Controls whether profile photo is mandatory in invited flow.
+VISITOR_PROFILE_ID,Controls whether visitor identity proof upload is required.
+checkoutPageRedirectionTimeout,Defines redirection timeout (in minutes) after self check-in completion.
+configureVisitorKiosk,Controls visibility of Configure Visitor Kiosk button on Front Desk.
+defaultInviteTitle,Defines default title for Invite Form.
+defaultKioskBookingDurationInMinutes,Defines fixed visit duration for each visitor check-in.
+enableCalendarInvite,Creates calendar event in host email upon invite creation.
+entryTimeInLimit,Defines buffer time for entry in the 2-step check-in/checkout process.
+identification,Allows enablement of identification on front desk.
+inviteFormDefaultOfficeSelection,Defines default office selection in Invite Visitor form.
+IsGuestWifiEnabled,Enables or disables Guest Wi-Fi.
+ndaCheckbox,Controls NDA checkbox visibility.
+selfCheckinSuccessMessage,Defines success message displayed after visitor self check-in.
+showDefaultInviteTitle,Enables default invite title on Invite Visitor page.
+Visitor_Document_Storage,Enables visitor document storage configuration.
+Visitor_Document_Storage_Document_Type,Defines document types applicable for visitor data storage.
+Visitor_Document_Storage_Duration,Defines retention period (in days) for visitor data storage.
+visitor_wifi_name,Stores client Wi-Fi name.
+visitorApprovalMsTeamsNotification,Controls visitor approval notification on MS Teams.
+isEmployeeFlowEnabled,Enables employee check-in flow on kiosk.
+addRoomWithVisitorBulkUpload,Adds room details to visitor bulk upload headers.
+floorKioskConfigs,Defines Floor Kiosk configurations in Settings.
+kioskInviteOptions,Controls QR-based check-in and check-out options on kiosk.
+noteToFrontDesk,Enables optional notes to receptionist/security via email.
+notesToAdmins,Enables optional notes to admins via email.
+approvalFlowEmailExpiryTimeInMinutes,Defines approval email expiry time in minutes.
+digipass,Controls DigiPass visibility across email and badge channels.
+SafeReachInputFields,Defines customizable fields in Safe Reach form.
+ndaPagePosition,Position of NDA.
+mandateAcceptNda,NDA mandatory?
+SafeReachVmsTimeInMin,Defines Safe Reach trigger time in minutes.
+isVisitorCheckoutMsTeamsNotificationEnabled,Controls visitor check-out notifications on MS Teams.
+visitorWidgetEnabled,Controls visibility of VMS widget on Employee Home.
+visitorCheckoutMsTeamsTemplate,Defines MS Teams template for visitor check-out notification.
+formsMetaDataForVisitorPWC,Handles visitor-side custom fields and belongings in invited flow (PWC).
+profileFieldsMetaData,Handles profile fields configuration for invited flow.
+overStayAlertRecipients,Defines recipient list for overstay alerts.
+isEditEndTimeOnFrontDeskEnabled,Enables editing of invite end time on Front Desk.
+externalEmployeeList,Stores external stakeholder email and name details.
+isVisitorCheckinMsTeamsNotificationEnabled,Enables visitor check-in notifications via email and MS Teams.
+visitorFormsMetaDataPWC,Handles profile and custom fields in VMS self check-in flow (PWC).
+visitDurationHours,Defines dropdown options for visit duration.
+formsMetaDataForHostPWC,Handles host-side custom fields and belongings in invited flow (PWC).
+overstayTriggerList,Defines channels (MS Teams/Email) for overstay alerts.
+overStayAlertBuffer,Defines buffer time (in minutes) after end time to trigger overstay alerts.
+sendHostMsTeamsNotificationToDelegate,Controls whether MS Teams notifications are sent to delegate.
+sendHostEmailsToDelegate,Sends all host-triggered emails to the delegate as well.
+ndaCheckboxContent,Defines content displayed below NDA checkbox.
+preFillVisitorPhotoForExistingVisitor,Allows pre-filling of visitor photo for existing visitors.
+enablePrintBadgeForInviteFlow,Enables badge printing for visitors via Invite flow.
+approveEntryFromFrontdesk,Allows visitor approval or rejection from Front Desk.
+overStayAlertMsTeamsTemplate,Defines MS Teams template for overstay alerts.
+approveMsTeamsTemplate,Defines MS Teams template for approval notifications.
+sendInviteEmail,"Defines default state of visitor, host, and creator email checkboxes."
+vmsInviteTrigger,Triggers visitor invite based on configured list.
+defaultVisitTypeSelection,Controls default selection behavior for Type of Visit field.
+checkinBufferFromKiosk,Defines buffer time (in minutes) for active booking check-in via kiosk.
+creatorNotifications,Controls creator notifications (backend property).
+hostNotifications,Controls host notifications (backend property).
+notificationMetaData,Defines metadata configuration for notification page.
+enabledBuidForVisitorConfigs,Enables visitor notification page.
+vmsQrCodeTrigger,Controls sending DigiPass and checkout QR via SMS or email.
+enableOTPValidationSelfCheckinList,Enables OTP validation in kiosk self check-in flow.
+GUEST_BULK_UPLOAD,Enables bulk upload option for visitors.
+visitorCheckinMsTeamsTemplate,Defines visitor check-in email template.
+visitorProfileFields,Controls visitor profile fields for Walk-in flow.
+formsMetaDataForVisitor,Controls visitor-side custom fields in invited flow.
+forms_configurations,Controls belongings configuration for VMS self check-in flow.
+formsMetaDataForHost,Controls host-side custom fields in invited flow.
+visitorBulkUploadData,Defines headers and data rules for visitor bulk upload; must comply with profileFieldsMetaData.
+visitorBulkUploadFields,Defines headers and default values for visitor bulk upload.
+visitorKioskConfigs,Handles UI formatting for VMS self check-in flow.
+formsMetaDataForWalkIn,Handles custom fields and belongings for Walk-in flow.
+notificationConfigs,Defines notification page configuration values.
+front_desk_configurations,Defines core functionalities visible on Front Desk.

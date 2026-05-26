@@ -14,6 +14,8 @@ unzipped download). It will:
   6. Create raw/modules/<slug>/ automatically if the feature is genuinely new.
   7. Print a per-feature report of new / updated / unchanged files.
   8. Suggest the next `ingest` commands for files that changed.
+  9. Copy files that sit at the Drive root (outside any subfolder) into
+     raw/modules/_root/ so they are not silently ignored.
 
 The script is **idempotent** — safe to re-run any time. It only copies what is
 actually new or changed.
@@ -35,6 +37,9 @@ Examples
 
   # Sync just one feature
   python scripts/sync_drive.py --source <path> --only meeting-rooms
+
+  # Skip root-level files (suppress the _root module)
+  python scripts/sync_drive.py --source <path> --skip-root
 """
 
 from __future__ import annotations
@@ -76,6 +81,9 @@ SLUG_OVERRIDES: dict[str, str] = {
     "desk-management-admin-employee-experience": "desk-management",
     "guard-app-kiosks-for-guard-app":          "guard-app-kiosks",
     "tags-desk-parking-dynamic-policy-engine": "tags-desk-parking",
+    # PMS Config server folders
+    "pms-configs-in-server-region":            "pms-configs-in",
+    "pms-configs-com-server":                  "pms-configs-com",
     # Add more as Drive folder names evolve:
     # "some-verbose-drive-name":             "canonical-slug",
 }
@@ -238,6 +246,8 @@ def main() -> int:
     ap.add_argument("--only", help="Sync only this canonical feature slug (e.g. meeting-rooms)")
     ap.add_argument("--skip-copies", action="store_true",
                     help="Skip files whose names start with 'Copy of ...' (Drive duplicates)")
+    ap.add_argument("--skip-root", action="store_true",
+                    help="Do not copy root-level Drive files into raw/modules/_root/")
     ap.add_argument("-v", "--verbose", action="store_true", help="Also print files that were unchanged")
     args = ap.parse_args()
 
@@ -249,6 +259,7 @@ def main() -> int:
     print(f"Source      : {src_root}")
     print(f"Target      : {RAW_MODULES.relative_to(ROOT)}/")
     print(f"Skip copies : {'yes' if args.skip_copies else 'no'}")
+    print(f"Root files  : {'skipped' if args.skip_root else 'copied to _root'}")
     if args.dry_run:
         print("Mode        : DRY RUN (no files will be copied)")
     print()
@@ -288,6 +299,56 @@ def main() -> int:
         for k in totals:
             totals[k] += counts[k]
         feature_reports.append((slug, counts, is_new_feature))
+
+    # ---- Root-level files (not inside any subfolder) → raw/modules/_root/ ----
+    ROOT_SLUG = "_root"
+    if not args.skip_root and (not args.only or args.only == ROOT_SLUG):
+        root_files = sorted(
+            p for p in src_root.iterdir()
+            if p.is_file() and not p.name.startswith(".")
+        )
+        if root_files:
+            dst_root_dir = RAW_MODULES / ROOT_SLUG
+            is_new_root = not dst_root_dir.exists()
+            if is_new_root:
+                new_features.append(ROOT_SLUG)
+                if not args.dry_run:
+                    dst_root_dir.mkdir(parents=True, exist_ok=True)
+                    (dst_root_dir / ".gitkeep").touch()
+
+            root_counts: dict[str, int] = {"new": 0, "updated": 0, "unchanged": 0, "skipped": 0}
+            for src in root_files:
+                reason = classify_skip(src.name, args.skip_copies)
+                if reason:
+                    root_counts["skipped"] += 1
+                    if reason == "google-native":
+                        all_skipped.append(f"{ROOT_SLUG}/{src.name}  (Google native — export to PDF first)")
+                    elif reason == "copy-duplicate":
+                        all_skipped.append(f"{ROOT_SLUG}/{src.name}  (Drive 'Copy of' duplicate — skipped)")
+                    elif reason.startswith("unsupported"):
+                        all_skipped.append(f"{ROOT_SLUG}/{src.name}  ({reason})")
+                    continue
+
+                dst = dst_root_dir / src.name
+                if dst.exists():
+                    if dst.stat().st_size == src.stat().st_size and file_sha256(src) == file_sha256(dst):
+                        root_counts["unchanged"] += 1
+                        if args.verbose:
+                            print(f"  [SAME  ] {ROOT_SLUG}/{src.name}")
+                        continue
+                    root_counts["updated"] += 1
+                    verb = "UPDATE"
+                else:
+                    root_counts["new"] += 1
+                    verb = "NEW   "
+
+                if not args.dry_run:
+                    shutil.copy2(src, dst)
+                print(f"  [{verb}] {ROOT_SLUG}/{src.name}")
+
+            for k in totals:
+                totals[k] += root_counts[k]
+            feature_reports.append((ROOT_SLUG, root_counts, is_new_root))
 
     # ---------------- Report ----------------
     print()

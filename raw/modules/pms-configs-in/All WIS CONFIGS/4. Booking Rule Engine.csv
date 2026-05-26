@@ -1,0 +1,34 @@
+Service: Booking Rule Engine,
+Total properties: 30,
+,
+Property Name,Description
+enableMealBookingNudge,(Official Tooltip) To enable meal nudge flow for meal booking.
+seatBookingEnabled,The master toggle for the entire Desk/Seat Booking module on the app and web.
+multipleBookingsOnASeatInADayAllowed,"Allows different employees to book the same physical seat at different times of the day (e.g., morning shift vs. evening shift)."
+wfhBookingAllowed,"Master switch to enable ""Work From Home"" logging and requests."
+isCalendarInviteEnabled,Triggers an automated calendar invite (.ics) to the user's email upon booking a seat.
+employeeCancelCutOff,The deadline (in hours/mins) before a shift starts where an employee can no longer cancel their booking.
+wfoReasonList,"Populates the dropdown options users see when asked ""Why are you coming to the office?"" (e.g., Meeting, Demo, Support)."
+advanceBooking,"Enables users to book seats days or weeks in advance, rather than just same-day."
+enableBookingsOnHolidays,Allows employees to book desks on dates designated as official company holidays.
+rejectBookingIfNoDesk,"Blocks a user from declaring ""Work From Office"" if the floor plan is at 100% capacity."
+autoAllocate,The system automatically assigns a desk to an employee based on their team zone if they don't pick one manually.
+seatValidation,Requires a physical check-in mechanism to confirm the user actually arrived at their desk.
+seatAllocationAction,"Dictates what happens if a user doesn't check in (e.g., REMOVE_SEAT frees it up for someone else)."
+extCheckinToBookingBuffer,Buffer time allowed between an external check-in (like badging at the turnstile) and the system confirming the desk booking.
+seatMandatory,"Forces a user to select a specific physical desk in order to complete a ""Work From Office"" request."
+maxShiftDuration,"The maximum duration of a single booking (e.g., 1440 minutes = 24 hours)."
+disableWfhWfoOverlapping,Prevents an employee from booking both a Work From Home day and a Work From Office desk on the exact same date.
+autoAbsentHours,"Marks an employee as a ""No Show"" if they fail to check in within this many hours of their shift start."
+countBookingBySomeOneElseAsEmployeeBooking,"If a manager or SPOC books a seat on behalf of an employee, it counts towards that employee's daily/weekly quota limits."
+approvalFlowEnabled,"Seat or WFH bookings go into a ""Pending"" status and require manager/admin approval."
+autoApproveEnabled,"Bypasses the manual approval flow, instantly confirming user requests."
+expiryCutOffInMinutes,Automatically cancels a booking and frees the desk if the user hasn't checked in within X minutes of their start time.
+wfhMonthlyLimit / wfhWeeklyLimit,Caps the maximum number of WFH days an employee is allowed to request per week or month.
+blockUserIfNotVaccinated,A health-safety compliance rule that prevents booking if the user's profile lacks vaccination approval.
+seatSanitizationCheck,Blocks a recently used seat from being booked back-to-back until cleaning staff marks it as sanitized.
+autoLogoutMinutes,Automatically checks the employee out of their desk X minutes after their scheduled shift ends.
+tagsEnabled,"Controls which global attendance tags (e.g., WFO, WFH) are active and selectable by users."
+qRScannerStartCutOffInMinute,How many minutes before a shift starts that an employee is allowed to scan the desk QR code to check in.
+qRScannerEndCutOffInMinute,How many minutes after a shift starts the QR code remains valid for check-in before the desk is forfeited.
+nextDayLogoutEnabled,Allows users working overnight shifts to have their check-out time roll over into the next calendar day.

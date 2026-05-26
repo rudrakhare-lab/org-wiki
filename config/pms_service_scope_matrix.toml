@@ -1,0 +1,91 @@
+# PMS service scope matrix.
+#
+# This file contains no secrets. It documents which entity levels can carry
+# config values for each PMS service. The runtime resolver should use this
+# matrix before trying to resolve an effective value for a BUID/office/room.
+#
+# Levels:
+# - BU: business-unit/BUID-level property
+# - OFFICE: office-level override under a BUID
+# - ROOM: room-level override under an office; currently applicable only to
+#   MEETING_ROOMS according to the known CMS behavior.
+# - ROLE: role-specific criteria observed for Project Management Service
+#   properties. Treat as a special criteria, not a physical hierarchy level.
+
+[PROJECT-MANAGEMENT-SERVICE]
+canonical_service_id = "PROJECT-MANAGEMENT-SERVICE"
+aliases = ["PROJECT-MANAGEMENT-SERVICES", "PMS", "1. PMS"]
+levels = ["BU"]
+criteria = ["BUID", "ROLE"]
+observed_role_values = ["cd210644-153b-4a57-aa48-5e7213a5da66", "employee", "RECEPTIONIST"]
+notes = "Navigation/module enablement and project-management service properties. Some properties use ROLE as customization criteria; confirm per-property criteriaPriorityList."
+
+[MEETING_ROOMS]
+canonical_service_id = "MEETING_ROOMS"
+aliases = ["MEETING ROOMS", "3. Meeting Rooms"]
+levels = ["BU", "OFFICE", "ROOM"]
+criteria = ["BUID", "OFFICEID", "ROOMID"]
+notes = "Meeting room configs can vary by BUID, office, and room."
+
+[VISITOR]
+canonical_service_id = "VISITOR"
+aliases = ["VMS", "Visitor Mgmt", "2. VMS", "2. Visitor Mgmt"]
+levels = ["BU", "OFFICE"]
+criteria = ["BUID", "OFFICEID"]
+notes = "Visitor-management configs can vary by BUID and office."
+
+[EMP_EXP_INTERNAL_CONFIGURATIONS]
+canonical_service_id = "EMP_EXP_INTERNAL_CONFIGURATIONS"
+aliases = ["EMP_EXP_INTERNAL_CONFIGURATION", "8. Emp Exp Internal Config"]
+levels = ["BU"]
+criteria = ["BUID"]
+notes = "Employee-experience internal config is BUID scoped."
+
+[BOOKING-RULE-ENGINE]
+canonical_service_id = "BOOKING-RULE-ENGINE"
+aliases = ["Booking Rule Engine", "4. Booking Rule Engine"]
+levels = ["BU", "OFFICE"]
+criteria = ["BUID", "OFFICEID"]
+notes = "Booking rules can vary by BUID and office."
+
+[EMAIL_EMPLOYEE_EXPERIENCE]
+canonical_service_id = "EMAIL_EMPLOYEE_EXPERIENCE"
+aliases = ["7. Email Emp Experience"]
+levels = ["BU"]
+criteria = ["BUID"]
+notes = "Email employee-experience templates/configs are BUID scoped."
+
+[WIS-SEAT-BOOKING]
+canonical_service_id = "WIS-SEAT-BOOKING"
+aliases = ["WIS Seat Booking", "5. WIS Seat Booking"]
+levels = ["BU", "OFFICE"]
+criteria = ["BUID", "OFFICEID"]
+notes = "Seat-booking configs can vary by BUID and office."
+
+[GUARD_APP]
+canonical_service_id = "GUARD_APP"
+aliases = ["GUARD-APP", "Guard App", "6. Guard App"]
+levels = ["BU", "OFFICE"]
+criteria = ["BUID", "OFFICEID"]
+notes = "Guard-app configs can vary by BUID and office."
+
+[EMPLOYEE_EXPERIENCE_COMMON_CONFIG]
+canonical_service_id = "EMPLOYEE_EXPERIENCE_COMMON_CONFIG"
+aliases = ["EMPLOYEE-EXPERIENCE-COMMON-CONFIG", "9. Emp Exp Common Config"]
+levels = ["BU"]
+criteria = ["BUID"]
+notes = "Employee-experience common config is BUID scoped."
+
+[APP_SERVER_CONFIG]
+canonical_service_id = "APP_SERVER_CONFIG"
+aliases = ["App Server Config"]
+levels = ["BU"]
+criteria = ["BUID"]
+notes = "App-server config is BUID scoped."
+
+[ETS]
+canonical_service_id = "ETS"
+aliases = ["Employee Transportation Service"]
+levels = ["BU", "OFFICE"]
+criteria = ["BUID", "OFFICEID"]
+notes = "ETS configs can vary by BUID and office."

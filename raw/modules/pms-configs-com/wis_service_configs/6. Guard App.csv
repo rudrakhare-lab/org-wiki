@@ -1,0 +1,35 @@
+Property Name,Data Type,Description
+isTemperatureScanEnabled,BOOLEAN,Enables the temperature scan feature.
+guardAppCutOffTime,STRING,Defines the cutoff time for guard application actions such as entry validation.
+isMultipleScan,BOOLEAN,Controls whether a QR code can be scanned multiple times for the same context.
+featureBookingBuids,STRING,-
+smsTriggerTime,STRING,Defines the configured time at which SMS notifications are triggered.
+seatMetricsTimes,LIST,Defines configured time intervals used for calculating seat utilization and booking metrics.
+isAutoEntryAllowed,BOOLEAN,Automatically switches to the next DigiPass scan mode after the first scan is completed.
+featurePhoneEnabled,DOUBLE,-
+enableQrCodeForSeatSanitize,BOOLEAN,Enables or disables QR code scanning for seat sanitization.
+enableQrCodeForSeatManagement,BOOLEAN,Enables QR based validation for check in
+seatSanitizeCuttoffInMinute,DOUBLE,Defines the seat sanitization cutoff time in minutes.
+qrImageClientLogoUrl,STRING,Controls the URL of the client logo displayed on generated QR codes.
+qrImagefooterUrl,STRING,Controls the URL of the footer image displayed on generated QR codes.
+isCoreBuid,BOOLEAN,Tells the Guard service which BUID is the primary (default) site for that Guard configuration block.
+isSummedFloorCapacity,BOOLEAN,"When enabled, the system calculates total seat capacity by summing floor capacities; when disabled, seat capacity can be manually defined."
+env,JSON,Defines the environment to which the site is mapped.
+forecastingColumns,JSON,Defines the set of data columns displayed in forecasting reports.
+listOfIpsWithRange,LIST,Defines whitelisted IP addresses or IP ranges for office check-in restrictions.
+maxTemperatureAllowed,DOUBLE,Defines the maximum temperature threshold allowed for entry validation.
+entryType,STRING,-
+minTemperatureAllowed,DOUBLE,Defines the minimum temperature threshold allowed for entry validation.
+isSendEmailOnHighTemperature,BOOLEAN,Sends email notifications to configured stakeholders when an employee's temperature meets or exceeds the maximum threshold during guard app check-in.
+enableParkingCheckOutWithOfficeCheckOut,BOOLEAN,Controls whether parking checkout is automatically performed along with office checkout.
+receiverEmailId,LIST,List of email IDs to which notifications or communication should be sent from the Guard App.
+checkInBookingsType,LIST,Controls which booking types are auto-checked-in together when one check-in action happens.
+enableCarbonFootprintTrackingInParking,BOOLEAN,Enables carbon footprint tracking for employee commutes and displays emissions metrics.
+enableOfficeCheckInWithParkingCheckIn,BOOLEAN,Controls whether office check-in is automatically completed along with parking check-in.
+pmsEnabled,BOOLEAN,Controls whether the Property Management System (PMS) integration is enabled.
+neighbourSeatsRadius,INTEGER,Defines the radius within which a seat cannot be booked.
+scanInterval,DOUBLE,Defines the minimum time interval required between consecutive scans.
+roomMaintenanceNotificationEmails,LIST,Controls the email recipient list of room maintenance events.
+maintenanceWindow,JSON,Controls the maintenance event suggestion window.
+groupTypes,JSON,Defines the group types used for hierarchy setup.
+FLOOR_VIEW,JSON,Controls the group type configuration for hierarchy setup on the floor plan.

@@ -1,0 +1,95 @@
+Property Name,Data Type,Description
+MEETING_ROOM_ENABLED,BOOLEAN,Enables the Meeting Room option under Team Manager Dashboard.
+UPCOMING_VISITOR,BOOLEAN,Enables Visitor Management.
+ENABLE_MIS,BOOLEAN,Enables the switch to ETS option in the sidenav for a specific role.
+RESOURCE_APPROVALS_PAGE,BOOLEAN,For approval Workflow
+BOOKING_APPROVAL,BOOLEAN,Enables the Booking Approval page.
+RESOURCE_REQUESTS_PAGE,BOOLEAN,booking request page
+Analytics,LIST,Enables the Reporting page.
+SUPPORT USER VIEW,LIST,Configures Support-SSO (mistm) role access.
+EMPLOYEES_ENABLED,BOOLEAN,Enables the People > Employees page.
+SAFE_REACH_ENABLED,BOOLEAN,Enables the Safe Reach dashboard in the WIS sidenav.
+employee,LIST,Configures ETS Employee role access.
+BULK_OPERATION_VISITOR_BOOKING,BOOLEAN,Enables bulk upload of visitor lists on the Invite Visitor page.
+CATERING_AUDIT_HISTORY,BOOLEAN,Enables audit history for Catering Orders.
+WORKSPACE_MANAGER,LIST,Configures Workspace Manager role access.
+GLOBAL ADMIN,LIST,Configures Global Admin role access.
+SEAT_UTILIZATION_ENABLED,BOOLEAN,Enables the Desk Utilization option in Seat Management.
+team_manager,LIST,Configures Team Manager role access.
+admin,LIST,Configures Admin role access.
+Workspace Manager,LIST,Configures Workspace Manager role access.
+ENABLE_MEETING_CATERING,BOOLEAN,Enables catering requests option for meeting room bookings.
+transportmanager-nobilling,LIST,Configures Transport Manager (No Billing) role access.
+SEAT_AUTO_ALLOCATION,BOOLEAN,Enables Desk Auto Allocation.
+ANALYTICS,LIST,Enables the Reports page in the sidenav.
+ROOM_TAGGING_ENABLED,BOOLEAN,Enables the Room Tagging option on the Bulk Operations page.
+SEAT_MANAGEMENT_ENABLED,BOOLEAN,Enables the Seat Bookings option under Team Manager Dashboard.
+transportmgr,LIST,Configures Transport Manager role access.
+SEAT_FORECASTING_ENABLED,BOOLEAN,To enable Desk Forecasting Feature
+IMPLEMENTATION_HEAD,LIST,Configures Implementation Head role access.
+ENABLE_TAG_MANAGEMENT,BOOLEAN,Activates self-service Tag Management module on sidenav.
+projectmgr,LIST,Configures Project Manager role access.
+SETTINGS_ENABLED,BOOLEAN,Enables the Settings option in the sidenav with Configurations and Roles & User Groups pages.
+SUPPORT USER EDIT,LIST,Configures Support-SSO (mistm) role access.
+RECENT_ACTIVITY_ENABLED_FOR_ADMIN,BOOLEAN,Enables Recent Activity on the Admin Dashboard.
+CONFIGURATIONS_ENABLED,BOOLEAN,Enables the Configurations page under Settings.
+PARKING_ALLOCATION,BOOLEAN,Enables the Parking Allocation page in the sidenav.
+FILE_BASED_UPLOAD,BOOLEAN,Enables Desk bulk upload option in Seat Management.
+CATERING_DASHBOARD,BOOLEAN,Enables the Catering Dashboard in the sidenav.
+ENABLE_WIS,BOOLEAN,Enables the WorkInSync button in the Transport Dashboard.
+dashboard,BOOLEAN,Enables the Dashboard option under Team Manager Dashboard.
+DASHBOARD_ENABLED,BOOLEAN,Enables the Home Dashboard.
+siteadmin,LIST,Configures Site Admin role access.
+OFFICE_SELECTION_ENABLED,BOOLEAN,Enables Office Selection under Team Manager Dashboard.
+PREMISES_ENABLED,BOOLEAN,Enables the Premises page in the sidenav.
+isBookingForNonRegisteredEmpBySpocConfigEnabled,BOOLEAN,Controls whether a SPOC is allowed to create bookings for non-registered employees via SPOC flows (Work Planner / Booking for Someone Else flow).
+VENDOR_DASHBOARD,BOOLEAN,Enables the Vendor Dashboard entry (for cafeteria/meals) in their UI.
+ADMIN_FRONT_DESK,BOOLEAN,Enables Visitor Management for Admin Front Desk.
+TEAM MANAGER,LIST,Configures Team Manager role access.
+TEAM_MANAGER_COLUMNS,STRING,Configures columns on the People > Employees page.
+Leadership,LIST,Configures Leadership role access.
+ROOM_ALLOCATION_ENABLED,BOOLEAN,Enables the Room Allocation option in the Bulk Operations section.
+WORK_PLANNER_ENABLED,BOOLEAN,Enables the Work Planner option in the sidenav.
+LOAD_COMMON_PROFILE_PAGE,BOOLEAN,Enables the default WIS profile page.
+Create_Meeting_Room,BOOLEAN,Enables meeting room creation button from meeting room planner page.
+VACCINATION_REVIEW,BOOLEAN,-
+ENABLE_HELP_SECTION,BOOLEAN,Enables the Help section in the sidenav.
+MY_BOOKINGS_ENABLED,BOOLEAN,Enables the My Bookings option under Team Manager Dashboard.
+HR MANAGER,LIST,Configures HR Manager role access.
+new_seat_booking_url,STRING,Defines the new Seat Booking URL.
+EMPLOYEE_TAGGING_ENABLED,BOOLEAN,Enables the Employee Tagging feature.
+transport-dashboard,BOOLEAN,"Defines the landing dashboard page used for transport operations (legacy or modern) for a given site/BUID. This key is typically configured to point the landing/transport dashboard to the correct ETS dashboard URL, and works together with the ENABLE_NEW_TRANSPORT_DASHBOARD flag."
+BOOKING_UPLOAD_ENABLED,BOOLEAN,Enables Booking bulk upload option.
+request,BOOLEAN,-
+ENABLE_HIERARCHY_PAGE,BOOLEAN,Enables the People > Hierarchy page in the sidenav.
+BOOKING_HISTORY,BOOLEAN,Enables the Booking History option.
+VACCINATION_STATUS,BOOLEAN,Enables the Vaccination page in the sidenav.
+REPORTS_ENABLED,BOOLEAN,Enables the Reports section.
+EMPLOYEE_CHECKIN,BOOLEAN,Enables the My Bookings page in the sidenav.
+old_seat_booking_url,STRING,Defines the old Seat Booking URL.
+EAManager,LIST,Configures EAManager role access.
+hr_manager,LIST,Configures HR Manager role access.
+DESK_TAGGING_ENABLED,BOOLEAN,Enables the Desk Tagging feature.
+DESK_AUDIT,BOOLEAN,Enables Desk Audit section.
+schedules,BOOLEAN,-
+MULTIPLE_BOOKINGS_ENABLED,BOOLEAN,Enables creation of multiple bookings from Work Planner.
+SANITISATION_STATUS_ENABLED,BOOLEAN,Enables sidenav section of seat sanitization status (covid feature)
+FRONT_DESK,BOOLEAN,Enables Visitor Management for Front Desk.
+PARKING_TAGGING_ENABLED,BOOLEAN,Enables the Parking Tagging option.
+INVITE_VISITOR,BOOLEAN,Enables the Visitor Management > Invite Visitor page in the sidenav.
+bookingForNonRegisteredEmpBySpoc,BOOLEAN,-
+EMPLOYEE_WEB_EXPERIENCE,BOOLEAN,Enables the Employee Home page for specified roles.
+MSU,LIST,Configures MSU role access.
+FORECAST_ENABLED,BOOLEAN,Enables the Desk Forecasting feature.
+COMMUNICATION_CONSOLE_ENABLED,BOOLEAN,Enables the Broadcast feature.
+AUDIT_HISTORY,BOOLEAN,Enable Audit history on Sidenav.
+OFFICE ADMIN,LIST,Configures Office Admin role access.
+RECEPTIONIST,LIST,Configures Receptionist role access.
+EMPLOYEE_PROFILE_AUDIT,BOOLEAN,Enables Employee Profile audit history under Audit History section on sidenav.
+delegation,JSON,Enables the Delegation feature in the sidenav.
+configuration.registration.dashboard,STRING,Controls whether the employee self-registration experience is exposed via the dashboard for a given site/BUID.
+EMPLOYEE,LIST,Configures WIS Employee role access.
+security-supervisor,LIST,Configures Security Supervisor role access.
+active-bu,STRING,-
+SCHEDULE_MANAGER,LIST,Configures Schedule Manager role access.
+TransportManager,LIST,Configures Transport Manager role access.

@@ -1,0 +1,309 @@
+Service: EMPLOYEE-EXPERIENCE-COMMON-CONFIG,
+Total properties: 305,
+,
+Property Name,Description
+teamCalendarEnabled,Enables Team Calendar feature.
+adminAssignmentFloorPlanUrl,Defines Admin Seat Allocation Floor Plan URL.
+enableWaitlistBooking,Enables waitlist functionality in parking bookings.
+hierarchy,Defines organizational hierarchy levels.
+enableJoinAllWaitlist,Allows joining waitlists across all parking levels.
+showMealPaymentCTA,Enables meal payment CTA integrated with payment gateways.
+waitListBookingBufferTimeInMin,Defines buffer time in minutes for waitlist bookings.
+employeeFloorPlanUrl,Defines Employee Floor Plan URL.
+welcomeEmailEnabled,Controls sending of welcome emails.
+autoSlotAllocate,Automatically allocates parking slots without manual slot selection.
+enableProjectCodeFor,Enables Project Code field for specified booking types.
+restrictMultipleVisitorBookingCheckIn,Restricts multiple visitor booking check-ins.
+enableColorInParkingVehicleCreation,Adds vehicle color input field in parking vehicle creation.
+TIME_FORMAT,Defines time format for UI.
+remoteSignCutoffInMinute,Defines cutoff time for contactless bus solution sign-in.
+enablePerpetualDigipassForAllUsers,Allows DigiPass generation without office booking.
+restrictMealScanToOne,Restricts meal QR scanning to once per meal window.
+enableGeofenceCheckForCheckin,Enforces check-in validation within defined geofence limits.
+cutoffTimeForSkipWISAppFeedback,Defines interval in hours for app feedback display frequency.
+autoClockOutRemainderMinutes,Defines minutes before logout when reminder notification is triggered.
+showSeatSearchOnAdminPages,Enables desk search on admin floor plan pages.
+isCalendarInviteEnabled,Enables calendar invite option.
+showParking,Controls parking field visibility in Teams chatbot.
+empID,Controls whether the Employee ID field is shown or hidden during employee profile validation.
+showMeetingRoomOnApp,Enables Meeting Room booking option on mobile app.
+bookingEnabledOnTag,Enables booking based on tags.
+contactTHDReasons,
+meetingRoomKioskUrl,Defines Meeting Room Kiosk URL.
+cacheTimeInHoursOfAarogyaSetuUserStatus,Defines Aarogya Setu status cache duration.
+seatBooking,Defines primary Seat Booking application URL.
+showSanitizationDetails,Displays sanitization details in the app.
+parkingStartCutOffInMinute,Defines minutes before booking start when parking QR can be generated.
+INDEMNIFICATION_REASONS,Defines available indemnification reasons.
+approvalFlowEnabled,Enables Team Manager approval dashboard.
+showRegistrationNumberInputFieldForParking,Displays vehicle registration number input field during parking booking.
+showWorkinsyncLogoOnSideNav,Controls WorkInSync logo visibility on sidenav.
+allowBookingConversionFromWfhToWfo,Enables direct WFH to WFO booking conversion.
+projectCodeMandatoryFor,Makes Project Code field mandatory for specified booking types.
+airtelBuid,
+isShuttleRequired,Replaces cab labels and icons with shuttle terminology across modules.
+showEmployeeSearchOnSeatBooking,Enables colleague search by name.
+APPROVAL_POST_NO_SHOW_CHECK_BUFFER,
+enableSafeReachWisList,Defines environments where Safe Reach is enabled.
+autoClockOutRemainder,Sends reminder notification before auto-checkout triggers.
+preferencesFloorPlanUrl,Defines Preferences floor plan URL.
+autoProvisionEnabled,Automatically marks all employees as onboarded during bulk onboarding.
+bookingRuleEngine,Defines Booking Rule Engine URL.
+enableMealCartView,Activates meal cart and payment flow when enabled with showMealPaymentCTA.
+isReportingAndAnalyticEnable,
+commuteMandatory,Requires users to select either parking or transport while creating an office booking to prevent resource-less bookings.
+allowEmployeeToBooKAnySeatInBL,Allows employees to book seats within permitted hierarchy levels in BL.
+commentsMandatoryOnRating,
+enableEmployeePreferences,Enables employee preference settings on web.
+isCheckinNotificationEnabled,Enables notification after successful check-in.
+showWomenSafetyInSideMenu,Displays Women Safety Handbook in mobile side menu.
+mealPlanningMandatory,Makes meal selection mandatory in office booking form.
+floorManagement,Defines Floor Management URL.
+showMealCountOnBookingForm,Displays real-time meal availability count on booking form.
+email,Controls whether the Email field is shown or hidden during employee profile validation.
+showVaccinationOptionInSideMenu,Enables Vaccination status option in the app side menu.
+adminFloorPlanUrl,Defines Admin Floor Plan URL.
+enableBookingEmail,Enables booking details email notification.
+CutOffTimeBetweenBookingsOnSeatInMinute,Defines minimum gap between consecutive bookings on the same seat.
+sanitisationFloorPlanUrl,
+enabledCheckInEmailBodyParam,Defines enabled parameters in check-in email body.
+onBehalfBookingEmailToCreatorEnabled,Controls on-behalf booking email notification to creator.
+enableNewAllocationFlow,Enables new allocation flow required for time-based allocation.
+nodal,Controls whether the Nodal Point field is shown or hidden during employee profile validation
+allowBookingForOthers,Defines booking types allowed for others.
+qRScannerEndCutOffInMinute,Defines minutes after booking start when Scan QR becomes inactive.
+onlyParkingBookingEnabled,Displays only the Parking booking option on Employee Home and FAB for clients using MoveInSync exclusively for parking.
+lastSwipeAsCheckoutTimeForBUID,Uses the last swipe checkout time as final checkout instead of auto-checkout for access card integration clients.
+vaccinationBookingUrl,URL for the vaccination booking feature in the app.
+ENABLE_CHECKIN_NOTIFICATION,Master switch to enable check-in notifications.
+blockNumber,Controls Block number field visibility.
+parkingMailNotificationMinutes,Defines parking email trigger minutes.
+consentPopupData,Defines consent popup configuration.
+blockGenerateDigiPassOnSeatMandatory,Blocks DigiPass generation when seat is mandatory.
+womenSafetyDocUrl,Controls URL of Women Safety Handbook document.
+showOfficeInfoOnBookingForm,Displays searchable office address list during booking.
+enableCarbonFootprintTrackingInParking,Tracks and displays carbon footprint for employee commutes.
+enableGridFloorPlan,Enables grid-based parking floor plan.
+blockOfficeCheckingIfNoBooking,Blocks office check-in without booking.
+EnableNewEmailTemplate,Enables new email template format.
+averageOverallTripFeedbackCalculation,
+enableSafeReachForBookingTypes,Defines booking types eligible for Safe Reach.
+mobileNumberLength,Defines required mobile number length.
+enforceReAuthenticationDurationInMinutes,Defines re-authentication validity duration in minutes.
+landmark,Controls visibility of Landmark field during registration.
+multipleBookingsOnASeatInADayAllowed,Allows multiple bookings on the same seat within a single day.
+recurrenceBookingEnabled,Enables recurring booking feature.
+showBookingHistory,Enables booking history on app.
+multipleScanErrorMessage,Defines error message for multiple scans.
+checkinReminderCutoffInMinute,Defines when check-in reminder notification is sent.
+blockDelegationEmail,Blocks delegation email notifications.
+wfhType,Controls default Work From Home booking type.
+NO_SHOW_COUNT_BANNER_ENABLED,Controls no-show banner visibility.
+empExpUi,Defines Employee Experience UI URL.
+vaccinationMaxApprovalDays,Defines maximum days allowed for vaccination request approval.
+seatSanitizationCheck,Controls seat sanitization validation before booking.
+vehicleCreationDuringParkingEnabled,Controls vehicle creation during parking booking.
+name,Controls whether the Name field is shown or hidden during employee profile validation
+empExp,Defines primary Employee Experience URL.
+floorPlan,Defines primary Floor Plan URL.
+parkingReminderEmailEnabled,Controls parking reminder emails.
+projectCodeEnabledOnBooking,Controls Project Code field visibility.
+seatBookingV2,Enables Seat Booking version 2.
+officeCheckInModeApp,Configures office check-in mode for mobile app.
+qRScannerStartCutOffInMinute,Defines minutes before booking start when Scan QR becomes active.
+mealCutoffInMinutes,Defines meal booking cutoff calculated from 00:00 of booked date.
+reAuthenticationModePhone,Defines phone-based two-step authentication mode.
+transferBookingEnabled,Adds a 'Transfer Booking Details' column in seat and meeting room reports.
+promotionDisplayText,
+isAmenitiesFilter,Enables amenities filter in desk booking.
+approvalWebViewUrl,Defines approval web view URL.
+allowCheckInAtIncorrectSlot,Allows check-in outside booked slot.
+enableGeofenceCheckFor,Enables GPS/geofence validation for specified workflows.
+igonreErrorOfArrogyaSetu,Ignores Aarogya Setu app status check errors.
+adminexpUI,Defines Admin Experience UI URL.
+mapSchedulesToBooking,Automatically maps schedules to matching bookings.
+bulkScheduleAllowedDaysForRoom,Defines bulk room scheduling window.
+showSeparateDigipassFor,Controls resource-level DigiPass generation.
+officeCheckInReminderEmailEnabled,Controls office check-in reminder emails.
+homeGeocode,Controls whether the Home Geocode field is shown or hidden during employee profile validation.
+scheduledTimeForVisitorGatePassEmailInMin,
+mobile,Controls whether the Mobile field is shown or hidden during employee profile validation
+tripRatingMandatoryThreshold,
+enableBookingCancellationReasonsFor,Requires cancellation reason for specified booking types.
+vehicleFuelTypes,
+includeChildHierarchy,Controls inclusion of child hierarchy levels.
+adminexpUi,Defines alternate Admin UI URL.
+teamManager,Defines Team Manager service URL.
+directCheckinStartCutOffInMinute,Defines start cutoff for direct check-in.
+bookingRequestApprovalFlowEnabled,Enables booking approval workflow.
+cutoffTimeBetweenWISAppFeedback,Defines minimum time gap between feedback prompts.
+isGDPRCookiePolicyEnabled,Displays GDPR compliance pop-up in mobile app.
+profileRegistrationEmailSubject,
+shuttleSigninRemainderNotificationEnabled,
+cancelTransportBooking,Allows transport booking cancellation.
+isSeatBookingAssignment,Controls seat assignment feature.
+reportingService,Defines Reporting service URL.
+checkInWithoutAarogyasetuValidation,Allows check-in without Aarogya Setu validation.
+autoLogoutEnabled,Enables automatic sign-out after configured duration.
+bookingCancellationReasons,Defines cancellation reason list.
+shareRideCallDriver,
+parkingEndCutOffInMinute,Defines minutes after booking start when parking QR can be generated.
+projectCodeEnabledOnBookingMandatory,Controls mandatory Project Code field.
+enforceReAuthentication,Enables enforcement of re-authentication.
+wfhReasonList,Work From Home/Remote booking reasons.
+showBookingsOfSomeoneElseOnWeb,
+externalStaffUi,Defines External Staff UI URL.
+parkingExpiry,Defines expiry time of generated parking QR.
+mealPlanningEnabled,Enables meal booking via Work Planner.
+allowQrCheckInWithoutSeat,Allows QR check-in without seat.
+autoSeatCheckOutEnabled,Enables auto seat checkout.
+enableFloorPlanAccessibility,Enables accessibility features for visually impaired users.
+meetingOptionWebViewUrl,Defines Meeting Room web view URL.
+wfhBookingAllowed,Controls WFH booking visibility in WorkInSync Teams chatbot.
+parkingBookingMandatory,Makes parking booking mandatory for office booking.
+enableTimeBasedDeskAllocation,Enables time-based desk allocation and disables List View.
+autoPopulateBookingForm,Auto-populates booking form using preferences or past data.
+enabledCheckInEmailBodyParamNames,Defines parameter names in check-in email body.
+isPhoneValidationOptional,Controls whether phone number is optional or mandatory during employee registration.
+autoSeatCheckOutMinutes,Defines auto seat checkout duration.
+floorPlanUI,Defines Floor Plan UI URL.
+gender,Controls whether the Gender field is shown or hidden during employee profile validation.
+parkingScheduleCutoff,Defines advance booking window for parking.
+DATE_FORMAT,Defines date format for UI.
+showSeparateDigipassForParking,Displays separate digipass for parking resources in the mobile app.
+enableTransportBookingBulkUpload,
+mobilityHealthStatus,Displays driver vaccination details on the Tracking page.
+vehicleCreationDuringParkingFor,Controls vehicle creation by type (CAR
+isDynamicFieldsMandatory,Makes dynamic fields mandatory.
+parkingAllocationUrl,Defines Parking Allocation URL.
+DATE_FORMAT_SERVICES,Defines date format for backend services.
+allowRoomBookingWithOfficeBooking,Controls visibility of Room booking option on Employee Home.
+mealFeedbackEnabled,Enables meal feedback feature and reporting.
+premiseUI,Defines Premises management UI URL.
+showBookingFilter,Enables toggle to show/hide cancelled bookings.
+empexpUI,Defines Employee Experience interface URL.
+bookingsTypesForCheckinReminder,Defines booking types eligible for check-in reminder.
+filterNoAvailableSeatInFloor,Filters floors without available seats.
+officeCheckInModeWeb,Configures office check-in mode for web.
+showQRScanner,Enables Scan QR option in the app.
+reAuthenticationModeEmail,Defines email-based two-step authentication mode.
+shuttleBookingConfirmationNotificationEnabled,
+directCheckinEndCutOffInMinute,Defines end cutoff for direct check-in.
+seatScanEnable,Enables seat QR scanning on booking page.
+TIME_FORMAT_SERVICES,Defines time format for backend services.
+office,Controls whether the Office field is shown or hidden during employee profile validation
+noOfDaysAllowedInPlanner,Defines allowed planning window.
+isAppFeedbackEnabled,Enables app feedback feature.
+directCheckinExpiryInMinute,Defines expiry time for direct check-in.
+forecastingEfficiancy,
+shuttleSigninRemainderBufferMins,
+scheduled_reminder_notification_enabled_buids,
+officeCheckInMode,Configures office check-in mode for mobile.
+bookingConversionCutOff,Defines cutoff time for WFH to WFO and vice versa conversion.
+autoAllocate,Enables automatic desk allocation during bulk booking upload.
+isBlSubblBuid,Enables N-level hierarchy/Business Line feature for BU.
+parkingEnabled,Enables parking option in the booking form.
+autoTagAssignmentMapping,Automatically assigns tags based on employee designation.
+showOrderOfChallengesAfterQRScan,Displays declaration after QR scan.
+vaccinationBookingEnabled,Enables vaccination slot booking feature in the app.
+wfhClockinCutOffInMinute,Defines cutoff time for WFH clock-in.
+isZedaReleaseNoteEnabled,Displays Zeda widget showcasing new features and feedback.
+enableMultiAllocation,Controls desk multi-allocation functionality and displays the Multi-allocated Desk legend entry on floor plans when value includes 'DESK'
+showTeamCalendarOption,Displays Team Calendar option in the app.
+meetingRoomUrl,Defines Meeting Room module URL.
+isAutoProvision,
+roomAllocationEnabled,Enables automatic room allocation.
+defaultLogoutShiftMinutes,Auto-populates checkout time based on configured duration after check-in selection.
+transferBookingTypes,
+enableAutoAbsentNotification,Sends notification when a booking results in no-show.
+upcomingMeetingsEmployeeHome,Controls display of upcoming meetings on Employee Home.
+enableEmployeeRFIDColumn,Enables RFID number field and prevents duplicates.
+showConfirmationForLogoutTracking,
+visitorWidgetEnabled,Displays visitor management widget on Employee Home.
+qRScannerExpiry,Defines expiry time of QR scanner after booking start.
+showOtpWithoutDigipassGeneration,Displays cab login/logout OTPs directly on the booking card.
+confirmationMessageForLogoutTracking,
+showOtherEmployeeDetailsOnSeat,Controls visibility of other employee booking details on seat view.
+reportingAndAnalyticUrl,Defines Reporting and Analytics dashboard URL.
+isAutoAbsentEnabled,Enables auto-absent feature and automatic seat release if check-in does not occur within cutoff.
+stopNoShowEmailForShuttle,
+vaxEmailEnabled,
+autoLogoutMinutes,Defines minutes after planned checkout for auto-checkout trigger.
+remoteSignInAllowed,Enables remote sign-in using Scan QR.
+isMasterNudgeNotifEnabled,Controls master nudge notifications.
+enableDynamicFields,Enables configurable dynamic fields per BU.
+showSeatSearchOnSeatBooking,Enables desk search by desk number.
+trackAnyShuttleEnabled,
+numberOfAllowedTrips,Defines maximum trips per user.
+securityGuard,Defines Security Guard service URL.
+allowBookingConversionFromWfoToWfh,Enables direct WFO to WFH booking conversion.
+fabDisplayNames,Defines FAB display names.
+wfhDisabled,Controls whether WFH booking is enabled or disabled.
+VAX_STATUS_CHECK_SEEK_RTPCR_EMP,Allows or restricts RTPCR upload for non-fully vaccinated employees.
+CANCELLATION_REMINDER_NOTIFICATION,Enables cancellation reminder notifications.
+showQRScannerMeetingCheckIn,Enables QR-based meeting room check-in.
+enableProjectColor,Enables enhanced seat and team color legends on floor plan.
+showFabQRScanner,Controls QR scanner visibility on FAB.
+bannerNewRoomBookingEmpHome,Defines banner text for New Room booking page.
+DIRECTION,
+singleShiftOperations,Hides time components in Team Calendar and Preferences for single-shift environments.
+captureEmployeeBookingStats,Enables booking statistics capture.
+blockUserIfNotVaccinated,Blocks non-vaccinated users from making bookings when enabled.
+PRE_TRIP_CANCELLATION_NOTIFICATION_MINUTES_BEFORE_LOGIN_CANCELLATION_CUTOFF,
+enableTimezoneWithOfficeName,Displays timezone with office name.
+PRE_TRIP_CANCELLATION_NOTIFICATION_MINUTES_BEFORE_LOGOUT_CANCELLATION_CUTOFF,
+madatoryFieldforScheduling,
+employeeStatusModuleEnabled,
+sendEmailIneligibility,
+seatBookingUrl,Defines Seat Booking service URL.
+ADDRESS_CHANGE_RESTRICTED_AREA_VALIDATION,
+ADDRESS_CHANGE_RADIAL_DISTANCE_VALIDATION,
+transportFieldsMandatory,Controls whether transport fields are mandatory.
+bufferTimeInSecondsOfAarogyaSetuUser,
+ADDRESS_CHANGE_HOME_TO_OFFICE_DISTANCE_VALIDATION,
+ADDRESS_CHANGE_TRANSPORT_BOUNDARY_VALIDATION,
+BOOKING_HISTORY,Enables booking history option on web.
+generateGatepassDelayCutOff,Defines minutes after booking start when DigiPass generation is allowed.
+ssoMandatory,Removes OTP login option and enforces SSO-only login on mobile.
+pendingRequestsNotificationEnabled,Controls pending request notifications.
+enableNewAdminDashboard,Enables Admin Dashboard 2.0.
+allowPastAllocationTimesForCurrentDayFor,Allows admins to allocate desks/slots/rooms for past shift times on the same day.
+bannerStartTime,
+promotionBannerUrl,
+employeePIIMasking,Configures selective masking of PII fields and visual security settings.
+tagsEnabled,Defines enabled booking tags.
+bannerEndTime,
+isDelegationEnabled,Master switch enabling Delegation feature.
+industryStandard,Controls industry standard values on Admin Dashboard metric cards.
+enableDelegationForAdmins,Allows admins to manage delegation.
+nativeRoomEmail,Displays room email ID input in new room workflow.
+bannerNativeRoomEmail,Controls native banner visibility in room emails.
+MOBILE_APP_BANNERS,
+delegatorDelegateeEmailsEnabled,Sends email notification to delegator.
+adminExpUi,
+listOfEligibleBuidsForBusNotification,
+jobTitleWiseCalenderInDays,
+SEAT_BELT_NON_COMPLIANCE_REPORT_EMAIL_ENABLED,
+showSignedinStateOnEmployeeFloorPlan,Displays signed-in desk state (green indicator) on Employee Floor Plan.
+allowedEmployeeNameRegex,Defines the allowed employee name format using regex validation.
+enableQRBasedRemoteSignin,Enables QR-based remote sign-in.
+seatBeltUndoTimeoutMinutes,
+remoteSignOutCutoffInMinute,Defines cutoff time for remote sign-out.
+maxTripLevelNonComplianceEventsAllowed,maxTripLevelNonComplianceEventsAllowed
+smsTrackingEnabled,
+isCheckInReminderOnMsTeamEnabled,true
+maximumCharacterLimit,
+mobileSSOMandatory,Removes the 'Continue with OTP' option on the mobile SSO login screen.
+cardSyncDefaultMinutes,
+microBookingEnabled,
+allowPeerOrMarshalReporting,
+listOfEligibleBuidsForAutoClockout,Defines BUs eligible for auto clock-out.
+isBuNudgeNotifEnabled,Enables weekly nudge notifications for users without bookings.
+hideBookingTimeMealOnly,
+enableMealImageIn,To show meal image in meal item
+meetingDetailsForDateUrl,Defines Meeting Details by date URL.
+enableVisitorManagementOnApp,Enables visitor management in app.
+ACCESS_MATRIX_ENABLED_BUIDS,Defines BUs with access matrix enabled.
+CITY_DISTRICT_MAPPINGS,
+seatBeltNonFunctioningIssues,
+medicalEmergencyRequest,

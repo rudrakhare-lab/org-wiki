@@ -1,0 +1,406 @@
+Property Name,Data Type,Description
+allowPeerOrMarshalReporting,BOOLEAN,-
+enablePriorityWiseAutoSlotAllocate,BOOLEAN,Assigns slots based on priority order defined by display order value.
+userResourceGroupMappingEnabled,BOOLEAN,Indicates whether resource group mapping is enabled for office visibility.
+showCanceledCountinAttendanceChart,BOOLEAN,Controls visibility of cancelled count in attendance charts.
+officeCheckInModeWeb,STRING,Configures office check-in mode for web.
+seatBeltNonFunctioningIssues,LIST,-
+officeCheckInMode,STRING,Configures office check-in mode for mobile.
+roomEmailIdEmailMessage,JSON,Defines meeting room email message templates.
+rbacDeskAllocationEnabled,BOOLEAN,Enables RBAC-based desk allocation.
+REQUIRE_APPROVAL_FOR_OPT_OUT,LIST,-
+crossTeamAllocationEnabled,BOOLEAN,Allows cross-team desk and employee allocation.
+BOOKING_AGGREGATES_MIGRATION_TIMEZONES,LIST,-
+OPT_IN_APPROVAL_FLOW_ENABLED,BOOLEAN,OPT_IN_APPROVAL_FLOW_ENABLED
+adminAssignmentFloorPlanUrl,STRING,Defines Admin Seat Allocation Floor Plan URL.
+showMeetingRoomOnApp,BOOLEAN,Enables Meeting Room booking option on mobile app.
+showSeatSearchOnSeatBooking,BOOLEAN,Enables desk search by desk number.
+enableTeamAsResource,BOOLEAN,Creates resource entry for newly created teams.
+isTripRatingMandatory,BOOLEAN,Controls trip rating requirement.
+mealPlanningEnabled,BOOLEAN,Enables meal booking via Work Planner.
+maxTripLevelNonComplianceEventsAllowed,INTEGER,-
+seatBeltUndoTimeoutMinutes,INTEGER,-
+smsTrackingEnabled,BOOLEAN,-
+bookingCreationMessage,STRING,Defines booking success message.
+hideScheduleButtonFromFab,BOOLEAN,-
+CITY_DISTRICT_MAPPINGS,JSON,-
+enableMealDayWiseAvailability,BOOLEAN,Allows admin to configure meal availability per day.
+gatepassExpiryMinutes,INTEGER,Defines DigiPass expiry duration after booking start.
+USER_CLOCK_OUT_REMAINDER_MINUTES,INTEGER,-
+autoPopulateSchedulingForm,BOOLEAN,autoPopulateSchedulingForm
+BOOKING_AGGREGATES_MIGRATION_ENABLED,BOOLEAN,Checks if migration is enabled for booking aggregates.
+wayfindingPathColor,JSON,Controls arrow color customization in wayfinding path.
+USERCLOCKOUTREMAINDERMINUTES,INTEGER,-
+IS_WIS_CALENDAR,BOOLEAN,Enables the Native Rooms view on the Outlook Add-In and allows use of WIS Meeting Rooms with tags and allocations.
+enableWaitlistBooking,BOOLEAN,Enables waitlist functionality in parking bookings.
+medicalEmergencyRequest,JSON,-
+createSeatBookingWithOfficeBooking,BOOLEAN,Auto-creates seat booking with office booking.
+maxEmployeeSelectionWorkplanner,INTEGER,Defines maximum number of employees allowed for recurring bookings.
+workplannerRecurrenceMaxDays,INTEGER,Defines maximum recurrence window in Workplanner.
+floorKioskUrl,STRING,Floor Kiosk URL.
+enableOfficeCheckInWithParkingCheckIn,BOOLEAN,Links office check-in with parking check-in.
+parkingReminderNotificationEnabled,BOOLEAN,Controls parking reminder notifications.
+enableWisThemeColors,BOOLEAN,Enables dynamic theming using wisThemeColors property.
+BOOKING_AGGREGATES_MIGRATION_BUIDS,LIST,List of buids that requires migration of booking aggregates.
+WisThemeColors,JSON,Defines theme colors for WorkInSync modules.
+checkInBookingsType,LIST,Defines booking types eligible for check-in.
+showTeamOnKioskForEmployee,BOOLEAN,Displays team name instead of employee ID in kiosk organizer dropdown.
+optInDisplayText,JSON,Defines commute opt-in/opt-out display text.
+optInOptionsEnabled,LIST,-
+safereach,STRING,-
+tripRatingMandatory,BOOLEAN,Controls whether trip rating is mandatory.
+BOOKING_AGGREGATES_MIGRATION_DELAY_SECONDS,INTEGER,Time delay between migration of buids in booking aggregates.
+parkingReminderNotificationMinutes,LIST,Defines parking reminder trigger minutes.
+showMealTimings,BOOLEAN,Shows meal time on items for standard meal booking.
+showQRScanner,BOOLEAN,Enables Scan QR option in the app.
+hierarchy,LIST,Defines organizational hierarchy levels.
+enableCheckInForMeetingRoomEmpHome,BOOLEAN,Displays the check-in button on the 'Today's Meeting' widget for old room types and allows check-in from Employee Home.
+empHomeWidgetMeetingRoomCheckInCutOff,INTEGER,Defines check-in cutoff for meeting room check-in from Employee Home widget.
+optInDeclarationConfig,JSON,Declaration configurations for optin.
+showMealCost,BOOLEAN,Shows meal cost on items for standard meal booking.
+floorPlanViewMeetingRoomsWeb,BOOLEAN,Enables floor plan view for meeting rooms on web.
+enableJoinAllWaitlist,BOOLEAN,Allows joining waitlists across all parking levels.
+showMealPaymentCTA,BOOLEAN,Enables meal payment CTA integrated with payment gateways.
+waitListBookingBufferTimeInMin,INTEGER,Defines buffer time in minutes for waitlist bookings.
+generateGatepassAdvanceCutOff,DOUBLE,Defines minutes before booking start when DigiPass generation becomes active.
+enableVisitorManagementOnApp,BOOLEAN,Enables visitor management in app.
+optInOutV3Declaration,JSON,-
+autoRejectionForOptIn,BOOLEAN,-
+isBuNudgeNotifEnabled,BOOLEAN,Enables weekly nudge notifications for users without bookings.
+floorKioskCheckinInfo,BOOLEAN,Enables real-time desk check-in display on Floor Kiosk.
+skipOptInTimeWindowValidation,BOOLEAN,-
+listOfExcludedBuidsForCheckin,LIST,Defines BUs excluded from check-in.
+wfhMinBetweenClockInClockOut,DOUBLE,Defines minimum duration between WFH clock-in and clock-out.
+meetingRoomKioskUrl,STRING,Defines Meeting Room Kiosk URL.
+employeeFloorPlanUrl,STRING,Defines Employee Floor Plan URL.
+welcomeEmailEnabled,BOOLEAN,Controls sending of welcome emails.
+autoSlotAllocate,BOOLEAN,Automatically allocates parking slots without manual slot selection.
+enableProjectCodeFor,LIST,Enables Project Code field for specified booking types.
+restrictMultipleVisitorBookingCheckIn,BOOLEAN,Restricts multiple visitor booking check-ins.
+enableColorInParkingVehicleCreation,BOOLEAN,Adds vehicle color input field in parking vehicle creation.
+TIME_FORMAT,STRING,Defines time format for UI.
+remoteSignCutoffInMinute,DOUBLE,Defines cutoff time for contactless bus solution sign-in.
+enablePerpetualDigipassForAllUsers,BOOLEAN,Allows DigiPass generation without office booking.
+showSignedinStateOnEmployeeFloorPlan,BOOLEAN,Displays signed-in desk state (green indicator) on Employee Floor Plan.
+restrictMealScanToOne,BOOLEAN,Restricts meal QR scanning to once per meal window.
+enableGeofenceCheckForCheckin,BOOLEAN,Enforces check-in validation within defined geofence limits.
+jobTitleWiseCalenderInDays,JSON,-
+tripFeedbackExpressionsMap,LIST,-
+approvalFlowInWfoEnabled,BOOLEAN,Enables approval workflow for WFO.
+approvalFlowInInWfhEnabled,BOOLEAN,Enables approval workflow for WFH.
+hideBookingTimeMealOnly,BOOLEAN,-
+cutoffTimeForSkipWISAppFeedback,DOUBLE,Defines interval in hours for app feedback display frequency.
+autoClockOutRemainderMinutes,DOUBLE,Defines minutes before logout when reminder notification is triggered.
+standardTeamColor,STRING,Defines default team legend color in floor plan.
+nextDayLogoutEnabled,BOOLEAN,Controls visibility of next-day logout shifts in booking form.
+enableTeamCalendarRMView,BOOLEAN,Enables hierarchy filter on Team Calendar.
+officeCheckInReminderEmailCtaEnabled,BOOLEAN,Adds Check-in and Cancel CTAs in reminder emails.
+microBookingEnabled,BOOLEAN,-
+safeReachSuccessMessage,STRING,Defines success message for Safe Reach.
+mobileSSOMandatory,BOOLEAN,Removes the 'Continue with OTP' option on the mobile SSO login screen.
+FEATURE_MEDICAL_EMERGENCY_EMAIL_TM,BOOLEAN,-
+meetingRoomsWidgetEnabled,BOOLEAN,Controls Meeting Rooms widget visibility.
+FEATURE_MEDICAL_EMERGENCY_EMAIL_RM,BOOLEAN,-
+NO_SHOW_APPROVAL_ENABLED,BOOLEAN,-
+bookingDisclaimers,JSON,Configures booking disclaimer messages.
+IPBasedCheckinEnabled,BOOLEAN,Restricts web check-in based on IP address.
+showSeatSearchOnAdminPages,BOOLEAN,Enables desk search on admin floor plan pages.
+listOfEligibleBuidsForBusNotification,LIST,-
+isCalendarInviteEnabled,BOOLEAN,Enables calendar invite option.
+showParking,BOOLEAN,Controls parking field visibility in Teams chatbot.
+selfCommuteSubmissionEmailSubject,STRING,Defines subject for opt-in/opt-out submission email.
+empHomepageTodaysAvailabilityCard,BOOLEAN,Displays full availability card on Employee Home based on enabled modules.
+empID,STRING,Controls whether the Employee ID field is shown or hidden during employee profile validation.
+bookingEnabledOnTag,BOOLEAN,Enables booking based on tags.
+contactTHDReasons,LIST,-
+cacheTimeInHoursOfAarogyaSetuUserStatus,DOUBLE,Defines Aarogya Setu status cache duration.
+seatBooking,STRING,Defines primary Seat Booking application URL.
+showSanitizationDetails,BOOLEAN,Displays sanitization details in the app.
+parkingStartCutOffInMinute,DOUBLE,Defines minutes before booking start when parking QR can be generated.
+INDEMNIFICATION_REASONS,STRING,Defines available indemnification reasons.
+approvalFlowEnabled,BOOLEAN,Enables Team Manager approval dashboard.
+showRegistrationNumberInputFieldForParking,BOOLEAN,Displays vehicle registration number input field during parking booking.
+showWorkinsyncLogoOnSideNav,BOOLEAN,Controls WorkInSync logo visibility on sidenav.
+allowBookingConversionFromWfhToWfo,BOOLEAN,Enables direct WFH to WFO booking conversion.
+projectCodeMandatoryFor,LIST,Makes Project Code field mandatory for specified booking types.
+airtelBuid,STRING,-
+isShuttleRequired,BOOLEAN,Replaces cab labels and icons with shuttle terminology across modules.
+showEmployeeSearchOnSeatBooking,BOOLEAN,Enables colleague search by name.
+APPROVAL_POST_NO_SHOW_CHECK_BUFFER,DOUBLE,-
+enableSafeReachWisList,LIST,Defines environments where Safe Reach is enabled.
+autoClockOutRemainder,BOOLEAN,Sends reminder notification before auto-checkout triggers.
+preferencesFloorPlanUrl,STRING,Defines Preferences floor plan URL.
+autoProvisionEnabled,BOOLEAN,Automatically marks all employees as onboarded during bulk onboarding.
+bookingRuleEngine,STRING,Defines Booking Rule Engine URL.
+enableMealCartView,BOOLEAN,Activates meal cart and payment flow when enabled with showMealPaymentCTA.
+isReportingAndAnalyticEnable,BOOLEAN,-
+commuteMandatory,BOOLEAN,Requires users to select either parking or transport while creating an office booking to prevent resource-less bookings.
+allowEmployeeToBooKAnySeatInBL,BOOLEAN,Allows employees to book seats within permitted hierarchy levels in BL.
+commentsMandatoryOnRating,DOUBLE,-
+enableEmployeePreferences,BOOLEAN,Enables employee preference settings on web.
+isCheckinNotificationEnabled,BOOLEAN,Enables notification after successful check-in.
+showWomenSafetyInSideMenu,BOOLEAN,Displays Women Safety Handbook in mobile side menu.
+mealPlanningMandatory,BOOLEAN,Makes meal selection mandatory in office booking form.
+floorManagement,STRING,Defines Floor Management URL.
+showMealCountOnBookingForm,BOOLEAN,Displays real-time meal availability count on booking form.
+email,STRING,Controls whether the Email field is shown or hidden during employee profile validation.
+showVaccinationOptionInSideMenu,BOOLEAN,Enables Vaccination status option in the app side menu.
+adminFloorPlanUrl,STRING,Defines Admin Floor Plan URL.
+enableBookingEmail,BOOLEAN,Enables booking details email notification.
+CutOffTimeBetweenBookingsOnSeatInMinute,DOUBLE,Defines minimum gap between consecutive bookings on the same seat.
+sanitisationFloorPlanUrl,STRING,-
+enabledCheckInEmailBodyParam,LIST,Defines enabled parameters in check-in email body.
+onBehalfBookingEmailToCreatorEnabled,BOOLEAN,Controls on-behalf booking email notification to creator.
+nodal,STRING,Controls whether the Nodal Point field is shown or hidden during employee profile validation.
+allowBookingForOthers,LIST,Defines booking types allowed for others.
+qRScannerEndCutOffInMinute,DOUBLE,Defines minutes after booking start when Scan QR becomes inactive.
+onlyParkingBookingEnabled,BOOLEAN,Displays only the Parking booking option on Employee Home and FAB for clients using MoveInSync exclusively for parking.
+lastSwipeAsCheckoutTimeForBUID,LIST,Uses the last swipe checkout time as final checkout instead of auto-checkout for access card integration clients.
+vaccinationBookingUrl,STRING,URL for the vaccination booking feature in the app.
+ENABLE_CHECKIN_NOTIFICATION,BOOLEAN,Master switch to enable check-in notifications.
+blockNumber,STRING,Controls Block number field visibility.
+teamCalendarEnabled,BOOLEAN,Enables Team Calendar feature.
+parkingMailNotificationMinutes,DOUBLE,Defines parking email trigger minutes.
+consentPopupData,LIST,Defines consent popup configuration.
+blockGenerateDigiPassOnSeatMandatory,BOOLEAN,Blocks DigiPass generation when seat is mandatory.
+womenSafetyDocUrl,STRING,Controls URL of Women Safety Handbook document.
+showOfficeInfoOnBookingForm,BOOLEAN,Displays searchable office address list during booking.
+enableCarbonFootprintTrackingInParking,BOOLEAN,Tracks and displays carbon footprint for employee commutes.
+enableGridFloorPlan,BOOLEAN,Enables grid-based parking floor plan.
+blockOfficeCheckingIfNoBooking,BOOLEAN,Blocks office check-in without booking.
+EnableNewEmailTemplate,BOOLEAN,Enables new email template format.
+averageOverallTripFeedbackCalculation,BOOLEAN,-
+enableSafeReachForBookingTypes,LIST,Defines booking types eligible for Safe Reach.
+mobileNumberLength,DOUBLE,Defines required mobile number length.
+enforceReAuthenticationDurationInMinutes,DOUBLE,Defines re-authentication validity duration in minutes.
+landmark,STRING,Controls visibility of Landmark field during registration.
+multipleBookingsOnASeatInADayAllowed,BOOLEAN,Allows multiple bookings on the same seat within a single day.
+recurrenceBookingEnabled,BOOLEAN,Enables recurring booking feature.
+showBookingHistory,BOOLEAN,Enables booking history on app.
+multipleScanErrorMessage,STRING,Defines error message for multiple scans.
+checkinReminderCutoffInMinute,DOUBLE,Defines when check-in reminder notification is sent.
+blockDelegationEmail,BOOLEAN,Blocks delegation email notifications.
+wfhType,STRING,Controls default Work From Home booking type.
+NO_SHOW_COUNT_BANNER_ENABLED,BOOLEAN,Controls no-show banner visibility.
+empExpUi,STRING,Defines Employee Experience UI URL.
+vaccinationMaxApprovalDays,DOUBLE,Defines maximum days allowed for vaccination request approval.
+seatSanitizationCheck,BOOLEAN,Controls seat sanitization validation before booking.
+vehicleCreationDuringParkingEnabled,BOOLEAN,Controls vehicle creation during parking booking.
+name,STRING,Controls whether the Name field is shown or hidden during employee profile validation.
+empExp,STRING,Defines primary Employee Experience URL.
+floorPlan,STRING,Defines primary Floor Plan URL.
+parkingReminderEmailEnabled,BOOLEAN,Controls parking reminder emails.
+projectCodeEnabledOnBooking,BOOLEAN,Controls Project Code field visibility.
+seatBookingV2,BOOLEAN,Enables Seat Booking version 2.
+officeCheckInModeApp,STRING,Configures office check-in mode for mobile app.
+qRScannerStartCutOffInMinute,DOUBLE,Defines minutes before booking start when Scan QR becomes active.
+mealCutoffInMinutes,DOUBLE,Defines meal booking cutoff calculated from 00:00 of booked date.
+reAuthenticationModePhone,BOOLEAN,Defines phone-based two-step authentication mode.
+transferBookingEnabled,BOOLEAN,Adds a 'Transfer Booking Details' column in seat and meeting room reports.
+promotionDisplayText,STRING,-
+isAmenitiesFilter,BOOLEAN,Enables amenities filter in desk booking.
+approvalWebViewUrl,STRING,Defines approval web view URL.
+allowCheckInAtIncorrectSlot,BOOLEAN,Allows check-in outside booked slot.
+enableGeofenceCheckFor,LIST,Enables GPS/geofence validation for specified workflows.
+igonreErrorOfArrogyaSetu,BOOLEAN,Ignores Aarogya Setu app status check errors.
+adminexpUI,STRING,Defines Admin Experience UI URL.
+mapSchedulesToBooking,BOOLEAN,Automatically maps schedules to matching bookings.
+bulkScheduleAllowedDaysForRoom,DOUBLE,Defines bulk room scheduling window.
+showSeparateDigipassFor,LIST,Controls resource-level DigiPass generation.
+officeCheckInReminderEmailEnabled,BOOLEAN,Controls office check-in reminder emails.
+homeGeocode,STRING,Controls whether the Home Geocode field is shown or hidden during employee profile validation.
+scheduledTimeForVisitorGatePassEmailInMin,DOUBLE,-
+mobile,STRING,Controls whether the Mobile field is shown or hidden during employee profile validation.
+tripRatingMandatoryThreshold,JSON,-
+enableBookingCancellationReasonsFor,LIST,Requires cancellation reason for specified booking types.
+vehicleFuelTypes,LIST,-
+includeChildHierarchy,BOOLEAN,Controls inclusion of child hierarchy levels.
+adminexpUi,STRING,Defines alternate Admin UI URL.
+teamManager,STRING,Defines Team Manager service URL.
+directCheckinStartCutOffInMinute,DOUBLE,Defines start cutoff for direct check-in.
+bookingRequestApprovalFlowEnabled,BOOLEAN,Enables booking approval workflow.
+cutoffTimeBetweenWISAppFeedback,JSON,Defines minimum time gap between feedback prompts.
+isGDPRCookiePolicyEnabled,BOOLEAN,Displays GDPR compliance pop-up in mobile app.
+profileRegistrationEmailSubject,STRING,-
+shuttleSigninRemainderNotificationEnabled,BOOLEAN,-
+cancelTransportBooking,BOOLEAN,Allows transport booking cancellation.
+isSeatBookingAssignment,BOOLEAN,Controls seat assignment feature.
+reportingService,STRING,Defines Reporting service URL.
+checkInWithoutAarogyasetuValidation,BOOLEAN,Allows check-in without Aarogya Setu validation.
+autoLogoutEnabled,BOOLEAN,Enables automatic sign-out after configured duration.
+bookingCancellationReasons,LIST,Defines cancellation reason list.
+shareRideCallDriver,BOOLEAN,-
+parkingEndCutOffInMinute,DOUBLE,Defines minutes after booking start when parking QR can be generated.
+projectCodeEnabledOnBookingMandatory,BOOLEAN,Controls mandatory Project Code field.
+enforceReAuthentication,BOOLEAN,Enables enforcement of re-authentication.
+wfhReasonList,STRING,Work From Home/Remote booking reasons.
+showBookingsOfSomeoneElseOnWeb,BOOLEAN,-
+externalStaffUi,STRING,Defines External Staff UI URL.
+parkingExpiry,DOUBLE,Defines expiry time of generated parking QR.
+allowQrCheckInWithoutSeat,BOOLEAN,Allows QR check-in without seat.
+autoSeatCheckOutEnabled,BOOLEAN,Enables auto seat checkout.
+enableFloorPlanAccessibility,BOOLEAN,Enables accessibility features for visually impaired users.
+meetingOptionWebViewUrl,STRING,Defines Meeting Room web view URL.
+wfhBookingAllowed,BOOLEAN,Controls WFH booking visibility in WorkInSync Teams chatbot.
+parkingBookingMandatory,BOOLEAN,Makes parking booking mandatory for office booking.
+enableTimeBasedDeskAllocation,BOOLEAN,Enables time-based desk allocation and disables List View.
+autoPopulateBookingForm,BOOLEAN,Auto-populates booking form using preferences or past data.
+enabledCheckInEmailBodyParamNames,LIST,Defines parameter names in check-in email body.
+isPhoneValidationOptional,BOOLEAN,Controls whether phone number is optional or mandatory during employee registration.
+autoSeatCheckOutMinutes,DOUBLE,Defines auto seat checkout duration.
+floorPlanUI,STRING,Defines Floor Plan UI URL.
+parkingSlotBufferTimeInMin,STRING,Defines parking allocation buffer time.
+gender,STRING,Controls whether the Gender field is shown or hidden during employee profile validation.
+parkingScheduleCutoff,DOUBLE,Defines advance booking window for parking.
+DATE_FORMAT,STRING,Defines date format for UI.
+showSeparateDigipassForParking,BOOLEAN,Displays separate digipass for parking resources in the mobile app.
+enableTransportBookingBulkUpload,BOOLEAN,-
+mobilityHealthStatus,STRING,Displays driver vaccination details on the Tracking page.
+vehicleCreationDuringParkingFor,LIST,Controls vehicle creation by type (CAR etc.).
+isDynamicFieldsMandatory,BOOLEAN,Makes dynamic fields mandatory.
+parkingAllocationUrl,STRING,Defines Parking Allocation URL.
+DATE_FORMAT_SERVICES,STRING,Defines date format for backend services.
+allowRoomBookingWithOfficeBooking,BOOLEAN,Controls visibility of Room booking option on Employee Home.
+mealFeedbackEnabled,BOOLEAN,Enables meal feedback feature and reporting.
+premiseUI,STRING,Defines Premises management UI URL.
+showBookingFilter,BOOLEAN,Enables toggle to show/hide cancelled bookings.
+empexpUI,STRING,Defines Employee Experience interface URL.
+bookingsTypesForCheckinReminder,LIST,Defines booking types eligible for check-in reminder.
+filterNoAvailableSeatInFloor,BOOLEAN,Filters floors without available seats.
+reAuthenticationModeEmail,BOOLEAN,Defines email-based two-step authentication mode.
+shuttleBookingConfirmationNotificationEnabled,BOOLEAN,-
+directCheckinEndCutOffInMinute,DOUBLE,Defines end cutoff for direct check-in.
+seatScanEnable,BOOLEAN,Enables seat QR scanning on booking page.
+TIME_FORMAT_SERVICES,STRING,Defines time format for backend services.
+office,STRING,Controls whether the Office field is shown or hidden during employee profile validation.
+noOfDaysAllowedInPlanner,DOUBLE,Defines allowed planning window.
+isAppFeedbackEnabled,BOOLEAN,Enables app feedback feature.
+directCheckinExpiryInMinute,DOUBLE,Defines expiry time for direct check-in.
+forecastingEfficiancy,DOUBLE,-
+shuttleSigninRemainderBufferMins,DOUBLE,-
+scheduled_reminder_notification_enabled_buids,STRING,-
+bookingConversionCutOff,DOUBLE,Defines cutoff time for WFH to WFO and vice versa conversion.
+autoAllocate,BOOLEAN,Enables automatic desk allocation during bulk booking upload.
+isBlSubblBuid,BOOLEAN,Enables N-level hierarchy/Business Line feature for BU.
+parkingEnabled,BOOLEAN,Enables parking option in the booking form.
+autoTagAssignmentMapping,JSON,Automatically assigns tags based on employee designation.
+showOrderOfChallengesAfterQRScan,BOOLEAN,Displays declaration after QR scan.
+vaccinationBookingEnabled,BOOLEAN,Enables vaccination slot booking feature in the app.
+wfhClockinCutOffInMinute,DOUBLE,Defines cutoff time for WFH clock-in.
+isZedaReleaseNoteEnabled,BOOLEAN,Displays Zeda widget showcasing new features and feedback.
+enableMultiAllocation,LIST,Controls desk multi-allocation functionality and displays the Multi-allocated Desk legend entry on floor plans when value includes 'DESK'.
+showTeamCalendarOption,BOOLEAN,Displays Team Calendar option in the app.
+meetingRoomUrl,STRING,Defines Meeting Room module URL.
+isAutoProvision,BOOLEAN,-
+roomAllocationEnabled,BOOLEAN,Enables automatic room allocation.
+defaultLogoutShiftMinutes,DOUBLE,Auto-populates checkout time based on configured duration after check-in selection.
+transferBookingTypes,LIST,-
+enableAutoAbsentNotification,BOOLEAN,Sends notification when a booking results in no-show.
+upcomingMeetingsEmployeeHome,BOOLEAN,Controls display of upcoming meetings on Employee Home.
+enableEmployeeRFIDColumn,BOOLEAN,Enables RFID number field and prevents duplicates.
+showConfirmationForLogoutTracking,BOOLEAN,-
+visitorWidgetEnabled,BOOLEAN,Displays visitor management widget on Employee Home.
+qRScannerExpiry,DOUBLE,Defines expiry time of QR scanner after booking start.
+showOtpWithoutDigipassGeneration,BOOLEAN,Displays cab login/logout OTPs directly on the booking card.
+confirmationMessageForLogoutTracking,STRING,-
+showOtherEmployeeDetailsOnSeat,BOOLEAN,Controls visibility of other employee booking details on seat view.
+reportingAndAnalyticUrl,STRING,Defines Reporting and Analytics dashboard URL.
+isAutoAbsentEnabled,BOOLEAN,Enables auto-absent feature and automatic seat release if check-in does not occur within cutoff.
+stopNoShowEmailForShuttle,BOOLEAN,-
+vaxEmailEnabled,BOOLEAN,-
+autoLogoutMinutes,DOUBLE,Defines minutes after planned checkout for auto-checkout trigger.
+remoteSignInAllowed,BOOLEAN,Enables remote sign-in using Scan QR.
+isMasterNudgeNotifEnabled,BOOLEAN,Controls master nudge notifications.
+enableDynamicFields,BOOLEAN,Enables configurable dynamic fields per BU.
+trackAnyShuttleEnabled,BOOLEAN,-
+numberOfAllowedTrips,DOUBLE,Defines maximum trips per user.
+securityGuard,STRING,Defines Security Guard service URL.
+allowBookingConversionFromWfoToWfh,BOOLEAN,Enables direct WFO to WFH booking conversion.
+fabDisplayNames,LIST,Defines FAB display names.
+wfhDisabled,BOOLEAN,Controls whether WFH booking is enabled or disabled.
+VAX_STATUS_CHECK_SEEK_RTPCR_EMP,BOOLEAN,Allows or restricts RTPCR upload for non-fully vaccinated employees.
+CANCELLATION_REMINDER_NOTIFICATION,BOOLEAN,Enables cancellation reminder notifications.
+showQRScannerMeetingCheckIn,BOOLEAN,Enables QR-based meeting room check-in.
+enableProjectColor,BOOLEAN,Enables enhanced seat and team color legends on floor plan.
+showFabQRScanner,BOOLEAN,Controls QR scanner visibility on FAB.
+bannerNewRoomBookingEmpHome,STRING,Defines banner text for New Room booking page.
+DIRECTION,STRING,-
+singleShiftOperations,BOOLEAN,Hides time components in Team Calendar and Preferences for single-shift environments.
+captureEmployeeBookingStats,BOOLEAN,Enables booking statistics capture.
+blockUserIfNotVaccinated,BOOLEAN,Blocks non-vaccinated users from making bookings when enabled.
+PRE_TRIP_CANCELLATION_NOTIFICATION_MINUTES_BEFORE_LOGIN_CANCELLATION_CUTOFF,INTEGER,-
+enableTimezoneWithOfficeName,BOOLEAN,Displays timezone with office name.
+selfCommuteWithdrawalEmailSubject,STRING,Defines subject for opt-in/opt-out withdrawal email.
+PRE_TRIP_CANCELLATION_NOTIFICATION_MINUTES_BEFORE_LOGOUT_CANCELLATION_CUTOFF,INTEGER,-
+madatoryFieldforScheduling,LIST,-
+employeeStatusModuleEnabled,BOOLEAN,-
+sendEmailIneligibility,BOOLEAN,-
+seatBookingUrl,STRING,Defines Seat Booking service URL.
+ADDRESS_CHANGE_RESTRICTED_AREA_VALIDATION,STRING,-
+ADDRESS_CHANGE_RADIAL_DISTANCE_VALIDATION,STRING,-
+transportFieldsMandatory,BOOLEAN,Controls whether transport fields are mandatory.
+bufferTimeInSecondsOfAarogyaSetuUser,DOUBLE,-
+ADDRESS_CHANGE_HOME_TO_OFFICE_DISTANCE_VALIDATION,STRING,-
+ADDRESS_CHANGE_TRANSPORT_BOUNDARY_VALIDATION,STRING,-
+BOOKING_HISTORY,BOOLEAN,Enables booking history option on web.
+generateGatepassDelayCutOff,DOUBLE,Defines minutes after booking start when DigiPass generation is allowed.
+ssoMandatory,BOOLEAN,Removes OTP login option and enforces SSO-only login on mobile.
+pendingRequestsNotificationEnabled,BOOLEAN,Controls pending request notifications.
+enableNewAdminDashboard,BOOLEAN,Enables Admin Dashboard 2.0.
+allowPastAllocationTimesForCurrentDayFor,LIST,Allows admins to allocate desks/slots/rooms for past shift times on the same day.
+bannerStartTime,STRING,-
+promotionBannerUrl,STRING,-
+employeePIIMasking,LIST,Configures selective masking of PII fields and visual security settings.
+tagsEnabled,LIST,Defines enabled booking tags.
+bannerEndTime,STRING,-
+isDelegationEnabled,BOOLEAN,Master switch enabling Delegation feature.
+industryStandard,JSON,Controls industry standard values on Admin Dashboard metric cards.
+enableDelegationForAdmins,BOOLEAN,Allows admins to manage delegation.
+nativeRoomEmail,BOOLEAN,Displays room email ID input in new room workflow.
+bannerNativeRoomEmail,BOOLEAN,Controls native banner visibility in room emails.
+allowedEmployeeNameRegex,STRING,Defines the allowed employee name format using regex validation.
+meetingDetailsForDateUrl,STRING,Defines Meeting Details by date URL.
+Floorplan_Legend_Employee_Web_Expanded,BOOLEAN,Controls expanded or collapsed legend state on employee web floor plan.
+MOBILE_APP_BANNERS,LIST,-
+delegatorDelegateeEmailsEnabled,BOOLEAN,Sends email notification to delegator.
+enableMealImageIn,LIST,To show meal image in meal item.
+SEAT_BELT_NON_COMPLIANCE_REPORT_EMAIL_ENABLED,BOOLEAN,-
+enableQRBasedSignOutButton,BOOLEAN,Enables QR-based sign-out.
+showEmployeeCreation,BOOLEAN,-
+showConfigureDeskAmenities,BOOLEAN,Controls visibility of desk amenities configuration button.
+enableQRBasedRemoteSignin,BOOLEAN,Enables QR-based remote sign-in.
+mealFeedbackOptions,JSON,Configures meal feedback options.
+remoteSignOutCutoffInMinute,INTEGER,Defines cutoff time for remote sign-out.
+maximumCharacterLimit,DOUBLE,-
+editProfileEnabled,BOOLEAN,Controls profile editing.
+ENABLE_INDOOR_NAVIGATION,BOOLEAN,Enables wayfinding/navigation to desks.
+isEmployeeCreationEnabledForMSu,BOOLEAN,Controls MSU employee creation feature.
+allowBookingWithDedicatedSeat,LIST,Controls whether dedicated seat holders can book other desks.
+notificationOnDeskRelease,BOOLEAN,Controls desk release notifications.
+isEmloyeeCreationForMsuEnabled,BOOLEAN,Controls MSU employee creation.
+pinDisanceThresholdForShuttleStopApi,DOUBLE,-
+mappedShuttleRouteBufferInMinutes,DOUBLE,-
+nearByShuttleStopDistanceInMetre,DOUBLE,-
+blockChecinOutsideGeofence,BOOLEAN,-
+workplannerCheckInDelayCutOffInMinute,INTEGER,Defines late check-in limit for Workplanner bookings.
+genericLabelForDesk,STRING,-
+enableParkingCheckOutWithOfficeCheckOut,BOOLEAN,Links parking checkout with office checkout.
+Premise_Floorplan_Legend_Collapsed,BOOLEAN,Collapses the legend by default on the Premises floor plan view.
+crossHierarchyAllocationEnabled,BOOLEAN,Defines if cross hierarchy allocation is allowed for RBAC enabled sites.
+listOfEligibleBuidsForAutoClockout,LIST,Defines BUs eligible for auto clock-out.
+excludeMealOnlyBookingsFromActiveBookingCount,BOOLEAN,Decides whether to exclude meal booking from web/app/bulk from active booking count for any user.
+searchCriteriaVendorKiosk,JSON,Used to control search section and placeholder for vendor kiosk and dashboard search.
+mealNotifications,BOOLEAN,Enable e-mails related to meal bookings for QR.
+enableMultiMealSelect,BOOLEAN,Enables multi selection on meal booking.
+SEAT_BELT_NON_COMPLIANCE_EMAIL_CONFIGS,JSON,-
+runTransportOptOutJob,BOOLEAN,Auto rejection/approval + schedule deletion for opted out users.
+liveSupportChatFeatureEnabled,BOOLEAN,-
+enableSuppportRequest,BOOLEAN,-
+optOutPendingEmailSubject,STRING,-
+workplannerCheckInAdvanceCutOffInMinute,INTEGER,Defines early check-in limit for Workplanner bookings.
+ACCESS_MATRIX_ENABLED_BUIDS,LIST,Defines BUs with access matrix enabled.
+isWelcomeEmailEnabled,BOOLEAN,-
+enableNewAllocationFlow,BOOLEAN,Enables new allocation flow required for time-based allocation.
+enableStandardMealSelectionFlow,BOOLEAN,Enables standard meal booking flow and overrides both normal chip and cart view.
+checkInByTimeChip,BOOLEAN,True - Show the check-in-by chip and chevron to provide users with detailed check-in times. False - Do not show the check-in-by chip or the chevron on booking cards.
+mealOnlyBulkBookingOptionalHeaders,LIST,Optional headers.

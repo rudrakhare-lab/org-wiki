@@ -1,0 +1,99 @@
+# config/jira.toml — Jira integration configuration
+#
+# This file is committed to git. It contains NO secrets — credentials are read
+# from environment variables (see .env.example). Only non-sensitive config goes here.
+
+[connection]
+# Read at runtime from env vars. Do not put real values here.
+base_url_env = "JIRA_BASE_URL"
+email_env    = "JIRA_EMAIL"
+token_env    = "JIRA_API_TOKEN"
+
+# REST API version. Cloud is "3"; Server typically "2".
+api_version = "3"
+
+[rate_limit]
+# Token bucket: max requests per second
+requests_per_second = 10
+# On HTTP 429, exponential backoff
+retry_initial_seconds = 30
+retry_max_attempts    = 5
+
+[pagination]
+page_size = 100
+
+[sync]
+# Maximum age of cached custom field map before re-fetching
+custom_field_cache_hours = 24
+
+# ------------------------------------------------------------------------------
+# JQL filters — see docs/jira-filter.md for rationale
+# ------------------------------------------------------------------------------
+
+[[filters]]
+name = "A"
+description = "Tech Support + Tech Ops + Solution Enabler + Support"
+jql = '''
+project IN (TS, SUP, "TO", SE)
+AND "Functional Area" IN (
+  WP-admin, WP-workflows, WF-empexp,
+  WF-wis-admin, WF-wis-booking, WF-wis-meeting-vms
+)
+ORDER BY created DESC
+'''
+
+[[filters]]
+name = "B"
+description = "Tech Backlog + Product Backlog"
+jql = '''
+"Functional Area" IN (
+  WP-admin, WP-workflows, WF-empexp,
+  WF-wis-admin, WF-wis-booking, WF-wis-meeting-vms
+)
+AND project IN (TB, PB)
+ORDER BY created DESC
+'''
+
+# ------------------------------------------------------------------------------
+# Custom fields
+#
+# Discovered at runtime via /rest/api/3/field where possible. The fallback IDs
+# below were verified against this Jira instance on 2026-04-29 — they're used
+# when discovery returns a scope-limited response (which happens for tokens
+# without admin permission to list custom fields).
+# ------------------------------------------------------------------------------
+
+[custom_fields]
+# JQL display name → known customfield ID (verified 2026-04-29 via createmeta)
+[custom_fields.functional_area]
+display_name   = "Functional Area"
+fallback_id    = "customfield_11516"
+sqlite_column  = "functional_area"
+
+# ------------------------------------------------------------------------------
+# Fields requested from /rest/api/3/search/jql per issue
+# Keeping this explicit (rather than *all) controls payload size at 35K tickets
+# ------------------------------------------------------------------------------
+
+[fetch]
+fields = [
+  "summary",
+  "description",
+  "comment",
+  "issuetype",
+  "status",
+  "priority",
+  "resolution",
+  "resolutiondate",
+  "labels",
+  "components",
+  "reporter",
+  "assignee",
+  "parent",
+  "created",
+  "updated",
+  "issuelinks",
+  "attachment",
+  "customfield_11516",
+]
+expand = "renderedFields"

@@ -1,0 +1,35 @@
+Property Name,Data Type,Description
+autoExpireBeforeNoOfdays,INTEGER,-
+dynamicData,LIST,Defines configurable dynamic fields displayed in the booking form.
+employeeTagHeaders,LIST,Headers for employee tag
+roomTagHeaders,LIST,Headers for room tag
+seatingPlanHeaders,LIST,Headers for seating plan
+deskTagHeaders,LIST,Headers for desk tag
+parkingTagHeaders,LIST,Headers for parking tag
+autoExpireHour,STRING,Defines at what period hour your booking request expires
+landingPlanHeaders,LIST,Headers for landing plan
+wfoWeeklyLimit,INTEGER,Defines the maximum number of Work From Office bookings allowed per week.
+buidsEnabledForSeatBookingPMS,LIST,Defines service availaibility on PMS
+wfoMonthlyLimit,INTEGER,Defines the maximum number of Work From Office bookings allowed per month.
+amenitiesBulkUpload,BOOLEAN,Enables bulk upload flow for amenities
+TEST,BOOLEAN,-
+TestPropertySeatBooking,BOOLEAN,Defines whether the PMS is working on the wisseatbooking service
+seatBookingUrl,STRING,Defines the Seat Booking service URL.
+bookingRequestApprovalFlowEnabled,BOOLEAN,Controls whether the booking request approval workflow is enabled.
+autoRequestApprovalEnabled,BOOLEAN,Controls whether booking requests are automatically approved without manual intervention.
+expiryCutOffInMinutes,STRING,Controls when a pending seat booking request should be treated as expired
+expiryNotificationCutOffInMinutes,STRING,"Defines how many minutes before a booking approval request expires, used in conjunction with expiryCutOffInMinutes for approval-flow reminders."
+pendingRequestsNotificationEnabled,BOOLEAN,Controls whether notifications are sent for pending booking approval requests.
+approvedRequestNotificationEnabled,BOOLEAN,Controls whether notifications are sent for approved booking approval requests.
+rejectedRequestNotificationEnabled,BOOLEAN,Controls whether notifications are sent for rejected booking approval requests.
+expiredRequestNotificationEnabled,BOOLEAN,Controls whether notifications are sent when booking approval requests expire.
+wfhWeeklyLimit,INTEGER,Defines the maximum number of Work From Home bookings allowed per week.
+wfhMonthlyLimit,INTEGER,Defines the maximum number of Work From Home bookings allowed per month.
+approvalFlowInWfoEnabled,BOOLEAN,Controls whether the approval workflow is enabled for Work From Office bookings.
+approvalFlowInInWfhEnabled,BOOLEAN,Controls whether the approval workflow is enabled for Work From Home bookings.
+tagsEnabled,LIST,"Defines the list of enabled booking tags (e.g. WFO, WFH)."
+bookingApprovalEmailsEnabled,BOOLEAN,Controls whether email notifications are sent for booking approvals.
+cancelSchedulesEnabled,BOOLEAN,Defines whether it should allow cancellation of commute service
+DynamicData,LIST,Defines dynamic field setup for seat booking
+forecastingColumns,JSON,Defines the column mapping and labels used in forecasting reports.
+seatTagHeaders,LIST,Headers for seat tag

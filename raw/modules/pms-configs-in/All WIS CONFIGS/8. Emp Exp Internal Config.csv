@@ -1,0 +1,29 @@
+Service: EMP_EXP_INTERNAL_CONFIGURATION,
+Total properties: 25,
+,
+Property Name,Description
+bookingEnabledOnTag,"This property that controls whether booking is allowed based on a tag. eg: ""Even if this day is a weekly off, allow booking for employees/resources that carry a specific tag."""
+enableTimezoneWithOfficeName,This property controls whether the office name is displayed along with its timezone.
+wfhType,"This property controls the default type of Work From Home booking (e.g., PLANNED)."
+wfhClockinCutOffInMinute,This property controls the cutoff time in minutes for allowing WFH clock-in.
+shareRideCallDriver,(Inferred) Enables the ability for employees in shared rides to call the driver directly from the app.
+cacheTimeInHoursOfAarogyaSetuUserStatus,This property controls the cache duration in hours for Aarogya Setu user status (covid feature).
+bufferTimeInSecondsOfAarogyaSetuUser,This property controls the buffer time in seconds applied to Aarogya Setu user validation (covid feature).
+cutoffTimeForSkipWISAppFeedback,"If set to 720 (hours ~ 30 days), the internal app feedback will appear once in 30 days (720 hours) after every booking creation."
+enableGeofenceCheckForCheckin,This controls check-in from defined geo fence limit from office.
+madatoryFieldforScheduling,"(Inferred) Defines the list of mandatory fields (e.g., ADDRESS, GENDER, OFFICE, MOBILE) required when an employee is scheduling a trip/booking."
+remoteSignCutoffInMinute,Cut off for contactless sign-in for Bus solution.
+seatBookingV2,This property enables seat booking v2.
+showRegistrationNumberInputFieldForParking,To enable field for entering registration number while selecting parking slots in booking form.
+employeeStatusModuleEnabled,"If this property is set true, it starts using configuration under employeeStatusList."
+singleShiftOperations,"To remove shift selection option on booking form; it will set the booking time from 00:00 to 23:59. When enabled, hides time components in Team Calendar and Preferences to avoid confusion in single-shift environments."
+ssoExpiryInternalEmailRecipients,(Inferred) Defines the internal MoveInSync/DevOps email list that receives alerts when a client's SSO certificate is about to expire.
+allowEmployeeToBooKAnySeatInB,"(Inferred) Allows employees to book any seat within their permitted Business Line (BL), bypassing stricter team allocations."
+parkingReminderEmailEnabled,This property controls whether parking reminder emails are enabled.
+showLanguageOptionInHamburgerMenu,(Inferred) Displays a language selection toggle in the mobile app's hamburger/side menu.
+meetingRoomsWidgetEnabled,This property controls whether the meeting rooms widget is displayed in the employee home page on web.
+isDynamicFieldsMandatory,To make dynamic field mandatory.
+autoProvisionEnabled,To enable Auto registration process.
+cabArrivalIVR,(Inferred) JSON configuration for triggering automated IVR (Interactive Voice Response) phone calls to employees when their cab arrives.
+radius,"(Inferred) Defines the default radial distance limit (e.g., in km) used for transport geofencing or hiring boundaries."
+districts,(Inferred) Defines the list of approved districts/regions mapped to the office for transport routing and hiring boundaries.

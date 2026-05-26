@@ -1,0 +1,75 @@
+Service: PROJECT-MANAGEMENT-SERVICES,
+Total properties: 71,
+,
+Property Name,Description
+MEETING_ROOM_ENABLED,Enables the Meeting Room option under Team Manager Dashboard.
+UPCOMING_VISITOR,Enables Visitor Management.
+BOOKING_APPROVAL,Enables the Booking Approval page.
+ROOM_TAGGING_ENABLED,Enables the Room Tagging option on the Bulk Operations page.
+SEAT_MANAGEMENT_ENABLED,Enables the Seat Bookings option under Team Manager Dashboard.
+ENABLE_TAG_MANAGEMENT,Activates self-service Tag Management module on sidenav.
+SETTINGS_ENABLED,Enables the Settings option in the sidenav with Configurations and Roles & User Groups pages.
+SUPPORT USER EDIT,Configures Support-SSO (mistm) role access.
+EMPLOYEES_ENABLED,Enables the People > Employees page.
+SAFE_REACH_ENABLED,Enables the Safe Reach dashboard in the WIS sidenav.
+employee,Configures ETS Employee role access.
+BULK_OPERATION_VISITOR_BOOKING,Enables bulk upload of visitor lists on the Invite Visitor page.
+CATERING_AUDIT_HISTORY,Enables audit history for Catering Orders.
+RECENT_ACTIVITY_ENABLED_FOR_ADMIN,Enables Recent Activity on the Admin Dashboard.
+CONFIGURATIONS_ENABLED,Enables the Configurations page under Settings.
+PARKING_ALLOCATION,Enables the Parking Allocation page in the sidenav.
+FILE_BASED_UPLOAD,Enables Desk bulk upload option in Seat Management.
+CATERING_DASHBOARD,Enables the Catering Dashboard in the sidenav.
+WORKSPACE_MANAGER,Configures Workspace Manager role access.
+dashboard,Enables the Dashboard option under Team Manager Dashboard.
+DASHBOARD_ENABLED,Enables the Home Dashboard.
+siteadmin,Configures Site Admin role access.
+OFFICE_SELECTION_ENABLED,Enables Office Selection under Team Manager Dashboard.
+PREMISES_ENABLED,Enables the Premises page in the sidenav.
+isBookingForNonRegisteredEmpBySpocConfigEnabled,Controls whether a SPOC is allowed to create bookings for non-registered employees via SPOC flows (Work Planner / Booking for Someone Else flow).
+ADMIN_FRONT_DESK,Enables Visitor Management for Admin Front Desk.
+TEAM MANAGER,Configures Team Manager role access.
+SEAT_UTILIZATION_ENABLED,Enables the Desk Utilization option in Seat Management.
+ENABLE_MIS,Enables the switch to ETS option in the sidenav for a specific role.
+WORK_PLANNER_ENABLED,Enables the Work Planner option in the sidenav.
+LOAD_COMMON_PROFILE_PAGE,Enables the default WIS profile page.
+ENABLE_HELP_SECTION,Enables the Help section in the sidenav.
+SUPPORT USER VIEW,Configures Support-SSO (mistm) role access.
+MY_BOOKINGS_ENABLED,Enables the My Bookings option under Team Manager Dashboard.
+HR MANAGER,Configures HR Manager role access.
+new_seat_booking_url,Defines the new Seat Booking URL.
+EMPLOYEE_TAGGING_ENABLED,Enables the Employee Tagging feature.
+transport-dashboard,Defines the landing dashboard page used for transport operations (legacy or modern) for a given site/BUID.
+GLOBAL ADMIN,Configures Global Admin role access.
+configuration.registration.dashboard,Controls whether the employee self-registration experience is exposed via the dashboard for a given site/BUID.
+BOOKING_UPLOAD_ENABLED,Enables Booking bulk upload option.
+ENABLE_HIERARCHY_PAGE,Enables the People > Hierarchy page in the sidenav.
+team_manager,Configures Team Manager role access.
+BOOKING_HISTORY,Enables the Booking History option.
+VACCINATION_STATUS,Enables the Vaccination page in the sidenav.
+REPORTS_ENABLED,Enables the Reports section.
+admin,Configures Admin role access.
+projectmgr,Configures Project Manager role access.
+EMPLOYEE_CHECKIN,Enables the My Bookings page in the sidenav.
+old_seat_booking_url,Defines the old Seat Booking URL.
+Workspace Manager,Configures Workspace Manager role access.
+hr_manager,Configures HR Manager role access.
+DESK_TAGGING_ENABLED,Enables the Desk Tagging feature.
+ENABLE_WIS,Enables the WorkInSync button in the Transport Dashboard.
+DESK_AUDIT,Enables Desk Audit section.
+MULTIPLE_BOOKINGS_ENABLED,Enables creation of multiple bookings from Work Planner.
+SANITISATION_STATUS_ENABLED,Enables sidenav section of seat sanitization status (covid feature).
+FRONT_DESK,Enables Visitor Management for Front Desk.
+PARKING_TAGGING_ENABLED,Enables the Parking Tagging option.
+INVITE_VISITOR,Enables the Visitor Management > Invite Visitor page in the sidenav.
+EMPLOYEE,Configures WIS Employee role access.
+EMPLOYEE_WEB_EXPERIENCE,Enables the Employee Home page for specified roles.
+MSU,Configures MSU role access.
+FORECAST_ENABLED,Enables the Desk Forecasting feature.
+COMMUNICATION_CONSOLE_ENABLED,Enables the Broadcast feature.
+AUDIT_HISTORY,Enable Audit history on Sidenav.
+OFFICE ADMIN,Configures Office Admin role access.
+SEAT_AUTO_ALLOCATION,Enables Desk Auto Allocation.
+RECEPTIONIST,Configures Receptionist role access.
+EMPLOYEE_PROFILE_AUDIT,Enables Employee Profile audit history under Audit History section on sidenav.
+delegation,Enables the Delegation feature in the sidenav.

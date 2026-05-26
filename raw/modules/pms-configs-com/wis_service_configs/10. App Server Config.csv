@@ -1,0 +1,49 @@
+Property Name,Data Type,Description
+OFFICE_WISE_SHIFT_MAPPING,JSON,-
+BUSINESS_UNIT_CITY_MAPPING,JSON,-
+SEAT_BELT_REPORT_BUTTON_COOLDOWN_DURATION_MINUTES,INTEGER,-
+ACCESS_TOKEN_EXPIRY_IN_SECONDS,INTEGER,-
+GRAND_LAUNCH_ENABLED,BOOLEAN,This property will be used to enable the feature grand launch communication
+CARBON_SAVINGS_CONTENT,JSON,The property will define the context shown to the user on the basis of their carbon savings
+VERSION_STATS,JSON,-
+COUNTRY_CODES_FOR_WHATSAPP_OTP,LIST,-
+APP_GRAND_LAUNCH_CONTENT,LIST,This property defines the context displayed to the user when grand launch is enabled
+CLICK_TO_CALL,JSON,-
+TRIP_DETAILS,JSON,-
+SOS,JSON,-
+CONFIGURABLEFEATURE,JSON,-
+ENGINEERING,JSON,-
+BOOKING,JSON,"This property controls app-side configs for seat and WFH booking rules, checkin cutoff timings, permissions, eligibility settings, and feature configurations within the booking module."
+DEVICECONFIGURATIONS,JSON,"This property controls mobile device authentication, SSO settings, session expiry rules, app security options, and related access configurations."
+FRESHCHATCONFIGURATIONS,JSON,-
+privilegedPhoneNumbers,LIST,-
+LOG_UPLOAD_RECIPIENTS,LIST,-
+TRIP_FEEDBACK_MODEL,JSON,-
+PRE_SIGNED_URL_EXPIRATION_SECONDS,INTEGER,-
+GRAND_LAUNCH_START_TIME,STRING,-
+GRAND_LAUNCH_END_TIME,STRING,-
+VEHICLE_TRACKING,JSON,-
+ADHOC_BOOKINGS_BOTTOM_SHEET_DESCRIPTION,STRING,-
+SAFETY,JSON,-
+appVersionSupportedIOS,STRING,-
+B2B2C,JSON,-
+SPOT,JSON,-
+TRIP_HISTORY,JSON,-
+COMMUNICATIONREGISTRY,JSON,-
+appVersionSupportedAndroid,STRING,-
+PROFILE,JSON,"This property controls user profile settings, address edit permissions, transport visibility options, profile validation, completion rules, and related display configurations within the application."
+IVR,JSON,-
+DYNAMIC_TRIP_FEEDBACK_URL,STRING,-
+LATEST_ANDROID_APP_VERSION,STRING,Used to define the latest app version
+SHUTTLE_TRACKING_PROPERTIES,JSON,-
+LATEST_IOS_APP_VERSION,STRING,Used to define latest ios app version
+APP_FEEDBACK_EXPRESSIONS,LIST,-
+FAB_ITEMS_DISPLAY_ORDER_LIST,LIST,This property controls the FAB button menu in app.
+APP_UPDATE_CONTENT,JSON,This property is used to define the content that will be displayed to the user once he click on app update
+REFRESH_TOKEN_EXPIRY_IN_SECONDS,INTEGER,-
+SAFETY_TOOLKIT_MODEL,JSON,-
+SEAT_BELT_NON_FUNCTIONING_AND_REPORTING_REASONS,JSON,-
+OFFICE_NAME_MAPPING,JSON,-
+TRIP_MISMATCH_COMPONENT,LIST,-
+TRIP_CARD_FLOW,JSON,This property defines the card flow displayed to the user on click of info button on the card
+SCHEDULE,JSON,"This property controls app-side employee shift future scheduling rules, edit/cancel permissions, adhoc and bulk scheduling options, multi-office support, transport integrations, notifications, indemnification rules, and related schedule feature configurations."

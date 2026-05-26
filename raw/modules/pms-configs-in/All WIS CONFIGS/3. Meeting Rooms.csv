@@ -1,0 +1,82 @@
+Service: MEETING ROOMS,
+Total properties: 78,
+,
+Property Name,Description
+SHOW_UPCOMING_BOOKINGS_TIME,Meeting Rooms Kiosk - Defines how prior to the meeting start time the kiosk screen will turn yellow to let users checkin to their booking. Value set in minutes.
+MEETING_EMAIL_OTP_TO_AUTHENTICATE,Controls the OTP notifcation send via email to verify end or cancellation of meeting bookings via meeting room kiosk.
+MEETING_ROOM_RELEASE_IF_NO_CHECKIN,Releases room if check-in does not occur within configured minutes.
+MEETING_START_NOTIFICATION,Controls the notification sent when the meeting has started via meeting room kiosk.
+MEETING_END_NOTIFICATION,Controls the notification sent when the meeting has ended via meeting room kiosk.
+RELEASE_MEETING_ROOM,"Controls the auto-release logic for rooms, based on the other MR configs (especially MEETING_ROOM_RELEASE_IF_NO_CHECKIN)."
+CONSENT_TYPE,Defines consent type configuration at admin or user level.
+ENABLE_WITH_PRINCIPAL_NAME,Uses email prefix as visitor name when name is unavailable.
+showWisLogo,Toggles display of the MoveInSync logo on meeting room kiosk and calendar integration UIs.
+SEND_INVITE_TO_ALL_EMPLOYEES,Controls recipients of native meeting room booking emails.
+Create_Meeting_Room,Controls visibility of the Create Room button in the Meeting Rooms settings page.
+EnableMRMailCancel,Sends mail over email when meeting room cancellation is triggered via kiosk to the organiser.
+HideMeetingTitle,Controls visibility of the meeting title.
+HideEndButton,Controls visibility of the End Now button on the Meeting Rooms Kiosk screen.
+HideCheckInButton,Controls visibility of the check-in button on the Meeting Rooms Kiosk screen.
+OUTLOOK_WO_ADMIN_CONSENT,"This controls the ""room email id"" field in the room details section of Meeting Rooms Settings page. This is needed for an integrated setup."
+BULK_UPLOAD_HEADERS,"Defines the column headers for meeting room bulk upload, this cannot be changed. Do not alter this."
+SyncMeetingRooms,Enables the Sync Rooms button for integrated setups in the Meeting Room Settings page.
+ENABLE_AUTO_MEETING_ROOM_SYNC,Automatically runs meeting room sync when enabled.
+BUILDING_PREMISE_NAME,"On stratus sites, it controls the name of the entity on outlook."
+IS_RICHEMONT,Enables Richemont-specific workflow configurations.
+MEETING_ROOM_SYNC_JOB_EMAIL_LIST,Defines email recipients for meeting room sync job notifications.
+beginHour,"This configuration defines the start time of the bookable time in the meeting room timeline - room level configuration. Integer value, 0-24."
+weekdays,Defines the set of days considered working days for that office's rooms.
+maxDurationInMinutes,Defines maximum duration for meeting room bookings.
+rommEnabled,Controls the enablement of the room for booking.
+KIOSK_IMAGE_FOR_OFFICE,Controls whether a kiosk image is applied at the office level (instead of per-room / per-kiosk only).
+office_name,"The office label used to scope rooms and MR configs to that office. If it doesn't match the server office name, rooms/configs for that office will show as expected."
+CANCEL_EVENT_PIN_VERIFICATION_ENABLE,Enables secure cancellation or ending of meetings via meeting room kiosk using OTP verification.
+AD_HOC_MEETING,Enables auto check-in for room bookings within this defined window - this value is set in minutes.
+MULTI_DOMAIN,Controls multiple domains in a single BUID (for clients like MAF).
+ENABLE_MEETING_CATERING,"Catering workflow - Enables catering functionality in meeting rooms, to see the Catering Request option in room booking form."
+kioskDefaultImage,Defines the default image displayed on kiosks across the BUID.
+EnableMROTPCancel,Controls OTP verification over email when meeting room cancellation is triggered via kiosk to the organiser.
+HideOrganizerName,Controls visibility of the organizer name on the Meeting Rooms Kiosk screen.
+HideCancelButton,Controls visibility of the Cancel button on the Meeting Room Kiosk at room level.
+HideExtendButton,Controls visibility of the Extend on the Meeting Rooms Kiosk screen.
+BULK_UPLOAD_ENABLED,Enables the room bulk upload option in the Meeting Rooms Settings page.
+mealMailList,Defines email recipients for catering-related communications.
+CREATE_PREMISE_IF_IT_DOESNT_EXIST,"Allows the system in creation of premise, if premise does not exist."
+OFFICE_PREMISE_NAME,Defines the office mapping for meeting room via meeting room sync.
+INVITE_VISITOR_ROOMS,Enables Invite Visitor tab within the Meeting Rooms Outlook Add-in.
+endHour,"This configuration defines the end time of the bookable time in the meeting room timeline - room level configuration. Integer value, 0-24."
+timezone,Defines the timezone of that office.
+advanceBookingLimitInMinutes,Controls the window of advance booking for users to make room bookings.
+meetingStartTimeCuttoffInMinutes,Defines the cutoff for how much prior to that start time the booking can be created. Its a booking creation cutoff time. Value is in minutes.
+Room_As_Organizer,Controls the enablement of the room as organiser workflow for the meeting room kiosk.
+Meeting_Title_Catering_Order,Controls display of meeting title in the Catering Dashboard detailed view.
+room_name,Mapping of meeting room name via outlook sync.
+Room_Special_Request_Enable,Controls visibility of the Meeting Request section in the meeting booking form - on web view.
+HideStartMeetingButton,Controls visibility of the Start Meeting button on the Meeting Room Kiosk.
+RELEASE_ROOM_CANCEL_MEETING,Controls whether releasing a room also cancels the meeting from users calendars.
+meetingRoomCost,Controls display of meeting room cost in the UI for web and mobile view.
+dynamicFieldOnRooms,Displays dynamic fields during meeting room creation - i.e Meeting Rooms request section.
+Cost_Center_Catering,Catering workflow - Controls cost center field availability for catering requests workflow.
+enableCheckInReminderNotificationForRoom,Sends app notification reminder for meeting room check-in.
+Cost_Center_Max_Len,Catering workflow - Defines maximum character limit for cost center input.
+meetingRoomCheckInCutOff,Defines the cutoff for the visiblity of the checkin button on the meeting rooms web and mobile view.
+DEACTIVATION_TYPE,Control the action of deactivation of meeting room.
+ReleaseRoom,Controls if release room functionality is enabled.
+enableCheckInReminderEmailForRoom,Enables check-in reminder emails for meeting rooms.
+CATERING_ORDER_STATUS_LIST,This property pertains to the catering feature within the Meeting Rooms module. It allows administrators to define the various statuses that can be assigned to catering orders on the catering dashboard.
+Cost_Center_Min_Len,Catering workflow - Defines minimum character limit for cost center input.
+dynamicFieldUserEmails,Defines email recipients for dynamic field notifications.
+BLOCK_CALENDAR_FOR_X_MINS,"Controls how long the room's calendar is blocked around a meeting, in minutes."
+INVITE_VISITOR_FROM_ROOMS,Enabled the Meeting and Visitor booking workflow from meeting booking from on web and mobile.
+dynamicFieldLabel,Customizes the label text for the meeting request section on meeting booking form.
+dynamicFieldsConfigForRooms,This controls the dynamic fields aka custom fields for the catering workflow where we can define different types of fields - their header and the type of input values.
+iadeaLightsBrightness,This property controls colour and brightness of led lights of IADEA Device for Meeting Rooms Kiosk.
+Show_Room_If_Not_Eligible,Controls visibility of ineligible rooms.
+RoomBookingEmailEnabled,Controls the emails sent to additional recipients.
+sendRoomBookingEmailToAllParticipants,Controls whether booking emails are sent to all participants.
+organiserBookingEmailsMeetingRooms,Controls whether the organizer receives booking emails.
+roomBookingsEmailList,Defines additional recipients for meeting room booking emails.
+room_cancel_cutoff,Defines cancellation cut-off time in minutes for meeting room bookings.
+releaseRoomEmailList,"Additional email recipients for release room notifications, other than organiser of the meeting which was released."
+Room_Kiosk_With_Cisco,Meeting Rooms Kiosk workflow - Enables Cisco-related fields in the Meeting Rooms settings page under the Kiosk column.
+IS_WIS_CALENDAR,Indicates whether the BUID has Native Meeting Room setup enabled.

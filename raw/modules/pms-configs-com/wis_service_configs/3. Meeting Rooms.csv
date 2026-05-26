@@ -1,0 +1,113 @@
+Property Name,Data Type,Description
+HideStartMeetingButton,BOOLEAN,Controls visibility of the Start Meeting button on the Meeting Room Kiosk.
+roomWithApprovalBuidLevel,BOOLEAN,Enables meeting room approval workflow at BUID level.
+MEETING_EMAIL_OTP_TO_AUTHENTICATE,BOOLEAN,Controls the OTP notifcation send via email to verify end or cancellation of meeting bookings via meeting room kiosk
+MEETING_ROOM_RELEASE_IF_NO_CHECKIN,INTEGER,Releases room if check-in does not occur within configured minutes.
+MEETING_START_NOTIFICATION,INTEGER,Controls the notification sent when the meeting has started via meeting room kiosk
+MEETING_END_NOTIFICATION,INTEGER,Controls the notification sent when the meeting has ended via meeting room kiosk
+RELEASE_MEETING_ROOM,BOOLEAN,"Controls the auto-release logic for rooms, based on the other MR configs (especially MEETING_ROOM_RELEASE_IF_NO_CHECKIN)."
+SHOW_UPCOMING_BOOKINGS_TIME,INTEGER,Meeting Rooms Kiosk - Defines how prior to the meeting start time the kiosk screen will turn yellow to let users checkin to their booking. Value set in minutes
+CONSENT_TYPE,STRING,Defines consent type configuration at admin or user level.
+CANCEL_EVENT_PIN_VERIFICATION_ENABLE,BOOLEAN,Enables secure cancellation or ending of meetings via meeting room kiosk using OTP verification.
+ENABLE_WITH_PRINCIPAL_NAME,BOOLEAN,Uses email prefix as visitor name when name is unavailable.
+AD_HOC_MEETING,INTEGER,Enables auto check-in for room bookings within this defined window - this value is set in minutes.
+showWisLogo,BOOLEAN,Toggles display of the MoveInSync logo on meeting room kiosk and calendar integration UIs
+MULTI_DOMAIN,BOOLEAN,Controls multiple domains in a single BUID (for clients like MAF)
+mealMailList,STRING,Defines email recipients for catering-related communications.
+SEND_INVITE_TO_ALL_EMPLOYEES,BOOLEAN,Controls recipients of native meeting room booking emails.
+ENABLE_MEETING_CATERING,BOOLEAN,"Catering workflow - Enables catering functionality in meeting rooms, to see the Catering Request option in room booking form."
+Create_Meeting_Room,BOOLEAN,Controls visibility of the Create Room button in the Meeting Rooms settings page.
+kioskDefaultImage,STRING,Defines the default image displayed on kiosks across the BUID.
+EnableMRMailCancel,BOOLEAN,Sends mail over email when meeting room cancellation is triggered via kiosk to the organiser
+HideMeetingTitle,BOOLEAN,Controls visibility of the meeting title sendRoomBookingEmailToAllParticipants
+HideOrganizerName,BOOLEAN,Controls visibility of the organizer name on the Meeting Rooms Kiosk screen
+HideEndButton,BOOLEAN,Controls visibility of the End Now button on the Meeting Rooms Kiosk screen
+HideCancelButton,BOOLEAN,Controls visibility of the Cancel button on the Meeting Room Kiosk at room level.
+HideCheckInButton,BOOLEAN,Controls visibility of the check-in button on the Meeting Rooms Kiosk screen
+HideExtendButton,BOOLEAN,Controls visibility of the Extend on the Meeting Rooms Kiosk screen
+EnableMROTPCancel,BOOLEAN,Controls OTP verification over email when meeting room cancellation is triggered via kiosk to the organiser
+BULK_UPLOAD_ENABLED,BOOLEAN,Enables the room bulk upload option in the Meeting Rooms Settings page
+SyncMeetingRooms,BOOLEAN,Enables the Sync Rooms button for integrated setups in the Meeting Room Settings page
+CREATE_PREMISE_IF_IT_DOESNT_EXIST,BOOLEAN,"Allows the system in creation of premise, if premise does not exist"
+ENABLE_AUTO_MEETING_ROOM_SYNC,BOOLEAN,Automatically runs meeting room sync when enabled.
+OFFICE_PREMISE_NAME,STRING,Defines the office mapping for meeting room via meeting room sync.
+BUILDING_PREMISE_NAME,STRING,"On stratus sites, it controls the name of the entity on outlook"
+FLOOR_PREMISE_NAME,STRING,-
+IS_RICHEMONT,BOOLEAN,Enables Richemont-specific workflow configurations.
+MEETING_ROOM_SYNC_JOB_EMAIL_LIST,LIST,Defines email recipients for meeting room sync job notifications.
+endHour,INTEGER,"This configuration defines the end time of the bookable time in the meeting rooms timeline - room level configuration. Integer value, 0-24."
+beginHour,INTEGER,"This configuration defines the begin time of the bookable time in the meeting rooms timeline - room level configuration. Integer value, 0-24."
+weekdays,LIST,Defines the set of days considered working days for that office's rooms
+advanceBookingLimitInMinutes,INTEGER,Controls the window of advance booking for users to make room bookings
+maxDurationInMinutes,INTEGER,Defines maximum duration for meeting room bookings.
+meetingStartTimeCuttoffInMinutes,INTEGER,Defines the cutoff for how much prior to that start time the booking can be created. Its a booking creation cutoff time. Value is in minutes.
+rommEnabled,BOOLEAN,Controls the enablement of the room for booking
+Room_As_Organizer,BOOLEAN,Controls the enablement of the room as organiser workflow for the meeting room kiosk
+enableCheckInForMeetingRoom,BOOLEAN,Enables meeting room check-in button on the web and app.
+maxApprovalRequest,INTEGER,For resource approval workflow - defines maximum overlapping approval requests per user.
+RELEASE_ROOM_CANCEL_MEETING,BOOLEAN,Controls whether releasing a room also cancels the meeting from users calendars.
+roomWithApproval,BOOLEAN,Enables approval workflow for meeting rooms on web and mobile.
+INVITE_VISITOR_ROOMS,BOOLEAN,Enables Invite Visitor tab within the Meeting Rooms Outlook Add-in.
+showOrganiserNameAddInTimeline,BOOLEAN,Show organizer name on booking timeline on outlook addin
+MEETING_ROOM_SUBSCRIPTION_JOB_EMAIL_LIST,LIST,Defines email recipients for room subscription status.
+smartRoomRecommendation,BOOLEAN,Enables AI-based smart room recommendation.
+minDurationInMinutes,INTEGER,Defines minimum duration need for a meeting room booking.
+WEIGHT_HISTORICAL,DOUBLE,Defines weight configuration for AI room recommendation based on historical usage.
+WEIGHT_CAPACITY,DOUBLE,Defines weight configuration for AI room recommendation based on capacity.
+roomStatsKiosk,BOOLEAN,Controls the visibility of the checkout button against room bookings. Not dependent on checkin button.
+OutlookNativeRoomSetup,BOOLEAN,Hybrid setup for outlook integration
+meetingRoomCost,BOOLEAN,Controls display of meeting room cost in the UI for web and mobile view.
+organiserPersonaMeetingRooms,JSON,Controls email notifications for organizer persona in Meeting Rooms module.
+participantPersonaMeetingRooms,JSON,Controls email notifications for participant personas in the Meeting Rooms module.
+itemsDynamicFields,LIST,dynamic fields for IT Request
+startTimeBufferRoomBookingBuidLevel,BOOLEAN,Defines start time buffer for meeting room bookings at BUID level for the Buffer Time workflow in catering/IT request.
+endTimeBufferRoomBookingBuidLevel,BOOLEAN,Defines end time buffer for meeting room bookings at BUID level for the Buffer Time workflow in catering/IT request.
+dynamicFieldOnRooms,BOOLEAN,Displays dynamic fields during meeting room creation - i.e Meeting Rooms request section
+startTimeBufferRoomBookingRoomLevel,INTEGER,Defines start time buffer at individual room level.
+DEACTIVATION_TYPE,STRING,Control the action of deactivation of meeting room
+otherUsersPersonaMeetingRooms,JSON,Controls email notifications for other participant personas in Meeting Rooms module.
+endTimeBufferRoomBookingRoomLevel,INTEGER,Defines end time buffer for meeting room bookings at room level for the Buffer Time workflow in catering/IT request.
+roomCheckinQrOnKiosk,BOOLEAN,Controls display of meeting room QR code on kiosk at room level.
+releaseRoom,BOOLEAN,Not used
+ReleaseRoom,BOOLEAN,Controls if release room functionality is enabled
+enableCheckInReminderEmailForRoom,BOOLEAN,Enables check-in reminder emails for meeting rooms.
+office_name,STRING,"The office label used to scope rooms and MR configs to that office. If it doesn't match the server office name, rooms/configs for that office will show as expected."
+CATERING_ORDER_STATUS_LIST,JSON,"This property pertains to the catering feature within the Meeting Rooms module. It allows administrators to define the various statuses that can be assigned to catering orders on the catering dashboard. Recognizing that terminology may differ across organizations, this list is configurable to accommodate specific needs. The sequence of statuses specified here will directly reflect the order in which they appear on the catering dashboard."
+Cost_Center_Catering,BOOLEAN,Catering workflow - Controls cost center field availability for catering requests workflow
+timezone,STRING,Defines the timezone of that office
+KIOSK_IMAGE_FOR_OFFICE,STRING,Controls whether a kiosk image is applied at the office level (instead of per-room / per-kiosk only).
+enableCheckInReminderNotificationForRoom,BOOLEAN,Sends app notification reminder for meeting room check-in.
+Cost_Center_Max_Len,INTEGER,Catering workflow - Defines maximum character limit for cost center input.
+Cost_Center_Min_Len,INTEGER,Catering workflow - Defines minimum character limit for cost center input.
+Meeting_Title_Catering_Order,BOOLEAN,Controls display of meeting title in the Catering Dashboard detailed view
+room_name,STRING,Mapping of meeting room name via outlook sync
+meetingRoomCheckInCutOff,INTEGER,Defines the cutoff for the visibility of the checkin button on the meeting rooms web and mobile view.
+dynamicFieldUserEmails,LIST,Defines email recipients for dynamic field notifications.
+IS_WIS_CALENDAR,BOOLEAN,Indicates whether the BUID has Native Meeting Room setup enabled.
+OUTLOOK_WO_ADMIN_CONSENT,BOOLEAN,This controls the room email id field in the room details section of Meeting Rooms Settings page. This is needed for an integrated setup.
+BLOCK_CALENDAR_FOR_X_MINS,INTEGER,"Controls how long the room's calendar is blocked around a meeting, in minutes."
+BULK_UPLOAD_HEADERS,LIST,"Defines the column headers for meeting room bulk upload, this cannot be changed. Do not alter this."
+cateringLimits,LIST,Defines cut-off times for modifying or cancelling catering orders based on participant count.
+INVITE_VISITOR_FROM_ROOMS,BOOLEAN,Enabled the Meeting and Visitor booking workflow from meeting booking from on web and mobile.
+dynamicFieldLabel,JSON,Customizes the label text for the meeting request section on meeting booking form.
+dynamicFieldsConfigForRooms,LIST,This controls the dynamic fields aka custom fields for the catering workflow where we can define different types of fields - their header and the type of input values. You can find the output of this dynamic field configuration under Delivery instructions of the catering workflow on both the web and Outlook Add-In
+iadeaLightsBrightness,JSON,This property controls colour and brightness of led lights of IADEA Device for Meeting Rooms Kiosk
+textOnKiosk,BOOLEAN,Controls additional text visibility on the Meeting Rooms Kiosk screen
+textMessageForKiosk,JSON,Defines text displayed on the kiosk.
+recurringBookings,BOOLEAN,Enables recurring booking flow for meeting rooms for both integrated and native.
+CheckOutCTARooms,BOOLEAN,Controls the visibility of the checkout button against room bookings. Not dependent on checkin button.
+Show_Room_If_Not_Eligible,BOOLEAN,Controls visibility of ineligible rooms.
+Room_Special_Request_Enable,BOOLEAN,Controls visibility of the Meeting Request section in the meeting booking form - on web view.
+RoomBookingEmailEnabled,BOOLEAN,Controls the emails sent to additional recipients
+sendRoomBookingEmailToAllParticipants,BOOLEAN,Controls whether booking emails are sent to all participants.
+organiserBookingEmailsMeetingRooms,BOOLEAN,Controls whether the organizer receives booking emails.
+roomBookingsEmailList,LIST,Defines additional recipients for meeting room booking emails.
+room_cancel_cutoff,INTEGER,Defines cancellation cut-off time in minutes for meeting room bookings.
+releaseRoomEmailList,LIST,"Additional email recipients for release room notifications, other than organiser of the meeting which was released"
+Room_Kiosk_With_Cisco,BOOLEAN,Meeting Rooms Kiosk workflow - Enables Cisco-related fields in the Meeting Rooms settings page under the Kiosk column
+noAutoCheckinKiosk,BOOLEAN,"When Checkin is hidden, the kiosk auto-checks into the booking. This controls that auto check-in behavior on Meeting Rooms Kiosk."
+colorVCStatsIconsKiosk,STRING,Meeting Rooms Kiosk - Defines the color for the VC stats displayed on the kiosk screen.
+facilityMailList,STRING,For IT request workflow to control who receives the IT request emails.
+IT_REQUEST_OUTLOOK_ADDIN,BOOLEAN,Enables IT request functionality within the WorkInSync Outlook Add-in.
+defaultMaxDurationForBypass,INTEGER,Defines the threshold for the maximum duration bypass privilege.
+defaultAdvanceBookingLimitForBypass,INTEGER,Defines the threshold for the Advance Booking Limit bypass privilege.

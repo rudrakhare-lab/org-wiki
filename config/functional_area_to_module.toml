@@ -1,0 +1,88 @@
+# config/functional_area_to_module.toml
+#
+# Maps Jira `functional_area` values to existing wiki module slugs.
+# Used at synthesis time only (Phase 4 enrichment + Phase 5 patterns).
+# Tier 0 (SQLite) stores the raw functional_area as-is — this file is not
+# applied during sync.
+#
+# Rules:
+#   - One functional_area can map to MULTIPLE wiki modules (cross-module ticket)
+#   - A functional_area with no mapping is flagged in lint as "unrepresented area"
+#   - Never auto-create a module page from this file (Section 11, Rule 6)
+#   - Mappings here are HUMAN-CURATED — do not auto-edit this file
+#
+# Format:
+#   [WP-admin]
+#   modules = ["meeting-rooms", "admin-experience"]
+#   notes = "Optional context for why this maps this way"
+
+# ----------------------------------------------------------------------
+# Mappings finalized 2026-04-30 after full 36,741-ticket backfill.
+# Evidence source: wiki/overview.md functional area distribution table +
+# 100-ticket sample analysis (wiki/log.md 2026-04-29) + cross-module analysis.
+# ----------------------------------------------------------------------
+
+[WP-admin]
+modules = ["admin-experience"]
+notes = """
+3,318 tickets (9% of corpus). Ticket summaries are predominantly admin/config-change
+requests (SE tickets), admin portal bugs, and admin workflow issues. Maps cleanly to
+admin-experience module (stub — PRD pending). No separate module is warranted; all
+evidence points to a single admin UI surface. WF-wis-admin is a separate but related
+area (see below) — together they account for ~7,137 admin-layer tickets.
+Confirmed 2026-04-30.
+"""
+
+[WP-workflows]
+modules = ["meeting-rooms", "meal-management", "desk-management", "visitor-management", "floor-kiosk", "access-management", "safe-reach", "implementation", "transport"]
+notes = """
+4,857 tickets (13% of corpus). Cross-cutting area — does NOT map to a single module.
+Ticket analysis (100-sample, 2026-04-29) identified content across:
+  - meeting-rooms (~6 tickets: booking limit, room sync, config, regression)
+  - meal-management (~4 tickets: meal token, canteen mgmt, vendor kiosk)
+  - desk-management (~2 tickets: allocation floor view, hierarchy mismatch)
+  - visitor-management (~2 tickets: OTP cooldown, approval flow)
+  - floor-kiosk (~2 tickets: vendor kiosk hardware, kiosk orientation)
+  - access-management (~2 tickets: access card check-in, VAPT security)
+  - safe-reach (~1 ticket: email declaration workflow)
+  - implementation/config (~6 tickets: SE config changes, secret key mgmt)
+  - transport/shuttle (~7 tickets: shift visibility, transport booking UI)
+
+Transport/shuttle is explicitly approved as a module from ticket evidence by product decision
+(resolved OD-6 on 2026-05-05), even before PRD upload.
+Confirmed 2026-04-30.
+"""
+
+[WF-empexp]
+modules = ["employee-experience", "delegation", "digital-wayfinding"]
+notes = """
+16,457 tickets (44% of corpus — largest single area). Direct match to emp-exp service,
+which hosts delegation and digital-wayfinding as sub-features. Expanded from
+employee-experience only to include its sub-modules for Phase 4 enrichment accuracy.
+Confirmed 2026-04-30.
+"""
+
+[WF-wis-admin]
+modules = ["admin-experience"]
+notes = """
+3,819 tickets (10% of corpus). Admin-side workflow and config tickets for the WIS
+booking admin surface. Maps to admin-experience module (same as WP-admin — these
+two Jira areas likely represent the same admin module from different project contexts:
+WP = product backlog, WF = workflow/feature tickets).
+Confirmed 2026-04-30.
+"""
+
+[WF-wis-booking]
+modules = ["desk-management", "parking-management"]
+notes = """
+3,512 tickets (10% of corpus). WFO booking flow — covers desk booking and parking add-on.
+desk-management module is a stub (PRD not yet ingested); parking-management is fully ingested.
+Confirmed 2026-04-30.
+"""
+
+[WF-wis-meeting-vms]
+modules = ["meeting-rooms", "visitor-management"]
+notes = """
+4,778 tickets (13% of corpus). Combined area for meeting rooms and visitor management.
+Both modules are fully ingested. Confirmed 2026-04-30.
+"""

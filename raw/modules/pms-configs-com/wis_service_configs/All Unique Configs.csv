@@ -1,0 +1,1071 @@
+Property Name,Data Type,Description,Services,Service Count
+<p>Iagreethatalldetailssharedbymearecorrect</p>,STRING,-,VMS,1
+absoluteVisitDurationHours,LIST,This is list of option for time duration selection in vms kiosk in min,VMS,1
+ACCESS_MATRIX_ENABLED_BUIDS,LIST,Defines BUs with access matrix enabled.,Emp Exp Common Config,1
+ACCESS_TOKEN_EXPIRY_IN_SECONDS,INTEGER,-,"App Server Config, App Server Config (.in)",2
+active-bu,STRING,-,PMS,1
+AD_HOC_MEETING,INTEGER,Enables auto check-in for room bookings within this defined window - this value is set in minutes.,Meeting Rooms,1
+addCustomFieldsForBulkUpload,BOOLEAN,Determines whether custom fields are included in bulk upload header.,VMS,1
+addCustomFieldsWithVisitorBulkUpload,BOOLEAN,Adds custom fields to visitor bulk upload headers.,VMS,1
+ADDRESS_CHANGE_HOME_TO_OFFICE_DISTANCE_VALIDATION,STRING,-,Emp Exp Common Config,1
+ADDRESS_CHANGE_RADIAL_DISTANCE_VALIDATION,STRING,-,Emp Exp Common Config,1
+ADDRESS_CHANGE_RESTRICTED_AREA_VALIDATION,STRING,-,Emp Exp Common Config,1
+ADDRESS_CHANGE_TRANSPORT_BOUNDARY_VALIDATION,STRING,-,Emp Exp Common Config,1
+addRoomWithVisitorBulkUpload,BOOLEAN,Adds room details to visitor bulk upload headers.,VMS,1
+ADHOC_BOOKINGS_BOTTOM_SHEET_DESCRIPTION,STRING,-,"App Server Config, App Server Config (.in)",2
+admin,LIST,Configures Admin role access.,PMS,1
+ADMIN_FRONT_DESK,BOOLEAN,Enables Visitor Management for Admin Front Desk.,PMS,1
+adminAssignmentFloorPlanUrl,STRING,Defines Admin Seat Allocation Floor Plan URL.,Emp Exp Common Config,1
+adminexpUI,STRING,Defines Admin Experience UI URL.,Emp Exp Common Config,1
+adminexpUi,STRING,Defines alternate Admin UI URL.,Emp Exp Common Config,1
+adminFloorPlanUrl,STRING,Defines Admin Floor Plan URL.,Emp Exp Common Config,1
+advanceBooking,BOOLEAN,-,Booking Rule Engine,1
+advanceBookingLimitInMinutes,INTEGER,Controls the window of advance booking for users to make room bookings,Meeting Rooms,1
+airtelBuid,STRING,-,Emp Exp Common Config,1
+allocationChangeCommunicationEnabled,BOOLEAN,-,Booking Rule Engine,1
+allowBookingAfterSignOut,BOOLEAN,-,Booking Rule Engine,1
+allowBookingConversionFromWfhToWfo,BOOLEAN,Enables direct WFH to WFO booking conversion.,Emp Exp Common Config,1
+allowBookingConversionFromWfoToWfh,BOOLEAN,Enables direct WFO to WFH booking conversion.,Emp Exp Common Config,1
+allowBookingForOthers,LIST,Defines booking types allowed for others.,Emp Exp Common Config,1
+allowBookingsForOthers,BOOLEAN,Allows booking on behalf of others in visitor flow.,VMS,1
+allowBookingWithDedicatedSeat,LIST,Controls whether dedicated seat holders can book other desks.,Emp Exp Common Config,1
+allowCheckInAtIncorrectSlot,BOOLEAN,Allows check-in outside booked slot.,Emp Exp Common Config,1
+allowedBookingForContainmentZone,BOOLEAN,-,Booking Rule Engine,1
+allowedEmployeeNameRegex,STRING,Defines the allowed employee name format using regex validation.,Emp Exp Common Config,1
+allowedMealBookingPerEmployee,INTEGER,Decides how many separate meal bookings the system should allow per user per day.,Booking Rule Engine,1
+allowEmployeeToBooKAnySeatInB,BOOLEAN,-,Emp Exp Internal Config,1
+allowEmployeeToBooKAnySeatInBL,BOOLEAN,Allows employees to book seats within permitted hierarchy levels in BL.,Emp Exp Common Config,1
+allowOfficeCheckInWithoutDesk,BOOLEAN,Controls the separate checkin for office and desk checkin.,Booking Rule Engine,1
+allowPastAllocationTimesForCurrentDayFor,LIST,Allows admins to allocate desks/slots/rooms for past shift times on the same day.,Emp Exp Common Config,1
+allowPeerOrMarshalReporting,BOOLEAN,-,Emp Exp Common Config,1
+allowQrCheckInWithoutSeat,BOOLEAN,Allows QR check-in without seat.,Emp Exp Common Config,1
+allowRoomBookingWithOfficeBooking,BOOLEAN,Controls visibility of Room booking option on Employee Home.,Emp Exp Common Config,1
+amenitiesBulkUpload,BOOLEAN,Enables bulk upload flow for amenities,WIS Seat Booking,1
+Analytics,LIST,Enables the Reporting page.,PMS,1
+ANALYTICS,LIST,Enables the Reports page in the sidenav.,PMS,1
+APP_FEEDBACK_EXPRESSIONS,LIST,-,"App Server Config, App Server Config (.in)",2
+APP_GRAND_LAUNCH_CONTENT,LIST,This property defines the context displayed to the user when grand launch is enabled,"App Server Config, App Server Config (.in)",2
+APP_UPDATE_CONTENT,JSON,This property is used to define the content that will be displayed to the user once he click on app update,"App Server Config, App Server Config (.in)",2
+APPROVAL_POST_NO_SHOW_CHECK_BUFFER,DOUBLE,-,Emp Exp Common Config,1
+approvalFlowEmailExpiryTimeInMinutes,INTEGER,Defines approval email expiry time in minutes.,VMS,1
+approvalFlowEnabled,BOOLEAN,Enables Team Manager approval dashboard.,"Booking Rule Engine, Emp Exp Common Config",2
+approvalFlowInInWfhEnabled,BOOLEAN,Controls whether the approval workflow is enabled for Work From Home bookings.,"Booking Rule Engine, Emp Exp Common Config, WIS Seat Booking",3
+approvalFlowInWfoEnabled,BOOLEAN,Controls whether the approval workflow is enabled for Work From Office bookings.,"Booking Rule Engine, Emp Exp Common Config, WIS Seat Booking",3
+approvalWebViewUrl,STRING,Defines approval web view URL.,Emp Exp Common Config,1
+approvedRequestNotificationEnabled,BOOLEAN,Controls whether notifications are sent for approved booking approval requests.,"Booking Rule Engine, WIS Seat Booking",2
+approveEntryFromFrontdesk,BOOLEAN,Allows visitor approval or rejection from Front Desk.,VMS,1
+approveMsTeamsTemplate,JSON,Defines MS Teams template for approval notifications.,VMS,1
+approverPersonaEmails,JSON,-,Booking Rule Engine,1
+appVersionSupportedAndroid,STRING,-,"App Server Config, App Server Config (.in)",2
+appVersionSupportedIOS,STRING,-,"App Server Config, App Server Config (.in)",2
+attendanceManagementDisabled,BOOLEAN,-,Booking Rule Engine,1
+AUDIT_HISTORY,BOOLEAN,Enable Audit history on Sidenav.,PMS,1
+autoAbsentHours,INTEGER,-,Booking Rule Engine,1
+autoAllocate,BOOLEAN,Enables automatic desk allocation during bulk booking upload.,"Booking Rule Engine, Emp Exp Common Config",2
+autoApprovalConfig,JSON,Config for auto approval.,Booking Rule Engine,1
+autoApprovalTime,INTEGER,Auto approval of resource.,Booking Rule Engine,1
+autoApproveEnabled,BOOLEAN,-,Booking Rule Engine,1
+autoCheckinEnableFloorKiosk,LIST,Allow auto-checkin to the booking created from floor kiosk if the following logic stands true.,Booking Rule Engine,1
+autoClockOutRemainder,BOOLEAN,Sends reminder notification before auto-checkout triggers.,Emp Exp Common Config,1
+autoClockOutRemainderMinutes,DOUBLE,Defines minutes before logout when reminder notification is triggered.,Emp Exp Common Config,1
+autoExpireBeforeNoOfdays,INTEGER,-,"Booking Rule Engine, WIS Seat Booking",2
+autoExpireHour,STRING,Defines at what period hour your booking request expires,"Booking Rule Engine, WIS Seat Booking",2
+autofillCustomFields,BOOLEAN,Auto-populates custom fields for returning visitors.,VMS,1
+autoLogoutEnabled,BOOLEAN,Enables automatic sign-out after configured duration.,Emp Exp Common Config,1
+autoLogoutMinutes,INTEGER,Defines minutes after planned checkout for auto-checkout trigger.,"Booking Rule Engine, Emp Exp Common Config",2
+autoPopulateBookingForm,BOOLEAN,Auto-populates booking form using preferences or past data.,Emp Exp Common Config,1
+autoPopulateSchedulingForm,BOOLEAN,autoPopulateSchedulingForm,Emp Exp Common Config,1
+autoProvisionEnabled,BOOLEAN,Automatically marks all employees as onboarded during bulk onboarding.,"Emp Exp Common Config, Emp Exp Internal Config",2
+autoRejectionForOptIn,BOOLEAN,-,Emp Exp Common Config,1
+autoRequestApprovalEnabled,BOOLEAN,Controls whether booking requests are automatically approved without manual intervention.,"Booking Rule Engine, WIS Seat Booking",2
+autoSeatCheckOutEnabled,BOOLEAN,Enables auto seat checkout.,Emp Exp Common Config,1
+autoSeatCheckOutMinutes,DOUBLE,Defines auto seat checkout duration.,Emp Exp Common Config,1
+autoSlotAllocate,BOOLEAN,Automatically allocates parking slots without manual slot selection.,"Booking Rule Engine, Emp Exp Common Config",2
+autoTagAssignmentMapping,JSON,Automatically assigns tags based on employee designation.,Emp Exp Common Config,1
+averageOverallTripFeedbackCalculation,BOOLEAN,-,Emp Exp Common Config,1
+B2B2C,JSON,-,"App Server Config, App Server Config (.in)",2
+bannerEndTime,STRING,-,Emp Exp Common Config,1
+bannerNativeRoomEmail,BOOLEAN,Controls native banner visibility in room emails.,Emp Exp Common Config,1
+bannerNewRoomBookingEmpHome,STRING,Defines banner text for New Room booking page.,Emp Exp Common Config,1
+bannerStartTime,STRING,-,Emp Exp Common Config,1
+beginHour,INTEGER,"This configuration defines the begin time of the bookable time in the meeting rooms timeline - room level configuration. Integer value, 0-24.",Meeting Rooms,1
+blacklistKioskPopup,JSON,Defines heading and subheading for blacklist popup on kiosk.,VMS,1
+BLOCK_CALENDAR_FOR_X_MINS,INTEGER,"Controls how long the room's calendar is blocked around a meeting, in minutes.",Meeting Rooms,1
+blockChecinOutsideGeofence,BOOLEAN,-,Emp Exp Common Config,1
+blockDelegationEmail,BOOLEAN,Blocks delegation email notifications.,Emp Exp Common Config,1
+blockGenerateDigiPassOnSeatMandatory,BOOLEAN,Blocks DigiPass generation when seat is mandatory.,"Booking Rule Engine, Emp Exp Common Config",2
+blockNumber,STRING,Controls Block number field visibility.,Emp Exp Common Config,1
+blockOfficeCheckingIfNoBooking,BOOLEAN,Blocks office check-in without booking.,Emp Exp Common Config,1
+blockUserIfNotVaccinated,BOOLEAN,Blocks non-vaccinated users from making bookings when enabled.,"Booking Rule Engine, Emp Exp Common Config",2
+booker,STRING,-,Booking Rule Engine,1
+BOOKING,JSON,"This property controls app-side configs for seat and WFH booking rules, checkin cutoff timings, permissions, eligibility settings, and feature configurations within the booking module.","App Server Config, App Server Config (.in)",2
+BOOKING_AGGREGATES_MIGRATION_BUIDS,LIST,List of buids that requires migration of booking aggregates.,Emp Exp Common Config,1
+BOOKING_AGGREGATES_MIGRATION_DELAY_SECONDS,INTEGER,Time delay between migration of buids in booking aggregates.,Emp Exp Common Config,1
+BOOKING_AGGREGATES_MIGRATION_ENABLED,BOOLEAN,Checks if migration is enabled for booking aggregates.,Emp Exp Common Config,1
+BOOKING_AGGREGATES_MIGRATION_TIMEZONES,LIST,-,Emp Exp Common Config,1
+BOOKING_APPROVAL,BOOLEAN,Enables the Booking Approval page.,PMS,1
+BOOKING_HISTORY,BOOLEAN,Enables booking history option on web.,"Emp Exp Common Config, PMS",2
+BOOKING_UPLOAD_ENABLED,BOOLEAN,Enables Booking bulk upload option.,PMS,1
+bookingApprovalEmailsEnabled,BOOLEAN,Controls whether email notifications are sent for booking approvals.,"Booking Rule Engine, WIS Seat Booking",2
+bookingCancellationReasons,LIST,Defines cancellation reason list.,Emp Exp Common Config,1
+bookingConversionCutOff,DOUBLE,Defines cutoff time for WFH to WFO and vice versa conversion.,Emp Exp Common Config,1
+bookingCreationMessage,STRING,Defines booking success message.,Emp Exp Common Config,1
+bookingDisclaimers,JSON,Configures booking disclaimer messages.,Emp Exp Common Config,1
+bookingEditCutOff,DOUBLE,-,Booking Rule Engine,1
+bookingEnabledOnTag,BOOLEAN,"Controls whether booking is allowed based on a tag (e.g., even on weekly off, allow booking for employees/resources carrying a specific tag).","Emp Exp Common Config, Emp Exp Internal Config",2
+bookingForNonRegisteredEmpBySpoc,BOOLEAN,-,PMS,1
+bookingLogoutEditCutOff,DOUBLE,-,Booking Rule Engine,1
+bookingPerDayEmp,DOUBLE,-,Booking Rule Engine,1
+bookingRequestApprovalFlowEnabled,BOOLEAN,Controls whether the booking request approval workflow is enabled.,"Booking Rule Engine, Emp Exp Common Config, WIS Seat Booking",3
+bookingRuleEngine,STRING,Defines Booking Rule Engine URL.,Emp Exp Common Config,1
+bookingsTypesForCheckinReminder,LIST,Defines booking types eligible for check-in reminder.,Emp Exp Common Config,1
+bufferTimeInSecondsOfAarogyaSetuUser,INTEGER,Controls the buffer time in seconds applied to Aarogya Setu user validation (covid feature).,"Emp Exp Common Config, Emp Exp Internal Config",2
+buidsEnabledForPMS,LIST,-,Booking Rule Engine,1
+buidsEnabledForSeatBookingPMS,LIST,Defines service availaibility on PMS,WIS Seat Booking,1
+BUILDING_PREMISE_NAME,STRING,"On stratus sites, it controls the name of the entity on outlook",Meeting Rooms,1
+BULK_OPERATION_VISITOR_BOOKING,BOOLEAN,Enables bulk upload of visitor lists on the Invite Visitor page.,"PMS, VMS",2
+BULK_UPLOAD_ENABLED,BOOLEAN,Enables the room bulk upload option in the Meeting Rooms Settings page,Meeting Rooms,1
+BULK_UPLOAD_HEADERS,LIST,"Defines the column headers for meeting room bulk upload, this cannot be changed. Do not alter this.",Meeting Rooms,1
+bulkScheduleAllowedDaysForRoom,DOUBLE,Defines bulk room scheduling window.,Emp Exp Common Config,1
+BUSINESS_UNIT_CITY_MAPPING,JSON,-,App Server Config,1
+CAB_ARRIVAL_MESSAGE_FOR_NOTIFICATION,STRING,-,Email Emp Experience,1
+CAB_ARRIVAL_TITLE_FOR_NOTIFICATION,STRING,-,Email Emp Experience,1
+cabArrivalIVR,JSON,-,Emp Exp Internal Config,1
+cacheTimeInHoursOfAarogyaSetuUserStatus,INTEGER,Controls the cache duration in hours for Aarogya Setu user status (covid feature).,"Emp Exp Common Config, Emp Exp Internal Config",2
+CANCEL_EVENT_PIN_VERIFICATION_ENABLE,BOOLEAN,Enables secure cancellation or ending of meetings via meeting room kiosk using OTP verification.,Meeting Rooms,1
+cancelInviteMsTeamTemplateForHost,JSON,Defines MS Teams template for host when invite is canceled.,VMS,1
+cancelInviteNotifications,LIST,Notifies host when invite is canceled from Front Desk.,VMS,1
+CANCELLATION_REMINDER_NOTIFICATION,BOOLEAN,Enables cancellation reminder notifications.,Emp Exp Common Config,1
+cancelSchedulesEnabled,BOOLEAN,Defines whether it should allow cancellation of commute service,"Booking Rule Engine, WIS Seat Booking",2
+cancelTransportBooking,BOOLEAN,Allows transport booking cancellation.,Emp Exp Common Config,1
+canteenKioskConfigs,JSON,Contains all the configs related for Canteen Kiosk,VMS,1
+captureEmployeeBookingStats,BOOLEAN,Enables booking statistics capture.,Emp Exp Common Config,1
+CARBON_SAVINGS_CONTENT,JSON,The property will define the context shown to the user on the basis of their carbon savings,"App Server Config, App Server Config (.in)",2
+CATERING_AUDIT_HISTORY,BOOLEAN,Enables audit history for Catering Orders.,PMS,1
+CATERING_DASHBOARD,BOOLEAN,Enables the Catering Dashboard in the sidenav.,PMS,1
+CATERING_ORDER_STATUS_LIST,JSON,"This property pertains to the catering feature within the Meeting Rooms module. It allows administrators to define the various statuses that can be assigned to catering orders on the catering dashboard. Recognizing that terminology may differ across organizations, this list is configurable to accommodate specific needs. The sequence of statuses specified here will directly reflect the order in which they appear on the catering dashboard.",Meeting Rooms,1
+cateringLimits,LIST,Defines cut-off times for modifying or cancelling catering orders based on participant count.,Meeting Rooms,1
+checkInBookingsType,LIST,Controls which booking types are auto-checked-in together when one check-in action happens.,"Emp Exp Common Config, Guard App",2
+checkinBufferFromKiosk,INTEGER,Defines buffer time (in minutes) for active booking check-in via kiosk.,VMS,1
+checkInByTimeChip,BOOLEAN,True - Show the check-in-by chip and chevron to provide users with detailed check-in times. False - Do not show the check-in-by chip or the chevron on booking cards.,Emp Exp Common Config,1
+checkInFirstPremise,BOOLEAN,-,Booking Rule Engine,1
+checkinReminderCutoffInMinute,DOUBLE,Defines when check-in reminder notification is sent.,Emp Exp Common Config,1
+checkInWithoutAarogyasetuValidation,BOOLEAN,Allows check-in without Aarogya Setu validation.,"Booking Rule Engine, Emp Exp Common Config",2
+CheckOutCTARooms,BOOLEAN,Controls the visibility of the checkout button against room bookings. Not dependent on checkin button.,Meeting Rooms,1
+checkoutOnFDEmployee,BOOLEAN,Shows checkout CTA for employee flow on Front Desk.,VMS,1
+checkoutPageRedirectionTimeout,INTEGER,Defines redirection timeout (in minutes) after self check-in completion.,VMS,1
+checkTransportCutoffForBookingEdit,BOOLEAN,-,Booking Rule Engine,1
+CITY_DISTRICT_MAPPINGS,JSON,-,Emp Exp Common Config,1
+CLICK_TO_CALL,JSON,-,"App Server Config, App Server Config (.in)",2
+colorVCStatsIconsKiosk,STRING,Meeting Rooms Kiosk - Defines the color for the VC stats displayed on the kiosk screen.,Meeting Rooms,1
+commentsMandatoryOnRating,DOUBLE,-,Emp Exp Common Config,1
+COMMUNICATION_CONSOLE_ENABLED,BOOLEAN,Enables the Broadcast feature.,PMS,1
+COMMUNICATIONREGISTRY,JSON,-,"App Server Config, App Server Config (.in)",2
+commuteMandatory,BOOLEAN,Requires users to select either parking or transport while creating an office booking to prevent resource-less bookings.,Emp Exp Common Config,1
+CONFIGURABLEFEATURE,JSON,-,"App Server Config, App Server Config (.in)",2
+configuration.registration.dashboard,STRING,Controls whether the employee self-registration experience is exposed via the dashboard for a given site/BUID.,PMS,1
+CONFIGURATIONS_ENABLED,BOOLEAN,Enables the Configurations page under Settings.,PMS,1
+configureVisitorKiosk,BOOLEAN,Controls visibility of Configure Visitor Kiosk button on Front Desk.,VMS,1
+confirmationMessageForLogoutTracking,STRING,-,Emp Exp Common Config,1
+CONSENT_TYPE,STRING,Defines consent type configuration at admin or user level.,Meeting Rooms,1
+consentCheckboxContentSafeReach,STRING,Defines consent checkbox content for Safe Reach kiosk.,VMS,1
+consentPopupData,LIST,Defines consent popup configuration.,Emp Exp Common Config,1
+contactTHDReasons,LIST,-,Emp Exp Common Config,1
+controlSearchSections,LIST,Controls visibility of sections in Front Desk search dropdown.,VMS,1
+Cost_Center_Catering,BOOLEAN,Catering workflow - Controls cost center field availability for catering requests workflow,Meeting Rooms,1
+Cost_Center_Max_Len,INTEGER,Catering workflow - Defines maximum character limit for cost center input.,Meeting Rooms,1
+Cost_Center_Min_Len,INTEGER,Catering workflow - Defines minimum character limit for cost center input.,Meeting Rooms,1
+countBookingBySomeOneElseAsEmployeeBooking,BOOLEAN,-,Booking Rule Engine,1
+COUNTRY_CODES_FOR_WHATSAPP_OTP,LIST,-,App Server Config,1
+Create_Meeting_Room,BOOLEAN,Controls visibility of the Create Room button in the Meeting Rooms settings page.,"Meeting Rooms, PMS",2
+CREATE_PREMISE_IF_IT_DOESNT_EXIST,BOOLEAN,"Allows the system in creation of premise, if premise does not exist",Meeting Rooms,1
+createBookingAfterSignedOut,BOOLEAN,-,Booking Rule Engine,1
+createBookingWhenCheckinReceived,BOOLEAN,-,Booking Rule Engine,1
+createSeatBookingWithOfficeBooking,BOOLEAN,Auto-creates seat booking with office booking.,Emp Exp Common Config,1
+creatorNotifications,JSON,Controls creator notifications (backend property).,VMS,1
+crossHierarchyAllocationEnabled,BOOLEAN,Defines if cross hierarchy allocation is allowed for RBAC enabled sites.,Emp Exp Common Config,1
+crossTeamAllocationEnabled,BOOLEAN,Allows cross-team desk and employee allocation.,Emp Exp Common Config,1
+customPlannerViewEnabled,BOOLEAN,-,Booking Rule Engine,1
+CutOffTimeBetweenBookingsOnSeatInMinute,INTEGER,Defines minimum gap between consecutive bookings on the same seat.,"Booking Rule Engine, Emp Exp Common Config",2
+cutoffTimeBetweenWISAppFeedback,JSON,Defines minimum time gap between feedback prompts.,Emp Exp Common Config,1
+cutoffTimeForSkipWISAppFeedback,INTEGER,Defines the interval (in hours) after which the internal app feedback will appear post booking creation.,"Emp Exp Common Config, Emp Exp Internal Config",2
+dashboard,BOOLEAN,Enables the Dashboard option under Team Manager Dashboard.,PMS,1
+DASHBOARD_ENABLED,BOOLEAN,Enables the Home Dashboard.,PMS,1
+DATE_FORMAT,STRING,Defines date format for UI.,Emp Exp Common Config,1
+DATE_FORMAT_SERVICES,STRING,Defines date format for backend services.,Emp Exp Common Config,1
+DEACTIVATION_TYPE,STRING,Control the action of deactivation of meeting room,Meeting Rooms,1
+defaulBookingHoursIfExtCheckin,DOUBLE,-,Booking Rule Engine,1
+defaultAdvanceBookingLimitForBypass,INTEGER,Defines the threshold for the Advance Booking Limit bypass privilege.,Meeting Rooms,1
+DefaultEndTimeOfEmployeeBooking,INTEGER,Defines default end time for employee booking.,VMS,1
+defaultInviteTitle,STRING,Defines default title for Invite Form.,VMS,1
+defaultKioskBookingDurationInMinutes,INTEGER,Defines fixed visit duration for each visitor check-in.,VMS,1
+defaultLogoutShiftMinutes,INTEGER,Auto-populates checkout time based on configured duration after check-in selection.,"Booking Rule Engine, Emp Exp Common Config",2
+defaultMaxDurationForBypass,INTEGER,Defines the threshold for the maximum duration bypass privilege.,Meeting Rooms,1
+defaultVisitTypeSelection,BOOLEAN,Controls default selection behavior for Type of Visit field.,VMS,1
+defLogoutDuration,DOUBLE,-,Booking Rule Engine,1
+defOnCallLogoutDurationInMinute,INTEGER,-,Booking Rule Engine,1
+defWfhLogoutDurationInMinute,INTEGER,-,Booking Rule Engine,1
+delegation,JSON,Enables the Delegation feature in the sidenav.,PMS,1
+delegatorDelegateeEmailsEnabled,BOOLEAN,Sends email notification to delegator.,Emp Exp Common Config,1
+deleteFutureSchedulesOnDeactivation,BOOLEAN,-,Booking Rule Engine,1
+DESK_AUDIT,BOOLEAN,Enables Desk Audit section.,PMS,1
+DESK_TAGGING_ENABLED,BOOLEAN,Enables the Desk Tagging feature.,PMS,1
+deskTagHeaders,LIST,Headers for desk tag,WIS Seat Booking,1
+DEVICECONFIGURATIONS,JSON,"This property controls mobile device authentication, SSO settings, session expiry rules, app security options, and related access configurations.","App Server Config, App Server Config (.in)",2
+digipass,LIST,Controls DigiPass visibility across email and badge channels.,VMS,1
+digipassAutoSend,BOOLEAN,Automatically sends DigiPass.,VMS,1
+digipassAutoSendBuffer,INTEGER,Defines buffer time for sending DigiPass after booking creation.,VMS,1
+directCheckinEndCutOffInMinute,DOUBLE,Defines end cutoff for direct check-in.,Emp Exp Common Config,1
+directCheckinExpiryInMinute,DOUBLE,Defines expiry time for direct check-in.,Emp Exp Common Config,1
+directCheckinStartCutOffInMinute,DOUBLE,Defines start cutoff for direct check-in.,Emp Exp Common Config,1
+DIRECTION,STRING,-,Emp Exp Common Config,1
+disableWfhWfoOverlapping,BOOLEAN,-,Booking Rule Engine,1
+districts,LIST,-,Emp Exp Internal Config,1
+DYNAMIC_TRIP_FEEDBACK_URL,STRING,-,"App Server Config, App Server Config (.in)",2
+dynamicData,LIST,Defines configurable dynamic fields displayed in the booking form.,WIS Seat Booking,1
+DynamicData,LIST,Defines dynamic field setup for seat booking,WIS Seat Booking,1
+dynamicDataForDesk,JSON,-,Booking Rule Engine,1
+dynamicFieldLabel,JSON,Customizes the label text for the meeting request section on meeting booking form.,Meeting Rooms,1
+dynamicFieldNameOnBookingForm,STRING,Dynamic fields name description.,Booking Rule Engine,1
+dynamicFieldOnRooms,BOOLEAN,Displays dynamic fields during meeting room creation - i.e Meeting Rooms request section,Meeting Rooms,1
+DynamicFields,LIST,Not in use.,VMS,1
+dynamicFieldsConfigForRooms,LIST,This controls the dynamic fields aka custom fields for the catering workflow where we can define different types of fields - their header and the type of input values. You can find the output of this dynamic field configuration under Delivery instructions of the catering workflow on both the web and Outlook Add-In,Meeting Rooms,1
+dynamicFieldUserEmails,LIST,Defines email recipients for dynamic field notifications.,Meeting Rooms,1
+EAManager,LIST,Configures EAManager role access.,PMS,1
+editProfileEnabled,BOOLEAN,Controls profile editing.,Emp Exp Common Config,1
+email,STRING,Controls whether the Email field is shown or hidden during employee profile validation.,Emp Exp Common Config,1
+emailBookingMessage,STRING,-,Booking Rule Engine,1
+emailListToAdmin,LIST,Defines email list for admin notes.,VMS,1
+emailListToReceptionist,LIST,Defines email list for receptionist/security notes.,VMS,1
+emailsForApprovalFlowRequest,LIST,-,Booking Rule Engine,1
+empExp,STRING,Defines primary Employee Experience URL.,Emp Exp Common Config,1
+empExpUi,STRING,Defines Employee Experience UI URL.,Emp Exp Common Config,1
+empexpUI,STRING,Defines Employee Experience interface URL.,Emp Exp Common Config,1
+empHomepageTodaysAvailabilityCard,BOOLEAN,"Once enabled, the user must see the complete availability card; modules inside the card will be visible based on whether the respective module is enabled for the user's office.","Booking Rule Engine, Emp Exp Common Config",2
+empHomeWidgetMeetingRoomCheckInCutOff,INTEGER,Defines check-in cutoff for meeting room check-in from Employee Home widget.,Emp Exp Common Config,1
+empID,STRING,Controls whether the Employee ID field is shown or hidden during employee profile validation.,Emp Exp Common Config,1
+employee,LIST,Configures ETS Employee role access.,PMS,1
+EMPLOYEE,LIST,Configures WIS Employee role access.,PMS,1
+EMPLOYEE_CHECKIN,BOOLEAN,Enables the My Bookings page in the sidenav.,PMS,1
+EMPLOYEE_PROFILE_AUDIT,BOOLEAN,Enables Employee Profile audit history under Audit History section on sidenav.,PMS,1
+EMPLOYEE_TAGGING_ENABLED,BOOLEAN,Enables the Employee Tagging feature.,PMS,1
+EMPLOYEE_WEB_EXPERIENCE,BOOLEAN,Enables the Employee Home page for specified roles.,PMS,1
+employeeCancelCutOff,INTEGER,-,Booking Rule Engine,1
+employeeCheckinMsTeamsTemplateAdmin,JSON,Defines MS Teams template for admin employee check-in notifications.,VMS,1
+employeeCheckinMsTeamsTemplateCreator,JSON,Defines MS Teams template for employee self check-in notifications.,VMS,1
+employeeCheckoutPrompt,LIST,Defines confirmation modal checklist for employee checkout.,VMS,1
+employeeDeactivationEmailSubject,STRING,-,Email Emp Experience,1
+employeeEndTimeBookingCutoff,INTEGER,-,Booking Rule Engine,1
+employeeEndTimeScheduleCutoff,INTEGER,-,Booking Rule Engine,1
+employeeFaceOnboardingForRecognition,BOOLEAN,Onboards employee photos into face recognition service.,VMS,1
+employeeFloorPlanUrl,STRING,Defines Employee Floor Plan URL.,Emp Exp Common Config,1
+employeeFlowWithoutVisitor,BOOLEAN,enabling employee flow without visitor,VMS,1
+employeePIIMasking,LIST,Configures selective masking of PII fields and visual security settings.,Emp Exp Common Config,1
+EMPLOYEES_ENABLED,BOOLEAN,Enables the People > Employees page.,PMS,1
+employeeScheduleCutoff,INTEGER,-,Booking Rule Engine,1
+employeeStatusModuleEnabled,BOOLEAN,"When set true, starts using configuration under employeeStatusList.","Emp Exp Common Config, Emp Exp Internal Config",2
+employeeTagHeaders,LIST,Headers for employee tag,WIS Seat Booking,1
+ENABLE_AUTO_MEETING_ROOM_SYNC,BOOLEAN,Automatically runs meeting room sync when enabled.,Meeting Rooms,1
+ENABLE_CHECKIN_NOTIFICATION,BOOLEAN,Master switch to enable check-in notifications.,Emp Exp Common Config,1
+ENABLE_HELP_SECTION,BOOLEAN,Enables the Help section in the sidenav.,PMS,1
+ENABLE_HIERARCHY_PAGE,BOOLEAN,Enables the People > Hierarchy page in the sidenav.,PMS,1
+ENABLE_INDOOR_NAVIGATION,BOOLEAN,Enables wayfinding/navigation to desks.,Emp Exp Common Config,1
+ENABLE_MEETING_CATERING,BOOLEAN,"Catering workflow - Enables catering functionality in meeting rooms, to see the Catering Request option in room booking form.","Meeting Rooms, PMS",2
+ENABLE_MIS,BOOLEAN,Enables the switch to ETS option in the sidenav for a specific role.,PMS,1
+ENABLE_TAG_MANAGEMENT,BOOLEAN,Activates self-service Tag Management module on sidenav.,PMS,1
+ENABLE_WIS,BOOLEAN,Enables the WorkInSync button in the Transport Dashboard.,PMS,1
+ENABLE_WITH_PRINCIPAL_NAME,BOOLEAN,Uses email prefix as visitor name when name is unavailable.,Meeting Rooms,1
+enableAutoAbsentNotification,BOOLEAN,Sends notification when a booking results in no-show.,Emp Exp Common Config,1
+enableBlacklistVisitorProfiles,BOOLEAN,Enables visitor blacklist feature.,VMS,1
+enableBookingCancellationReasonsFor,LIST,Requires cancellation reason for specified booking types.,Emp Exp Common Config,1
+enableBookingEmail,BOOLEAN,Enables booking details email notification.,"Booking Rule Engine, Emp Exp Common Config",2
+enableBookingsOnHolidays,BOOLEAN,-,Booking Rule Engine,1
+enableCalendarInvite,BOOLEAN,Creates calendar event in host email upon invite creation.,VMS,1
+enableCarbonFootprintTrackingInParking,BOOLEAN,Enables carbon footprint tracking for employee commutes and displays emissions metrics.,"Emp Exp Common Config, Guard App",2
+enableCheckInForMeetingRoom,BOOLEAN,Enables meeting room check-in button on the web and app.,Meeting Rooms,1
+enableCheckInForMeetingRoomEmpHome,BOOLEAN,Displays the check-in button on the 'Today's Meeting' widget for old room types and allows check-in from Employee Home.,Emp Exp Common Config,1
+enableCheckInReminderEmailForRoom,BOOLEAN,Enables check-in reminder emails for meeting rooms.,Meeting Rooms,1
+enableCheckInReminderNotificationForRoom,BOOLEAN,Sends app notification reminder for meeting room check-in.,Meeting Rooms,1
+enableColorInParkingVehicleCreation,BOOLEAN,Adds vehicle color input field in parking vehicle creation.,Emp Exp Common Config,1
+enableConsentCheckboxSafeReach,BOOLEAN,Enables additional consent checkbox in Safe Reach form.,VMS,1
+enabledBuidForVisitorConfigs,LIST,Enables visitor notification page.,VMS,1
+enabledCheckInEmailBodyParam,LIST,Defines enabled parameters in check-in email body.,Emp Exp Common Config,1
+enabledCheckInEmailBodyParamNames,LIST,Defines parameter names in check-in email body.,Emp Exp Common Config,1
+enableDelegationForAdmins,BOOLEAN,Allows admins to manage delegation.,Emp Exp Common Config,1
+enableDynamicFields,BOOLEAN,Enables configurable dynamic fields per BU.,"Booking Rule Engine, Emp Exp Common Config, VMS",3
+enableEmployeeEmailNotification,BOOLEAN,Enables check-in notifications to employees.,VMS,1
+enableEmployeeMSTeamNotification,BOOLEAN,Enables MS Teams notifications for employee check-in flow.,VMS,1
+enableEmployeePreferences,BOOLEAN,Enables employee preference settings on web.,Emp Exp Common Config,1
+enableEmployeeRFIDColumn,BOOLEAN,Enables RFID number field and prevents duplicates.,Emp Exp Common Config,1
+enableFloorPlanAccessibility,BOOLEAN,Enables accessibility features for visually impaired users.,Emp Exp Common Config,1
+enableGeofenceCheckFor,LIST,Enables GPS/geofence validation for specified workflows.,Emp Exp Common Config,1
+enableGeofenceCheckForCheckin,BOOLEAN,Enforces check-in validation within defined geofence limits.,"Emp Exp Common Config, Emp Exp Internal Config",2
+enableGridFloorPlan,BOOLEAN,Enables grid-based parking floor plan.,Emp Exp Common Config,1
+enableIndoorNavigation,BOOLEAN,-,Booking Rule Engine,1
+enableJoinAllWaitlist,BOOLEAN,Allows joining waitlists across all parking levels.,Emp Exp Common Config,1
+enableMealBookingNudge,BOOLEAN,-,Booking Rule Engine,1
+enableMealCartView,BOOLEAN,Activates meal cart and payment flow when enabled with showMealPaymentCTA.,Emp Exp Common Config,1
+enableMealConfigureKiosk,BOOLEAN,To enable 'Configure Kiosk' button on meal dashboard.,Booking Rule Engine,1
+enableMealDayWiseAvailability,BOOLEAN,Allows admin to configure meal availability per day.,Emp Exp Common Config,1
+enableMealImageIn,LIST,To show meal image in meal item.,Emp Exp Common Config,1
+enableMealOnlyBulkUpload,BOOLEAN,-,Booking Rule Engine,1
+EnableMRMailCancel,BOOLEAN,Sends mail over email when meeting room cancellation is triggered via kiosk to the organiser,Meeting Rooms,1
+EnableMROTPCancel,BOOLEAN,Controls OTP verification over email when meeting room cancellation is triggered via kiosk to the organiser,Meeting Rooms,1
+enableMultiAllocation,LIST,Controls desk multi-allocation functionality and displays the Multi-allocated Desk legend entry on floor plans when value includes 'DESK'.,Emp Exp Common Config,1
+enableMultiMealSelect,BOOLEAN,Enables multi selection on meal booking.,Emp Exp Common Config,1
+enableNewAdminDashboard,BOOLEAN,Enables Admin Dashboard 2.0.,Emp Exp Common Config,1
+enableNewAllocationFlow,BOOLEAN,Enables new allocation flow required for time-based allocation.,Emp Exp Common Config,1
+EnableNewEmailTemplate,BOOLEAN,Enables new email template format.,Emp Exp Common Config,1
+enableNoninteractiveVisitorInvite,BOOLEAN,Enables non-interactive email notifications.,VMS,1
+enableOfficeCheckInWithParkingCheckIn,BOOLEAN,Controls whether office check-in is automatically completed along with parking check-in.,"Booking Rule Engine, Emp Exp Common Config, Guard App",3
+enableOtpOverride,BOOLEAN,Enables OTP override flow on VMS kiosk.,VMS,1
+enableOTPValidationSelfCheckin,BOOLEAN,Enables OTP validation on kiosk.,VMS,1
+enableOTPValidationSelfCheckinList,LIST,Enables OTP validation in kiosk self check-in flow.,VMS,1
+enableParkingAvailabilityWidgetWithoutBooking,BOOLEAN,"When the parking booking module is not enabled for the client, but they only want to consume the available slot numbers.",Booking Rule Engine,1
+enableParkingCheckOutWithOfficeCheckOut,BOOLEAN,Controls whether parking checkout is automatically performed along with office checkout.,"Emp Exp Common Config, Guard App",2
+enablePerpetualDigipassForAllUsers,BOOLEAN,Allows DigiPass generation without office booking.,Emp Exp Common Config,1
+enablePrintBadgeForInviteFlow,BOOLEAN,Enables badge printing for visitors via Invite flow.,VMS,1
+enablePriorityWiseAutoSlotAllocate,BOOLEAN,"When enabled, slot is assigned in priority order based on display order value.","Booking Rule Engine, Emp Exp Common Config",2
+enablePrivilegeOnApp,BOOLEAN,To show resources while booking based on privilege.,Booking Rule Engine,1
+enableProjectCodeFor,LIST,Enables Project Code field for specified booking types.,Emp Exp Common Config,1
+enableProjectColor,BOOLEAN,Enables enhanced seat and team color legends on floor plan.,Emp Exp Common Config,1
+enableQRBasedRemoteSignin,BOOLEAN,Enables QR-based remote sign-in.,Emp Exp Common Config,1
+enableQRBasedSignOutButton,BOOLEAN,Enables QR-based sign-out.,Emp Exp Common Config,1
+enableQrCodeForSeatManagement,BOOLEAN,Enables QR based validation for check in,Guard App,1
+enableQrCodeForSeatSanitize,BOOLEAN,Enables or disables QR code scanning for seat sanitization.,Guard App,1
+enableRecurrenceOnTeamPlanner,BOOLEAN,-,Booking Rule Engine,1
+enableSafeReachForBookingTypes,LIST,Defines booking types eligible for Safe Reach.,Emp Exp Common Config,1
+enableSafeReachWisList,LIST,Defines environments where Safe Reach is enabled.,Emp Exp Common Config,1
+enableScrollToConsentEnforcement,BOOLEAN,This property controlled whether user have to scroll till end to enable the CTA's or not,VMS,1
+enableSelfRegistrationOnKiosk,BOOLEAN,Enables employee self-registration on kiosk.,VMS,1
+enableSeparateMealOption,BOOLEAN,Enable meal-only booking (coupled with existing property to enable meals).,Booking Rule Engine,1
+enableSignatureForConsentSafeReach,BOOLEAN,Requires signature-based consent in Safe Reach form.,VMS,1
+enableStandardMealSelectionFlow,BOOLEAN,Enables standard meal booking flow and overrides both normal chip and cart view.,Emp Exp Common Config,1
+enableSuppportRequest,BOOLEAN,-,Emp Exp Common Config,1
+enableTeamAsResource,BOOLEAN,Creates resource entry for newly created teams.,Emp Exp Common Config,1
+enableTeamCalendarRMView,BOOLEAN,Enables hierarchy filter on Team Calendar.,Emp Exp Common Config,1
+enableTimeBasedDeskAllocation,BOOLEAN,Enables time-based desk allocation and disables List View.,Emp Exp Common Config,1
+enableTimezoneWithOfficeName,BOOLEAN,Controls whether the office name is displayed along with its timezone.,"Emp Exp Common Config, Emp Exp Internal Config",2
+enableTransportBookingBulkUpload,BOOLEAN,-,Emp Exp Common Config,1
+enableVisitorManagementOnApp,BOOLEAN,Enables visitor management in app.,Emp Exp Common Config,1
+enableVisitorParking,BOOLEAN,Enables parking for visitors (currently not in use).,VMS,1
+enableWaitlistBooking,BOOLEAN,Enables waitlist functionality in parking bookings.,Emp Exp Common Config,1
+enableWalkInEmail,BOOLEAN,Not in use.,VMS,1
+enableWeeklyOffBookings,BOOLEAN,-,Booking Rule Engine,1
+enableWisThemeColors,BOOLEAN,Enables dynamic theming using wisThemeColors property.,Emp Exp Common Config,1
+endHour,INTEGER,"This configuration defines the end time of the bookable time in the meeting rooms timeline - room level configuration. Integer value, 0-24.",Meeting Rooms,1
+endTimeBufferRoomBookingBuidLevel,BOOLEAN,Defines end time buffer for meeting room bookings at BUID level for the Buffer Time workflow in catering/IT request.,Meeting Rooms,1
+endTimeBufferRoomBookingRoomLevel,INTEGER,Defines end time buffer for meeting room bookings at room level for the Buffer Time workflow in catering/IT request.,Meeting Rooms,1
+enforceReAuthentication,BOOLEAN,Enables enforcement of re-authentication.,Emp Exp Common Config,1
+enforceReAuthenticationDurationInMinutes,DOUBLE,Defines re-authentication validity duration in minutes.,Emp Exp Common Config,1
+ENGINEERING,JSON,-,"App Server Config, App Server Config (.in)",2
+entryApprovalFromFrontdesk,BOOLEAN,Not in use.,VMS,1
+entryTimeInLimit,INTEGER,Defines buffer time for entry in the 2-step check-in/checkout process.,VMS,1
+entryType,STRING,-,Guard App,1
+env,JSON,Defines the environment to which the site is mapped.,Guard App,1
+excludeMealOnlyBookingsFromActiveBookingCount,BOOLEAN,Decides whether to exclude meal booking from web/app/bulk from active booking count for any user.,Emp Exp Common Config,1
+expiredRequestNotificationEnabled,BOOLEAN,Controls whether notifications are sent when booking approval requests expire.,"Booking Rule Engine, WIS Seat Booking",2
+expiryCutOffInMinutes,INTEGER,Controls when a pending seat booking request should be treated as expired,"Booking Rule Engine, WIS Seat Booking",2
+expiryNotificationCutOffInMinutes,INTEGER,"Defines how many minutes before a booking approval request expires, used in conjunction with expiryCutOffInMinutes for approval-flow reminders.","Booking Rule Engine, WIS Seat Booking",2
+extCheckinToBookingBuffer,DOUBLE,-,Booking Rule Engine,1
+externalChannelCheckIn,BOOLEAN,-,Booking Rule Engine,1
+externalEmailIdsMapToTriggerOnVisitorCheckin,JSON,Not in use.,VMS,1
+externalEmailIdsToTriggerOnVisitorCheckin,LIST,Not in use.,VMS,1
+externalEmployeeList,LIST,Stores external stakeholder email and name details.,VMS,1
+externalNotifications,JSON,Controls external notifications (backend property).,VMS,1
+externalStaffUi,STRING,Defines External Staff UI URL.,Emp Exp Common Config,1
+FAB_ITEMS_DISPLAY_ORDER_LIST,LIST,This property controls the FAB button menu in app.,"App Server Config, App Server Config (.in)",2
+fabDisplayNames,LIST,Defines FAB display names.,Emp Exp Common Config,1
+facilityMailList,STRING,For IT request workflow to control who receives the IT request emails.,Meeting Rooms,1
+FDReportColumnsEmployee,JSON,Defines configurable columns for Employee Front Desk report.,VMS,1
+FDReportColumnsVisitor,JSON,Defines configurable columns for Visitor Front Desk report.,VMS,1
+FEATURE_MEDICAL_EMERGENCY_EMAIL_RM,BOOLEAN,-,Emp Exp Common Config,1
+FEATURE_MEDICAL_EMERGENCY_EMAIL_TM,BOOLEAN,-,Emp Exp Common Config,1
+featureBookingBuids,STRING,-,Guard App,1
+featurePhoneEnabled,DOUBLE,-,Guard App,1
+FELLOW_PASSENGER_BOARDED_HEADER,STRING,-,Email Emp Experience,1
+FELLOW_PASSENGER_NO_SHOW_HEADER,STRING,-,Email Emp Experience,1
+FILE_BASED_UPLOAD,BOOLEAN,Enables Desk bulk upload option in Seat Management.,PMS,1
+filterNoAvailableSeatInFloor,BOOLEAN,Filters floors without available seats.,"Booking Rule Engine, Emp Exp Common Config",2
+finalScreenCTATextSelfCheckInFlow,JSON,This property controlled what to show as the end button text in different flows,VMS,1
+FLOOR_PREMISE_NAME,STRING,-,Meeting Rooms,1
+FLOOR_VIEW,JSON,Controls the group type configuration for hierarchy setup on the floor plan.,Guard App,1
+floorKioskAllowOfficeCheckin,LIST,New property for controlling office check-in via Floor Kiosk.,VMS,1
+floorKioskCheckinInfo,BOOLEAN,Enables real-time desk check-in display on Floor Kiosk.,Emp Exp Common Config,1
+floorKioskCheckInOutEmails,LIST,"Conditions to send check-in/checkout mail on, values should be of type [CHECKIN, CHECKOUT].",Booking Rule Engine,1
+floorKioskConfigs,JSON,Defines Floor Kiosk configurations in Settings.,VMS,1
+floorKioskUrl,STRING,Floor Kiosk URL.,Emp Exp Common Config,1
+floorManagement,STRING,Defines Floor Management URL.,Emp Exp Common Config,1
+floorPlan,STRING,Defines primary Floor Plan URL.,Emp Exp Common Config,1
+Floorplan_Legend_Employee_Web_Expanded,BOOLEAN,Controls expanded or collapsed legend state on employee web floor plan.,Emp Exp Common Config,1
+floorPlanUI,STRING,Defines Floor Plan UI URL.,Emp Exp Common Config,1
+floorPlanViewMeetingRoomsWeb,BOOLEAN,Enables floor plan view for meeting rooms on web.,Emp Exp Common Config,1
+FORECAST_ENABLED,BOOLEAN,Enables the Desk Forecasting feature.,PMS,1
+forecastingColumns,JSON,Defines the column mapping and labels used in forecasting reports.,"Guard App, WIS Seat Booking",2
+forecastingEfficiancy,DOUBLE,-,Emp Exp Common Config,1
+forms_configurations,JSON,Controls belongings configuration for VMS self check-in flow.,VMS,1
+formsMetaDataForHost,JSON,Controls host-side custom fields in invited flow.,VMS,1
+formsMetaDataForHostPWC,JSON,Handles host-side custom fields and belongings in invited flow (PWC).,VMS,1
+formsMetaDataForVisitor,JSON,Controls visitor-side custom fields in invited flow.,VMS,1
+formsMetaDataForVisitorPWC,JSON,Handles visitor-side custom fields and belongings in invited flow (PWC).,VMS,1
+formsMetaDataForWalkIn,JSON,Handles custom fields and belongings for Walk-in flow.,VMS,1
+FRESHCHATCONFIGURATIONS,JSON,-,"App Server Config, App Server Config (.in)",2
+FRONT_DESK,BOOLEAN,Enables Visitor Management for Front Desk.,PMS,1
+front_desk_configurations,JSON,Defines core functionalities visible on Front Desk.,VMS,1
+frontDeskColumns,LIST,Controls column dropdown configuration on Front Desk.,VMS,1
+gatepassDelaycutoff,DOUBLE,-,Booking Rule Engine,1
+gatepassExpiryMinutes,INTEGER,Defines DigiPass expiry duration after booking start.,Emp Exp Common Config,1
+gender,STRING,Controls whether the Gender field is shown or hidden during employee profile validation.,Emp Exp Common Config,1
+generateGatepassAdvanceCutOff,DOUBLE,Defines minutes before booking start when DigiPass generation becomes active.,Emp Exp Common Config,1
+generateGatepassDelayCutOff,DOUBLE,Defines minutes after booking start when DigiPass generation is allowed.,Emp Exp Common Config,1
+genericLabelForDesk,STRING,Resource name label to replace Desk keyword on all employee and admin pages.,"Booking Rule Engine, Emp Exp Common Config",2
+GLOBAL ADMIN,LIST,Configures Global Admin role access.,PMS,1
+GRAND_LAUNCH_ENABLED,BOOLEAN,This property will be used to enable the feature grand launch communication,"App Server Config, App Server Config (.in)",2
+GRAND_LAUNCH_END_TIME,STRING,-,"App Server Config, App Server Config (.in)",2
+GRAND_LAUNCH_START_TIME,STRING,-,"App Server Config, App Server Config (.in)",2
+groupTypes,JSON,Defines the group types used for hierarchy setup.,Guard App,1
+guardAppCutOffTime,STRING,Defines the cutoff time for guard application actions such as entry validation.,Guard App,1
+GUEST_BULK_UPLOAD,BOOLEAN,Enables bulk upload option for visitors.,VMS,1
+GUEST_POLICY_HEADER,STRING,Adds a customizable guest policy header.,VMS,1
+hideBookingTimeMealOnly,BOOLEAN,-,Emp Exp Common Config,1
+HideCancelButton,BOOLEAN,Controls visibility of the Cancel button on the Meeting Room Kiosk at room level.,Meeting Rooms,1
+HideCheckInButton,BOOLEAN,Controls visibility of the check-in button on the Meeting Rooms Kiosk screen,Meeting Rooms,1
+HideEndButton,BOOLEAN,Controls visibility of the End Now button on the Meeting Rooms Kiosk screen,Meeting Rooms,1
+HideExtendButton,BOOLEAN,Controls visibility of the Extend on the Meeting Rooms Kiosk screen,Meeting Rooms,1
+HideMeetingTitle,BOOLEAN,Controls visibility of the meeting title sendRoomBookingEmailToAllParticipants,Meeting Rooms,1
+HideOrganizerName,BOOLEAN,Controls visibility of the organizer name on the Meeting Rooms Kiosk screen,Meeting Rooms,1
+hideParkingSlotInfo,BOOLEAN,-,Booking Rule Engine,1
+hideScheduleButtonFromFab,BOOLEAN,-,Emp Exp Common Config,1
+HideStartMeetingButton,BOOLEAN,Controls visibility of the Start Meeting button on the Meeting Room Kiosk.,Meeting Rooms,1
+hierarchy,LIST,Defines organizational hierarchy levels.,Emp Exp Common Config,1
+homeGeocode,STRING,Controls whether the Home Geocode field is shown or hidden during employee profile validation.,Emp Exp Common Config,1
+HOST_POLICY_HEADER,STRING,Adds a customizable host policy header.,VMS,1
+hostNotifications,JSON,Controls host notifications (backend property).,VMS,1
+HR MANAGER,LIST,Configures HR Manager role access.,PMS,1
+hr_manager,LIST,Configures HR Manager role access.,PMS,1
+iadeaLightsBrightness,JSON,This property controls colour and brightness of led lights of IADEA Device for Meeting Rooms Kiosk,Meeting Rooms,1
+identification,BOOLEAN,Allows enablement of identification on front desk,VMS,1
+igonreErrorOfArrogyaSetu,BOOLEAN,Ignores Aarogya Setu app status check errors.,Emp Exp Common Config,1
+IMPLEMENTATION_HEAD,LIST,Configures Implementation Head role access.,PMS,1
+includeChildHierarchy,BOOLEAN,Controls inclusion of child hierarchy levels.,Emp Exp Common Config,1
+INDEMNIFICATION_REASONS,STRING,Defines available indemnification reasons.,Emp Exp Common Config,1
+industryStandard,JSON,Controls industry standard values on Admin Dashboard metric cards.,Emp Exp Common Config,1
+INVITE_VISITOR,BOOLEAN,Enables the Visitor Management > Invite Visitor page in the sidenav.,PMS,1
+INVITE_VISITOR_FROM_ROOMS,BOOLEAN,Enabled the Meeting and Visitor booking workflow from meeting booking from on web and mobile.,Meeting Rooms,1
+INVITE_VISITOR_ROOMS,BOOLEAN,Enables Invite Visitor tab within the Meeting Rooms Outlook Add-in.,Meeting Rooms,1
+inviteFormDefaultOfficeSelection,BOOLEAN,Defines default office selection in Invite Visitor form.,VMS,1
+IPBasedCheckinEnabled,BOOLEAN,Restricts web check-in based on IP address.,Emp Exp Common Config,1
+is2StepCheckInEnabled,BOOLEAN,Enables 2-step check-in and check-out process.,VMS,1
+IS_RICHEMONT,BOOLEAN,Enables Richemont-specific workflow configurations.,Meeting Rooms,1
+IS_WIS_CALENDAR,BOOLEAN,Enables the Native Rooms view on the Outlook Add-In and allows use of WIS Meeting Rooms with tags and allocations.,"Emp Exp Common Config, Meeting Rooms",2
+isAmenitiesFilter,BOOLEAN,Enables amenities filter in desk booking.,"Booking Rule Engine, Emp Exp Common Config",2
+isAppFeedbackEnabled,BOOLEAN,Enables app feedback feature.,"Booking Rule Engine, Emp Exp Common Config",2
+isAutoAbsentEnabled,BOOLEAN,Enables auto-absent feature and automatic seat release if check-in does not occur within cutoff.,"Booking Rule Engine, Emp Exp Common Config",2
+isAutoEntryAllowed,BOOLEAN,Automatically switches to the next DigiPass scan mode after the first scan is completed.,"Booking Rule Engine, Guard App",2
+isAutoLogoutEnabled,BOOLEAN,-,Booking Rule Engine,1
+isAutoProvision,BOOLEAN,-,Emp Exp Common Config,1
+isBlSubblBuid,BOOLEAN,Enables N-level hierarchy/Business Line feature for BU.,Emp Exp Common Config,1
+isBookingForNonRegisteredEmpBySpocConfigEnabled,BOOLEAN,Controls whether a SPOC is allowed to create bookings for non-registered employees via SPOC flows (Work Planner / Booking for Someone Else flow).,PMS,1
+isBuNudgeNotifEnabled,BOOLEAN,Enables weekly nudge notifications for users without bookings.,Emp Exp Common Config,1
+isCalendarInviteEnabled,BOOLEAN,Enables calendar invite option.,"Booking Rule Engine, Emp Exp Common Config",2
+isCheckinNotificationEnabled,BOOLEAN,Enables notification after successful check-in.,"Booking Rule Engine, Emp Exp Common Config",2
+isCoreBuid,BOOLEAN,Tells the Guard service which BUID is the primary (default) site for that Guard configuration block.,Guard App,1
+isCustomShiftsRestricted,BOOLEAN,TO BE STRICTLY UPDATED ONLY FROM CONFIGURATION PAGE. Defines if the selection of custom shift would be allowed or not.,Booking Rule Engine,1
+isDelegationEnabled,BOOLEAN,Master switch enabling Delegation feature.,Emp Exp Common Config,1
+isDynamicFieldsMandatory,BOOLEAN,Defines if dynamic fields is mandatory.,"Booking Rule Engine, Emp Exp Common Config, Emp Exp Internal Config",3
+isEditEndTimeOnFrontDeskEnabled,BOOLEAN,Enables editing of invite end time on Front Desk.,VMS,1
+isEmloyeeCreationForMsuEnabled,BOOLEAN,Controls MSU employee creation.,Emp Exp Common Config,1
+isEmployeeCreationEnabledForMSu,BOOLEAN,Controls MSU employee creation feature.,Emp Exp Common Config,1
+isEmployeeFlowEnabled,BOOLEAN,Enables employee check-in flow on kiosk.,VMS,1
+isGDPRCookiePolicyEnabled,BOOLEAN,Displays GDPR compliance pop-up in mobile app.,Emp Exp Common Config,1
+IsGuestWifiEnabled,BOOLEAN,Enables or disables Guest Wi-Fi.,VMS,1
+isMasterNudgeNotifEnabled,BOOLEAN,Controls master nudge notifications.,Emp Exp Common Config,1
+isMultipleScan,BOOLEAN,Controls whether a QR code can be scanned multiple times for the same context.,Guard App,1
+isPhoneValidationOptional,BOOLEAN,Controls whether phone number is optional or mandatory during employee registration.,"Booking Rule Engine, Emp Exp Common Config",2
+isReportingAndAnalyticEnable,BOOLEAN,-,Emp Exp Common Config,1
+isSeatBookingAssignment,BOOLEAN,Controls seat assignment feature.,Emp Exp Common Config,1
+isSeatValidationEnabled,BOOLEAN,-,Booking Rule Engine,1
+isSeatValidationEnabledOnQrScan,BOOLEAN,-,Booking Rule Engine,1
+isSendEmailOnHighTemperature,BOOLEAN,Sends email notifications to configured stakeholders when an employee's temperature meets or exceeds the maximum threshold during guard app check-in.,Guard App,1
+isShiftPairingEnabled,BOOLEAN,Defines the enablement of shift pairs.,Booking Rule Engine,1
+isShuttleRequired,BOOLEAN,Replaces cab labels and icons with shuttle terminology across modules.,Emp Exp Common Config,1
+isSummedFloorCapacity,BOOLEAN,"When enabled, the system calculates total seat capacity by summing floor capacities; when disabled, seat capacity can be manually defined.",Guard App,1
+isTemperatureScanEnabled,BOOLEAN,Enables the temperature scan feature.,Guard App,1
+isTemporaryCheckoutEnabled,BOOLEAN,Enables temporary checkout option on Front Desk.,VMS,1
+isTripRatingMandatory,BOOLEAN,Controls trip rating requirement.,Emp Exp Common Config,1
+isVisitorCheckinMsTeamsNotificationEnabled,BOOLEAN,Enables visitor check-in notifications via email and MS Teams.,VMS,1
+isVisitorCheckoutMsTeamsNotificationEnabled,BOOLEAN,Controls visitor check-out notifications on MS Teams.,VMS,1
+isVisitorPhotoCaptureEnabled,LIST,Controls whether photo capture is required during self check-in.,VMS,1
+isWelcomeEmailEnabled,BOOLEAN,-,Emp Exp Common Config,1
+isZedaReleaseNoteEnabled,BOOLEAN,Displays Zeda widget showcasing new features and feedback.,Emp Exp Common Config,1
+IT_REQUEST_OUTLOOK_ADDIN,BOOLEAN,Enables IT request functionality within the WorkInSync Outlook Add-in.,Meeting Rooms,1
+itemsDynamicFields,LIST,dynamic fields for IT Request,Meeting Rooms,1
+IVR,JSON,-,"App Server Config, App Server Config (.in)",2
+jobTitleWiseCalenderInDays,JSON,-,Emp Exp Common Config,1
+KIOSK_IMAGE_FOR_OFFICE,STRING,Controls whether a kiosk image is applied at the office level (instead of per-room / per-kiosk only).,Meeting Rooms,1
+kioskDefaultImage,STRING,Defines the default image displayed on kiosks across the BUID.,Meeting Rooms,1
+kioskEmployeeRegistrationFields,JSON,Controls fields displayed in kiosk employee self-registration form.,VMS,1
+kioskInviteOptions,LIST,Controls QR-based check-in and check-out options on kiosk.,VMS,1
+kioskRequireOTPBeforeRegister,BOOLEAN,Enables OTP validation before kiosk employee registration.,VMS,1
+KioskSafeReachInterval,LIST,Defines Safe Reach interval (in minutes) for VMS kiosk.,VMS,1
+landingPlanHeaders,LIST,Headers for landing plan,WIS Seat Booking,1
+landmark,STRING,Controls visibility of Landmark field during registration.,Emp Exp Common Config,1
+lastSwipeAsCheckoutTimeForBUID,LIST,Uses the last swipe checkout time as final checkout instead of auto-checkout for access card integration clients.,Emp Exp Common Config,1
+LATEST_ANDROID_APP_VERSION,STRING,Used to define the latest app version,"App Server Config, App Server Config (.in)",2
+LATEST_IOS_APP_VERSION,STRING,Used to define latest ios app version,"App Server Config, App Server Config (.in)",2
+Leadership,LIST,Configures Leadership role access.,PMS,1
+limitEmployeeBookingDays,BOOLEAN,-,Booking Rule Engine,1
+limitEmployeeBookingDaysType,STRING,-,Booking Rule Engine,1
+limitEmployeeBookingDaysUnit,DOUBLE,-,Booking Rule Engine,1
+limitMealDuringBookingCreation,BOOLEAN,-,Booking Rule Engine,1
+listOfEligibleBuidsForAutoClockout,LIST,Defines BUs eligible for auto clock-out.,Emp Exp Common Config,1
+listOfEligibleBuidsForBusNotification,LIST,-,Emp Exp Common Config,1
+listOfExcludedBuidsForCheckin,LIST,Defines BUs excluded from check-in.,Emp Exp Common Config,1
+listOfIpsWithRange,LIST,Defines whitelisted IP addresses or IP ranges for office check-in restrictions.,Guard App,1
+listPropertyExample,LIST,-,Emp Exp Internal Config,1
+liveSupportChatFeatureEnabled,BOOLEAN,-,Emp Exp Common Config,1
+LOAD_COMMON_PROFILE_PAGE,BOOLEAN,Enables the default WIS profile page.,PMS,1
+lockerBookingEnabled,BOOLEAN,Update Desk/Office labels to Locker based on this configuration.,Booking Rule Engine,1
+LOG_UPLOAD_RECIPIENTS,LIST,-,App Server Config,1
+LOGOUT_CANCELLED_HEADER,STRING,-,Email Emp Experience,1
+LOGOUT_CANCELLED_MESSAGE,STRING,-,Email Emp Experience,1
+LOGOUT_SCHEDULE_CANCELLATION,STRING,-,Email Emp Experience,1
+madatoryFieldforScheduling,LIST,-,"Emp Exp Common Config, Emp Exp Internal Config",2
+maintenanceWindow,JSON,Controls the maintenance event suggestion window.,Guard App,1
+mandatoryBookingRequiredForCounterScan,BOOLEAN,"Ensures only users with an active meal booking can scan the counter QR code to consume a meal, preventing scans without bookings.",Booking Rule Engine,1
+mappedShuttleRouteBufferInMinutes,DOUBLE,-,Emp Exp Common Config,1
+mapSchedulesToBooking,BOOLEAN,Automatically maps schedules to matching bookings.,Emp Exp Common Config,1
+MASS_MAIL_SENDER_LIST,STRING,Mass mail sender list.,Email Emp Experience,1
+maxApprovalRequest,INTEGER,For resource approval workflow - defines maximum overlapping approval requests per user.,Meeting Rooms,1
+maxBufferForCheckin,DOUBLE,-,Booking Rule Engine,1
+maxDurationInMinutes,INTEGER,Defines maximum duration for meeting room bookings.,Meeting Rooms,1
+maxEmployeeSelectionWorkplanner,INTEGER,Defines maximum number of employees allowed for recurring bookings.,Emp Exp Common Config,1
+maxHoursAllowedForCheckin,DOUBLE,-,Booking Rule Engine,1
+maximumCharacterLimit,DOUBLE,-,Emp Exp Common Config,1
+maxShiftDuration,DOUBLE,-,Booking Rule Engine,1
+maxTemperatureAllowed,DOUBLE,Defines the maximum temperature threshold allowed for entry validation.,Guard App,1
+maxTimeAfterClockin,BOOLEAN,-,Booking Rule Engine,1
+maxTimeBeforeClockin,BOOLEAN,-,Booking Rule Engine,1
+maxTripLevelNonComplianceEventsAllowed,INTEGER,-,Emp Exp Common Config,1
+mealCancelCutoffInMinutes,INTEGER,Property to enable/disable booking cancellation option if created with meal and 'enableSeparateMealOption' is enabled.,Booking Rule Engine,1
+mealCutoffInMinutes,DOUBLE,Defines meal booking cutoff calculated from 00:00 of booked date.,Emp Exp Common Config,1
+mealFeedbackEnabled,BOOLEAN,Enables meal feedback feature and reporting.,Emp Exp Common Config,1
+mealFeedbackOptions,JSON,Configures meal feedback options.,Emp Exp Common Config,1
+mealFinalStage,LIST,Defines the final status of a meal booking.,Booking Rule Engine,1
+mealMailList,STRING,Defines email recipients for catering-related communications.,Meeting Rooms,1
+mealNotifications,BOOLEAN,Enable e-mails related to meal bookings for QR.,Emp Exp Common Config,1
+mealOnlyBulkBookingOptionalHeaders,LIST,Optional headers.,Emp Exp Common Config,1
+mealPlanningEnabled,BOOLEAN,Enables meal booking via Work Planner.,"Booking Rule Engine, Emp Exp Common Config",2
+mealPlanningMandatory,BOOLEAN,Makes meal selection mandatory in office booking form.,Emp Exp Common Config,1
+medicalEmergencyRequest,JSON,-,Emp Exp Common Config,1
+MEETING_EMAIL_OTP_TO_AUTHENTICATE,BOOLEAN,Controls the OTP notifcation send via email to verify end or cancellation of meeting bookings via meeting room kiosk,Meeting Rooms,1
+MEETING_END_NOTIFICATION,INTEGER,Controls the notification sent when the meeting has ended via meeting room kiosk,Meeting Rooms,1
+MEETING_ROOM_ENABLED,BOOLEAN,Enables the Meeting Room option under Team Manager Dashboard.,PMS,1
+MEETING_ROOM_RELEASE_IF_NO_CHECKIN,INTEGER,Releases room if check-in does not occur within configured minutes.,Meeting Rooms,1
+MEETING_ROOM_SUBSCRIPTION_JOB_EMAIL_LIST,LIST,Defines email recipients for room subscription status.,Meeting Rooms,1
+MEETING_ROOM_SYNC_JOB_EMAIL_LIST,LIST,Defines email recipients for meeting room sync job notifications.,Meeting Rooms,1
+MEETING_START_NOTIFICATION,INTEGER,Controls the notification sent when the meeting has started via meeting room kiosk,Meeting Rooms,1
+Meeting_Title_Catering_Order,BOOLEAN,Controls display of meeting title in the Catering Dashboard detailed view,Meeting Rooms,1
+meetingDetailsForDateUrl,STRING,Defines Meeting Details by date URL.,Emp Exp Common Config,1
+meetingOptionWebViewUrl,STRING,Defines Meeting Room web view URL.,Emp Exp Common Config,1
+meetingRoomCheckInCutOff,INTEGER,Defines the cutoff for the visibility of the checkin button on the meeting rooms web and mobile view.,Meeting Rooms,1
+meetingRoomCost,BOOLEAN,Controls display of meeting room cost in the UI for web and mobile view.,Meeting Rooms,1
+meetingRoomKioskUrl,STRING,Defines Meeting Room Kiosk URL.,Emp Exp Common Config,1
+meetingRoomsWidgetEnabled,BOOLEAN,Controls whether the meeting rooms widget is displayed in the employee home page on web.,"Emp Exp Common Config, Emp Exp Internal Config",2
+meetingRoomUrl,STRING,Defines Meeting Room module URL.,Emp Exp Common Config,1
+meetingStartTimeCuttoffInMinutes,INTEGER,Defines the cutoff for how much prior to that start time the booking can be created. Its a booking creation cutoff time. Value is in minutes.,Meeting Rooms,1
+microBookingEnabled,BOOLEAN,-,Emp Exp Common Config,1
+minDurationInMinutes,INTEGER,Defines minimum duration need for a meeting room booking.,Meeting Rooms,1
+minHoursAllowedForCheckin,DOUBLE,-,Booking Rule Engine,1
+minShiftDuration,DOUBLE,-,Booking Rule Engine,1
+minTemperatureAllowed,DOUBLE,Defines the minimum temperature threshold allowed for entry validation.,Guard App,1
+mobile,STRING,Controls whether the Mobile field is shown or hidden during employee profile validation.,Emp Exp Common Config,1
+MOBILE_APP_BANNERS,LIST,-,Emp Exp Common Config,1
+mobileNumberLength,INTEGER,Defines required mobile number length.,"Booking Rule Engine, Emp Exp Common Config",2
+mobileSSOMandatory,BOOLEAN,Removes the 'Continue with OTP' option on the mobile SSO login screen.,Emp Exp Common Config,1
+mobilityHealthStatus,STRING,Displays driver vaccination details on the Tracking page.,Emp Exp Common Config,1
+MONTH_END_NO_SHOW_ACTION_EMAIL,STRING,-,Email Emp Experience,1
+MONTH_END_NO_SHOW_ACTION_EMAIL_SUBJECT,STRING,-,Email Emp Experience,1
+MONTH_END_NO_SHOW_FUTURE_SCHEDULE_REMOVED_MESSAGE,STRING,-,Email Emp Experience,1
+MONTH_END_NO_SHOW_FUTURE_SCHEDULES_REMOVED_TITLE,STRING,-,Email Emp Experience,1
+MONTH_END_NO_SHOW_SCHEDULE_EDIT_PERMISSION_REVOKED_MESSAGE,STRING,-,Email Emp Experience,1
+MONTH_END_NO_SHOW_SCHEDULE_EDIT_PERMISSION_REVOKED_TITLE,STRING,-,Email Emp Experience,1
+MONTHLY_NO_SHOW_ACTION_EMAIL,STRING,-,Email Emp Experience,1
+MONTHLY_NO_SHOW_FUTURE_SCHEDULES_REMOVED_MESSAGE,STRING,-,Email Emp Experience,1
+MONTHLY_NO_SHOW_SCHEDULE_EDIT_PERMISSION_REVOKED_MESSAGE,STRING,-,Email Emp Experience,1
+MONTHLY_NO_SHOW_WARNING_EMAIL,STRING,-,Email Emp Experience,1
+MONTHLY_NO_SHOW_WARNING_MESSAGE,STRING,-,Email Emp Experience,1
+MSU,LIST,Configures MSU role access.,PMS,1
+MULTI_DOMAIN,BOOLEAN,Controls multiple domains in a single BUID (for clients like MAF),Meeting Rooms,1
+MULTIPLE_BOOKINGS_ENABLED,BOOLEAN,Enables creation of multiple bookings from Work Planner.,PMS,1
+multipleBookingsOnASeatInADayAllowed,BOOLEAN,Allows multiple bookings on the same seat within a single day.,"Booking Rule Engine, Emp Exp Common Config",2
+multipleScanErrorMessage,STRING,Defines error message for multiple scans.,Emp Exp Common Config,1
+MY_BOOKINGS_ENABLED,BOOLEAN,Enables the My Bookings option under Team Manager Dashboard.,PMS,1
+name,STRING,Controls whether the Name field is shown or hidden during employee profile validation.,Emp Exp Common Config,1
+nativeRoomEmail,BOOLEAN,Displays room email ID input in new room workflow.,Emp Exp Common Config,1
+NDA,BOOLEAN,Not in use.,VMS,1
+ndaCheckbox,BOOLEAN,Controls NDA checkbox visibility.,VMS,1
+ndaCheckboxContent,STRING,Defines content displayed below NDA checkbox.,VMS,1
+ndaScreenHeader,STRING,This property controlled nda screen header text,VMS,1
+nearByShuttleStopDistanceInMetre,DOUBLE,-,Emp Exp Common Config,1
+neighbourSeatsRadius,INTEGER,Defines the radius within which a seat cannot be booked.,Guard App,1
+new_seat_booking_url,STRING,Defines the new Seat Booking URL.,PMS,1
+newRoomParticipantWorkflow,BOOLEAN,Determines whether participant addition should be allowed in the new room booking flow.,Booking Rule Engine,1
+nextDayLogoutEnabled,BOOLEAN,Controls visibility of next-day logout shifts in booking form.,"Booking Rule Engine, Emp Exp Common Config",2
+NO_SHOW_ACTION_AT_MONTH_END_BANNER_MESSAGE,STRING,-,Email Emp Experience,1
+NO_SHOW_ACTION_EMAIL,STRING,-,Email Emp Experience,1
+NO_SHOW_ACTION_EMAIL_AT_MONTH_END_SUBJECT,STRING,-,Email Emp Experience,1
+NO_SHOW_ACTION_EMAIL_FUTURE_SCHEDULE_REMOVAL_AND_SCHEDULE_EDIT_REVOKED_SUBJECT,STRING,-,Email Emp Experience,1
+NO_SHOW_ACTION_EMAIL_FUTURE_SCHEDULE_REMOVAL_SUBJECT,STRING,-,Email Emp Experience,1
+NO_SHOW_APPROVAL_ENABLED,BOOLEAN,-,Emp Exp Common Config,1
+NO_SHOW_AUTO_APPROVAL_EMAIL,STRING,-,Email Emp Experience,1
+NO_SHOW_AUTO_APPROVAL_SUBJECT,STRING,-,Email Emp Experience,1
+NO_SHOW_COUNT_BANNER_ENABLED,BOOLEAN,Controls no-show banner visibility.,Emp Exp Common Config,1
+NO_SHOW_EMPLOYEE_BOARDED_NOTIFICATION,STRING,-,Email Emp Experience,1
+NO_SHOW_FUTURE_SCHEDULES_REMOVED_MESSAGE,STRING,-,Email Emp Experience,1
+NO_SHOW_FUTURE_SCHEDULES_REMOVED_TITLE,STRING,-,Email Emp Experience,1
+NO_SHOW_POLICY_RE_INSTANTIATION_EMAIL,STRING,-,Email Emp Experience,1
+NO_SHOW_SCHEDULE_EDIT_PERMISSION_REVOKED_MESSAGE,STRING,-,Email Emp Experience,1
+NO_SHOW_SCHEDULE_EDIT_PERMISSION_REVOKED_TITLE,STRING,-,Email Emp Experience,1
+NO_SHOW_WARNING_EMAIL,STRING,-,Email Emp Experience,1
+NO_SHOW_WARNING_EMAIL_SUBJECT,STRING,-,Email Emp Experience,1
+NO_SHOW_WARNING_MESSAGE,STRING,-,Email Emp Experience,1
+NO_SHOW_WARNING_TITLE,STRING,-,Email Emp Experience,1
+noAutoCheckinKiosk,BOOLEAN,"When Checkin is hidden, the kiosk auto-checks into the booking. This controls that auto check-in behavior on Meeting Rooms Kiosk.",Meeting Rooms,1
+nodal,STRING,Controls whether the Nodal Point field is shown or hidden during employee profile validation.,Emp Exp Common Config,1
+noOfDaysAllowedInPlanner,DOUBLE,Defines allowed planning window.,Emp Exp Common Config,1
+noResourceBookingConfirmation,BOOLEAN,Defines if there is no resource then the popup to confirm booking without resource should be displayed or not.,Booking Rule Engine,1
+noShowActionAtMonthEndBannerMessage,STRING,-,Email Emp Experience,1
+notesToAdmins,BOOLEAN,Enables optional notes to admins via email.,VMS,1
+noteToFrontDesk,BOOLEAN,Enables optional notes to receptionist/security via email.,VMS,1
+notificationConfigs,JSON,Defines notification page configuration values.,VMS,1
+notificationMetaData,JSON,Defines metadata configuration for notification page.,VMS,1
+notificationOnDeskRelease,BOOLEAN,Controls desk release notifications.,Emp Exp Common Config,1
+numberOfAllowedTrips,DOUBLE,Defines maximum trips per user.,Emp Exp Common Config,1
+numOfDays,INTEGER,-,Booking Rule Engine,1
+office,STRING,Controls whether the Office field is shown or hidden during employee profile validation.,Emp Exp Common Config,1
+OFFICE ADMIN,LIST,Configures Office Admin role access.,PMS,1
+office_name,STRING,"The office label used to scope rooms and MR configs to that office. If it doesn't match the server office name, rooms/configs for that office will show as expected.",Meeting Rooms,1
+OFFICE_NAME_MAPPING,JSON,-,App Server Config,1
+OFFICE_PREMISE_NAME,STRING,Defines the office mapping for meeting room via meeting room sync.,Meeting Rooms,1
+OFFICE_SELECTION_ENABLED,BOOLEAN,Enables Office Selection under Team Manager Dashboard.,PMS,1
+OFFICE_TO_HOME_DISTANCE_VALIDATION_FAILED_MESSAGE,STRING,-,Email Emp Experience,1
+OFFICE_WISE_SHIFT_MAPPING,JSON,-,App Server Config,1
+officeCheckInMode,STRING,Configures office check-in mode for mobile.,Emp Exp Common Config,1
+officeCheckInModeApp,STRING,Configures office check-in mode for mobile app.,"Booking Rule Engine, Emp Exp Common Config",2
+officeCheckInModeWeb,STRING,Configures office check-in mode for web.,"Booking Rule Engine, Emp Exp Common Config",2
+officeCheckInReminderEmailCtaEnabled,BOOLEAN,Adds Check-in and Cancel CTAs in reminder emails.,Emp Exp Common Config,1
+officeCheckInReminderEmailEnabled,BOOLEAN,Controls office check-in reminder emails.,Emp Exp Common Config,1
+old_seat_booking_url,STRING,Defines the old Seat Booking URL.,PMS,1
+onBehalfBookingEmailToCreatorEnabled,BOOLEAN,Controls on-behalf booking email notification to creator.,Emp Exp Common Config,1
+onCallMaxShiftDurationInMinute,INTEGER,-,Booking Rule Engine,1
+onCallMinShiftDurationInMinute,INTEGER,-,Booking Rule Engine,1
+onlyParkingBookingEnabled,BOOLEAN,Displays only the Parking booking option on Employee Home and FAB for clients using MoveInSync exclusively for parking.,Emp Exp Common Config,1
+OPT_IN_APPROVAL_FLOW_ENABLED,BOOLEAN,OPT_IN_APPROVAL_FLOW_ENABLED,Emp Exp Common Config,1
+optInDeclarationConfig,JSON,Declaration configurations for optin.,Emp Exp Common Config,1
+optInDisplayText,JSON,Defines commute opt-in/opt-out display text.,Emp Exp Common Config,1
+optInOptionsEnabled,LIST,-,Emp Exp Common Config,1
+optInOutV3Declaration,JSON,-,Emp Exp Common Config,1
+optOutPendingEmailSubject,STRING,-,Emp Exp Common Config,1
+organiserBookingEmailsMeetingRooms,BOOLEAN,Controls whether the organizer receives booking emails.,Meeting Rooms,1
+organiserPersonaMeetingRooms,JSON,Controls email notifications for organizer persona in Meeting Rooms module.,Meeting Rooms,1
+otherUsersPersonaMeetingRooms,JSON,Controls email notifications for other participant personas in Meeting Rooms module.,Meeting Rooms,1
+otpApprovalFlow,BOOLEAN,Not in use.,VMS,1
+otpOverIvrForVisitor,BOOLEAN,-,Booking Rule Engine,1
+OUTLOOK_WO_ADMIN_CONSENT,BOOLEAN,This controls the room email id field in the room details section of Meeting Rooms Settings page. This is needed for an integrated setup.,Meeting Rooms,1
+OutlookNativeRoomSetup,BOOLEAN,Hybrid setup for outlook integration,Meeting Rooms,1
+overlappingTimeInMinutes,INTEGER,-,Booking Rule Engine,1
+overrideMinMaxShiftDurations,JSON,Overrides minShiftDuration and maxShiftDuration configurations for bookings created from Workplanner and Booking Bulk Upload.,Booking Rule Engine,1
+overStayAlertBuffer,INTEGER,Defines buffer time (in minutes) after end time to trigger overstay alerts.,VMS,1
+overStayAlertMsTeamsTemplate,JSON,Defines MS Teams template for overstay alerts.,VMS,1
+overStayAlertRecipients,LIST,Defines recipient list for overstay alerts.,VMS,1
+overstayTriggerList,LIST,Defines channels (MS Teams/Email) for overstay alerts.,VMS,1
+PARKING_ALLOCATION,BOOLEAN,Enables the Parking Allocation page in the sidenav.,PMS,1
+PARKING_TAGGING_ENABLED,BOOLEAN,Enables the Parking Tagging option.,PMS,1
+parkingAllocationUrl,STRING,Defines Parking Allocation URL.,Emp Exp Common Config,1
+parkingBookingMandatory,BOOLEAN,Makes parking booking mandatory for office booking.,Emp Exp Common Config,1
+parkingEnabled,BOOLEAN,Enables parking option in the booking form.,Emp Exp Common Config,1
+parkingEndCutOffInMinute,DOUBLE,Defines minutes after booking start when parking QR can be generated.,Emp Exp Common Config,1
+parkingExpiry,DOUBLE,Defines expiry time of generated parking QR.,Emp Exp Common Config,1
+parkingMailNotificationMinutes,DOUBLE,Defines parking email trigger minutes.,Emp Exp Common Config,1
+parkingReminderEmailEnabled,BOOLEAN,Controls whether parking reminder emails are enabled.,"Emp Exp Common Config, Emp Exp Internal Config",2
+parkingReminderNotificationEnabled,BOOLEAN,Controls parking reminder notifications.,Emp Exp Common Config,1
+parkingReminderNotificationMinutes,LIST,Defines parking reminder trigger minutes.,Emp Exp Common Config,1
+parkingScheduleCutoff,DOUBLE,Defines advance booking window for parking.,Emp Exp Common Config,1
+parkingSlotBufferTimeInMin,INTEGER,Defines parking allocation buffer time.,"Booking Rule Engine, Emp Exp Common Config",2
+parkingStartCutOffInMinute,DOUBLE,Defines minutes before booking start when parking QR can be generated.,Emp Exp Common Config,1
+parkingTagHeaders,LIST,Headers for parking tag,WIS Seat Booking,1
+participantPersonaMeetingRooms,JSON,Controls email notifications for participant personas in the Meeting Rooms module.,Meeting Rooms,1
+pendingRequestsNotificationEnabled,BOOLEAN,Controls whether notifications are sent for pending booking approval requests.,"Booking Rule Engine, Emp Exp Common Config, WIS Seat Booking",3
+pinDisanceThresholdForShuttleStopApi,DOUBLE,-,Emp Exp Common Config,1
+PLANNED_EMPLOYEE_BOARDED_NOTIFICATION,STRING,-,Email Emp Experience,1
+pmsEnabled,BOOLEAN,Controls whether the Property Management System (PMS) integration is enabled.,Guard App,1
+PRE_SIGNED_URL_EXPIRATION_SECONDS,INTEGER,-,"App Server Config, App Server Config (.in)",2
+PRE_TRIP_CANCELLATION_NOTIFICATION_MINUTES_BEFORE_LOGIN_CANCELLATION_CUTOFF,INTEGER,-,Emp Exp Common Config,1
+PRE_TRIP_CANCELLATION_NOTIFICATION_MINUTES_BEFORE_LOGOUT_CANCELLATION_CUTOFF,INTEGER,-,Emp Exp Common Config,1
+preferencesFloorPlanUrl,STRING,Defines Preferences floor plan URL.,Emp Exp Common Config,1
+preFillVisitorPhotoForExistingVisitor,BOOLEAN,Allows pre-filling of visitor photo for existing visitors.,VMS,1
+Premise_Floorplan_Legend_Collapsed,BOOLEAN,Collapses the legend by default on the Premises floor plan view.,Emp Exp Common Config,1
+PREMISES_ENABLED,BOOLEAN,Enables the Premises page in the sidenav.,PMS,1
+premiseUI,STRING,Defines Premises management UI URL.,Emp Exp Common Config,1
+Print_Visitor_Badge,BOOLEAN,Enables Print Badge button on Front Desk dashboard.,VMS,1
+printerConnectionModes,LIST,Defines available printer connection modes.,VMS,1
+privilegedPhoneNumbers,LIST,-,"App Server Config, App Server Config (.in)",2
+PROFILE,JSON,"This property controls user profile settings, address edit permissions, transport visibility options, profile validation, completion rules, and related display configurations within the application.","App Server Config, App Server Config (.in)",2
+profileFieldsMetaData,LIST,Handles profile fields configuration for invited flow.,VMS,1
+profileRegistrationEmailSubject,STRING,-,Emp Exp Common Config,1
+PROJECT_MAPPING_NOT_FOUND_MESSAGE,JSON,update,App Server Config (.in),1
+projectCodeEnabledOnBooking,BOOLEAN,Controls Project Code field visibility.,Emp Exp Common Config,1
+projectCodeEnabledOnBookingMandatory,BOOLEAN,Controls mandatory Project Code field.,Emp Exp Common Config,1
+projectCodeMandatoryFor,LIST,Makes Project Code field mandatory for specified booking types.,Emp Exp Common Config,1
+projectmgr,LIST,Configures Project Manager role access.,PMS,1
+promotionBannerUrl,STRING,-,Emp Exp Common Config,1
+promotionDisplayText,STRING,-,Emp Exp Common Config,1
+qrCheckInBufferTime,INTEGER,Defines buffer time (in minutes) before booking start when QR check-in is allowed.,VMS,1
+qrImageClientLogoUrl,STRING,Controls the URL of the client logo displayed on generated QR codes.,Guard App,1
+qrImagefooterUrl,STRING,Controls the URL of the footer image displayed on generated QR codes.,Guard App,1
+qRScannerEndCutOffInMinute,INTEGER,Defines minutes after booking start when Scan QR becomes inactive.,"Booking Rule Engine, Emp Exp Common Config",2
+qRScannerExpiry,DOUBLE,Defines expiry time of QR scanner after booking start.,Emp Exp Common Config,1
+qRScannerStartCutOffInMinute,INTEGER,Defines minutes before booking start when Scan QR becomes active.,"Booking Rule Engine, Emp Exp Common Config",2
+RADIAL_DISTANCE_VALIDATION_FAILED_MESSAGE,STRING,-,Email Emp Experience,1
+radius,DOUBLE,-,Emp Exp Internal Config,1
+rbacDeskAllocationEnabled,BOOLEAN,Enables RBAC-based desk allocation.,Emp Exp Common Config,1
+reAuthenticationModeEmail,BOOLEAN,Defines email-based two-step authentication mode.,Emp Exp Common Config,1
+reAuthenticationModePhone,BOOLEAN,Defines phone-based two-step authentication mode.,Emp Exp Common Config,1
+receiverEmailId,LIST,List of email IDs to which notifications or communication should be sent from the Guard App.,Guard App,1
+RECENT_ACTIVITY_ENABLED_FOR_ADMIN,BOOLEAN,Enables Recent Activity on the Admin Dashboard.,PMS,1
+RECEPTIONIST,LIST,Configures Receptionist role access.,PMS,1
+recordCheckInOutViaAccessCardAPI,BOOLEAN,-,Booking Rule Engine,1
+recurrenceBookingEnabled,BOOLEAN,Enables recurring booking feature.,Emp Exp Common Config,1
+recurringBookingCreatorCancelTemplate,STRING,Template for recurring booking cancel email for creator.,Email Emp Experience,1
+recurringBookingCreatorCreateTemplate,STRING,Template for work planner recurring booking creation email.,Email Emp Experience,1
+recurringBookingCreatorUpdateTemplate,STRING,Template for recurring workplanner booking update email.,Email Emp Experience,1
+recurringBookings,BOOLEAN,Enables recurring booking flow for meeting rooms for both integrated and native.,Meeting Rooms,1
+REFRESH_TOKEN_EXPIRY_IN_SECONDS,INTEGER,-,"App Server Config, App Server Config (.in)",2
+rejectBookingIfNoDesk,BOOLEAN,-,Booking Rule Engine,1
+rejectedRequestNotificationEnabled,BOOLEAN,Controls whether notifications are sent for rejected booking approval requests.,"Booking Rule Engine, WIS Seat Booking",2
+RELEASE_MEETING_ROOM,BOOLEAN,"Controls the auto-release logic for rooms, based on the other MR configs (especially MEETING_ROOM_RELEASE_IF_NO_CHECKIN).",Meeting Rooms,1
+RELEASE_ROOM_CANCEL_MEETING,BOOLEAN,Controls whether releasing a room also cancels the meeting from users calendars.,Meeting Rooms,1
+releaseRoom,BOOLEAN,Not used,Meeting Rooms,1
+ReleaseRoom,BOOLEAN,Controls if release room functionality is enabled,Meeting Rooms,1
+releaseRoomEmailList,LIST,"Additional email recipients for release room notifications, other than organiser of the meeting which was released",Meeting Rooms,1
+remoteSignCutoffInMinute,INTEGER,Defines cutoff time for contactless bus solution sign-in.,"Emp Exp Common Config, Emp Exp Internal Config",2
+remoteSignInAllowed,BOOLEAN,Enables remote sign-in using Scan QR.,"Booking Rule Engine, Emp Exp Common Config",2
+remoteSignOutCutoffInMinute,INTEGER,Defines cutoff time for remote sign-out.,Emp Exp Common Config,1
+removeMealSelectionOnHolidayAndWeeklyOff,BOOLEAN,-,Booking Rule Engine,1
+reportingAndAnalyticUrl,STRING,Defines Reporting and Analytics dashboard URL.,Emp Exp Common Config,1
+reportingService,STRING,Defines Reporting service URL.,Emp Exp Common Config,1
+REPORTS_ENABLED,BOOLEAN,Enables the Reports section.,PMS,1
+request,BOOLEAN,-,PMS,1
+REQUEST_APPROVAL_SUBJECT,STRING,Stratus access request subject.,Email Emp Experience,1
+REQUEST_APPROVAL_TEMPLATE,STRING,Mail request to a list of approvers.,Email Emp Experience,1
+REQUEST_APPROVED_SUBJECT,STRING,Admins approved support user request subject.,Email Emp Experience,1
+REQUEST_APPROVED_TEMPLATE,STRING,Request approved email template to support user.,Email Emp Experience,1
+REQUEST_REJECTED_SUBJECT,STRING,Stratus support user request rejected email subject.,Email Emp Experience,1
+REQUEST_REJECTED_TEMPLATE,STRING,Stratus support user request rejection template.,Email Emp Experience,1
+requestorPersonaEmails,JSON,For approval flow email.,Booking Rule Engine,1
+REQUIRE_APPROVAL_FOR_OPT_OUT,LIST,-,Emp Exp Common Config,1
+RESOURCE_APPROVALS_PAGE,BOOLEAN,For approval Workflow,PMS,1
+RESOURCE_REQUESTS_PAGE,BOOLEAN,booking request page,PMS,1
+resourceApprovalsPage,BOOLEAN,Resource approval page.,Booking Rule Engine,1
+resourceApprovalsPageApp,BOOLEAN,Enables resource approval page.,Booking Rule Engine,1
+resourceRequestsPage,BOOLEAN,Resource request page for approval.,Booking Rule Engine,1
+resourceRequestsPageApp,BOOLEAN,-,Booking Rule Engine,1
+RESTRICTED_AREA_VALIDATION_FAILED_MESSAGE,STRING,-,Email Emp Experience,1
+restrictMealScanToOne,BOOLEAN,Restricts meal QR scanning to once per meal window.,Emp Exp Common Config,1
+restrictMealSelectionTo,INTEGER,"Specifies the maximum number of meal items a user is allowed to select. Users can choose up to restrictMealSelectionTo items; they cannot select more. If 0, user can select unlimited items.",Booking Rule Engine,1
+restrictMultipleVisitorBookingCheckIn,BOOLEAN,Restricts multiple visitor booking check-ins.,Emp Exp Common Config,1
+restrictScanQROnFabButton,BOOLEAN,"When enabled (default false), restricts that the check-in mode on an office level also needs to be ScanQR. If disabled, any QR code can be scanned regardless of the office check-in mode.",Booking Rule Engine,1
+rommEnabled,BOOLEAN,Controls the enablement of the room for booking,Meeting Rooms,1
+ROOM_ALLOCATION_ENABLED,BOOLEAN,Enables the Room Allocation option in the Bulk Operations section.,PMS,1
+Room_As_Organizer,BOOLEAN,Controls the enablement of the room as organiser workflow for the meeting room kiosk,Meeting Rooms,1
+room_cancel_cutoff,INTEGER,Defines cancellation cut-off time in minutes for meeting room bookings.,Meeting Rooms,1
+Room_Kiosk_With_Cisco,BOOLEAN,Meeting Rooms Kiosk workflow - Enables Cisco-related fields in the Meeting Rooms settings page under the Kiosk column,Meeting Rooms,1
+room_name,STRING,Mapping of meeting room name via outlook sync,Meeting Rooms,1
+Room_Special_Request_Enable,BOOLEAN,Controls visibility of the Meeting Request section in the meeting booking form - on web view.,Meeting Rooms,1
+ROOM_TAGGING_ENABLED,BOOLEAN,Enables the Room Tagging option on the Bulk Operations page.,PMS,1
+roomAllocationEnabled,BOOLEAN,Enables automatic room allocation.,Emp Exp Common Config,1
+RoomBookingEmailEnabled,BOOLEAN,Controls the emails sent to additional recipients,Meeting Rooms,1
+roomBookingsEmailList,LIST,Defines additional recipients for meeting room booking emails.,Meeting Rooms,1
+roomCheckinQrOnKiosk,BOOLEAN,Controls display of meeting room QR code on kiosk at room level.,Meeting Rooms,1
+roomEmailIdEmailMessage,JSON,Defines meeting room email message templates.,Emp Exp Common Config,1
+roomMaintenanceMessage,STRING,"Controls the message displayed after the maintenance message, to allow admins to give further instructions for maintenance related messages.",Booking Rule Engine,1
+roomMaintenanceNotificationEmails,LIST,Controls the email recipient list of room maintenance events.,Guard App,1
+roomMaintenanceWorkflow,BOOLEAN,Property for enabling and disabling the room maintenance flow.,Booking Rule Engine,1
+roomStatsKiosk,BOOLEAN,Controls the visibility of the checkout button against room bookings. Not dependent on checkin button.,Meeting Rooms,1
+roomTagHeaders,LIST,Headers for room tag,WIS Seat Booking,1
+roomWithApproval,BOOLEAN,Enables approval workflow for meeting rooms on web and mobile.,Meeting Rooms,1
+roomWithApprovalBuidLevel,BOOLEAN,Enables meeting room approval workflow at BUID level.,Meeting Rooms,1
+runTransportOptOutJob,BOOLEAN,Auto rejection/approval + schedule deletion for opted out users.,Emp Exp Common Config,1
+SAFE_REACH_ENABLED,BOOLEAN,Enables the Safe Reach dashboard in the WIS sidenav.,PMS,1
+safereach,STRING,-,Emp Exp Common Config,1
+safeReachConsentContent,STRING,Defines consent statement with checkbox in Safe Reach kiosk form.,VMS,1
+safeReachFailedVerificationTrigger,INTEGER,Defines trigger conditions for Safe Reach escalation email.,VMS,1
+SafeReachInputFields,LIST,Defines customizable fields in Safe Reach form.,VMS,1
+safeReachManualVerificationTrigger,INTEGER,Defines timeout for Safe Reach Level 2 escalation.,VMS,1
+safeReachSecurityTeamContacts,LIST,Defines security contacts for Safe Reach Level 1 escalation.,VMS,1
+safeReachSuccessMessage,STRING,Defines success message for Safe Reach.,Emp Exp Common Config,1
+SafeReachVmsTimeInMin,INTEGER,Defines Safe Reach trigger time in minutes.,VMS,1
+SAFETY,JSON,-,"App Server Config, App Server Config (.in)",2
+SAFETY_TOOLKIT_MODEL,JSON,-,"App Server Config, App Server Config (.in)",2
+SANITISATION_STATUS_ENABLED,BOOLEAN,Enables sidenav section of seat sanitization status (covid feature),PMS,1
+sanitisationFloorPlanUrl,STRING,-,Emp Exp Common Config,1
+scanInterval,DOUBLE,Defines the minimum time interval required between consecutive scans.,Guard App,1
+SCHEDULE,JSON,"This property controls app-side employee shift future scheduling rules, edit/cancel permissions, adhoc and bulk scheduling options, multi-office support, transport integrations, notifications, indemnification rules, and related schedule feature configurations.","App Server Config, App Server Config (.in)",2
+SCHEDULE_MANAGER,LIST,Configures Schedule Manager role access.,PMS,1
+SCHEDULE_REMINDER_NOTIFICATION_BODY,STRING,-,Email Emp Experience,1
+SCHEDULE_REMINDER_NOTIFICATION_SUBJECT,STRING,-,Email Emp Experience,1
+scheduled_reminder_notification_enabled_buids,STRING,-,Emp Exp Common Config,1
+scheduledTimeForVisitorGatePassEmailInMin,DOUBLE,-,Emp Exp Common Config,1
+schedules,BOOLEAN,-,PMS,1
+searchCriteriaVendorKiosk,JSON,Used to control search section and placeholder for vendor kiosk and dashboard search.,Emp Exp Common Config,1
+SEAT_ALLOCATION_COMMUNICATION_BODY,STRING,Allocation details email body HTML.,Email Emp Experience,1
+SEAT_ALLOCATION_COMMUNICATION_HEADER,STRING,Allocation details email subject.,Email Emp Experience,1
+SEAT_AUTO_ALLOCATION,BOOLEAN,Enables Desk Auto Allocation.,PMS,1
+SEAT_BELT_NON_COMPLIANCE_EMAIL_CONFIGS,JSON,-,Emp Exp Common Config,1
+SEAT_BELT_NON_COMPLIANCE_EMAIL_SUBJECT,STRING,-,Email Emp Experience,1
+SEAT_BELT_NON_COMPLIANCE_EMAIL_TEMPLATE,STRING,-,Email Emp Experience,1
+SEAT_BELT_NON_COMPLIANCE_REPORT_EMAIL_ENABLED,BOOLEAN,-,Emp Exp Common Config,1
+SEAT_BELT_NON_FUNCTIONING_AND_REPORTING_REASONS,JSON,-,"App Server Config, App Server Config (.in)",2
+SEAT_BELT_REPORT_BUTTON_COOLDOWN_DURATION_MINUTES,INTEGER,-,"App Server Config, App Server Config (.in)",2
+SEAT_FORECASTING_ENABLED,BOOLEAN,To enable Desk Forecasting Feature,PMS,1
+SEAT_MANAGEMENT_ENABLED,BOOLEAN,Enables the Seat Bookings option under Team Manager Dashboard.,PMS,1
+SEAT_UTILIZATION_ENABLED,BOOLEAN,Enables the Desk Utilization option in Seat Management.,PMS,1
+seatAllocationAction,STRING,-,Booking Rule Engine,1
+seatBeltNonFunctioningIssues,LIST,-,Emp Exp Common Config,1
+seatBeltUndoTimeoutMinutes,INTEGER,-,Emp Exp Common Config,1
+seatBooking,STRING,Defines primary Seat Booking application URL.,Emp Exp Common Config,1
+seatBookingEnabled,BOOLEAN,Allow employees to create desk bookings.,Booking Rule Engine,1
+seatBookingUrl,STRING,Defines the Seat Booking service URL.,"Emp Exp Common Config, WIS Seat Booking",2
+seatBookingV2,BOOLEAN,Enables Seat Booking version 2.,"Emp Exp Common Config, Emp Exp Internal Config",2
+seatingPlanHeaders,LIST,Headers for seating plan,WIS Seat Booking,1
+seatMandatory,BOOLEAN,-,Booking Rule Engine,1
+seatMetricsTimes,LIST,Defines configured time intervals used for calculating seat utilization and booking metrics.,Guard App,1
+seatSanitizationCheck,BOOLEAN,Controls seat sanitization validation before booking.,"Booking Rule Engine, Emp Exp Common Config",2
+seatSanitizeCuttoffInMinute,DOUBLE,Defines the seat sanitization cutoff time in minutes.,Guard App,1
+seatScanEnable,BOOLEAN,Enables seat QR scanning on booking page.,"Booking Rule Engine, Emp Exp Common Config",2
+seatTagHeaders,LIST,Headers for seat tag,WIS Seat Booking,1
+seatValidation,BOOLEAN,-,Booking Rule Engine,1
+security-supervisor,LIST,Configures Security Supervisor role access.,PMS,1
+securityGuard,STRING,Defines Security Guard service URL.,Emp Exp Common Config,1
+selectShiftsAfterSpecificTime,DOUBLE,-,Booking Rule Engine,1
+selfCheckinSuccessMessage,STRING,Defines success message displayed after visitor self check-in.,VMS,1
+selfCommuteSubmissionEmailSubject,STRING,Defines subject for opt-in/opt-out submission email.,Emp Exp Common Config,1
+selfCommuteWithdrawalEmailSubject,STRING,Defines subject for opt-in/opt-out withdrawal email.,Emp Exp Common Config,1
+SEND_INVITE_TO_ALL_EMPLOYEES,BOOLEAN,Controls recipients of native meeting room booking emails.,Meeting Rooms,1
+sendEmailIneligibility,BOOLEAN,-,Emp Exp Common Config,1
+sendHostEmailsToDelegate,BOOLEAN,Sends all host-triggered emails to the delegate as well.,VMS,1
+sendHostMsTeamsNotificationToDelegate,BOOLEAN,Controls whether MS Teams notifications are sent to delegate.,VMS,1
+sendInviteEmail,JSON,"Defines default state of visitor, host, and creator email checkboxes.",VMS,1
+sendRoomBookingEmailToAllParticipants,BOOLEAN,Controls whether booking emails are sent to all participants.,Meeting Rooms,1
+sendVisitorInviteEmail,BOOLEAN,DTO key for sending visitor invite emails.,VMS,1
+setFavoriteRooms,BOOLEAN,Allows user to set any meeting room as their favourite for easy access.,Booking Rule Engine,1
+SETTINGS_ENABLED,BOOLEAN,Enables the Settings option in the sidenav with Configurations and Roles & User Groups pages.,PMS,1
+shareRideCallDriver,BOOLEAN,-,"Emp Exp Common Config, Emp Exp Internal Config",2
+shouldAllowCustomTimingWhileEdit,BOOLEAN,STRICTLY TO BE UPDATED ONLY FROM CONFIG PAGE IN THE UI. Defines if employee will be allowed to select custom timing while editing a booking.,Booking Rule Engine,1
+Show_Room_If_Not_Eligible,BOOLEAN,Controls visibility of ineligible rooms.,Meeting Rooms,1
+SHOW_UPCOMING_BOOKINGS_TIME,INTEGER,Meeting Rooms Kiosk - Defines how prior to the meeting start time the kiosk screen will turn yellow to let users checkin to their booking. Value set in minutes,Meeting Rooms,1
+showBelongings,BOOLEAN,Not in use.,VMS,1
+showBookingFilter,BOOLEAN,Enables toggle to show/hide cancelled bookings.,Emp Exp Common Config,1
+showBookingHistory,BOOLEAN,Enables booking history on app.,Emp Exp Common Config,1
+showBookingsOfSomeoneElseOnWeb,BOOLEAN,-,Emp Exp Common Config,1
+showCabs,BOOLEAN,-,Booking Rule Engine,1
+showCanceledCountinAttendanceChart,BOOLEAN,Controls visibility of cancelled count in attendance charts.,Emp Exp Common Config,1
+showConfigureDeskAmenities,BOOLEAN,Controls visibility of desk amenities configuration button.,Emp Exp Common Config,1
+showConfirmationForLogoutTracking,BOOLEAN,-,Emp Exp Common Config,1
+showDefaultInviteTitle,BOOLEAN,Enables default invite title on Invite Visitor page.,VMS,1
+showDelegateeBookForSomeoneElse,LIST,Displays delegatees in host search for booking on behalf.,VMS,1
+showDigipassOptionForDedicatedSeat,BOOLEAN,-,Booking Rule Engine,1
+showEmployeeCreation,BOOLEAN,-,Emp Exp Common Config,1
+showEmployeeSearchOnSeatBooking,BOOLEAN,Enables colleague search by name.,Emp Exp Common Config,1
+showFabQRScanner,BOOLEAN,Controls QR scanner visibility on FAB.,Emp Exp Common Config,1
+showFirstCheckInRecord,BOOLEAN,-,Booking Rule Engine,1
+showLanguageOptionInHamburgerMenu,BOOLEAN,-,Emp Exp Internal Config,1
+showMealCost,BOOLEAN,Shows meal cost on items for standard meal booking.,Emp Exp Common Config,1
+showMealCountOnBookingForm,BOOLEAN,Displays real-time meal availability count on booking form.,Emp Exp Common Config,1
+showMealOrderStatus,BOOLEAN,-,Booking Rule Engine,1
+showMealPaymentCTA,BOOLEAN,Enables meal payment CTA integrated with payment gateways.,Emp Exp Common Config,1
+showMealTimings,BOOLEAN,Shows meal time on items for standard meal booking.,Emp Exp Common Config,1
+showMeetingRoomOnApp,BOOLEAN,Enables Meeting Room booking option on mobile app.,Emp Exp Common Config,1
+showOfficeInfoOnBookingForm,BOOLEAN,Displays searchable office address list during booking.,Emp Exp Common Config,1
+showOrderOfChallengesAfterQRScan,BOOLEAN,Displays declaration after QR scan.,Emp Exp Common Config,1
+showOrganiserNameAddInTimeline,BOOLEAN,Show organizer name on booking timeline on outlook addin,Meeting Rooms,1
+showOtherEmployeeDetailsOnSeat,BOOLEAN,Controls visibility of other employee booking details on seat view.,Emp Exp Common Config,1
+showOtpWithoutDigipassGeneration,BOOLEAN,Displays cab login/logout OTPs directly on the booking card.,Emp Exp Common Config,1
+showParking,BOOLEAN,Controls parking field visibility in Teams chatbot.,"Booking Rule Engine, Emp Exp Common Config",2
+showQRScanner,BOOLEAN,Enables Scan QR option in the app.,"Booking Rule Engine, Emp Exp Common Config",2
+showQRScannerMeetingCheckIn,BOOLEAN,Enables QR-based meeting room check-in.,Emp Exp Common Config,1
+showRegistrationNumberInputFieldForParking,BOOLEAN,Enables field for entering registration number while selecting parking slots in booking form.,"Emp Exp Common Config, Emp Exp Internal Config",2
+showSanitizationDetails,BOOLEAN,Displays sanitization details in the app.,"Booking Rule Engine, Emp Exp Common Config",2
+showSeatSearchOnAdminPages,BOOLEAN,Enables desk search on admin floor plan pages.,Emp Exp Common Config,1
+showSeatSearchOnSeatBooking,BOOLEAN,Enables desk search by desk number.,Emp Exp Common Config,1
+showSeparateDigipassFor,LIST,Controls resource-level DigiPass generation.,Emp Exp Common Config,1
+showSeparateDigipassForParking,BOOLEAN,Displays separate digipass for parking resources in the mobile app.,Emp Exp Common Config,1
+showSignedinStateOnEmployeeFloorPlan,BOOLEAN,Displays signed-in desk state (green indicator) on Employee Floor Plan.,Emp Exp Common Config,1
+showTeamCalendarOption,BOOLEAN,Displays Team Calendar option in the app.,Emp Exp Common Config,1
+showTeamOnKioskForEmployee,BOOLEAN,Displays team name instead of employee ID in kiosk organizer dropdown.,Emp Exp Common Config,1
+showVaccinationOptionInSideMenu,BOOLEAN,Enables Vaccination status option in the app side menu.,"Booking Rule Engine, Emp Exp Common Config",2
+showWisLogo,BOOLEAN,Toggles display of the MoveInSync logo on meeting room kiosk and calendar integration UIs,Meeting Rooms,1
+showWomenSafetyInSideMenu,BOOLEAN,Displays Women Safety Handbook in mobile side menu.,Emp Exp Common Config,1
+showWorkinsyncLogoOnSideNav,BOOLEAN,Controls WorkInSync logo visibility on sidenav.,Emp Exp Common Config,1
+SHUTTLE_TRACKING_PROPERTIES,JSON,-,"App Server Config, App Server Config (.in)",2
+shuttleBookingConfirmationNotificationEnabled,BOOLEAN,-,Emp Exp Common Config,1
+shuttleSigninRemainderBufferMins,DOUBLE,-,Emp Exp Common Config,1
+shuttleSigninRemainderNotificationEnabled,BOOLEAN,-,Emp Exp Common Config,1
+singleShiftOperations,BOOLEAN,"Removes shift selection on booking form, sets booking time 00:00 to 23:59. Hides time components in Team Calendar (day/week view) and Preferences for single-shift environments.","Emp Exp Common Config, Emp Exp Internal Config",2
+siteadmin,LIST,Configures Site Admin role access.,PMS,1
+skipOptInTimeWindowValidation,BOOLEAN,-,Emp Exp Common Config,1
+smartRoomRecommendation,BOOLEAN,Enables AI-based smart room recommendation.,Meeting Rooms,1
+smsTrackingEnabled,BOOLEAN,-,Emp Exp Common Config,1
+smsTriggerTime,STRING,Defines the configured time at which SMS notifications are triggered.,Guard App,1
+SOS,JSON,-,"App Server Config, App Server Config (.in)",2
+SPECIAL_SCHEDULE_MESSAGE_TEMPLATE,STRING,-,Email Emp Experience,1
+SPECIAL_SCHEDULE_TITLE_TEMPLATE,STRING,-,Email Emp Experience,1
+spocCancelCutOff,INTEGER,-,Booking Rule Engine,1
+spocScheduleCutOff,INTEGER,-,Booking Rule Engine,1
+SPOT,JSON,-,"App Server Config, App Server Config (.in)",2
+ssoExpiryEmailBodyTemplate,STRING,-,Email Emp Experience,1
+ssoExpiryEmailHeaderTemplate,STRING,-,Email Emp Experience,1
+ssoExpiryFollowUpEmailBodyTemplate,STRING,-,Email Emp Experience,1
+ssoExpiryFollowUpEmailHeaderTemplate,STRING,-,Email Emp Experience,1
+ssoExpiryInternalEmailRecipients,LIST,-,Emp Exp Internal Config,1
+ssoMandatory,BOOLEAN,Removes OTP login option and enforces SSO-only login on mobile.,Emp Exp Common Config,1
+standardTeamColor,STRING,Defines default team legend color in floor plan.,Emp Exp Common Config,1
+startTimeBufferRoomBookingBuidLevel,BOOLEAN,Defines start time buffer for meeting room bookings at BUID level for the Buffer Time workflow in catering/IT request.,Meeting Rooms,1
+startTimeBufferRoomBookingRoomLevel,INTEGER,Defines start time buffer at individual room level.,Meeting Rooms,1
+stopNoShowEmailForShuttle,BOOLEAN,-,Emp Exp Common Config,1
+SUPPORT USER EDIT,LIST,Configures Support-SSO (mistm) role access.,PMS,1
+SUPPORT USER VIEW,LIST,Configures Support-SSO (mistm) role access.,PMS,1
+SUPPORT_USER_ADMINS_LIST,LIST,List of admins who will receive the approval request mail.,Email Emp Experience,1
+SyncMeetingRooms,BOOLEAN,Enables the Sync Rooms button for integrated setups in the Meeting Room Settings page,Meeting Rooms,1
+tagsEnabled,LIST,"Defines the list of enabled booking tags (e.g. WFO, WFH).","Booking Rule Engine, Emp Exp Common Config, WIS Seat Booking",3
+TEAM MANAGER,LIST,Configures Team Manager role access.,PMS,1
+team_manager,LIST,Configures Team Manager role access.,PMS,1
+TEAM_MANAGER_COLUMNS,STRING,Configures columns on the People > Employees page.,PMS,1
+teamCalendarEnabled,BOOLEAN,Enables Team Calendar feature.,"Booking Rule Engine, Emp Exp Common Config",2
+teamManager,STRING,Defines Team Manager service URL.,Emp Exp Common Config,1
+tempEntryTimeLimit,INTEGER,Defines buffer time for entry after temporary checkout in the 2-step check-in/checkout process.,VMS,1
+TEST,BOOLEAN,-,WIS Seat Booking,1
+TestPropertyOnPMS,BOOLEAN,-,Booking Rule Engine,1
+TestPropertySeatBooking,BOOLEAN,Defines whether the PMS is working on the wisseatbooking service,WIS Seat Booking,1
+textMessageForKiosk,JSON,Defines text displayed on the kiosk.,Meeting Rooms,1
+textOnKiosk,BOOLEAN,Controls additional text visibility on the Meeting Rooms Kiosk screen,Meeting Rooms,1
+TIME_FORMAT,STRING,Defines time format for UI.,Emp Exp Common Config,1
+TIME_FORMAT_SERVICES,STRING,Defines time format for backend services.,Emp Exp Common Config,1
+timeDiffShiftsMin,DOUBLE,-,Booking Rule Engine,1
+timezone,STRING,Defines the timezone of that office,Meeting Rooms,1
+trackAnyShuttleEnabled,BOOLEAN,-,Emp Exp Common Config,1
+transferBookingEnabled,BOOLEAN,Adds a 'Transfer Booking Details' column in seat and meeting room reports.,Emp Exp Common Config,1
+transferBookingTypes,LIST,-,Emp Exp Common Config,1
+transport-dashboard,BOOLEAN,"Defines the landing dashboard page used for transport operations (legacy or modern) for a given site/BUID. This key is typically configured to point the landing/transport dashboard to the correct ETS dashboard URL, and works together with the ENABLE_NEW_TRANSPORT_DASHBOARD flag.",PMS,1
+TRANSPORT_BOUNDARY_VALIDATION_FAILED_MESSAGE,STRING,-,Email Emp Experience,1
+transportFieldsMandatory,BOOLEAN,Controls whether transport fields are mandatory.,Emp Exp Common Config,1
+TransportManager,LIST,Configures Transport Manager role access.,PMS,1
+transportmanager-nobilling,LIST,Configures Transport Manager (No Billing) role access.,PMS,1
+transportmgr,LIST,Configures Transport Manager role access.,PMS,1
+triggerExternalEmails,LIST,Triggers emails to designated roles such as Global Admin.,VMS,1
+triggerListForLandlords,JSON,Defines external stakeholder email trigger list.,VMS,1
+triggerSafeReachForFemaleOnly,BOOLEAN,Triggers Safe Reach for female visitors only.,VMS,1
+triggerVisitorEmailsFromRooms,BOOLEAN,Controls visitor email triggers in Meeting Rooms workflow.,VMS,1
+TRIP_CARD_FLOW,JSON,This property defines the card flow displayed to the user on click of info button on the card,"App Server Config, App Server Config (.in)",2
+TRIP_DETAILS,JSON,-,"App Server Config, App Server Config (.in)",2
+TRIP_FEEDBACK_MODEL,JSON,-,"App Server Config, App Server Config (.in)",2
+TRIP_HISTORY,JSON,-,"App Server Config, App Server Config (.in)",2
+TRIP_MISMATCH_COMPONENT,LIST,-,App Server Config,1
+tripFeedbackExpressionsMap,LIST,-,Emp Exp Common Config,1
+tripRatingMandatory,BOOLEAN,Controls whether trip rating is mandatory.,Emp Exp Common Config,1
+tripRatingMandatoryThreshold,JSON,-,Emp Exp Common Config,1
+UPCOMING_VISITOR,BOOLEAN,Enables Visitor Management.,PMS,1
+upcomingMeetingsEmployeeHome,BOOLEAN,Controls display of upcoming meetings on Employee Home.,Emp Exp Common Config,1
+USER_CLOCK_OUT_REMAINDER_MINUTES,INTEGER,-,Emp Exp Common Config,1
+USERCLOCKOUTREMAINDERMINUTES,INTEGER,-,Emp Exp Common Config,1
+userResourceGroupMappingEnabled,BOOLEAN,Indicates whether resource group mapping is enabled for office visibility.,Emp Exp Common Config,1
+VACCINATION_REVIEW,BOOLEAN,-,PMS,1
+VACCINATION_STATUS,BOOLEAN,Enables the Vaccination page in the sidenav.,PMS,1
+vaccinationBookingEnabled,BOOLEAN,Enables vaccination slot booking feature in the app.,Emp Exp Common Config,1
+vaccinationBookingUrl,STRING,URL for the vaccination booking feature in the app.,Emp Exp Common Config,1
+vaccinationMaxApprovalDays,INTEGER,Defines maximum days allowed for vaccination request approval.,"Booking Rule Engine, Emp Exp Common Config",2
+VAX_STATUS_CHECK_SEEK_RTPCR_EMP,BOOLEAN,Allows or restricts RTPCR upload for non-fully vaccinated employees.,Emp Exp Common Config,1
+vaxEmailEnabled,BOOLEAN,-,Emp Exp Common Config,1
+VEHICLE_TRACKING,JSON,-,"App Server Config, App Server Config (.in)",2
+vehicleCreationDuringParkingEnabled,BOOLEAN,Controls vehicle creation during parking booking.,Emp Exp Common Config,1
+vehicleCreationDuringParkingFor,LIST,Controls vehicle creation by type (CAR etc.).,Emp Exp Common Config,1
+vehicleFuelTypes,LIST,-,Emp Exp Common Config,1
+VENDOR_DASHBOARD,BOOLEAN,Enables the Vendor Dashboard entry (for cafeteria/meals) in their UI.,PMS,1
+vendorColumnMappings,JSON,To customize the column header labels in the Meal Dashboard.,Booking Rule Engine,1
+vendorKioskConfigs,JSON,Contains all the configs related for Vendor Kiosk,VMS,1
+vendorMealDisplayColumn,LIST,Tells which columns need to be shown on vendor-dashboard (only related to meal columns).,Booking Rule Engine,1
+vendorMealStatus,LIST,Types of meal statuses defined per office.,Booking Rule Engine,1
+VERSION_STATS,JSON,-,"App Server Config, App Server Config (.in)",2
+visitDurationHours,INTEGER,Defines dropdown options for visit duration.,VMS,1
+VISITOR_DIGIPASS,BOOLEAN,Not in use.,VMS,1
+Visitor_Document_Storage,BOOLEAN,Enables visitor document storage configuration.,VMS,1
+Visitor_Document_Storage_Document_Type,LIST,Defines document types applicable for visitor data storage.,VMS,1
+Visitor_Document_Storage_Duration,INTEGER,Defines retention period (in days) for visitor data storage.,VMS,1
+VISITOR_PROFILE_ID,BOOLEAN,Controls whether visitor identity proof upload is required.,VMS,1
+Visitor_Profile_ID_Document_Upload_Field_Inputs,LIST,Defines allowed document types for visitor upload.,VMS,1
+visitor_wifi_name,STRING,Stores client Wi-Fi name.,VMS,1
+visitorApprovalMsTeamsNotification,BOOLEAN,Controls visitor approval notification on MS Teams.,VMS,1
+visitorBulkUploadData,JSON,Defines headers and data rules for visitor bulk upload; must comply with profileFieldsMetaData.,VMS,1
+visitorBulkUploadFields,JSON,Defines headers and default values for visitor bulk upload.,VMS,1
+visitorCheckinMsTeamsBodyTemplate,STRING,Defines body template for MS Teams visitor check-in notification.,VMS,1
+visitorCheckinMsTeamsHeaderTemplate,STRING,Defines salutation header for MS Teams visitor check-in notification.,VMS,1
+visitorCheckinMsTeamsTemplate,JSON,Defines visitor check-in email template.,VMS,1
+visitorCheckoutMsTeamsTemplate,JSON,Defines MS Teams template for visitor check-out notification.,VMS,1
+visitorFormsMetaData,LIST,Not in use.,VMS,1
+visitorFormsMetaDataPWC,LIST,Handles profile and custom fields in VMS self check-in flow (PWC).,VMS,1
+visitorKioskConfigs,JSON,Handles UI formatting for VMS self check-in flow.,VMS,1
+visitorNotifications,JSON,Controls visitor notifications.,VMS,1
+visitorProfileFields,JSON,Controls visitor profile fields for Walk-in flow.,VMS,1
+visitorProfilePhotoUpload,BOOLEAN,Controls whether profile photo is mandatory in invited flow.,VMS,1
+visitorSelfCheckOutDigiPass,BOOLEAN,Not in use.,VMS,1
+visitorWidgetEnabled,BOOLEAN,Displays visitor management widget on Employee Home.,"Emp Exp Common Config, VMS",2
+vmsInviteTrigger,LIST,Triggers visitor invite based on configured list.,VMS,1
+vmsQrCodeTrigger,LIST,Controls sending DigiPass and checkout QR via SMS or email.,VMS,1
+waitListBookingBufferTimeInMin,INTEGER,Defines buffer time in minutes for waitlist bookings.,Emp Exp Common Config,1
+waitlistExpiryEnabled,BOOLEAN,Expire waitlist bookings once the start time has passed and no confirmed slot has been assigned to the parking booking.,Booking Rule Engine,1
+walkInEnabled,BOOLEAN,Not in use.,VMS,1
+wayfindingPathColor,JSON,Controls arrow color customization in wayfinding path.,Emp Exp Common Config,1
+weekdays,LIST,Defines the set of days considered working days for that office's rooms,Meeting Rooms,1
+WEIGHT_CAPACITY,DOUBLE,Defines weight configuration for AI room recommendation based on capacity.,Meeting Rooms,1
+WEIGHT_HISTORICAL,DOUBLE,Defines weight configuration for AI room recommendation based on historical usage.,Meeting Rooms,1
+welcomeEmailEnabled,BOOLEAN,Controls sending of welcome emails.,Emp Exp Common Config,1
+wfhBookingAllowed,BOOLEAN,Controls WFH booking visibility in WorkInSync Teams chatbot.,"Booking Rule Engine, Emp Exp Common Config",2
+wfhCancelCutOff,INTEGER,-,Booking Rule Engine,1
+wfhClockinBuffer,DOUBLE,-,Booking Rule Engine,1
+wfhClockInBuffer,INTEGER,-,Booking Rule Engine,1
+wfhClockinCutOffInMinute,INTEGER,Controls the cutoff time in minutes for allowing WFH clock-in.,"Emp Exp Common Config, Emp Exp Internal Config",2
+wfhDisabled,BOOLEAN,Controls whether WFH booking is enabled or disabled.,"Booking Rule Engine, Emp Exp Common Config",2
+wfhEditCutOff,INTEGER,-,Booking Rule Engine,1
+wfhMaxDurationForBooking,DOUBLE,-,Booking Rule Engine,1
+wfhMaxShiftDurationInMinute,INTEGER,-,Booking Rule Engine,1
+wfhMinBetweenClockinClockout,DOUBLE,-,Booking Rule Engine,1
+wfhMinBetweenClockInClockOut,DOUBLE,Defines minimum duration between WFH clock-in and clock-out.,Emp Exp Common Config,1
+wfhMinDurationForBooking,DOUBLE,-,Booking Rule Engine,1
+wfhMinShiftDurationInMinute,INTEGER,-,Booking Rule Engine,1
+wfhMonthlyLimit,INTEGER,Defines the maximum number of Work From Home bookings allowed per month.,"Booking Rule Engine, WIS Seat Booking",2
+wfhReasonList,STRING,Work From Home/Remote booking reasons.,Emp Exp Common Config,1
+wfhScheduleCutOff,INTEGER,-,Booking Rule Engine,1
+wfhSpocEditCutOff,INTEGER,-,Booking Rule Engine,1
+wfhSpocSchecduleCutOff,INTEGER,-,Booking Rule Engine,1
+wfhType,STRING,Controls the default type of Work From Home booking.,"Emp Exp Common Config, Emp Exp Internal Config",2
+wfhWeeklyLimit,INTEGER,Defines the maximum number of Work From Home bookings allowed per week.,"Booking Rule Engine, WIS Seat Booking",2
+wfoMonthlyLimit,INTEGER,Defines the maximum number of Work From Office bookings allowed per month.,WIS Seat Booking,1
+wfoReasonList,STRING,-,Booking Rule Engine,1
+wfoWeeklyLimit,INTEGER,Defines the maximum number of Work From Office bookings allowed per week.,WIS Seat Booking,1
+wisDropVerificationFailedEmail,BOOLEAN,Controls whether email is triggered when drop verification fails.,Emp Exp Internal Config,1
+wisDropVerificationManualSuccessEmail,BOOLEAN,Controls whether email is triggered when drop verification is manually marked successful.,Emp Exp Internal Config,1
+wisFailDropEmailSubject,STRING,Controls the email subject template used when Safe Reach drop verification fails.,Emp Exp Internal Config,1
+wisManualSuccessEmailSubject,STRING,Controls the email subject template used when Safe Reach confirmation is manually completed.,Emp Exp Internal Config,1
+wisSafeReachCcList,LIST,Controls the list of email IDs to be CC'd in Safe Reach communications.,Emp Exp Internal Config,1
+wisSafeReachReportingManagerEnabled,BOOLEAN,Controls whether Safe Reach notifications are sent to the reporting manager.,Emp Exp Internal Config,1
+WisThemeColors,JSON,Defines theme colors for WorkInSync modules.,Emp Exp Common Config,1
+womenSafetyDocUrl,STRING,Controls URL of Women Safety Handbook document.,Emp Exp Common Config,1
+WORK_PLANNER_ENABLED,BOOLEAN,Enables the Work Planner option in the sidenav.,PMS,1
+workplannerCheckInAdvanceCutOffInMinute,INTEGER,Defines early check-in limit for Workplanner bookings.,Emp Exp Common Config,1
+workplannerCheckInDelayCutOffInMinute,INTEGER,Defines late check-in limit for Workplanner bookings.,Emp Exp Common Config,1
+workplannerNotificationControl,JSON,Controls the email flow of the workplanner.,Booking Rule Engine,1
+workplannerRecurrenceMaxDays,INTEGER,Defines maximum recurrence window in Workplanner.,Emp Exp Common Config,1
+Workspace Manager,LIST,Configures Workspace Manager role access.,PMS,1
+WORKSPACE_MANAGER,LIST,Configures Workspace Manager role access.,PMS,1
+xlEtsBuids,LIST,-,Emp Exp Internal Config,1

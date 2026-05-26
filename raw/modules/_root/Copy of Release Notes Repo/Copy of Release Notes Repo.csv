@@ -1,0 +1,1432 @@
+Sprint,Year,URL,Major Features,Highlights
+Release Notes are arranged in a reverse chronological order. The most recent item is the first item,,,,
+2026-04-01 00:00:00,2026.0,,,
+2026-03-01 00:00:00,2026.0,03-2026 WorkInSync Release Notes ,"Emp Exp: Checkin by time to be shown based on config only on mobile home screen booking cards
+",
+2026-02-01 00:00:00,2026.0,02-2026 WorkInSync Release Notes ,"VMS Employee Flow: Remove Restriction on Employees Checking in as Visitors
+Parking: Adding parking slot description at slot level and showing this on the booking card
+Meeting Rooms - Outlook Integration now supports recurring bookings from the Native UI!
+Meeting Rooms: Outlook + Native Setup
+","Role-Based Booking Duration Overrides
+Smarter Access Control for Desk Allocation
+Meeting Rooms - Outlook Integration now supports recurring bookings from the Native UI!
+"
+2026-01-01 00:00:00,2026.0,01-2026 WorkInSync Release Notes ,"Visitor Management: OTP Failure Handling & Front Desk Override
+Visitor Management: Support First Name / Middle Name / Last Name in VMS Self Check-in Flow
+Parking Waitlist - Expire waitlist when booking start time has elapsed | Waitlist Audit
+Generic Resource Booking (Configurable Desk Label)
+Floor Kiosk: Users can now edit their desk/room bookings from the Floor Kiosk
+Meeting Rooms: Bypass Max Duration and Booking Window Policies based on Privilege
+Meeting Rooms: New Policy for “no overlap room bookings” based on privilege        ","Generic Resource Booking (Configurable Desk Label)
+Meeting Rooms: New Policy for “no overlap room bookings” based on privilege
+Visitor Management: OTP Failure Handling & Front Desk Override
+"
+15-2025,2025.0,15-2025 WorkInSync Release Notes ,"Outlook Add-In Unique Users Report 
+Admin Dashboard 2.0 : Support for Cross-Office Bookings
+Desk Forecasting, Built for Hybrid Reality
+Smart Room Recommendation
+Locker Booking Workflow
+Visitor Management: Make Visitor Notifications Configurable At Office-Level","Desk Forecasting, Built for Hybrid Reality
+Optimeet - Smart Room Recommendation
+Locker Booking Workflow
+"
+14-2025,2025.0,14-2025 WorkInSync Release Notes ,"Support ""defaultLogoutShiftMinutes"" on app & web to ensure shift autopopulation for a certain duration
+Visitor Management: Make Photo Capture on Self Check-in Flow Configurable
+Workplanner: Recurring Booking Support
+Visitor Management: Handling Blacklisted Visitors for Check-in Via QR-Code",
+13-2025,2025.0,WorkInSync Release Notes 13-2025,"- Datasync - Proactive email alerts during client side datasync failure
+- App vs Web Shift Visibility Disparity Fix
+- Configuration to control User groups <> Resource groups mapping
+- Meeting Rooms + Outlook: Handling Edit in Web View on Room Calendar with privileges
+- Floor Kiosk: Booking flow for users who do not have MoveInSync app installed on their phone
+- Meeting Rooms: IP based restriction for the the Check-In button on the Meeting Rooms Web page on Web View Only",Vendor Meals Dashboard
+2025-12-01 00:00:00,2025.0,WorkInSync Release Notes 12-2025,"- Access Card Integration - Check-In Enhancements to allot desk via allocation/tag/hotseat
+- Parking - Allot parking slots based on a set priority
+- Meeting Rooms, Outlook: Handling Double Email ID for SSO Authentication | 
+- Meeting Rooms Allocation Report
+- Meeting Rooms - Guided Onboarding Flow",Native Rooms on Outlook Add-in
+2025-11-01 00:00:00,2025.0,WorkInSync Release Notes 11-2025,"- Floor Kiosk - Auto-checkin to bookings made within cutoffs directly from Kiosk
+- Floor Kiosk - Check-In & Check-out flow for non app users (not allowed to use app)
+- Work Planner - Improved Auditing
+- QR-Based Booking Source Tracking
+- Reports - Creation Channel Added to All Workplace Reports
+- VMS - Bulk Upload and Report Enhancements
+- Google Analytics: Service-Wise Event Segregation","- Admin Dashboard - Attendance & Chart Improvments
+- Premises - View Desk Allocation in Floor View
+- Tag Management
+- Meeting Rooms - Floor Plan Now visible for Room Bookings
+- Meeting Rooms - Meeting Rooms Vertical View for Meeting Grid"
+09&10-2025,2025.0,WorkInSync Release Notes 09&10-2025,"- Parking - Support booking of stacked parking slots
+- Parking - Parking details are hidden if office booking is marked absent
+- Parking - Generate Parking Level/Slot QRs from the UI
+- Desk - Desk icon revamp on grid plan
+- Reports - Team & Hierarchy-wise Desk Utilization Reports
+- Reports - Column Additions in Booking Raw Report – Transport Schedule Details
+- Delegation - Delegate Information in Booking Audits - Mobile App
+- Visitor Management - Email Templates Refresh, Check-In Enhancements, White-labelling
+- Meeting Rooms (New) - Creation of booking via ScanQR
+- Meeting Rooms - Room Allocation on Kiosk
+- Meeting Rooms - Check-in from Today's Meetings in Employee Home (Old Room)","- Self-Serve VMS Configuration Setup
+- Safe Reach: 2-level Escalation Matrix for Failed Verification
+"
+2025-08-05 00:00:00,2025.0,WorkInSync Release Notes 08-2025,"- Meal Management - Limit selection of meal items in meal cart view. Limit is privilege restricted. 
+- Meal Management - Config to mandate scanning consume meal via meal counter scan
+- Employee Exp - Resize & Reorder of resource widgets in Employee Home
+- Parking - Inclusion of new default columns in Vehicle Parking Report
+- Report - Chargeback now includes integration of holidays
+- Meeting Rooms Kiosk - Prevent accidental check-ins
+- Employee Exp - Auto-toggle transport selection when transport shift is selected on mobile app
+- Employee Exp - Modal prompt to nudge users that they are creating a booking without resources
+- Desk Allocation - Time Based Allocation is supported by ScanQR Booking
+- VMS - ""I'm an employee' field is now configurable","- Meeting Rooms - Recuring Booking (Native)
+"
+2025-07-01 00:00:00,2025.0,WorkInSync Release Notes 07-2025,"- User group <> resource group consumption on booking form
+- Stratus Welcome Email is now applicable to WIS-ETS sites
+- Enhanced Resource Release Workflow: Preserve Booking Context Post-Release
+- Smarter Asset Coloring on Floor Plans with Time-Based Desk Allocation
+- Smarter Chargeback Calculations with Holiday Integration
+- Tag Management: Smarter Bulk Uploads & Role-Based Access
+- Admin Dashboard 2.0: Unified Resource Access Across Roles
+- Admin Dashboard 2.0: Smarter Filters for Accessible Data
+- Summary Chargeback Report – Column Enhancements
+- Better Visibility in Booking Reports: Resource Status & Release Reasons
+- Visitor Management: ""Test Print Badge"" Functionality
+- Workplace Admin Experience: Optimize Employee Search in Admin Pages for Large Datasets
+- Safe Reach Reports - Inclusion of Custom Fields in the Reports
+- Safe Reach: Security Dashboard Column Changes
+- VMS: Report downloaded from Frontdesk breaks when a special character is found in the visitor's name
+- Safe Reach: Introduce NDA Signature in the Employee Check-out Flow
+- Upgrades to Meeting Rooms Mobile Workflow
+","
+- Time-Based Desk Allocation Now Works with Desk QR Booking
+- Visitor Profile Management
+"
+2025-06-01 00:00:00,2025.0,WorkInSync Release Notes 06-2025,"- Cancel all resources in booking on allocation change
+- Enhanced Resource Release Workflow: Preserve Booking Context Post-Release
+- Smarter Asset Coloring on Floor Plans with Time-Based Desk Allocation
+- Safe Reach Notification Timing Configurable at Office Level
+- Capture Recurring Visitor Bookings in Reports
+- VMS: Capture Creation Channel and Check-in & Check-out Modes
+- Meeting Rooms+Kiosk: No auto-checkin for meetings when the ""Check-In"" button is hidden
+- Transport Indemnification for Late-hour Bookings
+- Office Booking Confirmation for Bookings Without Resource Selection
+
+","- Support for individual check-out on resource level
+- Show Availability and summary view of meal items on a day basis
+- Visitor Management: Handling Recurring Invites
+-  Introducing Recurring Bookings in Meeting Rooms-Native!
+"
+2025-05-01 00:00:00,2025.0,Release Notes 05-2025," - Access Card via SFTP 
+  - Admin view for Delegation
+ - Separation of office and desk check-in
+ - Map Seat Types Seamlessly in the CAD Tool
+ - Smarter Desk Search Across Booking & Floor Plan Admin Views 
+ - Property-Controlled Desk Search & Legend on Admin Pages
+ - Make OTP Validation property-controlled in VMS Self Check-in flow
+",
+2025-04-01 00:00:00,2025.0,WorkInSync: 04-2025 Release Notes,"-Parking Allocation Report
+- Payments with meal bookings (employees meals)
+- Improved attendance tracking on Team Calendar and Work Planner        
+- Allow weekly off/holiday booking on Work Planner & Team Calendar
+- Handle Front Desk Search on Meeting Title
+-Handle Camera flip, employee Flow and other UI fixes on VMS Android App
+- VMS on SMS - Send check-in/checkout QR code
+- Frontdesk Approval Details Now Available in Reports
+- Dynamic Phone Number Support for Safe Reach
+- VMS - Backend & UI Fixes
+- Meeting Rooms: Meeting Room bookings can now be viewed on mobile app Home Page without needing an office booking
+- Meeting Room Cost Report 
+- Meeting Rooms – Control Email Notifications at Persona Level
+- Meeting Rooms – Display Creator Information on Catering Dashboard when catering is created from a “shared” calendar (Outlook Add-In)
+- Floor Kiosk: Now Handles Employee Check-Ins, Office Holidays and Weekly-offs","-Payments with meal bookings (employees meals)
+- Allow weekly off/holiday booking on Work Planner & Team Calendar
+- VMS on SMS - Send check-in/checkout QR code
+-- Dynamic Phone Number Support for Safe Reach
+-Meeting Rooms: Meeting Room bookings can now be viewed on mobile app Home Page without needing an office booking
+- Display Meeting Room Costs Upfront to Users During Room Booking (Native Setup Only)
+- Meeting Rooms – Control Email Notifications at Persona Level
+- - Floor Kiosk: Now Handles Employee Check-Ins, Office Holidays and Weekly-offs
+"
+2025-03-01 00:00:00,2025.0,WorkInSync: 03-2025 Release Notes,"- RBAC for Parking Bookings
+- Add Desk and New Room booking are now office-configurable
+- Parking allocation enhancements for single-shift operations
+- Single shift operation enhancements - Time display
+- Consistent Color Coding for Hotseats in Grid View
+- Smarter Tooltips on Desk Allocation Floor View
+- Tags Management Module
+- Admin Dashboard 2.0 - Attendance and Desk sections revamped.","- Tags Management Module
+- Admin Dashboard 2.0 - Attendance and Desk sections revamped."
+2025-02-01 00:00:00,2025.0,WorkInSync: 02-2025 Release Notes,"- Hide next day logout shift timings while creating bookings
+- Parking Allocation Audit is now on the UI
+- SFTP Access Card Integration - Handling check-in channel for swipes via access card
+- Floor Kiosk
+- Managing IT Requests Just Got Smarter and Easier 
+- Easily Filter Desks by Allocation Type in List View
+- Enhancing Premises Grid View Floor Plan View with Color Indicators
+- Track Cancellation Time in Seat Booking & Booking Raw Reports
+- Enhanced Bulk Upload: Custom Fields & Visitor Bulk Operations
+- VMS Front Desk - UI fixes
+- VMS Invite Flow - WiFi Credentials Now Generated at Check-in 
+- Tagged Rayguns for Better WiFi Issue Tracking
+- Accurate Visit Type for Bulk Upload Invites
+- Meeting Room Web Room Search Enhancement - Prioritizing Office Search Results for the user
+- New default duration for Ad-Hoc Meeting Bookings on Kiosk
+- Meeting Rooms Kiosk is now compatible with Crestron Meeting Room Display Devices
+(with Lights)
+","- Floor Kiosk
+- Admin Exp updates
+- Parking Audit
+- IT request updates
+- VMS Guest Wifi related enahncements
+- Kiosk integration with Crestron
+- Minor Meeting Rooms enhancements"
+2025-01-01 00:00:00,2025.0,WorkInSync: 01-2025 Release Notes,"IT Request - Order resources while creating meeting room bookings
+Preferences - Web & App Parity
+Support for multi-day remote booking emails
+Handling check-out flows for access card via SFTP Integration
+Desk Allocation - Multi-Team Allocation in List View & Enhanced Legends
+Reports - 
+- Team & Hierarchy columns for Meal Reports
+- Team details to Desk Assignment & Booking Reports 
+- Home-to-Office Distance in Vehicle Parking Report
+- Transfer Booking Context in Seat & Meeting Room Reports
+- Transport Data is now on Booking Details Report
+Auto-Population of Custom Fields
+QR Code Check-In for Meeting Rooms
+Meeting Room Kiosks now supports new room type","IT Request
+Report enhancements
+Meeting Room enhancements"
+16-2024,2024.0,MoveInSync Workplace: 16-2024 Release Notes,"Restrict transport selection depending on office eligibility during booking creation
+Support for ad-hoc shifts on WiS-ETS sites [web]
+Reports show office name as a new column in the Schedule Reports section
+Multi-Team Desk Allocation
+Custom Fields in Visitor Management Walk-in Flow
+Invite Cancellation from Front Desk Dashboard
+VMS invites over SMS
+Optional attendees over Outlook Add-in
+Landlord notifications for visitor invitation
+Timezone handling in visitor check-in emails
+Hide or Show room based on Eligibility","Reports show office name as a new column in the Schedule Reports section
+Multi-Team Desk Allocation
+Custom Fields in Visitor Management Walk-in Flow
+Invite Cancellation from Front Desk Dashboard
+VMS invites over SMS
+Landlord notifications for visitor invitation
+Hide or Show room based on Eligibility"
+15-2024,2024.0,MoveInSync Workplace: 15-2024 Release Notes,"RFID Number is now supported on Stratus
+See detailed meal information for every item booked [Cart View]
+API-based Access Card Integration for Check In/Out swipes Enhancements
+Parking - Consumption of vehicle info via ANPR cameras
+Parking - Overstay alerts","Meal Booking - Cart View
+Parking - Consumption of vehicle info via ANPR cameras
+Parking - Overstay alerts"
+14-2024,2024.0,MoveInSync Workplace: 14-2024 Release Notes,"Hide visibility of parking slots to employees
+Multi & recurring booking enhancements 
+Support for overlapping desk bookings
+Client configurable check-in reminder templates on MS teams
+Include Timezone abbreviation in all booking emails
+Externalize desk utilization APIs
+Automated cancellation of transport bookings linked to office bookings
+Invite for someone else to capture delegatees while searching for host
+Managing visitor photo expiry
+Separate employee check-in flow on VMS
+Prevent visitor invites without room selection on outlook add-in
+Safe reach dashboard to open on WorkInSync","Recurring booking enhancements
+Safe reach dashboard on WorkInSync
+Support for Overlapping desk bookings
+Separate employee check-in flow on VMS"
+13-2024,2024.0,MoveInSync Workplace: 13-2024 Release Notes,"Carbon Footprint Tracker
+Configure office check-in modes on office level
+Access Card device to floor mapping (SFTP)","Carbon footprint tracker
+Allow frontdesk personnel to approve or reject visitor's entry
+"
+2024-12-01 00:00:00,2024.0,MoveInSync Workplace: 12-2024 Release Notes,"Support for delegation on the mobile app 
+Accessibility improvements for visually-impaired users","Delegation on the mobile app 
+Allow Front Desk to Edit Invite’s End time
+Overstay Alerts for Visitors
+"
+2024-11-01 00:00:00,2024.0,MoveInSync Workplace: 11-2024 Release Notes,"Support for Indemnification and No-show for WiS-ETS sites
+Support to provide reason while cancelling room/office booking
+Customizable timelines while scheduling reports
+Limit meal selection to 1 per day per user when desk & room bookings are enabled
+'Canceled Invites' Toggle on the VMS Front Desk
+Allow Visitor Check-ins only When the Day Starts 
+Visitor Check-in Notifications to Host and Office-wise Stakeholders
+NDA Consent Form Added to Invite Visitor Flow
+Note to reception and note to admin emails sent to location wise stakeholders
+Merge visit confirmation and checkout QR email to visitor
+Automated Employee Tag Assignment Based on Employee Job Title
+MS Teams Check-In Reminder Notifications for Desk, Remote, and Room Bookings
+New enhanced seat and team legends on floor plan in booking form
+Catering Dashboard - Show meeting details
+Outlook Add-in: Show selected room on top during edit
+MS Teams Notification for Visitor Check-ins
+VMS Widget on Employee Home Screen
+Order of NDA is Configurable Now!
+Separate Policies for Host and Visitor Emails in VMS
+View, Edit and Verify Visitor Form Fields on Front Desk Dashboard
+","Support for Indemnification and No-show for WiS-ETS sites
+Support to provide reason while cancelling room/office booking
+Visitor Check-in Notifications to Host and Office-wise Stakeholders
+View, Edit and Verify Visitor Form Fields on Front Desk Dashboard
+"
+09&10-2024,2024.0,MoveInSync Workplace: 10-2024 Release Notes,"Parking - RBAC control of vehicle creation
+Parking - Show available vehicle count in filter section
+Mobile App - Transport info in employee profile is now configurable
+Allow users to cancel a booking that is not checked into after booking start time
+Report scheduling experience improvement - display filters applied for easy identification via UI and Report
+Audit for Meeting Rooms
+Note to Reception/Security to be displayed on Front Desk dashboard
+",Audit for Meeting Rooms
+-,2024.0,MoveInSync Workplace (Parking): Vehicle Creation Release Notes,Parking: Vehicle Creation Release Notes,Parking: Vehicle Creation Release Notes
+2024-08-01 00:00:00,2024.0,MoveInSync Workplace: 08-2024 Release Notes,"Make commute mandatory [parking or transport]
+Configurable digipass on resource level [office/parking/meals]
+Editing & Cancellation of bookings made for someone else
+",Digipass enhancements
+2024-07-01 00:00:00,2024.0,MoveInSync Workplace: 07-2024 Release Notes,"Digipass for Meals
+Support for Meals in Work Planner
+Remove Meal Booking on a Holiday or Weekly Off
+Delegation - Booking History & VMS feature inclusion
+Delegation - Delegator can now receive emails for actions by delegatee","Meals - Work Planner & Digipass
+Delegation enhancements"
+2024-06-01 00:00:00,2024.0,MoveInSync Workspace: 06-2024 Release Notes,"Create an office booking for someone else
+Create a room booking for someonee else
+Check-in reminders for native meeting rooms
+VMS - Email on visitor entry at security desk
+VMS - Check in/out via QR code","Book for someone else
+(Office booking/meeting room)"
+2024-05-01 00:00:00,2024.0,MoveInSync Workspace: 05-2024 Release Notes,"Allow creation of ""n"" bookings for a period of time
+Project Code & Name on resource booking forms
+VMS - Self Checkin/out on Kiosk
+VMS - Cisco integration for Guest Wi-Fi
+VMS - Host can add visitor invite to calendar
+Meeting Rooms - Release room & cancel associated meeting",VMS - Self Check in/out on Kiosk
+"03-2024
+04-2024",2024.0,MoveInSync Workspace: 03&04-2024 Release Notes,"Allow shift timings for a booking to be selectable after a specific time
+Remote booking enhancements
+Host approval for walkin visitors
+VMS Integration with MS Teams for notifications
+VMS Guest form - Notes to Guard/Receptionist",Meal Feedback
+2024-02-01 00:00:00,2024.0,MoveInSync Workspace - 02-2024 Release Notes,"Office & Employee Hierarchy View on Team Calendar
+Parking Booking as a standalone feature
+VMS on Outook Addin
+Default Status on orders in Catering Dashboard
+Meeting Rooms & Catering Enhancements
+Catering Setup made easy via Frappe","Team Calendar Filter Enhancement
+VMS on Outlook Addin"
+2024-01-01 00:00:00,2024.0,MoveInSync Workspace 15-2023 Release Notes,"- Holiday management
+- Set buffer time for parking booking creation
+- Multi-Day Visitor Invitations
+- Role-Based Email Configuration for Mapping Cafeterias to Catering Managers",Manage Holidays
+15-2023,2023.0,MoveInSync Workspace 15-2023 Release Notes,"Consumption of user groups during data sync via SCIM
+Meeting Rooms - 
+- Search Room API Performance Optimization
+- Disassociating bookings when room is deactivated",Better Integrations,,,,,,,,,,,,,,,,,,,,
+14-2023,2023.0,MoveInSync Workspace 14-2023 Release Notes,"Enable Wayfinding on an office level
+Configurable Parking Message during booking
+VMS Exp Enhancements
+Cost Center to Meeting Room Catering
+",Wayfinding,,,,,,,,,,,,,,,,,,,,
+13-2023,2023.0,WorkInSync 13-2023 Release Notes,"Outlook Add-in Edit Booking with Catering Request API Optimization
+VMS Configs - Office level
+Improvements to fundamental VMS flows
+Prompt on office booking checkout ",,,,,,,,,,,,,,,,,,,,,
+12-2023,2023.0,WorkInSync 12-2023 Release Notes,"Dynamic Fields on Booking Form (Web)
+Nudge to users to create office bookings
+Separation of office & mobile check-in modes
+Hierarchies page to manage Teams and Org/BL
+Enhanced “Invite Employees” for Bulk Upload on STRATUS
+VMS - Reports and ID Protocol enhancement",Dynamic fields,,,,,,,,,,,,,,,,,,,,
+11-2023,2023.0,WorkInSync 11-2023 Release Notes,"Real-time availability of meals to prevent overbooking
+Dynamic Fields for Visitor Management
+Profile Photos are no longer mandatory for visitors!
+Addressal of Issues of VMS
+Consolidation of Kiosk Application
+Manage Premises - Alphabetically Sorted",Usability fixes,,,,,,,,,,,,,,,,,,,,
+"09-2023
+10-2023",2023.0,WorkInSync 09 & 10-2023 Release Notes,"""Customize Client Name during SSO login
+Mobile SSO Configuration Enhancements
+Bye Bye “Not Ready” widget
+Addressing """"Check-In"""" v/s """"Sign-In"""" Verbiage Inconsistencies
+Streamlined Time Zone in Team Calendar
+Employee booking with Team Color and Legends
+RBAC / RACI for Premises, VMS & Catering Dashboard
+Room Release - Trigger Email to Organizer
+Email Notification: Meeting Room Calendar Sync Failure
+Release Room Functionality Enhanced
+Auto-Provisioning of Rooms - No Change Column
+Improved Meeting Rooms Audit
+New Look for Native Room Emails
+Editing of Guest Details
+Storage of Visitor Data
+Scan QR code for a parking level
+Hide “Start Meeting” & “Check In” components from UI""
+",,,,,,,,,,,,,,,,,,,,,
+08-2023,2023.0,WorkInSync 08-2023 Release Notes,"Parking for Visitors
+Special characters for office names in ETS sites
+Configurable Kiosk UI components
+Creation of a Teams meeting with a room booking
+RBAC/RACI for Meeting Rooms
+Meeting Rooms - Performance Improvements
+Handling Timezone in Admin workflows",Timezones,,,,,,,,,,,,,,,,,,,,
+07-2023,2023.0,WorkInSync 07-2023 Release Notes,"Customizable Checkout Message on Front Desk
+Your Default Office, front and center!
+WorkSpace Manager Role",,,,,,,,,,,,,,,,,,,,,
+06-2023,2023.0,WorkInSync 06-2023 Release Notes,"Women’s Safety Handbook
+SFTP flow enhancement
+Desk booking enhancement with Allocated Desk
+Design Delight: Walk-in Visitor Registration
+Showcase Tenant Logos in Visitor Registration Screens
+Re-take Visitor Photos in a Flash
+From Passports to Resident Identity Card, Customize Profile ID Document Uploads for Visitors Worldwide
+Extended Booking History
+Auto Provisioning of Rooms - Edit and Deactivate
+",RBAC,,,,,,,,,,,,,,,,,,,,
+05-2023,2023.0,WorkInSync 05-2023 Release Notes,"Customizable UI for Kiosk
+Revamp of Visitor Emails
+Printing of Visitor Badge
+WiS+ETS - Office creation enhancement 
+Chatbot booking form enhancements
+Service Partners and Access to WorkInSync
+Meeting ID in the meeting booking card",Chatbot booking form enhancements,,,,,,,,,,,,,,,,,,,,
+04-2023,2023.0,WorkInSync 04-2023 Release Notes,"Team Calendar Improvements
+Kiosk Provisioning
+Mobile SSO for Stratus Sites
+Client logo on WiS Pages
+VM - Multi-office management",Outlook Addin,,,,,,,,,,,,,,,,,,,,
+03-2023,2023.0,WorkInSync 03-2023 Release Notes,"Delegation
+Changing background image for Kiosk
+VM - Receptionists can add custom details in form + Configurable Visitor Registration
+VM - Bulk Upload for Visitors
+MR - Bulk Upload of meeting Rooms
+Outlook Addin - Editing of Catering Requests
+Catering - Cancellation Policy for orders",Delegation,,,,,,,,,,,,,,,,,,,,
+02-2023,2023.0,WorkInSync 02-2023 Release Notes,"Shift-pairing on WiS+ETS sites
+MSU role enhancements
+VMS - Support for timezone, notifications to host",Hierarchy
+01-2023,2023.0,WorkInSync - (01-2023) Release Notes,"Improved Error Messages
+Privacy settings on app",Privacy 
+Dec,2022.0,WorkInSync - Dec (2022) Release Notes,"Handling no-internet scenarios
+Team calendar & booking form parity",
+Nov,2022.0,WorkInSync - Nov (2022) Release Notes,"Parking Floorplan
+Meal consumption workflow
+Different check-in modes on app
+Filter cancelled bookings
+GDPR compliance on the app",Meal Consumption Workflow
+Nov,2022.0,SSO on Mobile App - Release Notes,Mobile SSO,
+Oct.2,2022.0,WorkInSync - Oct.2 Release Notes,"Welcome to WorkInSync email
+Automatic onboard in WorkInSync (auto-provision)
+Work From Home -> Remote
+Bookings on non-working days",
+Oct.1,2022.0,WorkInSync Oct.1 Release Notes,"Parking Waitlist & Parking Booking reminder
+Walk-in Visitor
+Auto-population of booking form","Parking Waitlist
+Walk-in Visitor"
+Aug.1,2022.0,WorkInSync Aug.1 Release Notes ,"Search by Employee Desk on floorplan
+Employee Profile Audit
+MS Teams App - Sidenav integrations",
+Jul.1 ,2022.0,WorkInSync - Jul.1 Release Notes ,"Meeting Rooms Booking Form - Redesign
+Securely end/cancel meeting via kiosk
+Employee check-out geofence
+",
+,,Workinsync_Release Notes_25th Oct 2020.pptx,Video link for multiple release notes,
+Jun.2,2022.0,WorkInSync - Jun.2 Release Notes ,"Booking APIs for 3rd Party Integration
+Parking Scan QR
+Meeting Rooms - User Level Acess",
+Jun.1,2022.0,WorkInSync Release Notes Jun.1,"Max Booking per week/month config
+Highlight Team desks on floor
+Add Meeting Rooms, Add Catering Request for Meeting Rooms",
+Apr+May,2022.0,WorkInSync Release Notes_Apr.1 and May.1,"Meeting Rooms on App
+Hybrid Workplace dashboard
+Office level configs",
+Mar.2,2022.0,Mar.2 (2022) WorkInSync Release Notes,"New Web Experience for Employees
+Recurring Bookings
+Native Meeting Rooms
+Dynamic Policy Engine
+Desk Allocation for multiple hierarchies",
+Mar,2022.0,"WorkInSync Release notes
+",Recurring Bookings,
+Feb,2022.0,Release Notes Repository,"Meeting Rooms - User permissions flow
+Audit - Transport, Meals, Parking
+Automatic Desk Allocation",
+Jan.2,2022.0,Release Notes Repository,Missing,
+Jan.1,2022.0,Workinsync_Release Notes_30th Jun 2021.pptx,"Admin seat booking for an employee
+Communication console for workinsync.",
+Dec.1,2021.0,Release Notes Repository,"SCIM, Kiosks, Celebration on App",
+Nov.1,2021.0,Release Notes Repository,Missing,
+Oct.1,2021.0,Workinsync_Release Notes_25th Oct 2020.pptx,"Vaccination module
+Bulk upload of bookings
+Perpetual digipass",
+Sep.1,2021.0,Workinsync_Release Notes_20th Sep 2020.pptx,"Team calendar
+Employee feedback
+Employee web checkin",,,,,,,,,,,,,,,,,,,,,
+Aug.1,2021.0,Release Notes Repository,Missing,
+Jul.1,2021.0,Release Notes Repository,Missing,
+Jun.1,2021.0,Workinsync_Release Notes_13th May 2021.pptx,"Employee preferences.
+Booking conversion
+Adhoc workflow for transport.",
+May.1,2021.0,Workinsync_Release Notes_New Changes.pptx,"Seat Assignment on Floorplan
+Sanitization Dashboard
+Desk Utilization Dashboard",
+Apr.1,2021.0,Release Notes Repository,Missing,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,

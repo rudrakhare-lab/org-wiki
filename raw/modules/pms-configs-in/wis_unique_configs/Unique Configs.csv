@@ -1,0 +1,712 @@
+Unique Configs Across All WIS Services (Case-Sensitive),,,
+Total unique: 642   |   Appearing in >1 service: 36   |   Total entries before dedup: 679   |   Matching: case-sensitive,,,
+,,,
+Property Name,Description,Service(s),Service Count
+ACCESS_MATRIX_ENABLED_BUIDS,Defines BUs with access matrix enabled.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+AD_HOC_MEETING,Enables auto check-in for room bookings within this defined window - this value is set in minutes.,MEETING ROOMS,1
+addCustomFieldsWithVisitorBulkUpload,Adds custom fields to visitor bulk upload headers.,Visitor Management Service,1
+ADDRESS_CHANGE_HOME_TO_OFFICE_DISTANCE_VALIDATION,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+ADDRESS_CHANGE_RADIAL_DISTANCE_VALIDATION,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+ADDRESS_CHANGE_RESTRICTED_AREA_VALIDATION,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+ADDRESS_CHANGE_TRANSPORT_BOUNDARY_VALIDATION,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+addRoomWithVisitorBulkUpload,Adds room details to visitor bulk upload headers.,Visitor Management Service,1
+admin,Configures Admin role access.,PROJECT-MANAGEMENT-SERVICES,1
+ADMIN_FRONT_DESK,Enables Visitor Management for Admin Front Desk.,PROJECT-MANAGEMENT-SERVICES,1
+adminAssignmentFloorPlanUrl,Defines Admin Seat Allocation Floor Plan URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+adminExpUi,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+adminexpUI,Defines Admin Experience UI URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+adminexpUi,Defines alternate Admin UI URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+adminFloorPlanUrl,Defines Admin Floor Plan URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+advanceBooking,"Enables users to book seats days or weeks in advance, rather than just same-day.",Booking Rule Engine,1
+advanceBookingLimitInMinutes,Controls the window of advance booking for users to make room bookings.,MEETING ROOMS,1
+airtelBuid,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+allowBookingConversionFromWfhToWfo,Enables direct WFH to WFO booking conversion.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+allowBookingConversionFromWfoToWfh,Enables direct WFO to WFH booking conversion.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+allowBookingForOthers,Defines booking types allowed for others.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+allowCheckInAtIncorrectSlot,Allows check-in outside booked slot.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+allowedEmployeeNameRegex,Defines the allowed employee name format using regex validation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+allowEmployeeToBooKAnySeatInB,"(Inferred) Allows employees to book any seat within their permitted Business Line (BL), bypassing stricter team allocations.",EMP_EXP_INTERNAL_CONFIGURATION,1
+allowEmployeeToBooKAnySeatInBL,Allows employees to book seats within permitted hierarchy levels in BL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+allowPastAllocationTimesForCurrentDayFor,Allows admins to allocate desks/slots/rooms for past shift times on the same day.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+allowPeerOrMarshalReporting,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+allowQrCheckInWithoutSeat,Allows QR check-in without seat.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+allowRoomBookingWithOfficeBooking,Controls visibility of Room booking option on Employee Home.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+amenitiesBulkUpload,Enables bulk upload flow for amenities.,WIS-SEAT-BOOKING,1
+APPROVAL_POST_NO_SHOW_CHECK_BUFFER,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+approvalFlowEmailExpiryTimeInMinutes,Defines approval email expiry time in minutes.,Visitor Management Service,1
+approvalFlowEnabled,"[Booking Rule Engine] Seat or WFH bookings go into a ""Pending"" status and require manager/admin approval.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Enables Team Manager approval dashboard.",Booking Rule Engine; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+approvalFlowInInWfhEnabled,Controls whether the approval workflow is enabled for Work From Home bookings.,WIS-SEAT-BOOKING,1
+approvalFlowInWfoEnabled,Controls whether the approval workflow is enabled for Work From Office bookings.,WIS-SEAT-BOOKING,1
+approvalWebViewUrl,Defines approval web view URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+approvedRequestNotificationEnabled,Controls whether notifications are sent for approved booking approval requests.,WIS-SEAT-BOOKING,1
+approveEntryFromFrontdesk,Allows visitor approval or rejection from Front Desk.,Visitor Management Service,1
+approveMsTeamsTemplate,Defines MS Teams template for approval notifications.,Visitor Management Service,1
+AUDIT_HISTORY,Enable Audit history on Sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+autoAbsentHours,"Marks an employee as a ""No Show"" if they fail to check in within this many hours of their shift start.",Booking Rule Engine,1
+autoAllocate,"[Booking Rule Engine] The system automatically assigns a desk to an employee based on their team zone if they don't pick one manually.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Enables automatic desk allocation during bulk booking upload.",Booking Rule Engine; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+autoApproveEnabled,"Bypasses the manual approval flow, instantly confirming user requests.",Booking Rule Engine,1
+autoClockOutRemainder,Sends reminder notification before auto-checkout triggers.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+autoClockOutRemainderMinutes,Defines minutes before logout when reminder notification is triggered.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+autoExpireHour,Defines at what period hour your booking request expires.,WIS-SEAT-BOOKING,1
+autoLogoutEnabled,Enables automatic sign-out after configured duration.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+autoLogoutMinutes,"[Booking Rule Engine] Automatically checks the employee out of their desk X minutes after their scheduled shift ends.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Defines minutes after planned checkout for auto-checkout trigger.",Booking Rule Engine; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+autoPopulateBookingForm,Auto-populates booking form using preferences or past data.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+autoProvisionEnabled,"[EMP_EXP_INTERNAL_CONFIGURATION] To enable Auto registration process.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Automatically marks all employees as onboarded during bulk onboarding.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+autoRequestApprovalEnabled,Controls whether booking requests are automatically approved without manual intervention.,WIS-SEAT-BOOKING,1
+autoSeatCheckOutEnabled,Enables auto seat checkout.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+autoSeatCheckOutMinutes,Defines auto seat checkout duration.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+autoSlotAllocate,Automatically allocates parking slots without manual slot selection.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+autoTagAssignmentMapping,Automatically assigns tags based on employee designation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+averageOverallTripFeedbackCalculation,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+bannerEndTime,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+bannerNativeRoomEmail,Controls native banner visibility in room emails.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+bannerNewRoomBookingEmpHome,Defines banner text for New Room booking page.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+bannerStartTime,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+beginHour,"This configuration defines the start time of the bookable time in the meeting room timeline - room level configuration. Integer value, 0-24.",MEETING ROOMS,1
+BLOCK_CALENDAR_FOR_X_MINS,"Controls how long the room's calendar is blocked around a meeting, in minutes.",MEETING ROOMS,1
+blockDelegationEmail,Blocks delegation email notifications.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+blockGenerateDigiPassOnSeatMandatory,Blocks DigiPass generation when seat is mandatory.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+blockNumber,Controls Block number field visibility.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+blockOfficeCheckingIfNoBooking,Blocks office check-in without booking.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+blockUserIfNotVaccinated,"[Booking Rule Engine] A health-safety compliance rule that prevents booking if the user's profile lacks vaccination approval.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Blocks non-vaccinated users from making bookings when enabled.",Booking Rule Engine; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+BOOKING_APPROVAL,Enables the Booking Approval page.,PROJECT-MANAGEMENT-SERVICES,1
+BOOKING_HISTORY,"[PROJECT-MANAGEMENT-SERVICES] Enables the Booking History option.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Enables booking history option on web.",PROJECT-MANAGEMENT-SERVICES; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+BOOKING_UPLOAD_ENABLED,Enables Booking bulk upload option.,PROJECT-MANAGEMENT-SERVICES,1
+bookingApprovalEmailsEnabled,Controls whether email notifications are sent for booking approvals.,WIS-SEAT-BOOKING,1
+bookingCancellationReasons,Defines cancellation reason list.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+bookingConversionCutOff,Defines cutoff time for WFH to WFO and vice versa conversion.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+bookingEnabledOnTag,"[EMP_EXP_INTERNAL_CONFIGURATION] This property that controls whether booking is allowed based on a tag. eg: ""Even if this day is a weekly off, allow booking for employees/resources that carry a specific tag.""
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Enables booking based on tags.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+bookingRequestApprovalFlowEnabled,"[WIS-SEAT-BOOKING] Controls whether the booking request approval workflow is enabled.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Enables booking approval workflow.",WIS-SEAT-BOOKING; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+bookingRuleEngine,Defines Booking Rule Engine URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+bookingsTypesForCheckinReminder,Defines booking types eligible for check-in reminder.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+bufferTimeInSecondsOfAarogyaSetuUser,This property controls the buffer time in seconds applied to Aarogya Setu user validation (covid feature).,EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+buidsEnabledForSeatBookingPMS,Defines service availability on PMS.,WIS-SEAT-BOOKING,1
+BUILDING_PREMISE_NAME,"On stratus sites, it controls the name of the entity on outlook.",MEETING ROOMS,1
+BULK_OPERATION_VISITOR_BOOKING,Enables bulk upload of visitor lists on the Invite Visitor page.,PROJECT-MANAGEMENT-SERVICES,1
+BULK_UPLOAD_ENABLED,Enables the room bulk upload option in the Meeting Rooms Settings page.,MEETING ROOMS,1
+BULK_UPLOAD_HEADERS,"Defines the column headers for meeting room bulk upload, this cannot be changed. Do not alter this.",MEETING ROOMS,1
+bulkScheduleAllowedDaysForRoom,Defines bulk room scheduling window.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+CAB_ARRIVAL_MESSAGE_FOR_NOTIFICATION,The push notification text sent to an employee when their cab reaches the pickup point (includes driver wait time).,EMAIL_EMPLOYEE_EXPERIENCE,1
+CAB_ARRIVAL_TITLE_FOR_NOTIFICATION,The title/header for the cab arrival push notification.,EMAIL_EMPLOYEE_EXPERIENCE,1
+cabArrivalIVR,(Inferred) JSON configuration for triggering automated IVR (Interactive Voice Response) phone calls to employees when their cab arrives.,EMP_EXP_INTERNAL_CONFIGURATION,1
+cacheTimeInHoursOfAarogyaSetuUserStatus,"[EMP_EXP_INTERNAL_CONFIGURATION] This property controls the cache duration in hours for Aarogya Setu user status (covid feature).
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Defines Aarogya Setu status cache duration.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+CANCEL_EVENT_PIN_VERIFICATION_ENABLE,Enables secure cancellation or ending of meetings via meeting room kiosk using OTP verification.,MEETING ROOMS,1
+CANCELLATION_REMINDER_NOTIFICATION,Enables cancellation reminder notifications.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+cancelSchedulesEnabled,Defines whether it should allow cancellation of commute service.,WIS-SEAT-BOOKING,1
+cancelTransportBooking,Allows transport booking cancellation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+captureEmployeeBookingStats,Enables booking statistics capture.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+cardSyncDefaultMinutes,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+CATERING_AUDIT_HISTORY,Enables audit history for Catering Orders.,PROJECT-MANAGEMENT-SERVICES,1
+CATERING_DASHBOARD,Enables the Catering Dashboard in the sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+CATERING_ORDER_STATUS_LIST,This property pertains to the catering feature within the Meeting Rooms module. It allows administrators to define the various statuses that can be assigned to catering orders on the catering dashboard.,MEETING ROOMS,1
+checkinBufferFromKiosk,Defines buffer time (in minutes) for active booking check-in via kiosk.,Visitor Management Service,1
+checkinReminderCutoffInMinute,Defines when check-in reminder notification is sent.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+checkInWithoutAarogyasetuValidation,Allows check-in without Aarogya Setu validation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+checkoutPageRedirectionTimeout,Defines redirection timeout (in minutes) after self check-in completion.,Visitor Management Service,1
+CITY_DISTRICT_MAPPINGS,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+commentsMandatoryOnRating,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+COMMUNICATION_CONSOLE_ENABLED,Enables the Broadcast feature.,PROJECT-MANAGEMENT-SERVICES,1
+commuteMandatory,Requires users to select either parking or transport while creating an office booking to prevent resource-less bookings.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+configuration.registration.dashboard,Controls whether the employee self-registration experience is exposed via the dashboard for a given site/BUID.,PROJECT-MANAGEMENT-SERVICES,1
+CONFIGURATIONS_ENABLED,Enables the Configurations page under Settings.,PROJECT-MANAGEMENT-SERVICES,1
+configureVisitorKiosk,Controls visibility of Configure Visitor Kiosk button on Front Desk.,Visitor Management Service,1
+confirmationMessageForLogoutTracking,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+CONSENT_TYPE,Defines consent type configuration at admin or user level.,MEETING ROOMS,1
+consentPopupData,Defines consent popup configuration.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+contactTHDReasons,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+controlSearchSections,Controls visibility of sections in Front Desk search dropdown.,Visitor Management Service,1
+Cost_Center_Catering,Catering workflow - Controls cost center field availability for catering requests workflow.,MEETING ROOMS,1
+Cost_Center_Max_Len,Catering workflow - Defines maximum character limit for cost center input.,MEETING ROOMS,1
+Cost_Center_Min_Len,Catering workflow - Defines minimum character limit for cost center input.,MEETING ROOMS,1
+countBookingBySomeOneElseAsEmployeeBooking,"If a manager or SPOC books a seat on behalf of an employee, it counts towards that employee's daily/weekly quota limits.",Booking Rule Engine,1
+Create_Meeting_Room,Controls visibility of the Create Room button in the Meeting Rooms settings page.,MEETING ROOMS,1
+CREATE_PREMISE_IF_IT_DOESNT_EXIST,"Allows the system in creation of premise, if premise does not exist.",MEETING ROOMS,1
+creatorNotifications,Controls creator notifications (backend property).,Visitor Management Service,1
+CutOffTimeBetweenBookingsOnSeatInMinute,Defines minimum gap between consecutive bookings on the same seat.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+cutoffTimeBetweenWISAppFeedback,Defines minimum time gap between feedback prompts.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+cutoffTimeForSkipWISAppFeedback,"[EMP_EXP_INTERNAL_CONFIGURATION] If set to 720 (hours ~ 30 days), the internal app feedback will appear once in 30 days (720 hours) after every booking creation.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Defines interval in hours for app feedback display frequency.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+dashboard,Enables the Dashboard option under Team Manager Dashboard.,PROJECT-MANAGEMENT-SERVICES,1
+DASHBOARD_ENABLED,Enables the Home Dashboard.,PROJECT-MANAGEMENT-SERVICES,1
+DATE_FORMAT,Defines date format for UI.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+DATE_FORMAT_SERVICES,Defines date format for backend services.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+DEACTIVATION_TYPE,Control the action of deactivation of meeting room.,MEETING ROOMS,1
+defaultInviteTitle,Defines default title for Invite Form.,Visitor Management Service,1
+defaultKioskBookingDurationInMinutes,Defines fixed visit duration for each visitor check-in.,Visitor Management Service,1
+defaultLogoutShiftMinutes,Auto-populates checkout time based on configured duration after check-in selection.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+defaultVisitTypeSelection,Controls default selection behavior for Type of Visit field.,Visitor Management Service,1
+delegation,Enables the Delegation feature in the sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+delegatorDelegateeEmailsEnabled,Sends email notification to delegator.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+DESK_AUDIT,Enables Desk Audit section.,PROJECT-MANAGEMENT-SERVICES,1
+DESK_TAGGING_ENABLED,Enables the Desk Tagging feature.,PROJECT-MANAGEMENT-SERVICES,1
+deskTagHeaders,Headers for desk tag.,WIS-SEAT-BOOKING,1
+digipass,Controls DigiPass visibility across email and badge channels.,Visitor Management Service,1
+directCheckinEndCutOffInMinute,Defines end cutoff for direct check-in.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+directCheckinExpiryInMinute,Defines expiry time for direct check-in.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+directCheckinStartCutOffInMinute,Defines start cutoff for direct check-in.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+DIRECTION,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+disableWfhWfoOverlapping,Prevents an employee from booking both a Work From Home day and a Work From Office desk on the exact same date.,Booking Rule Engine,1
+districts,(Inferred) Defines the list of approved districts/regions mapped to the office for transport routing and hiring boundaries.,EMP_EXP_INTERNAL_CONFIGURATION,1
+dynamicData / DynamicData,"Defines configurable dynamic fields displayed in the booking form (e.g., Waiter needed, Reimbursement, Allergies, Commute method).",WIS-SEAT-BOOKING,1
+dynamicFieldLabel,Customizes the label text for the meeting request section on meeting booking form.,MEETING ROOMS,1
+dynamicFieldOnRooms,Displays dynamic fields during meeting room creation - i.e Meeting Rooms request section.,MEETING ROOMS,1
+dynamicFieldsConfigForRooms,This controls the dynamic fields aka custom fields for the catering workflow where we can define different types of fields - their header and the type of input values.,MEETING ROOMS,1
+dynamicFieldUserEmails,Defines email recipients for dynamic field notifications.,MEETING ROOMS,1
+email,Controls whether the Email field is shown or hidden during employee profile validation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+empExp,Defines primary Employee Experience URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+empExpUi,Defines Employee Experience UI URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+empexpUI,Defines Employee Experience interface URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+empID,Controls whether the Employee ID field is shown or hidden during employee profile validation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+EMPLOYEE,Configures WIS Employee role access.,PROJECT-MANAGEMENT-SERVICES,1
+employee,Configures ETS Employee role access.,PROJECT-MANAGEMENT-SERVICES,1
+EMPLOYEE_CHECKIN,Enables the My Bookings page in the sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+EMPLOYEE_PROFILE_AUDIT,Enables Employee Profile audit history under Audit History section on sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+EMPLOYEE_TAGGING_ENABLED,Enables the Employee Tagging feature.,PROJECT-MANAGEMENT-SERVICES,1
+EMPLOYEE_WEB_EXPERIENCE,Enables the Employee Home page for specified roles.,PROJECT-MANAGEMENT-SERVICES,1
+employeeCancelCutOff,The deadline (in hours/mins) before a shift starts where an employee can no longer cancel their booking.,Booking Rule Engine,1
+employeeFloorPlanUrl,Defines Employee Floor Plan URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+employeePIIMasking,Configures selective masking of PII fields and visual security settings.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+EMPLOYEES_ENABLED,Enables the People > Employees page.,PROJECT-MANAGEMENT-SERVICES,1
+employeeStatusModuleEnabled,"If this property is set true, it starts using configuration under employeeStatusList.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+employeeTagHeaders,Headers for employee tag.,WIS-SEAT-BOOKING,1
+ENABLE_AUTO_MEETING_ROOM_SYNC,Automatically runs meeting room sync when enabled.,MEETING ROOMS,1
+ENABLE_CHECKIN_NOTIFICATION,Master switch to enable check-in notifications.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+ENABLE_HELP_SECTION,Enables the Help section in the sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+ENABLE_HIERARCHY_PAGE,Enables the People > Hierarchy page in the sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+ENABLE_MEETING_CATERING,"Catering workflow - Enables catering functionality in meeting rooms, to see the Catering Request option in room booking form.",MEETING ROOMS,1
+ENABLE_MIS,Enables the switch to ETS option in the sidenav for a specific role.,PROJECT-MANAGEMENT-SERVICES,1
+ENABLE_TAG_MANAGEMENT,Activates self-service Tag Management module on sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+ENABLE_WIS,Enables the WorkInSync button in the Transport Dashboard.,PROJECT-MANAGEMENT-SERVICES,1
+ENABLE_WITH_PRINCIPAL_NAME,Uses email prefix as visitor name when name is unavailable.,MEETING ROOMS,1
+enableAutoAbsentNotification,Sends notification when a booking results in no-show.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableBookingCancellationReasonsFor,Requires cancellation reason for specified booking types.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableBookingEmail,Enables booking details email notification.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableBookingsOnHolidays,Allows employees to book desks on dates designated as official company holidays.,Booking Rule Engine,1
+enableCalendarInvite,Creates calendar event in host email upon invite creation.,Visitor Management Service,1
+enableCarbonFootprintTrackingInParking,Tracks and displays carbon footprint for employee commutes.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableCheckInReminderEmailForRoom,Enables check-in reminder emails for meeting rooms.,MEETING ROOMS,1
+enableCheckInReminderNotificationForRoom,Sends app notification reminder for meeting room check-in.,MEETING ROOMS,1
+enableColorInParkingVehicleCreation,Adds vehicle color input field in parking vehicle creation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enabledBuidForVisitorConfigs,Enables visitor notification page.,Visitor Management Service,1
+enabledCheckInEmailBodyParam,Defines enabled parameters in check-in email body.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enabledCheckInEmailBodyParamNames,Defines parameter names in check-in email body.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableDelegationForAdmins,Allows admins to manage delegation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableDynamicFields,Enables configurable dynamic fields per BU.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableEmployeePreferences,Enables employee preference settings on web.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableEmployeeRFIDColumn,Enables RFID number field and prevents duplicates.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableFloorPlanAccessibility,Enables accessibility features for visually impaired users.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableGeofenceCheckFor,Enables GPS/geofence validation for specified workflows.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableGeofenceCheckForCheckin,"[EMP_EXP_INTERNAL_CONFIGURATION] This controls check-in from defined geo fence limit from office.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Enforces check-in validation within defined geofence limits.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+enableGridFloorPlan,Enables grid-based parking floor plan.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableJoinAllWaitlist,Allows joining waitlists across all parking levels.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableMealBookingNudge,(Official Tooltip) To enable meal nudge flow for meal booking.,Booking Rule Engine,1
+enableMealCartView,Activates meal cart and payment flow when enabled with showMealPaymentCTA.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableMealImageIn,To show meal image in meal item,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+EnableMRMailCancel,Sends mail over email when meeting room cancellation is triggered via kiosk to the organiser.,MEETING ROOMS,1
+EnableMROTPCancel,Controls OTP verification over email when meeting room cancellation is triggered via kiosk to the organiser.,MEETING ROOMS,1
+enableMultiAllocation,Controls desk multi-allocation functionality and displays the Multi-allocated Desk legend entry on floor plans when value includes 'DESK',EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableNewAdminDashboard,Enables Admin Dashboard 2.0.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableNewAllocationFlow,Enables new allocation flow required for time-based allocation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+EnableNewEmailTemplate,Enables new email template format.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableOTPValidationSelfCheckinList,Enables OTP validation in kiosk self check-in flow.,Visitor Management Service,1
+enableParkingCheckOutWithOfficeCheckOut,Controls whether parking checkout is automatically performed along with office checkout.,GUARD-APP,1
+enablePerpetualDigipassForAllUsers,Allows DigiPass generation without office booking.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enablePrintBadgeForInviteFlow,Enables badge printing for visitors via Invite flow.,Visitor Management Service,1
+enableProjectCodeFor,Enables Project Code field for specified booking types.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableProjectColor,Enables enhanced seat and team color legends on floor plan.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableQRBasedRemoteSignin,Enables QR-based remote sign-in.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableQrCodeForSeatManagement,Enables QR based validation for check in.,GUARD-APP,1
+enableQrCodeForSeatSanitize,Enables or disables QR code scanning for seat sanitization.,GUARD-APP,1
+enableSafeReachForBookingTypes,Defines booking types eligible for Safe Reach.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableSafeReachWisList,Defines environments where Safe Reach is enabled.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableTimeBasedDeskAllocation,Enables time-based desk allocation and disables List View.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableTimezoneWithOfficeName,"[EMP_EXP_INTERNAL_CONFIGURATION] This property controls whether the office name is displayed along with its timezone.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Displays timezone with office name.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+enableTransportBookingBulkUpload,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableVisitorManagementOnApp,Enables visitor management in app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enableVisitorParking,Enables parking for visitors (currently not in use).,Visitor Management Service,1
+enableWaitlistBooking,Enables waitlist functionality in parking bookings.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+endHour,"This configuration defines the end time of the bookable time in the meeting room timeline - room level configuration. Integer value, 0-24.",MEETING ROOMS,1
+enforceReAuthentication,Enables enforcement of re-authentication.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+enforceReAuthenticationDurationInMinutes,Defines re-authentication validity duration in minutes.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+entryTimeInLimit,Defines buffer time for entry in the 2-step check-in/checkout process.,Visitor Management Service,1
+entryType,(Inferred) Defines the default physical entry categorization code logged during a guard scan.,GUARD-APP,1
+env,Defines the environment to which the site is mapped.,GUARD-APP,1
+expiredRequestNotificationEnabled,Controls whether notifications are sent when booking approval requests expire.,WIS-SEAT-BOOKING,1
+expiryCutOffInMinutes,"[Booking Rule Engine] Automatically cancels a booking and frees the desk if the user hasn't checked in within X minutes of their start time.
+
+[WIS-SEAT-BOOKING] Controls when a pending seat booking request should be treated as expired.",Booking Rule Engine; WIS-SEAT-BOOKING,2
+expiryNotificationCutOffInMinutes,Defines how many minutes before a booking approval request expires. Used in conjunction with expiryCutOffInMinutes for approval-flow reminders.,WIS-SEAT-BOOKING,1
+extCheckinToBookingBuffer,Buffer time allowed between an external check-in (like badging at the turnstile) and the system confirming the desk booking.,Booking Rule Engine,1
+externalEmployeeList,Stores external stakeholder email and name details.,Visitor Management Service,1
+externalStaffUi,Defines External Staff UI URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+fabDisplayNames,Defines FAB display names.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+featureBookingBuids,(Inferred) Defines specific Business Unit IDs (BUIDs) where Guard App feature booking is active.,GUARD-APP,1
+featurePhoneEnabled,(Inferred) Controls the enablement of phone/dialer features within the Guard App interface.,GUARD-APP,1
+FILE_BASED_UPLOAD,Enables Desk bulk upload option in Seat Management.,PROJECT-MANAGEMENT-SERVICES,1
+filterNoAvailableSeatInFloor,Filters floors without available seats.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+FLOOR_VIEW,Controls the group type configuration for hierarchy setup on the floor plan.,GUARD-APP,1
+floorKioskConfigs,Defines Floor Kiosk configurations in Settings.,Visitor Management Service,1
+floorManagement,Defines Floor Management URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+floorPlan,Defines primary Floor Plan URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+floorPlanUI,Defines Floor Plan UI URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+FORECAST_ENABLED,Enables the Desk Forecasting feature.,PROJECT-MANAGEMENT-SERVICES,1
+forecastingColumns,"[WIS-SEAT-BOOKING] Defines the column mapping and labels used in forecasting reports.
+
+[GUARD-APP] Defines the set of data columns displayed in forecasting reports.",WIS-SEAT-BOOKING; GUARD-APP,2
+forecastingEfficiancy,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+forms_configurations,Controls belongings configuration for VMS self check-in flow.,Visitor Management Service,1
+formsMetaDataForHost,Controls host-side custom fields in invited flow.,Visitor Management Service,1
+formsMetaDataForHostPWC,Handles host-side custom fields and belongings in invited flow (PWC).,Visitor Management Service,1
+formsMetaDataForVisitor,Controls visitor-side custom fields in invited flow.,Visitor Management Service,1
+formsMetaDataForVisitorPWC,Handles visitor-side custom fields and belongings in invited flow (PWC).,Visitor Management Service,1
+formsMetaDataForWalkIn,Handles custom fields and belongings for Walk-in flow.,Visitor Management Service,1
+FRONT_DESK,Enables Visitor Management for Front Desk.,PROJECT-MANAGEMENT-SERVICES,1
+front_desk_configurations,Defines core functionalities visible on Front Desk.,Visitor Management Service,1
+gender,Controls whether the Gender field is shown or hidden during employee profile validation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+generateGatepassDelayCutOff,Defines minutes after booking start when DigiPass generation is allowed.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+GLOBAL ADMIN,Configures Global Admin role access.,PROJECT-MANAGEMENT-SERVICES,1
+groupTypes,Defines the group types used for hierarchy setup.,GUARD-APP,1
+guardAppCutOffTime,Defines the cutoff time for guard application actions such as entry validation.,GUARD-APP,1
+GUEST_BULK_UPLOAD,Enables bulk upload option for visitors.,Visitor Management Service,1
+hideBookingTimeMealOnly,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+HideCancelButton,Controls visibility of the Cancel button on the Meeting Room Kiosk at room level.,MEETING ROOMS,1
+HideCheckInButton,Controls visibility of the check-in button on the Meeting Rooms Kiosk screen.,MEETING ROOMS,1
+HideEndButton,Controls visibility of the End Now button on the Meeting Rooms Kiosk screen.,MEETING ROOMS,1
+HideExtendButton,Controls visibility of the Extend on the Meeting Rooms Kiosk screen.,MEETING ROOMS,1
+HideMeetingTitle,Controls visibility of the meeting title.,MEETING ROOMS,1
+HideOrganizerName,Controls visibility of the organizer name on the Meeting Rooms Kiosk screen.,MEETING ROOMS,1
+HideStartMeetingButton,Controls visibility of the Start Meeting button on the Meeting Room Kiosk.,MEETING ROOMS,1
+hierarchy,Defines organizational hierarchy levels.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+homeGeocode,Controls whether the Home Geocode field is shown or hidden during employee profile validation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+hostNotifications,Controls host notifications (backend property).,Visitor Management Service,1
+HR MANAGER,Configures HR Manager role access.,PROJECT-MANAGEMENT-SERVICES,1
+hr_manager,Configures HR Manager role access.,PROJECT-MANAGEMENT-SERVICES,1
+iadeaLightsBrightness,This property controls colour and brightness of led lights of IADEA Device for Meeting Rooms Kiosk.,MEETING ROOMS,1
+identification,Allows enablement of identification on front desk.,Visitor Management Service,1
+igonreErrorOfArrogyaSetu,Ignores Aarogya Setu app status check errors.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+includeChildHierarchy,Controls inclusion of child hierarchy levels.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+INDEMNIFICATION_REASONS,Defines available indemnification reasons.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+industryStandard,Controls industry standard values on Admin Dashboard metric cards.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+INVITE_VISITOR,Enables the Visitor Management > Invite Visitor page in the sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+INVITE_VISITOR_FROM_ROOMS,Enabled the Meeting and Visitor booking workflow from meeting booking from on web and mobile.,MEETING ROOMS,1
+INVITE_VISITOR_ROOMS,Enables Invite Visitor tab within the Meeting Rooms Outlook Add-in.,MEETING ROOMS,1
+inviteFormDefaultOfficeSelection,Defines default office selection in Invite Visitor form.,Visitor Management Service,1
+is2StepCheckInEnabled,Enables 2-step check-in and check-out process.,Visitor Management Service,1
+IS_RICHEMONT,Enables Richemont-specific workflow configurations.,MEETING ROOMS,1
+IS_WIS_CALENDAR,Indicates whether the BUID has Native Meeting Room setup enabled.,MEETING ROOMS,1
+isAmenitiesFilter,Enables amenities filter in desk booking.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isAppFeedbackEnabled,Enables app feedback feature.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isAutoAbsentEnabled,Enables auto-absent feature and automatic seat release if check-in does not occur within cutoff.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isAutoEntryAllowed,Automatically switches to the next DigiPass scan mode after the first scan is completed.,GUARD-APP,1
+isAutoProvision,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isBlSubblBuid,Enables N-level hierarchy/Business Line feature for BU.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isBookingForNonRegisteredEmpBySpocConfigEnabled,Controls whether a SPOC is allowed to create bookings for non-registered employees via SPOC flows (Work Planner / Booking for Someone Else flow).,PROJECT-MANAGEMENT-SERVICES,1
+isBuNudgeNotifEnabled,Enables weekly nudge notifications for users without bookings.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isCalendarInviteEnabled,"[Booking Rule Engine] Triggers an automated calendar invite (.ics) to the user's email upon booking a seat.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Enables calendar invite option.",Booking Rule Engine; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+isCheckinNotificationEnabled,Enables notification after successful check-in.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isCheckInReminderOnMsTeamEnabled,true,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isCoreBuid,"Tells the Guard service which BUID is the ""primary"" (default) site for that Guard configuration block.",GUARD-APP,1
+isDelegationEnabled,Master switch enabling Delegation feature.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isDynamicFieldsMandatory,"[EMP_EXP_INTERNAL_CONFIGURATION] To make dynamic field mandatory.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Makes dynamic fields mandatory.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+isEditEndTimeOnFrontDeskEnabled,Enables editing of invite end time on Front Desk.,Visitor Management Service,1
+isEmployeeFlowEnabled,Enables employee check-in flow on kiosk.,Visitor Management Service,1
+isGDPRCookiePolicyEnabled,Displays GDPR compliance pop-up in mobile app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+IsGuestWifiEnabled,Enables or disables Guest Wi-Fi.,Visitor Management Service,1
+isMasterNudgeNotifEnabled,Controls master nudge notifications.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isMultipleScan,Controls whether a QR code can be scanned multiple times for the same context.,GUARD-APP,1
+isPhoneValidationOptional,Controls whether phone number is optional or mandatory during employee registration.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isReportingAndAnalyticEnable,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isSeatBookingAssignment,Controls seat assignment feature.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isSendEmailOnHighTemperature,Sends email notifications to configured stakeholders when an employee's temperature meets or exceeds the maximum threshold during guard app check-in.,GUARD-APP,1
+isShuttleRequired,Replaces cab labels and icons with shuttle terminology across modules.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+isSummedFloorCapacity,"When enabled, the system calculates total seat capacity by summing floor capacities; when disabled, seat capacity can be manually defined.",GUARD-APP,1
+isTemperatureScanEnabled,Enables the temperature scan feature.,GUARD-APP,1
+isTemporaryCheckoutEnabled,Enables temporary checkout option on Front Desk.,Visitor Management Service,1
+isVisitorCheckinMsTeamsNotificationEnabled,Enables visitor check-in notifications via email and MS Teams.,Visitor Management Service,1
+isVisitorCheckoutMsTeamsNotificationEnabled,Controls visitor check-out notifications on MS Teams.,Visitor Management Service,1
+isZedaReleaseNoteEnabled,Displays Zeda widget showcasing new features and feedback.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+jobTitleWiseCalenderInDays,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+KIOSK_IMAGE_FOR_OFFICE,Controls whether a kiosk image is applied at the office level (instead of per-room / per-kiosk only).,MEETING ROOMS,1
+kioskDefaultImage,Defines the default image displayed on kiosks across the BUID.,MEETING ROOMS,1
+kioskInviteOptions,Controls QR-based check-in and check-out options on kiosk.,Visitor Management Service,1
+landingPlanHeaders,Headers for landing plan.,WIS-SEAT-BOOKING,1
+landmark,Controls visibility of Landmark field during registration.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+lastSwipeAsCheckoutTimeForBUID,Uses the last swipe checkout time as final checkout instead of auto-checkout for access card integration clients.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+listOfEligibleBuidsForAutoClockout,Defines BUs eligible for auto clock-out.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+listOfEligibleBuidsForBusNotification,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+listOfIpsWithRange,Defines whitelisted IP addresses or IP ranges for office check-in restrictions.,GUARD-APP,1
+LOAD_COMMON_PROFILE_PAGE,Enables the default WIS profile page.,PROJECT-MANAGEMENT-SERVICES,1
+LOGOUT_CANCELLED_HEADER,The subject line/header for the automatic logout cancellation notification.,EMAIL_EMPLOYEE_EXPERIENCE,1
+LOGOUT_CANCELLED_MESSAGE,The body text for the automatic logout cancellation push notification.,EMAIL_EMPLOYEE_EXPERIENCE,1
+LOGOUT_SCHEDULE_CANCELLATION,Defines the email template notifying an employee that their Evening (Logout) cab was auto-canceled because they didn't show up for their Morning (Login) cab.,EMAIL_EMPLOYEE_EXPERIENCE,1
+madatoryFieldforScheduling,"(Inferred) Defines the list of mandatory fields (e.g., ADDRESS, GENDER, OFFICE, MOBILE) required when an employee is scheduling a trip/booking.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+mandateAcceptNda,NDA mandatory?,Visitor Management Service,1
+mapSchedulesToBooking,Automatically maps schedules to matching bookings.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+MASS_MAIL_SENDER_LIST,"Defines the default ""From"" email address (e.g., transport@moveinsync.com) used when broadcasting mass communications.",EMAIL_EMPLOYEE_EXPERIENCE,1
+maxDurationInMinutes,Defines maximum duration for meeting room bookings.,MEETING ROOMS,1
+maximumCharacterLimit,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+maxShiftDuration,"The maximum duration of a single booking (e.g., 1440 minutes = 24 hours).",Booking Rule Engine,1
+maxTemperatureAllowed,Defines the maximum temperature threshold allowed for entry validation.,GUARD-APP,1
+maxTripLevelNonComplianceEventsAllowed,maxTripLevelNonComplianceEventsAllowed,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+mealCutoffInMinutes,Defines meal booking cutoff calculated from 00:00 of booked date.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+mealFeedbackEnabled,Enables meal feedback feature and reporting.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+mealMailList,Defines email recipients for catering-related communications.,MEETING ROOMS,1
+mealPlanningEnabled,Enables meal booking via Work Planner.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+mealPlanningMandatory,Makes meal selection mandatory in office booking form.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+medicalEmergencyRequest,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+MEETING_EMAIL_OTP_TO_AUTHENTICATE,Controls the OTP notifcation send via email to verify end or cancellation of meeting bookings via meeting room kiosk.,MEETING ROOMS,1
+MEETING_END_NOTIFICATION,Controls the notification sent when the meeting has ended via meeting room kiosk.,MEETING ROOMS,1
+MEETING_ROOM_ENABLED,Enables the Meeting Room option under Team Manager Dashboard.,PROJECT-MANAGEMENT-SERVICES,1
+MEETING_ROOM_RELEASE_IF_NO_CHECKIN,Releases room if check-in does not occur within configured minutes.,MEETING ROOMS,1
+MEETING_ROOM_SYNC_JOB_EMAIL_LIST,Defines email recipients for meeting room sync job notifications.,MEETING ROOMS,1
+MEETING_START_NOTIFICATION,Controls the notification sent when the meeting has started via meeting room kiosk.,MEETING ROOMS,1
+Meeting_Title_Catering_Order,Controls display of meeting title in the Catering Dashboard detailed view.,MEETING ROOMS,1
+meetingDetailsForDateUrl,Defines Meeting Details by date URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+meetingOptionWebViewUrl,Defines Meeting Room web view URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+meetingRoomCheckInCutOff,Defines the cutoff for the visiblity of the checkin button on the meeting rooms web and mobile view.,MEETING ROOMS,1
+meetingRoomCost,Controls display of meeting room cost in the UI for web and mobile view.,MEETING ROOMS,1
+meetingRoomKioskUrl,Defines Meeting Room Kiosk URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+meetingRoomsWidgetEnabled,This property controls whether the meeting rooms widget is displayed in the employee home page on web.,EMP_EXP_INTERNAL_CONFIGURATION,1
+meetingRoomUrl,Defines Meeting Room module URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+meetingStartTimeCuttoffInMinutes,Defines the cutoff for how much prior to that start time the booking can be created. Its a booking creation cutoff time. Value is in minutes.,MEETING ROOMS,1
+microBookingEnabled,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+minTemperatureAllowed,Defines the minimum temperature threshold allowed for entry validation.,GUARD-APP,1
+mobile,Controls whether the Mobile field is shown or hidden during employee profile validation,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+MOBILE_APP_BANNERS,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+mobileNumberLength,Defines required mobile number length.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+mobileSSOMandatory,Removes the 'Continue with OTP' option on the mobile SSO login screen.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+mobilityHealthStatus,Displays driver vaccination details on the Tracking page.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+MONTHLY_NO_SHOW_ACTION_EMAIL,Defines the penalty email template tied to exceeding the monthly No-Show limit.,EMAIL_EMPLOYEE_EXPERIENCE,1
+MONTHLY_NO_SHOW_WARNING_EMAIL,Defines the warning email template specifically tied to the monthly No-Show threshold (rather than a rolling date range).,EMAIL_EMPLOYEE_EXPERIENCE,1
+MSU,Configures MSU role access.,PROJECT-MANAGEMENT-SERVICES,1
+MULTI_DOMAIN,Controls multiple domains in a single BUID (for clients like MAF).,MEETING ROOMS,1
+MULTIPLE_BOOKINGS_ENABLED,Enables creation of multiple bookings from Work Planner.,PROJECT-MANAGEMENT-SERVICES,1
+multipleBookingsOnASeatInADayAllowed,"[Booking Rule Engine] Allows different employees to book the same physical seat at different times of the day (e.g., morning shift vs. evening shift).
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Allows multiple bookings on the same seat within a single day.",Booking Rule Engine; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+multipleScanErrorMessage,Defines error message for multiple scans.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+MY_BOOKINGS_ENABLED,Enables the My Bookings option under Team Manager Dashboard.,PROJECT-MANAGEMENT-SERVICES,1
+name,Controls whether the Name field is shown or hidden during employee profile validation,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+nativeRoomEmail,Displays room email ID input in new room workflow.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+ndaCheckbox,Controls NDA checkbox visibility.,Visitor Management Service,1
+ndaCheckboxContent,Defines content displayed below NDA checkbox.,Visitor Management Service,1
+ndaPagePosition,Position of NDA.,Visitor Management Service,1
+neighbourSeatsRadius,Defines the radius within which a seat cannot be booked.,GUARD-APP,1
+new_seat_booking_url,Defines the new Seat Booking URL.,PROJECT-MANAGEMENT-SERVICES,1
+nextDayLogoutEnabled,Allows users working overnight shifts to have their check-out time roll over into the next calendar day.,Booking Rule Engine,1
+NO_SHOW_ACTION_AT_MONTH_END_BANNER_MESSAGE,The warning banner displayed inside the employee app regarding impending month-end No-Show penalties.,EMAIL_EMPLOYEE_EXPERIENCE,1
+NO_SHOW_ACTION_EMAIL,Defines the email template notifying an employee that their future schedules have been deleted and/or scheduling rights revoked due to exceeding the No-Show limit.,EMAIL_EMPLOYEE_EXPERIENCE,1
+NO_SHOW_AUTO_APPROVAL_EMAIL,Defines the email template notifying an employee that their transport scheduling rights have been successfully restored.,EMAIL_EMPLOYEE_EXPERIENCE,1
+NO_SHOW_COUNT_BANNER_ENABLED,Controls no-show banner visibility.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+NO_SHOW_PERMISSION_ACTION_EMAIL,Defines the email template notifying an employee of the Approved/Rejected status of their No-Show enforcement appeal.,EMAIL_EMPLOYEE_EXPERIENCE,1
+NO_SHOW_POLICY_RE_INSTANTIATION_EMAIL,Defines the email template sent to a manager/admin requesting approval to restore an employee's transport rights after a suspension.,EMAIL_EMPLOYEE_EXPERIENCE,1
+NO_SHOW_WARNING_EMAIL,Defines the email template warning an employee that they are approaching the maximum allowed No-Shows before penalties apply.,EMAIL_EMPLOYEE_EXPERIENCE,1
+nodal,Controls whether the Nodal Point field is shown or hidden during employee profile validation,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+noOfDaysAllowedInPlanner,Defines allowed planning window.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+notesToAdmins,Enables optional notes to admins via email.,Visitor Management Service,1
+noteToFrontDesk,Enables optional notes to receptionist/security via email.,Visitor Management Service,1
+notificationConfigs,Defines notification page configuration values.,Visitor Management Service,1
+notificationMetaData,Defines metadata configuration for notification page.,Visitor Management Service,1
+numberOfAllowedTrips,Defines maximum trips per user.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+office,Controls whether the Office field is shown or hidden during employee profile validation,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+OFFICE ADMIN,Configures Office Admin role access.,PROJECT-MANAGEMENT-SERVICES,1
+office_name,"The office label used to scope rooms and MR configs to that office. If it doesn't match the server office name, rooms/configs for that office will show as expected.",MEETING ROOMS,1
+OFFICE_PREMISE_NAME,Defines the office mapping for meeting room via meeting room sync.,MEETING ROOMS,1
+OFFICE_SELECTION_ENABLED,Enables Office Selection under Team Manager Dashboard.,PROJECT-MANAGEMENT-SERVICES,1
+OFFICE_TO_HOME_DISTANCE_VALIDATION_FAILED_MESSAGE,Error message displayed when the actual driving route distance exceeds the company's allowed limit.,EMAIL_EMPLOYEE_EXPERIENCE,1
+officeCheckInMode,Configures office check-in mode for mobile.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+officeCheckInModeApp,Configures office check-in mode for mobile app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+officeCheckInModeWeb,Configures office check-in mode for web.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+officeCheckInReminderEmailEnabled,Controls office check-in reminder emails.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+old_seat_booking_url,Defines the old Seat Booking URL.,PROJECT-MANAGEMENT-SERVICES,1
+onBehalfBookingEmailToCreatorEnabled,Controls on-behalf booking email notification to creator.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+onlyParkingBookingEnabled,Displays only the Parking booking option on Employee Home and FAB for clients using MoveInSync exclusively for parking.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+organiserBookingEmailsMeetingRooms,Controls whether the organizer receives booking emails.,MEETING ROOMS,1
+OUTLOOK_WO_ADMIN_CONSENT,"This controls the ""room email id"" field in the room details section of Meeting Rooms Settings page. This is needed for an integrated setup.",MEETING ROOMS,1
+overStayAlertBuffer,Defines buffer time (in minutes) after end time to trigger overstay alerts.,Visitor Management Service,1
+overStayAlertMsTeamsTemplate,Defines MS Teams template for overstay alerts.,Visitor Management Service,1
+overStayAlertRecipients,Defines recipient list for overstay alerts.,Visitor Management Service,1
+overstayTriggerList,Defines channels (MS Teams/Email) for overstay alerts.,Visitor Management Service,1
+PARKING_ALLOCATION,Enables the Parking Allocation page in the sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+PARKING_TAGGING_ENABLED,Enables the Parking Tagging option.,PROJECT-MANAGEMENT-SERVICES,1
+parkingAllocationUrl,Defines Parking Allocation URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+parkingBookingMandatory,Makes parking booking mandatory for office booking.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+parkingEnabled,Enables parking option in the booking form.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+parkingEndCutOffInMinute,Defines minutes after booking start when parking QR can be generated.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+parkingExpiry,Defines expiry time of generated parking QR.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+parkingMailNotificationMinutes,Defines parking email trigger minutes.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+parkingReminderEmailEnabled,"[EMP_EXP_INTERNAL_CONFIGURATION] This property controls whether parking reminder emails are enabled.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Controls parking reminder emails.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+parkingScheduleCutoff,Defines advance booking window for parking.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+parkingStartCutOffInMinute,Defines minutes before booking start when parking QR can be generated.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+parkingTagHeaders,Headers for parking tag.,WIS-SEAT-BOOKING,1
+pendingRequestsNotificationEnabled,"[WIS-SEAT-BOOKING] Controls whether notifications are sent for pending booking approval requests.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Controls pending request notifications.",WIS-SEAT-BOOKING; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+pmsEnabled,Controls whether the Property Management System (PMS) integration is enabled.,GUARD-APP,1
+PRE_TRIP_CANCELLATION_NOTIFICATION_MINUTES_BEFORE_LOGIN_CANCELLATION_CUTOFF,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+PRE_TRIP_CANCELLATION_NOTIFICATION_MINUTES_BEFORE_LOGOUT_CANCELLATION_CUTOFF,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+preferencesFloorPlanUrl,Defines Preferences floor plan URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+preFillVisitorPhotoForExistingVisitor,Allows pre-filling of visitor photo for existing visitors.,Visitor Management Service,1
+PREMISES_ENABLED,Enables the Premises page in the sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+premiseUI,Defines Premises management UI URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+Print_Visitor_Badge,Enables Print Badge button on Front Desk dashboard.,Visitor Management Service,1
+profileFieldsMetaData,Handles profile fields configuration for invited flow.,Visitor Management Service,1
+profileRegistrationEmailSubject,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+projectCodeEnabledOnBooking,Controls Project Code field visibility.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+projectCodeEnabledOnBookingMandatory,Controls mandatory Project Code field.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+projectCodeMandatoryFor,Makes Project Code field mandatory for specified booking types.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+projectmgr,Configures Project Manager role access.,PROJECT-MANAGEMENT-SERVICES,1
+promotionBannerUrl,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+promotionDisplayText,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+qrImageClientLogoUrl,Controls the URL of the client logo displayed on generated QR codes.,GUARD-APP,1
+qrImagefooterUrl,Controls the URL of the footer image displayed on generated QR codes.,GUARD-APP,1
+qRScannerEndCutOffInMinute,"[Booking Rule Engine] How many minutes after a shift starts the QR code remains valid for check-in before the desk is forfeited.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Defines minutes after booking start when Scan QR becomes inactive.",Booking Rule Engine; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+qRScannerExpiry,Defines expiry time of QR scanner after booking start.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+qRScannerStartCutOffInMinute,"[Booking Rule Engine] How many minutes before a shift starts that an employee is allowed to scan the desk QR code to check in.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Defines minutes before booking start when Scan QR becomes active.",Booking Rule Engine; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+RADIAL_DISTANCE_VALIDATION_FAILED_MESSAGE,Error message displayed when an employee's address exceeds the maximum allowed straight-line (radial) distance from the office.,EMAIL_EMPLOYEE_EXPERIENCE,1
+radius,"(Inferred) Defines the default radial distance limit (e.g., in km) used for transport geofencing or hiring boundaries.",EMP_EXP_INTERNAL_CONFIGURATION,1
+reAuthenticationModeEmail,Defines email-based two-step authentication mode.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+reAuthenticationModePhone,Defines phone-based two-step authentication mode.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+receiverEmailId,List of email IDs to which notifications or communication should be sent from the Guard App.,GUARD-APP,1
+RECENT_ACTIVITY_ENABLED_FOR_ADMIN,Enables Recent Activity on the Admin Dashboard.,PROJECT-MANAGEMENT-SERVICES,1
+RECEPTIONIST,Configures Receptionist role access.,PROJECT-MANAGEMENT-SERVICES,1
+recurrenceBookingEnabled,Enables recurring booking feature.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+rejectBookingIfNoDesk,"Blocks a user from declaring ""Work From Office"" if the floor plan is at 100% capacity.",Booking Rule Engine,1
+rejectedRequestNotificationEnabled,Controls whether notifications are sent for rejected booking approval requests.,WIS-SEAT-BOOKING,1
+RELEASE_MEETING_ROOM,"Controls the auto-release logic for rooms, based on the other MR configs (especially MEETING_ROOM_RELEASE_IF_NO_CHECKIN).",MEETING ROOMS,1
+RELEASE_ROOM_CANCEL_MEETING,Controls whether releasing a room also cancels the meeting from users calendars.,MEETING ROOMS,1
+ReleaseRoom,Controls if release room functionality is enabled.,MEETING ROOMS,1
+releaseRoomEmailList,"Additional email recipients for release room notifications, other than organiser of the meeting which was released.",MEETING ROOMS,1
+remoteSignCutoffInMinute,"[EMP_EXP_INTERNAL_CONFIGURATION] Cut off for contactless sign-in for Bus solution.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Defines cutoff time for contactless bus solution sign-in.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+remoteSignInAllowed,Enables remote sign-in using Scan QR.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+remoteSignOutCutoffInMinute,Defines cutoff time for remote sign-out.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+reportingAndAnalyticUrl,Defines Reporting and Analytics dashboard URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+reportingService,Defines Reporting service URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+REPORTS_ENABLED,Enables the Reports section.,PROJECT-MANAGEMENT-SERVICES,1
+RESTRICTED_AREA_VALIDATION_FAILED_MESSAGE,"Error message displayed when an employee tries to book a cab to/from a blacklisted zone (e.g., forests, water bodies, unsafe areas).",EMAIL_EMPLOYEE_EXPERIENCE,1
+restrictMealScanToOne,Restricts meal QR scanning to once per meal window.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+restrictMultipleVisitorBookingCheckIn,Restricts multiple visitor booking check-ins.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+rommEnabled,Controls the enablement of the room for booking.,MEETING ROOMS,1
+Room_As_Organizer,Controls the enablement of the room as organiser workflow for the meeting room kiosk.,MEETING ROOMS,1
+room_cancel_cutoff,Defines cancellation cut-off time in minutes for meeting room bookings.,MEETING ROOMS,1
+Room_Kiosk_With_Cisco,Meeting Rooms Kiosk workflow - Enables Cisco-related fields in the Meeting Rooms settings page under the Kiosk column.,MEETING ROOMS,1
+room_name,Mapping of meeting room name via outlook sync.,MEETING ROOMS,1
+Room_Special_Request_Enable,Controls visibility of the Meeting Request section in the meeting booking form - on web view.,MEETING ROOMS,1
+ROOM_TAGGING_ENABLED,Enables the Room Tagging option on the Bulk Operations page.,PROJECT-MANAGEMENT-SERVICES,1
+roomAllocationEnabled,Enables automatic room allocation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+RoomBookingEmailEnabled,Controls the emails sent to additional recipients.,MEETING ROOMS,1
+roomBookingsEmailList,Defines additional recipients for meeting room booking emails.,MEETING ROOMS,1
+roomTagHeaders,Headers for room tag.,WIS-SEAT-BOOKING,1
+SAFE_REACH_ENABLED,Enables the Safe Reach dashboard in the WIS sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+SafeReachInputFields,Defines customizable fields in Safe Reach form.,Visitor Management Service,1
+SafeReachVmsTimeInMin,Defines Safe Reach trigger time in minutes.,Visitor Management Service,1
+SANITISATION_STATUS_ENABLED,Enables sidenav section of seat sanitization status (covid feature).,PROJECT-MANAGEMENT-SERVICES,1
+sanitisationFloorPlanUrl,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+scanInterval,Defines the minimum time interval required between consecutive scans.,GUARD-APP,1
+SCHEDULE_REMINDER_NOTIFICATION_BODY,The body text for the commute schedule reminder notification.,EMAIL_EMPLOYEE_EXPERIENCE,1
+SCHEDULE_REMINDER_NOTIFICATION_SUBJECT,The subject line reminding an employee to create their commute schedule before the cutoff time.,EMAIL_EMPLOYEE_EXPERIENCE,1
+scheduled_reminder_notification_enabled_buids,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+scheduledTimeForVisitorGatePassEmailInMin,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+SEAT_AUTO_ALLOCATION,Enables Desk Auto Allocation.,PROJECT-MANAGEMENT-SERVICES,1
+SEAT_BELT_NON_COMPLIANCE_EMAIL_SUBJECT,The subject line for the automated safety alert regarding seatbelt violations.,EMAIL_EMPLOYEE_EXPERIENCE,1
+SEAT_BELT_NON_COMPLIANCE_EMAIL_TEMPLATE,Defines the warning email template sent to employees flagged by the vehicle's monitoring system for not wearing a seatbelt.,EMAIL_EMPLOYEE_EXPERIENCE,1
+SEAT_BELT_NON_COMPLIANCE_REPORT_EMAIL_ENABLED,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+SEAT_MANAGEMENT_ENABLED,Enables the Seat Bookings option under Team Manager Dashboard.,PROJECT-MANAGEMENT-SERVICES,1
+SEAT_UTILIZATION_ENABLED,Enables the Desk Utilization option in Seat Management.,PROJECT-MANAGEMENT-SERVICES,1
+seatAllocationAction,"Dictates what happens if a user doesn't check in (e.g., REMOVE_SEAT frees it up for someone else).",Booking Rule Engine,1
+seatBeltNonFunctioningIssues,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+seatBeltUndoTimeoutMinutes,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+seatBooking,Defines primary Seat Booking application URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+seatBookingEnabled,The master toggle for the entire Desk/Seat Booking module on the app and web.,Booking Rule Engine,1
+seatBookingUrl,"[WIS-SEAT-BOOKING] Defines the Seat Booking service URL.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Defines Seat Booking service URL.",WIS-SEAT-BOOKING; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+seatBookingV2,"[EMP_EXP_INTERNAL_CONFIGURATION] This property enables seat booking v2.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Enables Seat Booking version 2.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+seatingPlanHeaders,Headers for seating plan.,WIS-SEAT-BOOKING,1
+seatMandatory,"Forces a user to select a specific physical desk in order to complete a ""Work From Office"" request.",Booking Rule Engine,1
+seatMetricsTimes,Defines configured time intervals used for calculating seat utilization and booking metrics.,GUARD-APP,1
+seatSanitizationCheck,"[Booking Rule Engine] Blocks a recently used seat from being booked back-to-back until cleaning staff marks it as sanitized.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Controls seat sanitization validation before booking.",Booking Rule Engine; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+seatSanitizeCuttoffInMinute,Defines the seat sanitization cutoff time in minutes.,GUARD-APP,1
+seatScanEnable,Enables seat QR scanning on booking page.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+seatValidation,Requires a physical check-in mechanism to confirm the user actually arrived at their desk.,Booking Rule Engine,1
+securityGuard,Defines Security Guard service URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+selfCheckinSuccessMessage,Defines success message displayed after visitor self check-in.,Visitor Management Service,1
+SEND_INVITE_TO_ALL_EMPLOYEES,Controls recipients of native meeting room booking emails.,MEETING ROOMS,1
+sendEmailIneligibility,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+sendHostEmailsToDelegate,Sends all host-triggered emails to the delegate as well.,Visitor Management Service,1
+sendHostMsTeamsNotificationToDelegate,Controls whether MS Teams notifications are sent to delegate.,Visitor Management Service,1
+sendInviteEmail,"Defines default state of visitor, host, and creator email checkboxes.",Visitor Management Service,1
+sendRoomBookingEmailToAllParticipants,Controls whether booking emails are sent to all participants.,MEETING ROOMS,1
+SETTINGS_ENABLED,Enables the Settings option in the sidenav with Configurations and Roles & User Groups pages.,PROJECT-MANAGEMENT-SERVICES,1
+shareRideCallDriver,(Inferred) Enables the ability for employees in shared rides to call the driver directly from the app.,EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+Show_Room_If_Not_Eligible,Controls visibility of ineligible rooms.,MEETING ROOMS,1
+SHOW_UPCOMING_BOOKINGS_TIME,Meeting Rooms Kiosk - Defines how prior to the meeting start time the kiosk screen will turn yellow to let users checkin to their booking. Value set in minutes.,MEETING ROOMS,1
+showBookingFilter,Enables toggle to show/hide cancelled bookings.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showBookingHistory,Enables booking history on app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showBookingsOfSomeoneElseOnWeb,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showConfirmationForLogoutTracking,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showDefaultInviteTitle,Enables default invite title on Invite Visitor page.,Visitor Management Service,1
+showEmployeeSearchOnSeatBooking,Enables colleague search by name.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showFabQRScanner,Controls QR scanner visibility on FAB.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showLanguageOptionInHamburgerMenu,(Inferred) Displays a language selection toggle in the mobile app's hamburger/side menu.,EMP_EXP_INTERNAL_CONFIGURATION,1
+showMealCountOnBookingForm,Displays real-time meal availability count on booking form.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showMealPaymentCTA,Enables meal payment CTA integrated with payment gateways.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showMeetingRoomOnApp,Enables Meeting Room booking option on mobile app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showOfficeInfoOnBookingForm,Displays searchable office address list during booking.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showOrderOfChallengesAfterQRScan,Displays declaration after QR scan.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showOtherEmployeeDetailsOnSeat,Controls visibility of other employee booking details on seat view.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showOtpWithoutDigipassGeneration,Displays cab login/logout OTPs directly on the booking card.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showParking,Controls parking field visibility in Teams chatbot.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showQRScanner,Enables Scan QR option in the app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showQRScannerMeetingCheckIn,Enables QR-based meeting room check-in.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showRegistrationNumberInputFieldForParking,"[EMP_EXP_INTERNAL_CONFIGURATION] To enable field for entering registration number while selecting parking slots in booking form.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Displays vehicle registration number input field during parking booking.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+showSanitizationDetails,Displays sanitization details in the app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showSeatSearchOnAdminPages,Enables desk search on admin floor plan pages.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showSeatSearchOnSeatBooking,Enables desk search by desk number.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showSeparateDigipassFor,Controls resource-level DigiPass generation.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showSeparateDigipassForParking,Displays separate digipass for parking resources in the mobile app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showSignedinStateOnEmployeeFloorPlan,Displays signed-in desk state (green indicator) on Employee Floor Plan.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showTeamCalendarOption,Displays Team Calendar option in the app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showVaccinationOptionInSideMenu,Enables Vaccination status option in the app side menu.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showWisLogo,Toggles display of the MoveInSync logo on meeting room kiosk and calendar integration UIs.,MEETING ROOMS,1
+showWomenSafetyInSideMenu,Displays Women Safety Handbook in mobile side menu.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+showWorkinsyncLogoOnSideNav,Controls WorkInSync logo visibility on sidenav.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+shuttleBookingConfirmationNotificationEnabled,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+shuttleSigninRemainderBufferMins,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+shuttleSigninRemainderNotificationEnabled,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+singleShiftOperations,"[EMP_EXP_INTERNAL_CONFIGURATION] To remove shift selection option on booking form; it will set the booking time from 00:00 to 23:59. When enabled, hides time components in Team Calendar and Preferences to avoid confusion in single-shift environments.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Hides time components in Team Calendar and Preferences for single-shift environments.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+siteadmin,Configures Site Admin role access.,PROJECT-MANAGEMENT-SERVICES,1
+smsTrackingEnabled,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+smsTriggerTime,Defines the configured time at which SMS notifications are triggered.,GUARD-APP,1
+SPECIAL_SCHEDULE_MESSAGE_TEMPLATE,"The default body text for ""On-demand"" cab booking notifications.",EMAIL_EMPLOYEE_EXPERIENCE,1
+SPECIAL_SCHEDULE_TITLE_TEMPLATE,"The default header for ad-hoc or ""On-demand"" cab booking notifications.",EMAIL_EMPLOYEE_EXPERIENCE,1
+ssoExpiryEmailBodyTemplate,Defines the email template warning IT admins of an impending SSO certificate expiration (prevents login outages).,EMAIL_EMPLOYEE_EXPERIENCE,1
+ssoExpiryEmailHeaderTemplate,Subject line for the initial warning email that the site's SSO (Single Sign-On) metadata file is expiring soon.,EMAIL_EMPLOYEE_EXPERIENCE,1
+ssoExpiryFollowUpEmailBodyTemplate,Defines the follow-up email template for SSO expiration.,EMAIL_EMPLOYEE_EXPERIENCE,1
+ssoExpiryFollowUpEmailHeaderTemplate,Subject line for the urgent follow-up warning regarding SSO expiration.,EMAIL_EMPLOYEE_EXPERIENCE,1
+ssoExpiryInternalEmailRecipients,(Inferred) Defines the internal MoveInSync/DevOps email list that receives alerts when a client's SSO certificate is about to expire.,EMP_EXP_INTERNAL_CONFIGURATION,1
+ssoMandatory,Removes OTP login option and enforces SSO-only login on mobile.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+stopNoShowEmailForShuttle,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+SUPPORT USER EDIT,Configures Support-SSO (mistm) role access.,PROJECT-MANAGEMENT-SERVICES,1
+SUPPORT USER VIEW,Configures Support-SSO (mistm) role access.,PROJECT-MANAGEMENT-SERVICES,1
+SyncMeetingRooms,Enables the Sync Rooms button for integrated setups in the Meeting Room Settings page.,MEETING ROOMS,1
+tagsEnabled,"[Booking Rule Engine] Controls which global attendance tags (e.g., WFO, WFH) are active and selectable by users.
+
+[WIS-SEAT-BOOKING] Defines the list of enabled booking tags (e.g. WFO, WFH).
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Defines enabled booking tags.",Booking Rule Engine; WIS-SEAT-BOOKING; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,3
+TEAM MANAGER,Configures Team Manager role access.,PROJECT-MANAGEMENT-SERVICES,1
+team_manager,Configures Team Manager role access.,PROJECT-MANAGEMENT-SERVICES,1
+teamCalendarEnabled,Enables Team Calendar feature.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+teamManager,Defines Team Manager service URL.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+tempEntryTimeLimit,Defines buffer time for entry after temporary checkout in the 2-step check-in/checkout process.,Visitor Management Service,1
+TestPropertySeatBooking,Defines whether the PMS is working on the wisseatbooking service.,WIS-SEAT-BOOKING,1
+TIME_FORMAT,Defines time format for UI.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+TIME_FORMAT_SERVICES,Defines time format for backend services.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+timezone,Defines the timezone of that office.,MEETING ROOMS,1
+trackAnyShuttleEnabled,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+transferBookingEnabled,Adds a 'Transfer Booking Details' column in seat and meeting room reports.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+transferBookingTypes,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+transport-dashboard,Defines the landing dashboard page used for transport operations (legacy or modern) for a given site/BUID.,PROJECT-MANAGEMENT-SERVICES,1
+TRANSPORT_BOUNDARY_VALIDATION_FAILED_MESSAGE,Error message displayed when an employee tries to set a home address outside the company's approved transport geofence.,EMAIL_EMPLOYEE_EXPERIENCE,1
+transportFieldsMandatory,Controls whether transport fields are mandatory.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+tripRatingMandatoryThreshold,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+UPCOMING_VISITOR,Enables Visitor Management.,PROJECT-MANAGEMENT-SERVICES,1
+upcomingMeetingsEmployeeHome,Controls display of upcoming meetings on Employee Home.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+VACCINATION_STATUS,Enables the Vaccination page in the sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+vaccinationBookingEnabled,Enables vaccination slot booking feature in the app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+vaccinationBookingUrl,URL for the vaccination booking feature in the app.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+vaccinationMaxApprovalDays,Defines maximum days allowed for vaccination request approval.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+VAX_STATUS_CHECK_SEEK_RTPCR_EMP,Allows or restricts RTPCR upload for non-fully vaccinated employees.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+vaxEmailEnabled,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+vehicleCreationDuringParkingEnabled,Controls vehicle creation during parking booking.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+vehicleCreationDuringParkingFor,Controls vehicle creation by type (CAR,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+vehicleFuelTypes,,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+visitDurationHours,Defines dropdown options for visit duration.,Visitor Management Service,1
+Visitor_Document_Storage,Enables visitor document storage configuration.,Visitor Management Service,1
+Visitor_Document_Storage_Document_Type,Defines document types applicable for visitor data storage.,Visitor Management Service,1
+Visitor_Document_Storage_Duration,Defines retention period (in days) for visitor data storage.,Visitor Management Service,1
+VISITOR_PROFILE_ID,Controls whether visitor identity proof upload is required.,Visitor Management Service,1
+Visitor_Profile_ID_Document_Upload_Field_Inputs,Defines allowed document types for visitor upload.,Visitor Management Service,1
+visitor_wifi_name,Stores client Wi-Fi name.,Visitor Management Service,1
+visitorApprovalMsTeamsNotification,Controls visitor approval notification on MS Teams.,Visitor Management Service,1
+visitorBulkUploadData,Defines headers and data rules for visitor bulk upload; must comply with profileFieldsMetaData.,Visitor Management Service,1
+visitorBulkUploadFields,Defines headers and default values for visitor bulk upload.,Visitor Management Service,1
+visitorCheckinMsTeamsTemplate,Defines visitor check-in email template.,Visitor Management Service,1
+visitorCheckoutMsTeamsTemplate,Defines MS Teams template for visitor check-out notification.,Visitor Management Service,1
+visitorFormsMetaDataPWC,Handles profile and custom fields in VMS self check-in flow (PWC).,Visitor Management Service,1
+visitorKioskConfigs,Handles UI formatting for VMS self check-in flow.,Visitor Management Service,1
+visitorProfileFields,Controls visitor profile fields for Walk-in flow.,Visitor Management Service,1
+visitorProfilePhotoUpload,Controls whether profile photo is mandatory in invited flow.,Visitor Management Service,1
+visitorWidgetEnabled,"[Visitor Management Service] Controls visibility of VMS widget on Employee Home.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Displays visitor management widget on Employee Home.",Visitor Management Service; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+vmsInviteTrigger,Triggers visitor invite based on configured list.,Visitor Management Service,1
+vmsQrCodeTrigger,Controls sending DigiPass and checkout QR via SMS or email.,Visitor Management Service,1
+waitListBookingBufferTimeInMin,Defines buffer time in minutes for waitlist bookings.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+weekdays,Defines the set of days considered working days for that office's rooms.,MEETING ROOMS,1
+welcomeEmailEnabled,Controls sending of welcome emails.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+wfhBookingAllowed,"[Booking Rule Engine] Master switch to enable ""Work From Home"" logging and requests.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Controls WFH booking visibility in WorkInSync Teams chatbot.",Booking Rule Engine; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+wfhClockinCutOffInMinute,"[EMP_EXP_INTERNAL_CONFIGURATION] This property controls the cutoff time in minutes for allowing WFH clock-in.
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Defines cutoff time for WFH clock-in.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+wfhDisabled,Controls whether WFH booking is enabled or disabled.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+wfhMonthlyLimit,Defines the maximum number of Work From Home bookings allowed per month.,WIS-SEAT-BOOKING,1
+wfhMonthlyLimit / wfhWeeklyLimit,Caps the maximum number of WFH days an employee is allowed to request per week or month.,Booking Rule Engine,1
+wfhReasonList,Work From Home/Remote booking reasons.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+wfhType,"[EMP_EXP_INTERNAL_CONFIGURATION] This property controls the default type of Work From Home booking (e.g., PLANNED).
+
+[EMPLOYEE-EXPERIENCE-COMMON-CONFIG] Controls default Work From Home booking type.",EMP_EXP_INTERNAL_CONFIGURATION; EMPLOYEE-EXPERIENCE-COMMON-CONFIG,2
+wfhWeeklyLimit,Defines the maximum number of Work From Home bookings allowed per week.,WIS-SEAT-BOOKING,1
+wfoMonthlyLimit,Defines the maximum number of Work From Office bookings allowed per month.,WIS-SEAT-BOOKING,1
+wfoReasonList,"Populates the dropdown options users see when asked ""Why are you coming to the office?"" (e.g., Meeting, Demo, Support).",Booking Rule Engine,1
+wfoWeeklyLimit,Defines the maximum number of Work From Office bookings allowed per week.,WIS-SEAT-BOOKING,1
+womenSafetyDocUrl,Controls URL of Women Safety Handbook document.,EMPLOYEE-EXPERIENCE-COMMON-CONFIG,1
+WORK_PLANNER_ENABLED,Enables the Work Planner option in the sidenav.,PROJECT-MANAGEMENT-SERVICES,1
+Workspace Manager,Configures Workspace Manager role access.,PROJECT-MANAGEMENT-SERVICES,1
+WORKSPACE_MANAGER,Configures Workspace Manager role access.,PROJECT-MANAGEMENT-SERVICES,1

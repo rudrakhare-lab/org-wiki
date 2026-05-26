@@ -1,0 +1,34 @@
+Service: WIS-SEAT-BOOKING,
+Total properties: 30,
+,
+Property Name,Description
+dynamicData / DynamicData,"Defines configurable dynamic fields displayed in the booking form (e.g., Waiter needed, Reimbursement, Allergies, Commute method)."
+employeeTagHeaders,Headers for employee tag.
+roomTagHeaders,Headers for room tag.
+seatingPlanHeaders,Headers for seating plan.
+deskTagHeaders,Headers for desk tag.
+parkingTagHeaders,Headers for parking tag.
+landingPlanHeaders,Headers for landing plan.
+autoExpireHour,Defines at what period hour your booking request expires.
+wfoWeeklyLimit,Defines the maximum number of Work From Office bookings allowed per week.
+wfoMonthlyLimit,Defines the maximum number of Work From Office bookings allowed per month.
+wfhWeeklyLimit,Defines the maximum number of Work From Home bookings allowed per week.
+wfhMonthlyLimit,Defines the maximum number of Work From Home bookings allowed per month.
+buidsEnabledForSeatBookingPMS,Defines service availability on PMS.
+TestPropertySeatBooking,Defines whether the PMS is working on the wisseatbooking service.
+amenitiesBulkUpload,Enables bulk upload flow for amenities.
+seatBookingUrl,Defines the Seat Booking service URL.
+bookingRequestApprovalFlowEnabled,Controls whether the booking request approval workflow is enabled.
+approvalFlowInWfoEnabled,Controls whether the approval workflow is enabled for Work From Office bookings.
+approvalFlowInInWfhEnabled,Controls whether the approval workflow is enabled for Work From Home bookings.
+autoRequestApprovalEnabled,Controls whether booking requests are automatically approved without manual intervention.
+expiryCutOffInMinutes,Controls when a pending seat booking request should be treated as expired.
+expiryNotificationCutOffInMinutes,Defines how many minutes before a booking approval request expires. Used in conjunction with expiryCutOffInMinutes for approval-flow reminders.
+pendingRequestsNotificationEnabled,Controls whether notifications are sent for pending booking approval requests.
+approvedRequestNotificationEnabled,Controls whether notifications are sent for approved booking approval requests.
+rejectedRequestNotificationEnabled,Controls whether notifications are sent for rejected booking approval requests.
+expiredRequestNotificationEnabled,Controls whether notifications are sent when booking approval requests expire.
+bookingApprovalEmailsEnabled,Controls whether email notifications are sent for booking approvals.
+tagsEnabled,"Defines the list of enabled booking tags (e.g. WFO, WFH)."
+cancelSchedulesEnabled,Defines whether it should allow cancellation of commute service.
+forecastingColumns,Defines the column mapping and labels used in forecasting reports.
