@@ -95,3 +95,43 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - `MEETING_ROOM_RELEASE_IF_NO_CHECKIN` default inconsistency (180 min vs. 15 min)
 - Outlook integration service ownership (`ms-teams-integration` vs. standalone `outlook` service)
 - Module owner team name not stated in any source doc
+
+## [2026-05-26 13:01] ingest | PMS Config files (.in + .com servers)
+- Created: [[configs/pms]], [[configs/visitor-management]], [[configs/meeting-rooms]], [[configs/booking-rule-engine]], [[configs/wis-seat-booking]], [[configs/guard-app]], [[configs/emp-experience-email]], [[configs/emp-experience-internal]], [[configs/emp-experience-common]], [[configs/mobile-app-server]], [[configs/app-server-config]], [[sources/pms-configs-in-all-wis-configs]], [[sources/pms-configs-com-wis-service-configs]]
+- Sources: pms-configs-in (All WIS CONFIGS.xlsx), pms-configs-com (wis_service_configs.xlsx)
+- Notes: Dual-server comparison tables. .com has Data Type column; .in does not. Properties with no description flagged ⚠️ undocumented.
+
+---
+
+## [2026-05-26 18:56] ingest | WorkInSync MS Teams Integration — Permissions, Security & Installation
+- Created: [[modules/ms-teams-integration]], [[sources/ms-teams-app-permissions-security]]
+- Updated: [[index]] (added ms-teams row to Modules table; refreshed page-count header to disk reality after Tier 1 backfill)
+- Flags: Source doc covers permissions/security/install ONLY — module Key Features reflects what is in source; specific WorkInSync features inside the Teams app (booking via chat, notifications, etc.) are listed as Open Questions, not invented. `owner: unknown` because the source names an author (Aditya Dutta) but not an owning team. Bidirectional link verified: meeting-rooms.md already declares depends_on: ms-teams-integration, and the new module page declares used_by: meeting-rooms — consistent.
+
+---
+
+## [2026-05-26 20:01] re-ingest | WorkInSync MS Teams Integration (style match)
+- Re-wrote (replacing prior 18:56 script-extract version): [[modules/ms-teams-integration]], [[sources/ms-teams-app-permissions-security]]
+- Updated: [[index]] (refreshed _Last updated:_ date)
+- Flags: Same source doc as initial Wave A.1 ingest. Content factually equivalent; reformatted to match `meeting-rooms.md` prose style per user direction. Single consolidated Graph-permissions table under ## API Endpoints (was 3 separate tables in script version). Security/identity content folded into Overview + Key Features, not separate sections. Outlook ownership intentionally left as Open Question (not resolved in this source). `owner: unknown` (author named, owning team not stated).
+
+---
+
+## [2026-05-26 20:34] re-ingest | WorkInSync MS Teams Integration (fresh-read redo)
+- Re-wrote (overwriting prior memory-composed 20:01 version): [[modules/ms-teams-integration]], [[sources/ms-teams-app-permissions-security]]
+- Updated: [[index]] (idempotent _Last updated:_ refresh)
+- Flags: Same source doc as prior Wave A.1 ingests, BUT this composition is from a fresh full-text Read of the doc (via /tmp/ms_teams_full_extract.txt) in current turn context — not from session memory. Corrections vs prior memory-composed version: (1) permissions table deduped from 12→11 rows (`User.ReadBasic.All` was duplicated); (2) MFA scope made explicit (internal infra only: code repos, DNS, credential/key stores — NOT product-side); (3) install pathways enumerated as THREE distinct paths (per-user / admin-managed / auto-install via app setup policies — prior had two); (4) **FirstlineWorker** named as a specific built-in setup policy (prior was generic); (5) "appears in your mobile app" clarified as **Teams mobile client**, not WIS `mobile-app`; (6) two-perspective permission structure of source surfaced in a _Note:_ under the API Endpoints table; (7) source-metadata inconsistency flagged (Doc Classification: Internal vs filename: Client Shareable); (8) one minor source typo not reproduced ("adheres and to" → "adheres to"). Outlook ownership unchanged: still Open Question, deferred to Tier 2.5 meeting-rooms re-ingest.
+
+---
+
+## [2026-05-26 20:51] ingest | WorkInSync Slack Integration (Wave A.2 — third-party)
+- Created: [[modules/third-party]], [[sources/wis-slack-integration]]
+- Updated: [[index]] (added third-party row to Modules table; refreshed header counts + _Last updated:_)
+- Flags: ⚠️ **Source contains 4 mutually inconsistent data-storage statements** — flagged in both Open Questions (module page) and Key Takeaways (source page) with verbatim quotes + page/line refs. Do not cite this doc for compliance answers until engineering reconciles. ⚠️ Source is v1.0 only from 2022-03-10 (~3 years stale). depends_on: [] and used_by: [] in frontmatter — the source does NOT name which other modules surface WFO/WFH booking APIs or push check-in events; flagged in Open Questions. No Slack OAuth scope names in source — permissions table lists data categories as-named (name, email, Slack user ID, icon, User Access token, Bot token, Bot channel ID) with _Note:_ that specific scopes (e.g. `users:read`, `chat:write`) are not in source. Fresh-read legacy workflow followed: extracted via pdfplumber 0.11.9 to /tmp/third_party_full_extract.txt (5 pages, 7 tables, 0 empty pages, 5821 bytes), Read tool used to load into current turn context, Step 2 discussion produced with line-anchored quotes, user approved before writes. Slug `third-party` per CLAUDE.md §1 canonical list — body leads with "WorkInSync's Slack integration" so the page is unambiguous when read.
+
+---
+
+## [2026-05-26 21:57] ingest | Safe Reach PRD (Wave A.3 — safe-reach)
+- Created: [[modules/safe-reach]], [[sources/safe-reach-prd]]
+- Updated: [[index]] (added safe-reach row to Modules table; refreshed header counts + _Last updated:_)
+- Flags: ⚠️ **Source v1.0 is UNAPPROVED** — Version Control table has blank "Approved by" and "Approved Date". Doc is an authored-but-not-formally-approved draft (2025-06-03 by Vaishnavi Raghav). ⚠️ **Master-switch ambiguity** — both `enableSafeReachForBookingTypes` (Visitor Service Config, BUID-level) and `SAFE_REACH_ENABLED` (PMS service, BUID-level) claim master-like roles. Surfaced verbatim with both source descriptions; flagged in Open Questions without picking an interpretation. ⚠️ **Duplicated `enableSignatureForConsentSafeReach`** row in source Table 2 (rows 8 + 14, different descriptions, same name/type/scope) — preserved both rows verbatim per fidelity. ⚠️ **`safeReachETAOptions` referenced in body but missing from Table 2** — closest match `etaToReachDestination (Within SafeReachInputFields)`; flagged as possible naming inconsistency. ETS Safe Reach mentioned as separate pre-existing feature — NOT in canonical slug list, no wiki module documents it. Bidirectional-link asymmetry note: this module declares `depends_on: [visitor-management]`, but `wiki/modules/visitor-management.md` (currently April-28 COVERED) does NOT yet declare `used_by: safe-reach`. One-sided link pending Tier 2.5 visitor-management re-ingest, per the rule that each ingest writes only its own primary pages plus universal updates (index, log). Fresh-read legacy workflow followed: extracted via python-docx 1.2.0 to /tmp/safe_reach_full_extract.txt (22,756 bytes, 203 paragraphs, 3 tables, 0 embedded images), Read tool used to load into current turn context, Step 2 discussion produced with line-anchored quotes, user approved with explicit guidance on configurations placement and ambiguity handling.

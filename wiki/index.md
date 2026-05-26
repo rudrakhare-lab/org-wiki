@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
-_Last updated: 2026-04-28_
-_Total pages: 76 | Modules: 10 | Entities: 11 | Concepts: 0 | Integrations: 0 | Decisions: 10 | Sources: 19 | Cross-module: 8_
+_Last updated: 2026-05-26_
+_Total pages: 87 | Modules: 19 | Configs: 11 | Entities: 11 | Concepts: 0 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 25 | Cross-module: 8_
 
 ---
 
@@ -16,6 +16,9 @@ _Total pages: 76 | Modules: 10 | Entities: 11 | Concepts: 0 | Integrations: 0 | 
 | [[modules/floor-kiosk]] | Device hardware spec, DIY Floor Planner tool, floor plan pipeline | active | Aditya Dutta | — |
 | [[modules/meal-management]] | Meal booking (WFO add-on + standalone), RFID check-in, vendor dashboard | active | Aditya Dutta | access-management, floor-kiosk, desk-management |
 | [[modules/implementation]] | Internal SOPs for client onboarding and ETS migration | internal | unknown | — |
+| [[modules/ms-teams-integration]] | WorkInSync app on Microsoft Teams — Azure AD SSO, Graph API permissions, license/install flows | active | unknown | sso |
+| [[modules/third-party]] | WorkInSync's Slack integration — workspace install, WFO/WFH booking from Home tab, check-in notifications, Slack status updates | active | unknown | — |
+| [[modules/safe-reach]] | Late-departure employee safety workflow — VMS kiosk-initiated, configurable form, gender-trigger, ETA, IVR/mobile/email notification chain, WIS dashboard, reports | active | unknown | visitor-management |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -63,6 +66,21 @@ _Total pages: 76 | Modules: 10 | Entities: 11 | Concepts: 0 | Integrations: 0 | 
 | [[decisions/2026-04-28-delegation-stateless-session]] | 2026-04-28 | active | delegation |
 | [[decisions/2026-04-28-standalone-meal-booking-constraint]] | 2026-04-28 | active | meal-management |
 
+## Configs
+| Page | Service | Servers | Module |
+|------|---------|---------|--------|
+| [[configs/pms]] | Project Management Service (PMS) | .in + .com | — |
+| [[configs/visitor-management]] | Visitor Management Service (VMS) | .in + .com | [[modules/visitor-management]] |
+| [[configs/meeting-rooms]] | Meeting Rooms Service | .in + .com | [[modules/meeting-rooms]] |
+| [[configs/booking-rule-engine]] | Booking Rule Engine | .in + .com | — |
+| [[configs/wis-seat-booking]] | WIS Seat Booking Service | .in + .com | [[modules/desk-management]] |
+| [[configs/guard-app]] | Guard App Service | .in + .com | [[modules/guard-app-kiosks]] |
+| [[configs/emp-experience-email]] | Employee Experience — Email Service | .in + .com | [[modules/employee-experience]] |
+| [[configs/emp-experience-internal]] | Employee Experience — Internal Config | .in + .com | [[modules/employee-experience]] |
+| [[configs/emp-experience-common]] | Employee Experience — Common Config | .in + .com | [[modules/employee-experience]] |
+| [[configs/mobile-app-server]] | Mobile App Server Config |  | [[modules/mobile-app]] |
+| [[configs/app-server-config]] | App Server Config | .com | — |
+
 ## Sources Ingested
 | Page | Type | Date | Pages Touched |
 |------|------|------|---------------|
@@ -85,4 +103,7 @@ _Total pages: 76 | Modules: 10 | Entities: 11 | Concepts: 0 | Integrations: 0 | 
 | [[sources/floor-kiosk-device-spec]] | spec | 2026-04-28 | modules/floor-kiosk (hardware) |
 | [[sources/floor-plan-sop]] | spec | 2026-04-28 | modules/floor-kiosk, modules/digital-wayfinding |
 | [[sources/meal-checkin-prd]] | PRD | 2026-04-28 | modules/meal-management, entities/meal-booking, cross-module/meal-access-management |
+| [[sources/pms-configs-in-all-wis-configs]] | config | 2026-05-26 | configs/pms, configs/visitor-management, configs/meeting-rooms, configs/booking-rule-engine, configs/wis-seat-booking, configs/guard-app, configs/emp-experience-email, configs/emp-experience-internal, configs/emp-experience-common |
+| [[sources/pms-configs-com-wis-service-configs]] | config | 2026-05-26 | configs/pms, configs/visitor-management, configs/meeting-rooms, configs/booking-rule-engine, configs/wis-seat-booking, configs/guard-app, configs/emp-experience-email, configs/emp-experience-internal, configs/emp-experience-common, configs/app-server-config |
+
 | [[sources/launch-ets-sop]] | spec | 2026-04-28 | modules/implementation |
