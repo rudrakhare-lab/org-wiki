@@ -15,18 +15,25 @@ from backend.tools.pms_tools import _pms_runtime_values_handler
 from backend.tools.registry import ToolRegistry
 
 
-# ── 1. Registry loads all 9 tools ─────────────────────────────────────────────
+# ── 1. Registry loads all 19 tools ────────────────────────────────────────────
 
 def test_registry_loads_all_tools():
-    registry = build_registry(user_role="contributor")  # contributor sees wiki_propose_edit
+    registry = build_registry(user_role="contributor")  # contributor sees wiki_propose_* tools
     names = {s["name"] for s in registry.schemas}
     expected = {
-        "wiki_search", "wiki_read_page",
+        "wiki_search", "wiki_read_page", "wiki_grep",
         "jira_search_ranked", "jira_get_ticket", "jira_named_query",
+        "jira_live_get_ticket",
         "pms_default_properties", "pms_runtime_values",
+        "pms_list_offices", "pms_list_criteria",
+        "pms_verify_buid", "pms_diagnose_property",
         "config_lookup",
         "feedback_record",
+        # Track A structured propose tools:
+        "wiki_propose_new",
         "wiki_propose_edit",
+        "wiki_propose_append",
+        "wiki_propose_multi_edit",
     }
     assert names == expected, f"Missing tools: {expected - names}"
 
@@ -151,23 +158,15 @@ def test_wiki_propose_edit_blocked_for_viewer():
     assert result["code"] == "permission_denied"
 
 
-def test_wiki_propose_edit_handler_writes_proposal(tmp_path, monkeypatch):
-    """Handler appends to wiki_proposals.jsonl, never touches wiki/."""
-    import importlib
-    import backend.wiki_proposals as wp_module
-    feedback_dir = tmp_path / "raw" / "feedback"
-    feedback_dir.mkdir(parents=True)
-    importlib.reload(wp_module)
-    monkeypatch.setattr(wp_module, "PROPOSALS_FILE", feedback_dir / "wiki_proposals.jsonl", raising=False)
-    monkeypatch.setattr(wp_module, "FEEDBACK_DIR", feedback_dir, raising=False)
-
-    from backend.tools.wiki_tools import _wiki_propose_edit_handler
-    result = _wiki_propose_edit_handler(
-        {"page_path": "modules/visitor-management.md", "proposed_change": "OTP is required"}
-    )
-    assert result.get("status") == "submitted"
-    assert "proposal_id" in result
-
-    proposals = wp_module.list_proposals()
-    assert len(proposals) == 1
-    assert proposals[0]["page_path"] == "modules/visitor-management.md"
+# Track A Sub-pass B replaced the free-text wiki_propose_edit handler with a
+# structured str_replace shape. The 3 tests that exercised the old shape
+# (`test_wiki_propose_edit_handler_writes_proposal`,
+#  `test_wiki_propose_edit_blocks_path_traversal`,
+#  `test_wiki_propose_edit_none_fields_return_missing_fields`) were removed —
+# their concerns are now covered in tests/test_wiki_propose_tools.py:
+#   - "writes_proposal" → test_propose_edit_happy_path (+ structured shape)
+#   - "blocks_path_traversal" → test_propose_new_rejects_path_traversal
+#     (the path validator is shared across all four propose tools)
+#   - "none_fields_return_missing_fields" → covered by the input-validation
+#     paths in test_propose_edit_rejects_old_string_not_found and
+#     test_propose_edit_rejects_old_string_not_unique

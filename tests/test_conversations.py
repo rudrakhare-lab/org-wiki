@@ -123,43 +123,49 @@ def test_trace_sanitization_already_applied():
 
 def test_rest_conversation_lifecycle(isolated_store):
     """End-to-end via FastAPI TestClient."""
+    from unittest.mock import patch
+
     # Reload api after patching so its conversation_store binding picks up the temp dir.
     from backend import api as api_module
     importlib.reload(api_module)
     client = TestClient(api_module.app)
 
-    # Empty list
-    r = client.get("/conversations")
-    assert r.status_code == 200
-    assert r.json() == {"conversations": []}
+    test_user = {"email": "test@example.com", "role": "viewer", "token": "test-token"}
+    auth = {"Authorization": "Bearer test-token"}
 
-    # Create
-    r = client.post("/conversations", json={"title": "Via REST"})
-    assert r.status_code == 200
-    cid = r.json()["id"]
+    with patch("backend.config.lookup_user_by_token", side_effect=lambda t: test_user if t == "test-token" else None):
+        # Empty list
+        r = client.get("/conversations", headers=auth)
+        assert r.status_code == 200
+        assert r.json() == {"conversations": []}
 
-    # List
-    r = client.get("/conversations")
-    assert len(r.json()["conversations"]) == 1
+        # Create (auth optional — email from token so conversation is owned)
+        r = client.post("/conversations", json={"title": "Via REST"}, headers=auth)
+        assert r.status_code == 200
+        cid = r.json()["id"]
 
-    # Get
-    r = client.get(f"/conversations/{cid}")
-    assert r.status_code == 200
-    assert r.json()["messages"] == []
+        # List — only sees own conversations
+        r = client.get("/conversations", headers=auth)
+        assert len(r.json()["conversations"]) == 1
 
-    # Patch title
-    r = client.patch(f"/conversations/{cid}", json={"title": "Renamed"})
-    assert r.status_code == 200
-    assert r.json()["title"] == "Renamed"
+        # Get
+        r = client.get(f"/conversations/{cid}", headers=auth)
+        assert r.status_code == 200
+        assert r.json()["messages"] == []
 
-    # Delete
-    r = client.delete(f"/conversations/{cid}")
-    assert r.status_code == 200
-    assert r.json()["deleted"] is True
+        # Patch title
+        r = client.patch(f"/conversations/{cid}", json={"title": "Renamed"}, headers=auth)
+        assert r.status_code == 200
+        assert r.json()["title"] == "Renamed"
 
-    # Now 404
-    r = client.get(f"/conversations/{cid}")
-    assert r.status_code == 404
+        # Delete
+        r = client.delete(f"/conversations/{cid}", headers=auth)
+        assert r.status_code == 200
+        assert r.json()["deleted"] is True
+
+        # Now 404
+        r = client.get(f"/conversations/{cid}", headers=auth)
+        assert r.status_code == 404
 
 
 def test_user_email_column_added_via_migration(isolated_store):
@@ -195,3 +201,48 @@ def test_list_conversations_admin_sees_all(isolated_store):
     cs.create_conversation("Bob conv", user_email="bob@example.com")
     all_convs = cs.list_conversations(user_email=None)
     assert len(all_convs) == 2
+
+
+# ── G03: compaction migration idempotency + state get/set ─────────────────────
+
+def test_init_schema_is_idempotent_for_g03_columns(isolated_store):
+    """Running init_schema() twice must not error and must add the new
+    compaction columns exactly once. Mirrors the user_email migration test."""
+    cs = isolated_store
+    cs.init_schema()
+    cs.init_schema()  # second call MUST be a no-op for the migrations
+
+    # Count occurrences of the new columns via PRAGMA — should be 1 each
+    import sqlite3
+    conn = sqlite3.connect(str(cs.CONVERSATIONS_DB))
+    try:
+        cols = [row[1] for row in conn.execute("PRAGMA table_info(conversations)")]
+    finally:
+        conn.close()
+    assert cols.count("compacted_summary") == 1
+    assert cols.count("compaction_at_turn") == 1
+    assert cols.count("user_email") == 1  # earlier migration still intact
+
+
+def test_compaction_state_starts_none(isolated_store):
+    cs = isolated_store
+    conv = cs.create_conversation("Test")
+    summary, at_turn = cs.get_compaction_state(conv["id"])
+    assert summary is None
+    assert at_turn is None
+
+
+def test_set_and_get_compaction_state(isolated_store):
+    cs = isolated_store
+    conv = cs.create_conversation("Test")
+    cs.set_compacted_summary(conv["id"], "- bullet 1\n- bullet 2", at_turn=14)
+    summary, at_turn = cs.get_compaction_state(conv["id"])
+    assert summary == "- bullet 1\n- bullet 2"
+    assert at_turn == 14
+
+
+def test_get_compaction_state_unknown_conversation_returns_nones(isolated_store):
+    cs = isolated_store
+    summary, at_turn = cs.get_compaction_state("nonexistent-id")
+    assert summary is None
+    assert at_turn is None

@@ -4,20 +4,29 @@ from unittest.mock import patch
 from backend.config import resolve_api_key, lookup_user_by_token
 
 
-def test_resolve_api_key_prefers_server_key(monkeypatch):
+def test_resolve_api_key_returns_server_key(monkeypatch):
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-server-key")
-    assert resolve_api_key("sk-caller-key") == "sk-server-key"
+    assert resolve_api_key() == "sk-server-key"
 
 
-def test_resolve_api_key_falls_back_to_caller(monkeypatch):
+def test_resolve_api_key_ignores_request_key(monkeypatch):
+    """Single-key deployment: a caller-supplied key MUST NOT be honored. Even
+    if a request_key is passed (legacy callers), the server key wins."""
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-server-key")
+    assert resolve_api_key("sk-attacker-supplied") == "sk-server-key"
+
+
+def test_resolve_api_key_raises_when_server_key_unset(monkeypatch):
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    assert resolve_api_key("sk-caller-key") == "sk-caller-key"
+    with pytest.raises(ValueError, match="ANTHROPIC_API_KEY is not configured"):
+        resolve_api_key()
 
 
-def test_resolve_api_key_raises_when_neither(monkeypatch):
+def test_resolve_api_key_raises_even_with_request_key(monkeypatch):
+    """No fallback to caller-supplied keys, even when server key is absent."""
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    with pytest.raises(ValueError, match="No Anthropic API key"):
-        resolve_api_key(None)
+    with pytest.raises(ValueError, match="ANTHROPIC_API_KEY is not configured"):
+        resolve_api_key("sk-caller-key")
 
 
 def test_lookup_user_by_token_rejects_expired_token():

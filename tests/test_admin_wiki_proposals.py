@@ -67,15 +67,23 @@ def test_list_proposals_with_filter(admin_client):
 
 
 def test_apply_proposal_not_found(admin_client):
+    """Track A Sub-pass C: response shape uses `code` not `error`; endpoint
+    maps code='not_found' to HTTP 404. The detail is the full result dict."""
     client, _ = admin_client
     with patch("backend.admin_api.apply_wiki_proposal") as mock_apply:
-        mock_apply.return_value = {"success": False, "error": "Proposal not found: nonexistent-id"}
+        mock_apply.return_value = {
+            "success": False, "code": "not_found",
+            "message": "Proposal not found: nonexistent-id",
+            "proposal_id": "nonexistent-id",
+        }
         r = client.post(
             "/admin/wiki/proposals/nonexistent-id/apply",
             headers={"Authorization": "Bearer admin-token"},
         )
     assert r.status_code == 404
-    assert "not found" in r.json()["detail"].lower()
+    detail = r.json()["detail"]
+    assert detail["code"] == "not_found"
+    assert "not found" in detail["message"].lower()
 
 
 def test_reject_proposal(admin_client):
@@ -100,6 +108,90 @@ def test_reject_proposal(admin_client):
     p = wp.get_proposal(pid)
     assert p["status"] == "rejected"
     assert p["admin_note"] == "stale"
+
+
+def test_apply_proposal_legacy_text_refused_at_apply(admin_client):
+    """Track A Sub-pass C: a pre-Track-A free-text proposal (created via
+    wp.create_proposal) is now `legacy_text` and must NOT auto-apply. The
+    endpoint returns 422 with code='legacy_text_refused', pointing the
+    admin to /mark-applied after a manual edit."""
+    client, wp = admin_client
+    pid = wp.create_proposal(
+        page_path="modules/visitor-management.md",
+        proposed_change="Fix OTP description",
+        submitter_email="agent",
+    )
+    r = client.post(
+        f"/admin/wiki/proposals/{pid}/apply",
+        headers={"Authorization": "Bearer admin-token"},
+    )
+    assert r.status_code == 422
+    detail = r.json()["detail"]
+    assert detail["code"] == "legacy_text_refused"
+    assert "mark-applied" in detail["message"]
+    # Proposal stays pending — not marked applied automatically
+    assert wp.get_proposal(pid)["status"] == "pending"
+
+
+def test_mark_applied_endpoint_succeeds_on_legacy_text(admin_client):
+    """The /mark-applied endpoint is for legacy_text proposals after admin
+    has edited the wiki manually."""
+    client, wp = admin_client
+    pid = wp.create_proposal(
+        page_path="modules/visitor-management.md",
+        proposed_change="Fix OTP description",
+        submitter_email="agent",
+    )
+    r = client.post(
+        f"/admin/wiki/proposals/{pid}/mark-applied",
+        headers={"Authorization": "Bearer admin-token"},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["success"] is True
+    assert body["proposal"]["status"] == "applied"
+    assert body["proposal"]["applied_by"] == "admin@example.com"
+
+
+def test_mark_applied_endpoint_refuses_structured_proposal(admin_client):
+    """Structured proposals (proposal_type != legacy_text) must use /apply,
+    not /mark-applied — 400."""
+    client, wp = admin_client
+    pid = wp.create_new_proposal(
+        page_path="concepts/test.md",
+        content="---\ntype: concept\n---\n",
+        submitter_email="agent",
+    )
+    r = client.post(
+        f"/admin/wiki/proposals/{pid}/mark-applied",
+        headers={"Authorization": "Bearer admin-token"},
+    )
+    assert r.status_code == 400
+    detail = r.json()["detail"]
+    assert detail["code"] == "not_legacy_text"
+
+
+def test_mark_applied_triggers_reindex(admin_client):
+    """A.1: /mark-applied must call wiki_retriever.rebuild_index() so the
+    admin's manual edit is reflected in subsequent searches. Verified by
+    mocking rebuild_index and asserting it was called once."""
+    from unittest.mock import patch as _patch
+    client, wp = admin_client
+    pid = wp.create_proposal(
+        page_path="modules/foo.md",
+        proposed_change="Manual fix applied.",
+        submitter_email="agent",
+    )
+    with _patch("backend.wiki_retriever.rebuild_index") as mock_rebuild:
+        r = client.post(
+            f"/admin/wiki/proposals/{pid}/mark-applied",
+            headers={"Authorization": "Bearer admin-token"},
+        )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["success"] is True
+    assert body.get("index_rebuilt") is True
+    assert mock_rebuild.call_count == 1
 
 
 def test_trigger_drive_sync_starts_process(admin_client):
