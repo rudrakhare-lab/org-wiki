@@ -3,7 +3,7 @@ Conwo Backend API — FastAPI app.
 
 Endpoints:
   POST /query           → AI-synthesized answer
-                          mode="api":         requires claude_api_key in body
+                          mode="api":         requires Bearer token; uses server-side ANTHROPIC_API_KEY
                           mode="claude-code":  requires Bearer token; uses admin session
   POST /search          → Retrieval-only (wiki + Jira, no API key needed)
   GET  /wiki/{path}     → Full content of a wiki page
@@ -17,8 +17,9 @@ Endpoints:
   POST /admin/feedback/{id}/patch-plan → Dry-run patch preview (admin only)
   POST /admin/feedback/{id}/apply     → Apply patch to wiki (admin only)
   GET  /admin/wiki/proposals    → List wiki proposals (admin only)
-  POST /admin/wiki/proposals/{id}/apply  → Apply a proposal (admin only)
-  POST /admin/wiki/proposals/{id}/reject → Reject a proposal (admin only)
+  POST /admin/wiki/proposals/{id}/apply         → Apply a typed proposal (admin only)
+  POST /admin/wiki/proposals/{id}/mark-applied  → Mark legacy_text proposal applied after manual edit (admin only)
+  POST /admin/wiki/proposals/{id}/reject        → Reject a proposal (admin only)
   POST /admin/trigger-drive-sync → Trigger Drive sync (admin only)
 
 Auth (Phase 1):
@@ -35,12 +36,13 @@ from typing import Annotated, Literal
 from fastapi import Depends, FastAPI, HTTPException, Header, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
-from backend import admin_api, conversation_store, orchestrator, wiki_retriever
+from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
 from backend import config as _config
 from backend.config import local_claude_code_enabled
 from backend.feedback_service import log_answer, record_feedback
+from backend.operational_context import _age_hours
 from backend.providers.claude_code_agent import claude_available, stream_claude_code
 
 
@@ -51,12 +53,37 @@ from backend.providers.claude_code_agent import claude_available, stream_claude_
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     wiki_retriever.build_index()
+    # Single-key deployment check — api-mode queries will return 503 until the
+    # operator sets ANTHROPIC_API_KEY. Don't crash; the server must still come
+    # up for admin endpoints and conversation CRUD even without an LLM key.
+    import logging, os
+    if not os.getenv("ANTHROPIC_API_KEY", "").strip():
+        logging.getLogger("uvicorn.error").warning(
+            "ANTHROPIC_API_KEY is not set. api-mode `/query` requests will fail "
+            "with 503 until you configure it. Non-LLM endpoints (admin, "
+            "conversations, status) will continue to work."
+        )
     if local_claude_code_enabled():
         # Surface the bypass loudly so it can't be enabled by accident in prod.
-        import logging
         logging.getLogger("uvicorn.error").warning(
             "CONWO_LOCAL_CLAUDE_CODE=true → Claude Code endpoints accept "
             "unauthenticated requests. Local-dev only. Do not deploy with this set."
+        )
+    # Track A: surface count of pre-Track-A free-text proposals still pending.
+    # The new admin apply handler (Sub-pass C / G07) cannot apply them
+    # automatically; admins need to drain them manually.
+    # Defensive: a broken proposal store must not crash startup — the server
+    # should still come up to serve queries even if the proposal queue is
+    # unreadable (e.g. corrupt JSONL, missing permissions).
+    try:
+        from backend import wiki_proposals
+        wiki_proposals.warn_if_legacy_pending()
+    except Exception as exc:
+        import logging
+        logging.getLogger("uvicorn.error").warning(
+            "Track A startup check failed (wiki_proposals.warn_if_legacy_pending): %s. "
+            "Server is starting anyway; the proposal queue may need manual inspection.",
+            exc,
         )
     yield
 
@@ -137,9 +164,13 @@ def _require_admin(user: dict | None = Depends(_get_user)) -> dict:
 # ---------------------------------------------------------------------------
 
 class QueryRequest(BaseModel):
+    # Single-key deployment: the server-side ANTHROPIC_API_KEY is the only key
+    # source. Callers do NOT send claude_api_key — any extra field on the body
+    # is rejected outright (see model_config).
+    model_config = {"extra": "forbid"}
+
     question: str = Field(..., min_length=3, max_length=2000)
     mode: Literal["api", "claude-code"] = "api"
-    claude_api_key: str | None = Field(default=None)
     server: str = Field(default="com", pattern=r"^(com|in)$")
     buid: str | None = None
     functional_area: str | None = None
@@ -148,20 +179,6 @@ class QueryRequest(BaseModel):
     roomid: str | None = None
     role: str | None = None
     conversation_id: str | None = None
-
-    @model_validator(mode="after")
-    def _validate_api_key(self) -> "QueryRequest":
-        if self.mode != "api":
-            return self
-        # If the server has ANTHROPIC_API_KEY set, the caller key is optional.
-        import os
-        if os.getenv("ANTHROPIC_API_KEY", "").strip():
-            return self
-        if not self.claude_api_key:
-            raise ValueError("claude_api_key is required when mode is 'api' and no server key is set")
-        if len(self.claude_api_key) < 10:
-            raise ValueError("claude_api_key appears invalid (too short)")
-        return self
 
 
 class QueryResponse(BaseModel):
@@ -293,6 +310,15 @@ def query(
             ),
         )
 
+    # API mode: always require authentication. The server's ANTHROPIC_API_KEY is
+    # the only key source (single-key deployment), so anonymous callers would
+    # otherwise burn the org's Anthropic quota with no per-user rate limit.
+    if req.mode == "api" and not user:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required. Sign in to send queries.",
+        )
+
     user_email = (user or {}).get("email")
     user_role = (user or {}).get("role", "viewer")
 
@@ -331,9 +357,14 @@ def query(
 
     from backend.config import resolve_api_key
     try:
-        resolved_key = resolve_api_key(req.claude_api_key)
+        resolved_key = resolve_api_key()
     except ValueError as e:
-        raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail=str(e))
+        # Server isn't configured with an API key — return the user-facing
+        # message the frontend renders verbatim.
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="This deployment is missing an API key. Contact your admin.",
+        ) from e
 
     result = orchestrator.run(
         question=req.question,
@@ -397,6 +428,22 @@ async def query_stream(
 ):
     """
     Stream a Claude Code agent session over SSE.
+
+    ⚠️  NAMING NOTE (G25): despite the generic `/query/stream` path, this
+    endpoint streams ONLY the `mode="claude-code"` subprocess. The default
+    `mode="api"` (Anthropic SDK tool-use loop) is NOT streamed by this
+    endpoint — `/query` returns it as a single response after all tool
+    rounds complete.
+
+    Frontend (`frontend/src/app/core/api.service.ts:324`) hardcodes this
+    path, so renaming would be a coordinated cross-stack change. Kept the
+    name; clarified the semantics here.
+
+    TODO (G02, gated on API key arrival, D2 = YES): when api-mode streaming
+    lands, split this into two endpoints — `/query/stream-claude-code`
+    (this one, current behavior) and `/query/stream-api` (the new SSE
+    bridge for the Anthropic streaming tool-use loop) — and update the
+    frontend to dispatch to the right one based on mode.
 
     Spawns `claude -p <question>` in the repo root with full tool access
     (Read, Write, Edit, Bash, Grep, MCP, etc. — same as terminal Claude Code).
@@ -576,34 +623,50 @@ def get_wiki_page(path: str):
 # Conversations — chat history CRUD
 # ---------------------------------------------------------------------------
 
+def _check_conversation_access(conversation_id: str, user: dict) -> dict:
+    """Load conversation and verify the user can access it. Returns the conversation.
+
+    Non-admin users can only see their own conversations; returns 404 (not 403)
+    for both missing and unauthorized IDs to avoid leaking existence to third parties.
+    """
+    conv = conversation_store.get_conversation(conversation_id)
+    if not conv:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    if user.get("role") != "admin" and conv.get("user_email") != user.get("email"):
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    return conv
+
+
 @app.post("/conversations")
-def create_conversation(req: ConversationCreateRequest):
-    return conversation_store.create_conversation(title=req.title)
+def create_conversation(req: ConversationCreateRequest, user: dict | None = Depends(_get_user)):
+    user_email = (user or {}).get("email")
+    return conversation_store.create_conversation(title=req.title, user_email=user_email)
 
 
 @app.get("/conversations")
-def list_conversations(limit: int = 200, user: dict | None = Depends(_get_user)):
+def list_conversations(limit: int = 200, user: dict = Depends(_require_user)):
     if limit < 1:
         limit = 1
     if limit > 500:
         limit = 500
     # Admins see all conversations; everyone else sees only their own
-    user_email = None
-    if user and user.get("role") != "admin":
-        user_email = user.get("email")
+    user_email = None if user.get("role") == "admin" else user.get("email")
     return {"conversations": conversation_store.list_conversations(limit=limit, user_email=user_email)}
 
 
 @app.get("/conversations/{conversation_id}")
-def get_conversation(conversation_id: str):
-    conv = conversation_store.get_conversation(conversation_id)
-    if not conv:
-        raise HTTPException(status_code=404, detail="Conversation not found")
+def get_conversation(conversation_id: str, user: dict = Depends(_require_user)):
+    conv = _check_conversation_access(conversation_id, user)
     return conv
 
 
 @app.patch("/conversations/{conversation_id}")
-def patch_conversation(conversation_id: str, req: ConversationPatchRequest):
+def patch_conversation(
+    conversation_id: str,
+    req: ConversationPatchRequest,
+    user: dict = Depends(_require_user),
+):
+    _check_conversation_access(conversation_id, user)
     ok = conversation_store.update_conversation_title(conversation_id, req.title)
     if not ok:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -612,7 +675,8 @@ def patch_conversation(conversation_id: str, req: ConversationPatchRequest):
 
 
 @app.delete("/conversations/{conversation_id}")
-def delete_conversation(conversation_id: str):
+def delete_conversation(conversation_id: str, user: dict = Depends(_require_user)):
+    _check_conversation_access(conversation_id, user)
     ok = conversation_store.delete_conversation(conversation_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -641,6 +705,35 @@ def feedback(req: FeedbackRequest):
         reviewer=req.reviewer,
     )
     return {"feedback_id": feedback_id, "status": "recorded"}
+
+
+# ---------------------------------------------------------------------------
+# Operational status (any authenticated user — drives the chat-page banner)
+# ---------------------------------------------------------------------------
+
+@app.get("/status")
+def public_status(user: dict = Depends(_require_user)):
+    """Lightweight freshness signals every signed-in user can see — Jira mirror
+    age, wiki page count, and (admins only) the wiki-proposal review queue
+    count. The chat page polls this on load to warn about stale data."""
+    sync = admin_api.get_sync_status()
+    jira = sync.get("jira", {}) or {}
+    success_ts = jira.get("most_recent_successful_sync") or ""
+    age_h = _age_hours(success_ts) if success_ts else None
+
+    result: dict = {
+        "jira_mirror_age_hours": age_h,
+        "last_successful_sync": success_ts or None,
+        "wiki_page_count": wiki_retriever.page_count(),
+        "pending_admin_review_count": 0,
+    }
+    if user.get("role") == "admin":
+        try:
+            pending = wiki_proposals.list_proposals(status="pending")
+            result["pending_admin_review_count"] = len(pending)
+        except Exception:
+            pass  # admin-only field; degrade silently rather than 500 the endpoint
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -732,9 +825,17 @@ def admin_revoke_token(token: str, _admin: dict = Depends(_require_admin)):
     return {"revoked": True}
 
 
+_VALID_PROPOSAL_ID = __import__("re").compile(r"^[a-zA-Z0-9_\-]{8,64}$")
+
+
+def _validate_proposal_id(proposal_id: str) -> None:
+    if not _VALID_PROPOSAL_ID.match(proposal_id):
+        raise HTTPException(status_code=400, detail="Invalid proposal_id")
+
+
 @app.get("/admin/wiki/proposals")
 def admin_list_wiki_proposals(
-    status: str | None = None,
+    status: Literal["pending", "applied", "rejected"] | None = None,
     _admin: dict = Depends(_require_admin),
 ):
     return {"proposals": admin_api.get_wiki_proposals(status=status)}
@@ -745,9 +846,44 @@ def admin_apply_wiki_proposal(
     proposal_id: str,
     _admin: dict = Depends(_require_admin),
 ):
-    result = admin_api.apply_wiki_proposal(proposal_id)
+    """Apply a typed proposal (Track A Sub-pass C). Dispatches by proposal_type
+    in admin_api.apply_wiki_proposal. The HTTP status mirrors the result's
+    `code` so the admin UI can distinguish 404 (not_found), 409 (already_applied
+    / stale_proposal), 422 (legacy_text_refused), and 500 (write_io_error etc.)."""
+    _validate_proposal_id(proposal_id)
+    applied_by = _admin.get("email", "admin")
+    result = admin_api.apply_wiki_proposal(proposal_id, applied_by=applied_by)
     if not result.get("success"):
-        raise HTTPException(status_code=404, detail=result.get("error", "Apply failed"))
+        code = result.get("code", "")
+        if code == "not_found":
+            status_code = 404
+        elif code in ("already_applied",):
+            status_code = 200  # idempotent — already_applied success path
+        elif code in ("stale_proposal",):
+            status_code = 409
+        elif code == "legacy_text_refused":
+            status_code = 422
+        else:
+            status_code = 500
+        raise HTTPException(status_code=status_code, detail=result)
+    return result
+
+
+@app.post("/admin/wiki/proposals/{proposal_id}/mark-applied")
+def admin_mark_wiki_proposal_applied(
+    proposal_id: str,
+    _admin: dict = Depends(_require_admin),
+):
+    """Mark a LEGACY_TEXT proposal as applied after the admin has manually
+    edited the wiki page. Returns 400 if called on a structured proposal
+    (those must use /apply, which dispatches to the writer)."""
+    _validate_proposal_id(proposal_id)
+    applied_by = _admin.get("email", "admin")
+    result = admin_api.mark_wiki_proposal_applied(proposal_id, applied_by=applied_by)
+    if not result.get("success"):
+        code = result.get("code", "")
+        status_code = 404 if code == "not_found" else 400
+        raise HTTPException(status_code=status_code, detail=result)
     return result
 
 
@@ -757,6 +893,7 @@ def admin_reject_wiki_proposal(
     req: WikiProposalRejectRequest,
     _admin: dict = Depends(_require_admin),
 ):
+    _validate_proposal_id(proposal_id)
     result = admin_api.reject_wiki_proposal(proposal_id, admin_note=req.admin_note)
     if not result.get("success"):
         raise HTTPException(status_code=404, detail=result.get("error", "Reject failed"))

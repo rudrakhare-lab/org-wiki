@@ -24,18 +24,46 @@ _PYTHON = sys.executable  # use the same interpreter that's running the backend
 
 
 def get_sync_status() -> dict:
-    """Return last sync timestamps and counts for the admin dashboard."""
+    """Return last sync timestamps and counts for the admin dashboard.
+
+    Parses JIRA_SYNC_LOG as JSON-per-line (jira_sync.py's actual format).
+    Returns both the most recent log line of any kind (for debugging) AND
+    the timestamp of the most recent SUCCESSFUL completion (msg starts
+    with "ALL DONE:") — the latter is what operational_context uses to
+    decide stale-mirror warnings. G31 closure.
+    """
     result: dict = {}
 
-    # Jira sync
-    jira_last_sync = ""
+    jira_last_log_line = ""
+    jira_most_recent_successful_sync = ""  # ISO timestamp, empty if none found
     jira_ticket_count = 0
+
     if JIRA_SYNC_LOG.exists():
         lines = JIRA_SYNC_LOG.read_text(encoding="utf-8", errors="replace").splitlines()
         for line in reversed(lines):
-            if "sync complete" in line.lower() or "tickets" in line.lower():
-                jira_last_sync = line.strip()
-                break
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if not jira_last_log_line:
+                jira_last_log_line = stripped
+            if jira_most_recent_successful_sync:
+                # Already found the success timestamp; still need to find the
+                # last-of-any-kind line (handled above). If we have both, stop.
+                if jira_last_log_line:
+                    break
+                continue
+            try:
+                obj = json.loads(stripped)
+            except (json.JSONDecodeError, ValueError):
+                continue
+            if (
+                isinstance(obj, dict)
+                and obj.get("level") == "INFO"
+                and isinstance(obj.get("msg"), str)
+                and obj["msg"].startswith("ALL DONE:")
+            ):
+                jira_most_recent_successful_sync = str(obj.get("ts", ""))
+
     if JIRA_DB.exists():
         import sqlite3
         try:
@@ -44,7 +72,14 @@ def get_sync_status() -> dict:
             conn.close()
         except Exception:
             pass
-    result["jira"] = {"last_sync_line": jira_last_sync, "ticket_count": jira_ticket_count}
+
+    result["jira"] = {
+        "last_log_line": jira_last_log_line,
+        "most_recent_successful_sync": jira_most_recent_successful_sync,
+        # Backwards-compat alias for callers that read the field name from G04.
+        "last_sync_line": jira_last_log_line,
+        "ticket_count": jira_ticket_count,
+    }
 
     # Drive sync manifest
     drive_last_sync = ""
@@ -99,8 +134,8 @@ def trigger_jira_sync() -> dict:
     try:
         proc = subprocess.Popen(
             [_PYTHON, str(_SCRIPTS / "jira_sync.py"), "--incremental"],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             cwd=str(ROOT),
         )
         return {"status": "started", "pid": proc.pid}
@@ -175,45 +210,142 @@ def get_wiki_proposals(status: str | None = None) -> list[dict]:
     return list_proposals(status=status)
 
 
-def apply_wiki_proposal(proposal_id: str) -> dict:
-    """Apply a wiki proposal: run apply_feedback if answer_id exists, then mark applied."""
+def apply_wiki_proposal(proposal_id: str, applied_by: str = "admin") -> dict:
+    """Apply a typed wiki proposal. Track A Sub-pass C closes G07/G14/G16.
+
+    Dispatches on proposal.proposal_type:
+      - "new"        → wiki_apply.apply_new (write new file under flock)
+      - "edit"       → wiki_apply.apply_edit (str_replace with re-validation)
+      - "append"     → wiki_apply.apply_append (append to existing file)
+      - "multi_edit" → wiki_apply.apply_multi_edit (atomic multi-file w/ rollback)
+      - "legacy_text"→ refuse — admin must use /mark-applied after manual edit
+
+    Idempotency: if the proposal is already "applied", returns success without
+    re-writing.
+
+    After a successful write:
+      - rebuild_index() so subsequent searches see the new content
+      - mark proposal "applied" with applied_at and applied_by stamps
+    """
     from backend.wiki_proposals import get_proposal, update_status
-    from backend import wiki_retriever
+    from backend import wiki_apply, wiki_retriever
 
     proposal = get_proposal(proposal_id)
     if not proposal:
-        return {"success": False, "error": f"Proposal not found: {proposal_id}"}
+        return {
+            "success": False,
+            "code": "not_found",
+            "message": f"Proposal not found: {proposal_id}",
+            "proposal_id": proposal_id,
+        }
 
-    result: dict = {"proposal_id": proposal_id}
+    # Idempotency — already-applied proposals return success without re-writing.
+    if proposal.get("status") == "applied":
+        return {
+            "success": True,
+            "code": "already_applied",
+            "message": "Proposal was previously applied; no work done now.",
+            "proposal_id": proposal_id,
+            "proposal": proposal,
+            "files_written": [],
+        }
 
-    # If there's a linked feedback answer, run apply_feedback.py
-    answer_id = proposal.get("answer_id")
-    if answer_id:
-        try:
-            proc = subprocess.run(
-                [_PYTHON, str(_SCRIPTS / "apply_feedback.py"),
-                 "--feedback-id", answer_id, "--apply"],
-                capture_output=True, text=True, timeout=60, cwd=str(ROOT),
-            )
-            result["apply_output"] = proc.stdout
-            result["apply_errors"] = proc.stderr
-            result["apply_success"] = proc.returncode == 0
-        except subprocess.TimeoutExpired:
-            result["apply_success"] = False
-            result["apply_errors"] = "apply_feedback.py timed out"
+    pt = proposal.get("proposal_type", "legacy_text")
+    if pt == "new":
+        result = wiki_apply.apply_new(proposal)
+    elif pt == "edit":
+        result = wiki_apply.apply_edit(proposal)
+    elif pt == "append":
+        result = wiki_apply.apply_append(proposal)
+    elif pt == "multi_edit":
+        result = wiki_apply.apply_multi_edit(proposal)
+    elif pt == "legacy_text":
+        result = wiki_apply.refuse_legacy_text(proposal)
     else:
-        result["apply_success"] = True
-        result["apply_output"] = "No linked answer_id — proposal marked applied without patch"
+        result = {
+            "success": False,
+            "code": "unknown_proposal_type",
+            "message": f"Unknown proposal_type: {pt!r}",
+        }
 
-    # Rebuild wiki index regardless
-    wiki_retriever.rebuild_index()
+    result["proposal_id"] = proposal_id
+    result["proposal_type"] = pt
 
-    update_status(proposal_id, "applied")
-    result["success"] = True
+    if not result.get("success"):
+        # Surface companion edit advisory even on failure — the admin may want to
+        # see what would have been suggested. Skip for refused legacy text.
+        if pt != "legacy_text":
+            result["suggested_companion_edit"] = proposal.get("suggested_companion_edit")
+        return result
+
+    # Rebuild index — failure here does NOT undo the write, but is logged on the result.
+    try:
+        wiki_retriever.rebuild_index()
+        result["index_rebuilt"] = True
+    except Exception as exc:
+        result["index_rebuilt"] = False
+        result["index_error"] = str(exc)
+
+    update_status(proposal_id, "applied", applied_by=applied_by)
+    # Reload to surface the updated record with applied_at/applied_by stamps
+    result["proposal"] = get_proposal(proposal_id)
+    result["suggested_companion_edit"] = proposal.get("suggested_companion_edit")
     return result
 
 
-def reject_wiki_proposal(proposal_id: str, admin_note: str = "") -> dict:
+def mark_wiki_proposal_applied(proposal_id: str, applied_by: str = "admin") -> dict:
+    """Mark a LEGACY_TEXT proposal as applied without invoking any writer.
+
+    Used after an admin has manually edited the wiki to honor a pre-Track-A
+    free-text proposal. Refuses (400) if called on a structured proposal —
+    those should use /apply, not /mark-applied.
+    """
+    from backend.wiki_proposals import get_proposal, update_status
+
+    proposal = get_proposal(proposal_id)
+    if not proposal:
+        return {
+            "success": False,
+            "code": "not_found",
+            "message": f"Proposal not found: {proposal_id}",
+        }
+    pt = proposal.get("proposal_type", "legacy_text")
+    if pt != "legacy_text":
+        return {
+            "success": False,
+            "code": "not_legacy_text",
+            "message": (
+                f"Proposal {proposal_id} is type {pt!r}, not 'legacy_text'. "
+                f"Structured proposals must use /apply, which dispatches to a writer."
+            ),
+        }
+    if proposal.get("status") == "applied":
+        return {
+            "success": True,
+            "code": "already_applied",
+            "message": "Already marked applied.",
+            "proposal": proposal,
+        }
+    update_status(proposal_id, "applied", applied_by=applied_by)
+    # The admin's manual edit needs to be reflected in the in-memory index so
+    # subsequent searches see the change. Defensive try/except — an index
+    # failure is logged on the result but does NOT undo the status stamp.
+    result: dict = {
+        "success": True,
+        "message": f"Marked legacy_text proposal {proposal_id} as applied.",
+        "proposal": get_proposal(proposal_id),
+    }
+    try:
+        from backend import wiki_retriever
+        wiki_retriever.rebuild_index()
+        result["index_rebuilt"] = True
+    except Exception as exc:
+        result["index_rebuilt"] = False
+        result["index_error"] = str(exc)
+    return result
+
+
+def reject_wiki_proposal(proposal_id: str, admin_note: str | None = None) -> dict:
     from backend.wiki_proposals import update_status
     found = update_status(proposal_id, "rejected", admin_note=admin_note)
     if not found:
@@ -229,8 +361,8 @@ def trigger_drive_sync() -> dict:
         proc = subprocess.Popen(
             [_PYTHON, str(_SCRIPTS / "sync_drive.py"),
              "--source", str(drive_staging)],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
             cwd=str(ROOT),
         )
         return {"status": "started", "pid": proc.pid}

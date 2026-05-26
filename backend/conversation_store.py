@@ -63,13 +63,29 @@ _MIGRATION_ADD_USER_EMAIL = """
 ALTER TABLE conversations ADD COLUMN user_email TEXT;
 """
 
+# G03: rolling summary of compacted older turns + the message-count snapshot
+# at which the summary was generated. Both NULL on conversations created
+# before G03 — load_conversation_summary handles that as "no summary yet".
+_MIGRATION_ADD_COMPACTED_SUMMARY = """
+ALTER TABLE conversations ADD COLUMN compacted_summary TEXT;
+"""
+_MIGRATION_ADD_COMPACTION_AT_TURN = """
+ALTER TABLE conversations ADD COLUMN compaction_at_turn INTEGER;
+"""
+
 
 def _apply_migrations(conn: sqlite3.Connection) -> None:
     """Idempotently apply schema migrations. Safe to call on every startup."""
     cols = {row[1] for row in conn.execute("PRAGMA table_info(conversations)")}
-    if "user_email" not in cols:
+    for col_name, stmt in (
+        ("user_email", _MIGRATION_ADD_USER_EMAIL),
+        ("compacted_summary", _MIGRATION_ADD_COMPACTED_SUMMARY),
+        ("compaction_at_turn", _MIGRATION_ADD_COMPACTION_AT_TURN),
+    ):
+        if col_name in cols:
+            continue
         try:
-            conn.execute(_MIGRATION_ADD_USER_EMAIL)
+            conn.execute(stmt)
         except sqlite3.OperationalError as exc:
             if "duplicate column name" not in str(exc).lower():
                 raise
@@ -161,7 +177,7 @@ def get_conversation(conversation_id: str) -> dict[str, Any] | None:
     init_schema()
     with _connect() as conn:
         conv_row = conn.execute(
-            "SELECT id, title, created_at, updated_at FROM conversations WHERE id = ?",
+            "SELECT id, title, created_at, updated_at, user_email FROM conversations WHERE id = ?",
             (conversation_id,),
         ).fetchone()
         if not conv_row:
@@ -296,6 +312,43 @@ def auto_title_from_question(question: str, max_len: int = 60) -> str:
     if len(q) <= max_len:
         return q or "New chat"
     return q[: max_len - 1].rstrip() + "…"
+
+
+# ── Compaction state (G03) ───────────────────────────────────────────────────
+
+def get_compaction_state(conversation_id: str) -> tuple[str | None, int | None]:
+    """Return (compacted_summary, compaction_at_turn) for a conversation.
+
+    Both are None for never-compacted conversations (or conversations
+    created before the G03 migration). Returns (None, None) when the
+    conversation does not exist — caller should treat as "no summary."
+    """
+    init_schema()
+    with _connect() as conn:
+        row = conn.execute(
+            "SELECT compacted_summary, compaction_at_turn FROM conversations WHERE id = ?",
+            (conversation_id,),
+        ).fetchone()
+    if not row:
+        return None, None
+    return row["compacted_summary"], row["compaction_at_turn"]
+
+
+def set_compacted_summary(
+    conversation_id: str,
+    summary: str,
+    at_turn: int,
+) -> None:
+    """Persist the rolling summary and the message-count snapshot at which
+    it was generated. at_turn is the TOTAL message count at the time of
+    compaction; should_refresh() uses it to decide when the next refresh
+    is due."""
+    init_schema()
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE conversations SET compacted_summary = ?, compaction_at_turn = ? WHERE id = ?",
+            (summary, at_turn, conversation_id),
+        )
 
 
 # ── Internal helpers ─────────────────────────────────────────────────────────

@@ -22,14 +22,66 @@ from dataclasses import dataclass, field
 from typing import Literal
 
 from backend import conversation_store, jira_retriever, wiki_retriever
-from backend.feedback_service import log_answer
+from backend.feedback_service import log_answer, prepare_answer_id
 from backend.providers.anthropic_api import AnthropicAPIProvider
 from backend.providers.claude_code import ClaudeCodeProvider
 from backend.system_prompt import load_system_prompt
 
 
+def load_conversation_summary(conversation_id: str | None) -> str:
+    """Return the rolling summary of pre-window turns for this conversation.
+
+    Reads the current `compacted_summary` from the store; if the threshold
+    has been crossed (≥6 new messages since last compaction), regenerates
+    by calling the compactor. Returns "" when:
+      - no conversation_id provided
+      - conversation not found
+      - all messages fit in the recent window (nothing to summarize yet)
+      - compaction is needed but no API key configured (fallback to plain
+        truncation — caller still gets prior_messages from
+        _load_conversation_context)
+    """
+    if not conversation_id:
+        return ""
+    conv = conversation_store.get_conversation(conversation_id)
+    if not conv:
+        return ""
+    all_msgs = [m for m in conv.get("messages", []) if m["role"] in ("user", "assistant")]
+    # Drop the just-inserted current user turn (mirrors _load_conversation_context)
+    if all_msgs and all_msgs[-1]["role"] == "user":
+        all_msgs = all_msgs[:-1]
+    total = len(all_msgs)
+
+    from backend.conversation_compactor import (
+        should_refresh,
+        messages_to_summarize,
+        summarize_old_turns,
+    )
+
+    existing_summary, at_turn = conversation_store.get_compaction_state(conversation_id)
+    if not should_refresh(total, at_turn):
+        return existing_summary or ""
+
+    to_summarize = messages_to_summarize(all_msgs)
+    if not to_summarize:
+        return existing_summary or ""
+
+    new_summary = summarize_old_turns(to_summarize)
+    if new_summary:
+        conversation_store.set_compacted_summary(conversation_id, new_summary, total)
+        return new_summary
+    # Compaction failed (no API key, network, etc.) — keep whatever we had.
+    return existing_summary or ""
+
+
 def _load_conversation_context(conversation_id: str, max_turns: int = 6) -> list[dict]:
     """Return last N user+assistant message pairs from conversation history.
+
+    The caller (api.py) appends the new user message to the store BEFORE calling
+    the orchestrator, so the last message in the store is always the current turn.
+    We drop it here so it doesn't appear in prior_messages (it's embedded in the
+    seeded user_message by the caller).  The even-count guard is a safety net for
+    conversations with corrupted history.
 
     Capped at max_turns * 2 messages so context stays within ~12K tokens.
     """
@@ -37,8 +89,11 @@ def _load_conversation_context(conversation_id: str, max_turns: int = 6) -> list
     if not conv:
         return []
     msgs = [m for m in conv.get("messages", []) if m["role"] in ("user", "assistant")]
+    # Drop the last message if it's the just-inserted current user turn.
+    if msgs and msgs[-1]["role"] == "user":
+        msgs = msgs[:-1]
     tail = msgs[-(max_turns * 2):]
-    # Ensure even count so history always ends on a complete user+assistant pair.
+    # Safety net: ensure even count so we never pass an assistant-first history.
     if len(tail) % 2 != 0:
         tail = tail[1:]
     return [{"role": m["role"], "content": m["content"]} for m in tail]
@@ -135,7 +190,12 @@ def run_deep(
     if role:
         scope_parts.append(f"role: {role}")
 
-    user_message = build_seed_message(question, " | ".join(scope_parts), bundle)
+    # G03: load the rolling summary of pre-window turns. Empty string when
+    # the conversation is short, hasn't been compacted, or compaction fell
+    # back due to missing API key — caller still gets prior_messages from
+    # _load_conversation_context for the recent window in any case.
+    summary = load_conversation_summary(conversation_id)
+    user_message = build_seed_message(question, " | ".join(scope_parts), bundle, summary=summary)
 
     # 3. Run tool loop (using the SAME registry that the preflight used)
     system_prompt = load_deep_system_prompt()
@@ -173,9 +233,15 @@ def run_deep(
     cited_pms = _extract_pms_configs(raw_answer)
     sources = SourceInfo(wiki_pages=cited_wiki, jira_keys=cited_jira, pms_configs=cited_pms)
 
-    # 5. Log answer
+    # 5. Compute the answer_id from the model's literal output (placeholder
+    # intact), inject it into the feedback-prompt template, then log the
+    # RESOLVED text under the pre-computed id. This way the JSONL stores
+    # what the user actually saw, while the id stays derivable from the
+    # model's raw output.
     pf_stats = bundle.stats()
-    answer_id = log_answer(
+    answer_id, created_at = prepare_answer_id(question, raw_answer)
+    raw_answer = _inject_answer_id(raw_answer, answer_id)
+    log_answer(
         question=question,
         answer_text=raw_answer,
         confidence=confidence,
@@ -187,6 +253,8 @@ def run_deep(
             f"tools={len(deep_result.tool_trace)} "
             f"preflight_tickets={pf_stats['tickets_prefetched']} server={server}"
         ),
+        answer_id=answer_id,
+        created_at=created_at,
     )
 
     return OrchestratorResult(
@@ -260,8 +328,13 @@ def run_single_shot(
     cited_pms = _extract_pms_configs(raw_answer)
     sources = SourceInfo(wiki_pages=cited_wiki, jira_keys=cited_jira, pms_configs=cited_pms)
 
-    # 7. Log answer
-    answer_id = log_answer(
+    # 7. Compute the answer_id from the model's raw output (placeholder
+    # intact), inject it into the feedback-prompt template, then log the
+    # RESOLVED text under the pre-computed id. Same pattern as run_deep
+    # (G06 + G29). Guarantees the JSONL matches what the user sees.
+    answer_id, created_at = prepare_answer_id(question, raw_answer)
+    raw_answer = _inject_answer_id(raw_answer, answer_id)
+    log_answer(
         question=question,
         answer_text=raw_answer,
         confidence=confidence,
@@ -269,6 +342,8 @@ def run_single_shot(
         jira_keys=cited_jira,
         pms_configs=cited_pms,
         retrieval_notes=f"mode={mode} keywords={jira_result['keywords']} server={server}",
+        answer_id=answer_id,
+        created_at=created_at,
     )
 
     return OrchestratorResult(
@@ -311,6 +386,26 @@ def claude_code_available() -> bool:
 # ---------------------------------------------------------------------------
 # Private helpers
 # ---------------------------------------------------------------------------
+
+def _inject_answer_id(raw_answer: str, answer_id: str) -> str:
+    """Substitute the <ANSWER_ID> placeholder with the real id, or append a
+    synthetic feedback block if the model omitted both the placeholder and
+    any literal **Answer ID:** marker. Guarantees the user always sees the id.
+
+    The fallback block matches the happy-path template format exactly, so the
+    UX is identical whether or not the model followed the template.
+    """
+    placeholder_present = "<ANSWER_ID>" in raw_answer
+    out = raw_answer.replace("<ANSWER_ID>", answer_id)
+    if not placeholder_present and "**Answer ID:**" not in out:
+        out += (
+            "\n\n---\n"
+            "**Review this answer:** Score 1–5 (5 = fully correct).\n"
+            f"**Answer ID:** `{answer_id}`\n"
+            "If score ≤3, tell me what was wrong or what the answer should have said."
+        )
+    return out
+
 
 def _select_provider(mode: str, api_key: str | None):
     if mode == "claude-code":

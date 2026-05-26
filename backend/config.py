@@ -15,6 +15,11 @@ except ModuleNotFoundError:
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# Atlassian Jira Cloud base URL (e.g. https://moveinsync.atlassian.net). Used
+# by jira_live_tools to hit /rest/api/3/issue/{key} directly when the local
+# mirror is missing a recently-filed ticket. Empty string means "not configured."
+JIRA_BASE_URL = os.getenv("JIRA_BASE_URL", "").rstrip("/")
+
 WIKI_DIR = ROOT / "wiki"
 RAW_DIR = ROOT / "raw"
 JIRA_DB = RAW_DIR / "jira" / "tickets.sqlite"
@@ -49,20 +54,31 @@ def token_for_email(email: str) -> str:
 
 
 def resolve_api_key(request_key: str | None = None) -> str:
-    """Return the server-side key if set, else fall back to the caller-supplied key."""
+    """Return the server-side Anthropic API key.
+
+    Single-key deployment: the server's `ANTHROPIC_API_KEY` env var is the
+    only accepted source. The `request_key` parameter is preserved on the
+    signature only so callers still importing this name don't break at
+    import time — its value is ignored.
+    """
+    del request_key  # explicitly discarded — single-key deployment
     server_key = os.getenv("ANTHROPIC_API_KEY", "").strip()
     if server_key:
         return server_key
-    if request_key:
-        return request_key
     raise ValueError(
-        "No Anthropic API key. Set ANTHROPIC_API_KEY on the server "
-        "or pass claude_api_key in the request."
+        "ANTHROPIC_API_KEY is not configured on the server. "
+        "Set it in the backend's environment (e.g. .env) and restart."
     )
 
 
 def lookup_user_by_token(token: str) -> dict | None:
-    # Check SQLite auth store first (Layer 2 users)
+    # Check SQLite auth store first (Layer 2 users).
+    # NOTE: if auth_store returns None (revoked/expired), we fall through to the
+    # TOML fallback. This means a TOML entry with the same token value could
+    # bypass auth_store revocation. In practice this is prevented by operational
+    # discipline: remove TOML entries for users who have been provisioned in
+    # auth_store. The TOML path exists only for migration compatibility and
+    # should be removed once all users are in auth_store.
     try:
         from backend import auth_store
         result = auth_store.lookup_token(token)
