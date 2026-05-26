@@ -19,6 +19,7 @@ Secrets are never included in the tool_trace — see ToolRegistry._sanitize_str(
 """
 from __future__ import annotations
 
+import os
 import re
 from dataclasses import dataclass, field
 
@@ -27,9 +28,14 @@ from anthropic.types import ToolUseBlock
 
 from backend.tools.registry import ToolRegistry, ToolTraceEntry
 
-_MODEL = "claude-sonnet-4-6"
+# G24: model id configurable via env so we can swap without redeploy.
+_MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
 _MAX_TOKENS = 4096
-_MAX_ROUNDS_ABSOLUTE = 8
+# G10: round cap configurable via env so we can tune in production without
+# redeploy. Default 12 (bumped from 8) — complex PMS-debug queries can need
+# DEFAULT + BUID + 3 OFFICEID + wiki_read + jira_search etc. Needs eval
+# validation when API key arrives.
+_MAX_ROUNDS_ABSOLUTE = int(os.getenv("MAX_TOOL_ROUNDS", "12"))
 
 _FORCE_SYNTHESIS = (
     "You have reached the maximum number of tool-use rounds. "

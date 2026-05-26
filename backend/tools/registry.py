@@ -27,7 +27,13 @@ _ROLE_ORDER = {"viewer": 0, "contributor": 1, "admin": 2}
 
 # Map tool name → minimum role required. Empty = all authenticated users.
 _TOOL_PERMISSIONS: dict[str, str] = {
-    "wiki_propose_edit": "contributor",   # viewer cannot propose edits
+    # Track A: all wiki_propose_* tools queue changes that admins later apply.
+    # Viewer role is read-only and must not be able to write to the proposal
+    # queue (it's audit-relevant state).
+    "wiki_propose_new": "contributor",
+    "wiki_propose_edit": "contributor",
+    "wiki_propose_append": "contributor",
+    "wiki_propose_multi_edit": "contributor",
 }
 
 
