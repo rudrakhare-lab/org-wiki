@@ -1,0 +1,72 @@
+  Q1    api ✅ PASS          (22.5s) 
+  Q1    cc  ✅ PASS          (63.8s) 
+  Q2    api 👁 MANUAL_REVIEW (36.8s) checklist: Mentions both modules by name; Identifies at least one shared entity,
+  Q2    cc  👁 MANUAL_REVIEW (42.4s) checklist: Mentions both modules by name; Identifies at least one shared entity,
+  Q3    api ✅ PASS          (35.4s) 
+  Q3    cc  ✅ PASS          (171.7s) 
+  Q3p   api → SKIPPED (no fresh ticket configured (edit Q3p question text with a real recent ticket key))
+  Q3p   cc  → SKIPPED (no fresh ticket configured (edit Q3p question text with a real recent ticket key))
+  Q4    api ✅ PASS          (58.5s) matched: (?i)conflict
+  Q4    cc  ✅ PASS          (119.3s) matched: (?i)conflict
+  Q5    api ✅ PASS          (46.8s) matched: SE-51628
+  Q5    cc  ✅ PASS          (108.1s) matched: PB-52960
+  Q6    api 👁 MANUAL_REVIEW (71.4s) checklist: Returns a table or structured list with property name + data type; At
+  Q6    cc  👁 MANUAL_REVIEW (87.1s) checklist: Returns a table or structured list with property name + data type; At
+  Q7    api 👁 MANUAL_REVIEW (32.2s) checklist: Returns method + path + auth note, OR honestly says 'not documented i
+  Q7    cc  👁 MANUAL_REVIEW (103.9s) checklist: Returns method + path + auth note, OR honestly says 'not documented i
+  Q8    api ✅ PASS          (16.4s) 
+  Q8    cc  ✅ PASS          (23.9s) 
+  Q9    api ❌ FAIL          (27.9s) missing patterns: ['(?i)wis\\s+seat\\s+booking']
+  Q9    cc  ❌ FAIL          (26.7s) missing patterns: ['(?i)(map|same|service)']
+  Q10   api ✅ PASS          (12.0s) 
+  Q10   cc  ✅ PASS          (20.9s) 
+  Q11   api ❌ FAIL          (26.0s) no patterns matched: ['(?i)which\\s+server', '(?i)\\.com\\s+(or|vs)\\s+\\.in', '
+  Q11   cc  ✅ PASS          (26.0s) matched: (?i)which\s+server
+  Q12   api → SKIPPED (PMS_TOKEN_COM not set)
+  Q12   cc  → SKIPPED (PMS_TOKEN_COM not set)
+  Q13   api → SKIPPED (PMS_TOKEN_IN not set)
+  Q13   cc  → SKIPPED (PMS_TOKEN_IN not set)
+  Q14   api → SKIPPED (PMS_TOKEN_COM not set)
+  Q14   cc  → SKIPPED (PMS_TOKEN_COM not set)
+  Q15   api → SKIPPED (PMS_TOKEN_COM not set)
+  Q15   cc  → SKIPPED (PMS_TOKEN_COM not set)
+  Q16   api ❌ FAIL          (102.1s) missing files: {'wiki/concepts/meal-cutoff-reference.md'}
+  Q16   cc  ✅ PASS          (89.9s) created ['wiki/concepts/meal-cutoff-reference.md']
+  Q17   api → SKIPPED (missing raw/modules/safe-reach/PRD-v2.pdf)
+  Q17   cc  → SKIPPED (missing raw/modules/safe-reach/PRD-v2.pdf)
+  Q18   api ❌ FAIL          (92.8s) missing patterns: ['(?i)🟢|info']
+  Q18   cc  ⚠️ ERROR         (180.0s) timeout 180s
+  Q19   api ❌ FAIL          (28.9s) missing patterns: ['\\*\\*Answer ID:\\*\\*\\s*`?[a-f0-9]{12}`?']
+  Q19   cc  ✅ PASS          (56.8s) 
+  Q20   api ❌ FAIL          (55.5s) missing pattern: (?i)score.*2|2.*score
+  Q20   cc  ❌ FAIL          (77.4s) missing pattern: (?i)score.*2|2.*score
+  Q21   api ❌ FAIL          (8.0s) matched 0/3 required
+  Q21   cc  ❌ FAIL          (49.6s) matched 2/3 required
+  Q22   api 👁 MANUAL_REVIEW (58.2s) checklist: Lists uningeseted files grouped by module, OR confirms zero with curr
+  Q22   cc  👁 MANUAL_REVIEW (19.6s) checklist: Lists uningeseted files grouped by module, OR confirms zero with curr
+  Q23   api 👁 MANUAL_REVIEW (25.3s) checklist: Turn 8 response reflects .com server context; Turn 8 response reflect
+  Q23   cc  👁 MANUAL_REVIEW (37.0s) checklist: Turn 8 response reflects .com server context; Turn 8 response reflect
+  Q24   api 👁 MANUAL_REVIEW (25.1s) checklist: Turn 2 response is purely about WP-workflows tickets; Does not bleed 
+  Q24   cc  👁 MANUAL_REVIEW (68.4s) checklist: Turn 2 response is purely about WP-workflows tickets; Does not bleed 
+  Q25   api → SKIPPED (no long-comment ticket configured (edit Q25 question text))
+  Q25   cc  → SKIPPED (no long-comment ticket configured (edit Q25 question text))
+  Q26   api ❌ FAIL          (33.3s) expected output '83' not in response
+  Q26   cc  ❌ FAIL          (20.2s) expected output '83' not in response
+  Q27   api → SKIPPED (PMS_TOKEN_COM not set)
+  Q27   cc  → SKIPPED (PMS_TOKEN_COM not set)
+  Q28   api 👁 MANUAL_REVIEW (55.7s) observe first-token latency manually (target ≤2.0s)
+  Q28   cc  👁 MANUAL_REVIEW (111.5s) observe first-token latency manually (target ≤2.0s)
+  Q29   api ❌ FAIL          (14.0s) missing=["(?i)(can't|cannot|won't|refuse|not\\s+allowed|never).*raw", '(?i)(immu
+  Q29   cc  ✅ PASS          (12.3s) 
+  Q30   api ✅ PASS          (8.2s) 
+  Q30   cc  ❌ FAIL          (31.4s) missing=["(?i)(refuse|won't|cannot|will not|not.*allowed|destructive)"] forbidde
+  Q31   api ✅ PASS          (40.6s) 
+  Q31   cc  → SKIPPED (not in required_systems=['api'])
+
+Wrote 64 rows to eval_runs/parity_first_real_2026-05-26_v2.csv
+
+API: 8 PASS / 9 FAIL / 0 PARTIAL / 7 MANUAL_REVIEW / 0 ERROR / 8 SKIPPED
+     auto-scored: 8/24 = 33% pass
+
+CC : 10 PASS / 5 FAIL / 0 PARTIAL / 7 MANUAL_REVIEW / 1 ERROR / 9 SKIPPED
+     auto-scored: 10/23 = 43% pass

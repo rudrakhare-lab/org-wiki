@@ -1,0 +1,52 @@
+  Q1    api ✅ PASS          (38.1s) 
+  Q1    cc  ❌ FAIL          (53.9s) missing patterns: ['(?im)^\\*\\*Answer:\\*\\*', '(?im)^\\*\\*Latest evidence', '
+  Q2    api 👁 MANUAL_REVIEW (39.4s) checklist: Mentions both modules by name; Identifies at least one shared entity,
+  Q2    cc  👁 MANUAL_REVIEW (54.6s) checklist: Mentions both modules by name; Identifies at least one shared entity,
+  Q3    api ✅ PASS          (27.6s) 
+  Q3    cc  ⚠️ ERROR         (180.0s) timeout 180s
+  Q3p   api → SKIPPED (no fresh ticket configured (edit Q3p question text with a real recent ticket key))
+  Q3p   cc  → SKIPPED (no fresh ticket configured (edit Q3p question text with a real recent ticket key))
+  Q4    api ✅ PASS          (59.5s) matched: ⚠️
+  Q4    cc  ❌ FAIL          (137.5s) no patterns matched: ['⚠️', '(?i)conflict', '(?i)evolved|superseded|replaced|pre
+  Q5    api ✅ PASS          (47.7s) matched: SE-51628
+  Q5    cc  ❌ FAIL          (100.5s) no patterns matched: ['PB-52960', 'SE-51628', 'SE-47565', '(?i)ets|employee\\s+t
+  Q6    api 👁 MANUAL_REVIEW (69.7s) checklist: Returns a table or structured list with property name + data type; At
+  Q6    cc  👁 MANUAL_REVIEW (92.2s) checklist: Returns a table or structured list with property name + data type; At
+  Q7    api 👁 MANUAL_REVIEW (43.8s) checklist: Returns method + path + auth note, OR honestly says 'not documented i
+  Q7    cc  👁 MANUAL_REVIEW (104.4s) checklist: Returns method + path + auth note, OR honestly says 'not documented i
+  Q8    api ✅ PASS          (24.6s) 
+  Q8    cc  ✅ PASS          (24.4s) 
+  Q9    api ❌ FAIL          (28.2s) missing patterns: ['(?i)wis\\s+seat\\s+booking']
+  Q9    cc  ❌ FAIL          (52.7s) missing patterns: ['(?i)wis\\s+seat\\s+booking', '(?i)desk-management', '(?i)(ma
+  Q10   api ✅ PASS          (10.7s) 
+  Q10   cc  ❌ FAIL          (33.8s) missing patterns: ['(?i)cafeteria', '(?i)owned\\s+by|owner|source\\s+of\\s+truth
+  Q11   api ❌ FAIL          (67.4s) no patterns matched: ['(?i)which\\s+server', '(?i)\\.com\\s+(or|vs)\\s+\\.in', '
+  Q11   cc  ✅ PASS          (86.4s) matched: (?i)which\s+server
+  Q12   api → SKIPPED (PMS_TOKEN_COM not set)
+  Q12   cc  → SKIPPED (PMS_TOKEN_COM not set)
+  Q13   api → SKIPPED (PMS_TOKEN_IN not set)
+  Q13   cc  → SKIPPED (PMS_TOKEN_IN not set)
+  Q14   api → SKIPPED (PMS_TOKEN_COM not set)
+  Q14   cc  → SKIPPED (PMS_TOKEN_COM not set)
+  Q15   api → SKIPPED (PMS_TOKEN_COM not set)
+  Q15   cc  → SKIPPED (PMS_TOKEN_COM not set)
+  Q16   api ❌ FAIL          (88.5s) missing files: {'wiki/concepts/meal-cutoff-reference.md'}
+  Q16   cc  ✅ PASS          (160.0s) created ['wiki/concepts/meal-cutoff-reference.md']
+  Q17   api → SKIPPED (missing raw/modules/safe-reach/PRD-v2.pdf)
+  Q17   cc  → SKIPPED (missing raw/modules/safe-reach/PRD-v2.pdf)
+  Q18   api ✅ PASS          (130.0s) 
+  Q18   cc  ⚠️ ERROR         (180.0s) timeout 180s
+  Q19   api ❌ FAIL          (24.1s) missing patterns: ['\\*\\*Answer ID:\\*\\*\\s*`?[a-f0-9]{12}`?']
+  Q19   cc  ❌ FAIL          (51.3s) missing patterns: ['\\*\\*Answer ID:\\*\\*\\s*`?[a-f0-9]{12}`?']
+Traceback (most recent call last):
+  File "/Users/rudrakhare/Desktop/my-wiki/org-wiki/eval/parity/runner.py", line 405, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/Users/rudrakhare/Desktop/my-wiki/org-wiki/eval/parity/runner.py", line 401, in main
+    return run(args)
+  File "/Users/rudrakhare/Desktop/my-wiki/org-wiki/eval/parity/runner.py", line 336, in run
+    resp = run_multi_turn(q, system, api_kwargs if system == "api" else {"timeout_s": args.timeout})
+  File "/Users/rudrakhare/Desktop/my-wiki/org-wiki/eval/parity/runner.py", line 254, in run_multi_turn
+    turns = question["multi_turn"]["turns"]
+            ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+KeyError: 'turns'
