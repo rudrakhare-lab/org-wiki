@@ -1,0 +1,217 @@
+/* Conwo — global design tokens & base reset
+ *
+ * A calm, minimal palette inspired by Claude / ChatGPT.
+ * Warm off-white background, dark readable text, slate accent.
+ */
+
+:root {
+  /* surfaces */
+  --bg: #fafaf9;
+  --surface: #ffffff;
+  --surface-muted: #f5f5f4;
+  --surface-hover: #efeeec;
+  --surface-inset: #f9f8f6;
+
+  /* borders */
+  --border: #e7e5e4;
+  --border-strong: #d6d3d1;
+  --border-focus: #94a3b8;
+
+  /* text */
+  --text: #1c1917;
+  --text-muted: #57534e;
+  --text-subtle: #a8a29e;
+  --text-on-accent: #ffffff;
+
+  /* accent — calm dark slate */
+  --accent: #1e293b;
+  --accent-hover: #0f172a;
+  --accent-soft: #f1f5f9;
+  --accent-ring: rgba(30, 41, 59, 0.12);
+
+  /* status — desaturated, used only for badges/banners */
+  --success: #15803d;
+  --success-soft: #f0fdf4;
+  --success-border: #bbf7d0;
+
+  --warning: #92400e;
+  --warning-soft: #fefce8;
+  --warning-border: #fde68a;
+
+  --error: #b91c1c;
+  --error-soft: #fef2f2;
+  --error-border: #fecaca;
+
+  --info: #1e40af;
+  --info-soft: #eff6ff;
+  --info-border: #bfdbfe;
+
+  /* radii */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius: 8px;
+  --radius-lg: 12px;
+  --radius-pill: 999px;
+
+  /* shadows — barely there */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow: 0 1px 3px rgba(15, 23, 42, 0.05), 0 8px 24px -8px rgba(15, 23, 42, 0.06);
+
+  /* fonts */
+  --font: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto,
+    'Helvetica Neue', sans-serif;
+  --font-mono: 'SF Mono', 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html { background: var(--bg); }
+body { background: transparent; }
+
+/* Liquid chrome — subtle metallic mesh behind the app shell.
+ *
+ * Layered low-opacity radial gradients in warm + cool neutrals.
+ * Fixed to the viewport, sits at z-index 0 with the app shell at 1.
+ * A slow drift on a 60s loop gives it just enough life to feel alive
+ * without distracting from content. `prefers-reduced-motion` stops the
+ * animation entirely.
+ */
+.liquid-chrome {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /* warm cream wash — the canvas the painterly blobs sit on */
+  background: linear-gradient(180deg, #f5efe4 0%, #f0e8d8 100%);
+}
+
+/* Layer A — primary blobs: lavender, plum, amber, honey, cream */
+.liquid-chrome::before {
+  content: '';
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(closest-side at 22% 28%, rgba(184, 163, 196, 0.85) 0%, transparent 55%),
+    radial-gradient(closest-side at 78% 22%, rgba(170, 152, 188, 0.7)  0%, transparent 55%),
+    radial-gradient(closest-side at 82% 72%, rgba(212, 155, 105, 0.78) 0%, transparent 55%),
+    radial-gradient(closest-side at 30% 82%, rgba(232, 195, 140, 0.72) 0%, transparent 58%),
+    radial-gradient(closest-side at 55% 50%, rgba(245, 230, 200, 0.6)  0%, transparent 70%);
+  filter: blur(70px) saturate(130%);
+  animation: chrome-flow-a 38s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+/* Layer B — deep plum + honey accents, soft-light blend for painterly mix */
+.liquid-chrome::after {
+  content: '';
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(closest-side at 42% 62%, rgba(140, 118, 158, 0.55) 0%, transparent 55%),
+    radial-gradient(closest-side at 65% 38%, rgba(220, 178, 120, 0.6)  0%, transparent 55%),
+    radial-gradient(closest-side at 12% 60%, rgba(168, 142, 180, 0.55) 0%, transparent 50%),
+    radial-gradient(closest-side at 90% 50%, rgba(235, 200, 150, 0.55) 0%, transparent 55%);
+  filter: blur(90px) saturate(125%);
+  mix-blend-mode: soft-light;
+  animation: chrome-flow-b 52s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+@keyframes chrome-flow-a {
+  0%   { transform: translate(0,    0)   scale(1)    rotate(0deg);  }
+  50%  { transform: translate(4%,  -3%)  scale(1.08) rotate(4deg);  }
+  100% { transform: translate(-3%,  5%)  scale(0.96) rotate(-6deg); }
+}
+
+@keyframes chrome-flow-b {
+  0%   { transform: translate(2%,   1%)  scale(1.04) rotate(0deg);  }
+  50%  { transform: translate(-5%,  4%)  scale(1.14) rotate(-4deg); }
+  100% { transform: translate(4%,  -3%)  scale(1.08) rotate(7deg);  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .liquid-chrome::before,
+  .liquid-chrome::after { animation: none; }
+}
+
+/* The app shell sits above the chrome */
+app-root { position: relative; z-index: 1; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+code, pre, kbd {
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color 0.15s;
+  &:hover { text-decoration: underline; text-decoration-color: var(--text-subtle); }
+}
+
+input, select, textarea, button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+button { cursor: pointer; }
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled {
+  cursor: not-allowed;
+}
+
+input, select, textarea {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+
+  &:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+  }
+}
+
+::selection {
+  background: rgba(30, 41, 59, 0.12);
+  color: var(--text);
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }

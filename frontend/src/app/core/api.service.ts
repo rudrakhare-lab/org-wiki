@@ -7,7 +7,6 @@ export type QueryMode = 'api' | 'claude-code' | 'agent';
 export interface QueryRequest {
   question: string;
   mode?: QueryMode;
-  claude_api_key?: string;
   server: 'com' | 'in';
   buid?: string;
   functional_area?: string;
@@ -112,6 +111,56 @@ export interface WikiPage {
   path: string;
   title: string;
   content: string;
+}
+
+export interface OperationalStatus {
+  jira_mirror_age_hours: number | null;
+  last_successful_sync: string | null;
+  wiki_page_count: number;
+  pending_admin_review_count: number;
+}
+
+export type ProposalType = 'new' | 'edit' | 'append' | 'multi_edit' | 'legacy_text';
+export type ProposalStatus = 'pending' | 'applied' | 'rejected';
+
+export interface CompanionEdit {
+  kind: string;
+  field: string;
+  edits: { page_path: string; reciprocal_field: string; add: string | null; remove: string | null }[];
+  note: string;
+}
+
+export interface WikiProposal {
+  id: string;
+  proposal_type: ProposalType;
+  status: ProposalStatus;
+  submitter_email: string;
+  reason: string;
+  answer_id: string | null;
+  created_at: string;
+  resolved_at: string | null;
+  applied_at: string | null;
+  applied_by: string | null;
+  admin_note: string | null;
+  validation_log: string[];
+  suggested_companion_edit: CompanionEdit | null;
+  // Type-specific fields
+  page_path?: string;
+  content?: string;
+  old_string?: string;
+  new_string?: string;
+  edits?: { page_path: string; old_string: string; new_string: string }[];
+  // Legacy-text only
+  proposed_change?: string;
+}
+
+export interface ProposalApplyResult {
+  success: boolean;
+  code?: string;
+  message?: string;
+  files_written?: string[];
+  rollback_status?: string;
+  error?: string;
 }
 
 // ── Claude Code Agent streaming (NDJSON over SSE) ──────────────────────────
@@ -252,7 +301,6 @@ export interface FeedbackRecord {
 
 const API_BASE = 'http://localhost:8000';
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
-const API_KEY_STORAGE = 'conwo_anthropic_key';
 const MODE_STORAGE = 'conwo_query_mode';
 
 @Injectable({ providedIn: 'root' })
@@ -260,14 +308,6 @@ export class ApiService {
   private http = inject(HttpClient);
 
   // ── API key (stored in localStorage) ──────────────────────────────────
-
-  getStoredApiKey(): string {
-    return localStorage.getItem(API_KEY_STORAGE) ?? '';
-  }
-
-  setApiKey(key: string): void {
-    localStorage.setItem(API_KEY_STORAGE, key);
-  }
 
   getAdminToken(): string {
     return localStorage.getItem(ADMIN_TOKEN_KEY) ?? '';
@@ -468,6 +508,16 @@ export class ApiService {
     return this.http.post<{ feedback_id: string; status: string }>(`${API_BASE}/feedback`, req);
   }
 
+  // ── Operational status (chat-page banner; any authenticated user) ─────
+
+  getStatus(): Observable<OperationalStatus> {
+    const token = this.getAdminToken();
+    const headers = token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+      : new HttpHeaders();
+    return this.http.get<OperationalStatus>(`${API_BASE}/status`, { headers });
+  }
+
   // ── Admin ──────────────────────────────────────────────────────────────
 
   private adminHeaders(): HttpHeaders {
@@ -500,6 +550,37 @@ export class ApiService {
   applyPatch(feedbackId: string): Observable<{ success: boolean; output: string }> {
     return this.http.post<{ success: boolean; output: string }>(
       `${API_BASE}/admin/feedback/${feedbackId}/apply`, {},
+      { headers: this.adminHeaders() }
+    );
+  }
+
+  // ── Wiki proposals (Track A) ───────────────────────────────────────────
+
+  listProposals(status?: ProposalStatus): Observable<{ proposals: WikiProposal[] }> {
+    const url = status
+      ? `${API_BASE}/admin/wiki/proposals?status=${status}`
+      : `${API_BASE}/admin/wiki/proposals`;
+    return this.http.get<{ proposals: WikiProposal[] }>(url, { headers: this.adminHeaders() });
+  }
+
+  applyProposal(id: string): Observable<ProposalApplyResult> {
+    return this.http.post<ProposalApplyResult>(
+      `${API_BASE}/admin/wiki/proposals/${id}/apply`, {},
+      { headers: this.adminHeaders() }
+    );
+  }
+
+  markProposalApplied(id: string): Observable<ProposalApplyResult> {
+    return this.http.post<ProposalApplyResult>(
+      `${API_BASE}/admin/wiki/proposals/${id}/mark-applied`, {},
+      { headers: this.adminHeaders() }
+    );
+  }
+
+  rejectProposal(id: string, admin_note?: string): Observable<ProposalApplyResult> {
+    return this.http.post<ProposalApplyResult>(
+      `${API_BASE}/admin/wiki/proposals/${id}/reject`,
+      { admin_note: admin_note ?? '' },
       { headers: this.adminHeaders() }
     );
   }

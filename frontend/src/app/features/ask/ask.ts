@@ -6,13 +6,13 @@ import {
   ApiService,
   ChatMessage,
   ConversationSummary,
+  OperationalStatus,
   QueryMode,
   QueryResponse,
   SourceInfo,
 } from '../../core/api.service';
 import { ConfidenceBadge } from '../../shared/confidence-badge/confidence-badge';
 import { SourceDrawer } from '../../shared/source-drawer/source-drawer';
-import { ApiKeyInput } from '../../shared/api-key-input/api-key-input';
 import { ChatSidebar } from '../../shared/chat-sidebar/chat-sidebar';
 import { FeedbackPanel } from '../ask/feedback-panel';
 import { ModeSelector } from '../../shared/mode-selector/mode-selector';
@@ -28,7 +28,7 @@ const PMS_SERVICES = [
   selector: 'app-ask',
   imports: [
     CommonModule, FormsModule, RouterLink,
-    ConfidenceBadge, SourceDrawer, ApiKeyInput, FeedbackPanel,
+    ConfidenceBadge, SourceDrawer, FeedbackPanel,
     ModeSelector, AgentTranscript, ChatSidebar,
   ],
   template: `
@@ -45,6 +45,25 @@ const PMS_SERVICES = [
 
       <!-- ── Chat column ─────────────────────────────────────────────── -->
       <div class="chat-column">
+        @if (visibleStatusBanners().length > 0) {
+          <div class="status-banners">
+            @for (banner of visibleStatusBanners(); track banner.key) {
+              <div class="status-banner" [class.s-warning]="banner.severity === 'warning'">
+                <span class="status-banner-icon" aria-hidden="true">{{ banner.icon }}</span>
+                <span class="status-banner-text">{{ banner.text }}</span>
+                @if (banner.linkLabel) {
+                  <a [routerLink]="banner.linkRoute" class="status-banner-link">{{ banner.linkLabel }}</a>
+                }
+                <button
+                  type="button"
+                  class="status-banner-dismiss"
+                  (click)="dismissBanner(banner.key)"
+                  aria-label="Dismiss">×</button>
+              </div>
+            }
+          </div>
+        }
+
         <section class="conversation" aria-live="polite">
           <div class="conversation-inner">
 
@@ -142,6 +161,54 @@ const PMS_SERVICES = [
                       </details>
                     }
 
+                    @if (m.id === lastAssistantId()) {
+                      @let need = parseNeedClarification(m.content);
+                      @if (need) {
+                        <div class="need-affordance" role="group" aria-label="Clarification needed">
+                          <div class="need-question">
+                            <strong>Need:</strong> {{ need.question }}
+                          </div>
+                          @if (need.shape === 'binary' && need.options) {
+                            <div class="need-buttons">
+                              <button
+                                type="button"
+                                class="need-btn"
+                                [disabled]="loading() || agentActive()"
+                                (click)="answerNeed(need.options[0])">
+                                {{ need.options[0] }}
+                              </button>
+                              <button
+                                type="button"
+                                class="need-btn"
+                                [disabled]="loading() || agentActive()"
+                                (click)="answerNeed(need.options[1])">
+                                {{ need.options[1] }}
+                              </button>
+                            </div>
+                          } @else {
+                            <div class="need-input-row">
+                              <input
+                                type="text"
+                                class="need-input"
+                                [(ngModel)]="needInputDraft"
+                                [placeholder]="need.question"
+                                [disabled]="loading() || agentActive()"
+                                (keydown.enter)="answerNeed(needInputDraft)"
+                                aria-label="Your clarification"
+                              />
+                              <button
+                                type="button"
+                                class="need-btn"
+                                [disabled]="!needInputDraft.trim() || loading() || agentActive()"
+                                (click)="answerNeed(needInputDraft)">
+                                Send
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      }
+                    }
+
                     @if (m.answer_id) {
                       <app-feedback-panel
                         [answerId]="m.answer_id"
@@ -190,8 +257,10 @@ const PMS_SERVICES = [
         <footer class="composer-wrap">
           <div class="composer">
 
-            @if (mode() === 'api' && !apiKey && !hasServerKey()) {
-              <app-api-key-input (keyChanged)="onApiKeyChange($event)" />
+            @if (mode() === 'api' && !hasServerKey()) {
+              <div class="notice notice-warning">
+                This deployment is missing an API key. Contact your admin.
+              </div>
             }
 
             @if (mode() === 'agent' && !claudeCodeAvailable()) {
@@ -291,13 +360,6 @@ const PMS_SERVICES = [
                 [localDev]="claudeCodeLocalDev()"
                 (modeChanged)="onModeChange($event)"
               />
-              @if (mode() === 'api' && apiKey) {
-                <span class="key-indicator" title="API key configured">
-                  <span class="key-dot"></span>
-                  Key set ·••••{{ apiKey.slice(-4) }}
-                  <button class="link-btn" (click)="clearApiKey()" type="button">change</button>
-                </span>
-              }
             </div>
           </div>
         </footer>
@@ -316,7 +378,6 @@ export class Ask implements OnInit {
   officeid = '';
   roomid = '';
   role = '';
-  apiKey = '';
 
   readonly pmsServices = PMS_SERVICES;
 
@@ -335,11 +396,17 @@ export class Ask implements OnInit {
   sidebarLoading = signal(false);
   agentRequest = signal<AgentRequest | null>(null);
 
+  // Operational status banner (G04/G31 frontend half — Jira freshness +
+  // admin review queue). Polled once at chat-page load; cached in the signal
+  // so dismissals persist per session via sessionStorage.
+  operationalStatus = signal<OperationalStatus | null>(null);
+  private dismissedBanners = new Set<string>(this.readDismissed());
+  private readonly STALE_THRESHOLD_HOURS = 36;
+
   ngOnInit() {
     const stored = this.api.getStoredMode();
     // Migrate any user previously on the legacy single-shot mode to Deep Search.
     this.mode.set(stored === 'claude-code' ? 'api' : stored);
-    this.apiKey = this.api.getStoredApiKey();
     this.api.checkClaudeCodeHealth().subscribe({
       next: r => {
         this.claudeCodeAvailable.set(r.available);
@@ -357,6 +424,74 @@ export class Ask implements OnInit {
       error: () => {},
     });
     this.refreshConversations();
+    this.loadStatus();
+  }
+
+  // ── Operational status banner ────────────────────────────────────────
+
+  private loadStatus() {
+    this.api.getStatus().subscribe({
+      next: s => this.operationalStatus.set(s),
+      error: () => this.operationalStatus.set(null),  // silent — banner is best-effort
+    });
+  }
+
+  private readDismissed(): string[] {
+    try {
+      const raw = sessionStorage.getItem('conwo.dismissedBanners');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  private writeDismissed() {
+    try {
+      sessionStorage.setItem('conwo.dismissedBanners', JSON.stringify([...this.dismissedBanners]));
+    } catch {
+      // sessionStorage may be unavailable in private browsing — degrade silently
+    }
+  }
+
+  visibleStatusBanners(): {
+    key: string;
+    severity: 'warning' | 'info';
+    icon: string;
+    text: string;
+    linkLabel?: string;
+    linkRoute?: string;
+  }[] {
+    const s = this.operationalStatus();
+    if (!s) return [];
+    const out: { key: string; severity: 'warning' | 'info'; icon: string; text: string;
+                 linkLabel?: string; linkRoute?: string }[] = [];
+    if (s.jira_mirror_age_hours !== null && s.jira_mirror_age_hours > this.STALE_THRESHOLD_HOURS) {
+      out.push({
+        key: 'stale-jira',
+        severity: 'warning',
+        icon: '⚠️',
+        text: `Jira data is ${Math.round(s.jira_mirror_age_hours)} hours old. Recent tickets may not appear in answers.`,
+      });
+    }
+    if (s.pending_admin_review_count > 0 && this.api.isAdmin()) {
+      const n = s.pending_admin_review_count;
+      out.push({
+        key: 'admin-queue',
+        severity: 'info',
+        icon: '📋',
+        text: `${n} wiki proposal${n === 1 ? '' : 's'} pending your review.`,
+        linkLabel: 'Open admin',
+        linkRoute: '/admin',
+      });
+    }
+    return out.filter(b => !this.dismissedBanners.has(b.key));
+  }
+
+  dismissBanner(key: string) {
+    this.dismissedBanners.add(key);
+    this.writeDismissed();
+    // Signal the operationalStatus to re-trigger downstream readers
+    this.operationalStatus.set(this.operationalStatus());
   }
 
   // ── Sidebar ──────────────────────────────────────────────────────────
@@ -411,21 +546,12 @@ export class Ask implements OnInit {
     this.error.set('');
   }
 
-  onApiKeyChange(key: string) {
-    this.apiKey = key;
-  }
-
-  clearApiKey() {
-    this.apiKey = '';
-    this.api.setApiKey('');
-  }
-
   hasAdminToken(): boolean {
     return !!this.api.getAdminToken();
   }
 
   canAsk(): boolean {
-    if (this.mode() === 'api') return !!this.apiKey || this.hasServerKey();
+    if (this.mode() === 'api') return this.hasServerKey();
     if (this.mode() === 'agent') {
       if (!this.claudeCodeAvailable()) return false;
       return this.claudeCodeLocalDev() || this.hasAdminToken();
@@ -454,8 +580,8 @@ export class Ask implements OnInit {
     const q = this.question.trim();
     if (!q || !this.canAsk()) return;
 
-    if (this.mode() === 'api' && !this.apiKey && !this.hasServerKey()) {
-      this.error.set('Add your Anthropic API key in the composer to use Deep Search.');
+    if (this.mode() === 'api' && !this.hasServerKey()) {
+      this.error.set('This deployment is missing an API key. Contact your admin.');
       return;
     }
     if (this.mode() === 'agent' && !this.hasAdminToken() && !this.claudeCodeLocalDev()) {
@@ -496,7 +622,6 @@ export class Ask implements OnInit {
     const payload = {
       question: q,
       mode: 'api' as QueryMode,
-      claude_api_key: this.apiKey,
       server: this.server,
       buid: this.buid || undefined,
       service: this.service || undefined,
@@ -572,15 +697,15 @@ export class Ask implements OnInit {
   sendButtonTitle(): string {
     if (this.loading() || this.agentActive()) return 'Working…';
     if (!this.question.trim()) return 'Type a question first';
-    if (this.mode() === 'api' && !this.apiKey && !this.hasServerKey()) {
-      return 'Add your Anthropic API key in the composer to use Deep Search.';
+    if (this.mode() === 'api' && !this.hasServerKey()) {
+      return 'This deployment is missing an API key. Contact your admin.';
     }
     if (this.mode() === 'agent') {
       if (!this.claudeCodeAvailable()) {
         return 'Claude Code CLI is not installed on the backend machine.';
       }
       if (!this.claudeCodeLocalDev() && !this.hasAdminToken()) {
-        return 'Sign in via Admin, or start the backend with CONWO_LOCAL_CLAUDE_CODE=true for local-dev.';
+        return 'Claude Code mode requires admin access. Sign in with an admin token.';
       }
     }
     return 'Send';
@@ -634,9 +759,70 @@ export class Ask implements OnInit {
     return /"error"|"code"\s*:\s*"(?:tool_exception|unknown_tool|api_error)"/i.test(out);
   }
 
+  stripAnswerIdFooter(md: string): string {
+    // Backend orchestrator (or the model following the system-prompt template)
+    // appends a "Review this answer / Answer ID / If score ≤3" block. The
+    // structured FeedbackPanel renders that interaction separately — strip the
+    // markdown duplicate so the user doesn't see the prompt twice.
+    return md.replace(/\n+---\n\*\*Review this answer:\*\*[\s\S]*$/, '');
+  }
+
+  stripNeedFooter(md: string): string {
+    // Strip the "**Need:** ..." clarification suffix — the structured affordance
+    // (see parseNeedClarification + template) renders the question separately.
+    return md.replace(/\n+\*\*Need:\*\*[^\n]*(?:\n[^*\n][^\n]*)*$/, '');
+  }
+
+  parseNeedClarification(content: string | null | undefined):
+    { question: string; shape: 'binary' | 'text'; options?: [string, string] } | null {
+    if (!content) return null;
+    const m = content.match(/\*\*Need:\*\*\s*(.+?)(?:\n|$)/);
+    if (!m) return null;
+    const question = m[1].trim();
+    // Binary alternatives: ".com or .in?", "modules/x or modules/y?", "yes or no?"
+    // First char may be a dot (e.g. ".com") or a word char; rest is slug-shaped to
+    // avoid matching prose like "fix it or break it".
+    const binary = question.match(/(?:^|\s)([\w.][\w\-./]{0,40})\s+or\s+([\w.][\w\-./]{0,40})\?/);
+    if (binary) {
+      return { question, shape: 'binary', options: [binary[1], binary[2]] };
+    }
+    return { question, shape: 'text' };
+  }
+
+  lastAssistantId(): string | null {
+    const all = this.messages();
+    for (let i = all.length - 1; i >= 0; i--) {
+      if (all[i].role === 'assistant') return all[i].id;
+    }
+    return null;
+  }
+
+  private lastUserQuestion(): string {
+    const all = this.messages();
+    for (let i = all.length - 1; i >= 0; i--) {
+      if (all[i].role === 'user') return all[i].content;
+    }
+    return '';
+  }
+
+  needInputDraft = '';
+
+  answerNeed(choice: string) {
+    const c = (choice ?? '').trim();
+    if (!c) return;
+    const original = this.lastUserQuestion();
+    // Construct the follow-up: original question + clarification answer.
+    // Punctuation is best-effort — if the model parses imperfectly, the user
+    // can always retype.
+    const sep = original.endsWith('.') || original.endsWith('?') ? '' : '.';
+    this.question = `${original}${sep} ${c}.`;
+    this.needInputDraft = '';
+    this.ask();
+  }
+
   renderMarkdown(md: string | null | undefined): string {
     if (!md) return '';
-    return md
+    return this.stripNeedFooter(this.stripAnswerIdFooter(md))
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
       .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
