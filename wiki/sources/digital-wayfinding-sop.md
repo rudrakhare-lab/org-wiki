@@ -1,6 +1,6 @@
 ---
 type: source
-raw_path: raw/modules/employee-experience/Digital Wayfinding - Implementation SOP Document.docx
+raw_path: raw/modules/digital-wayfinding/Digital Wayfinding - Implementation SOP Document.docx
 ingested: 2026-04-28
 doc_type: spec
 ---
