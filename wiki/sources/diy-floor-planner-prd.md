@@ -1,6 +1,6 @@
 ---
 type: source
-raw_path: raw/modules/floor-kiosk/Copy of DIY Floor Planner Version Control - PRD.docx
+raw_path: raw/modules/floor-kiosk/Copy of Copy of DIY Floor Planner Version Control - PRD.docx
 ingested: 2026-04-28
 doc_type: PRD
 ---
