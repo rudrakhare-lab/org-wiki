@@ -3,7 +3,7 @@ type: module
 status: active
 owner: unknown
 depends_on: [tags-desk-parking, mobile-app, desk-management]
-used_by: [desk-management]
+used_by: [access-management, digital-wayfinding, implementation, visitor-management]
 last_updated: 2025-10-22
 source: "[[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]]"
 ---
@@ -55,6 +55,7 @@ _Source: Dynamic Policy for Parking v1.3 (2025-10-22)._
 ## Data Entities Used
 - [[entities/parking-slot]] — owns this entity
 - [[entities/parking-booking]] — owns this entity
+- [[entities/employee]] — employee identity record (identity, entitlements, relationships)
 
 ## Dependencies on Other Modules
 - [[modules/tags-desk-parking]] — tag engine for dynamic policy (vehicle-type-based slot access, BLOCK_HOTSEAT); same engine as desks and meeting rooms

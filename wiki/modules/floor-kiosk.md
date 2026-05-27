@@ -3,7 +3,7 @@ type: module
 status: active
 owner: Aditya Dutta / Ujjwal Trivedi
 depends_on: []
-used_by: [meeting-rooms, digital-wayfinding, visitor-management]
+used_by: [meeting-rooms, digital-wayfinding, visitor-management, implementation, meal-management]
 last_updated: 2022-08-26
 source: "[[sources/diy-floor-planner-prd]], [[sources/floor-kiosk-device-spec]], [[sources/floor-plan-sop]]"
 ---

@@ -34,7 +34,7 @@ _Total pages: 101 | Modules: 22 | Configs: 11 | Entities: 12 | Concepts: 0 | Ans
 | [[entities/room]] | Physical meeting room resource (capacity, amenities, calendar type) | meeting-rooms |
 | [[entities/booking]] | Meeting room reservation (organizer, time slot, check-in state, catering) | meeting-rooms |
 | [[entities/catering-order]] | Food/beverage order attached to a meeting booking (per cafeteria × slot) | meeting-rooms |
-| [[entities/cafeteria]] | Food-service premise with menu categories and items | meeting-rooms ⚠️ shared with meal-management |
+| [[entities/cafeteria]] | Food-service premise with menu categories and items | meeting-rooms (consumed by meal-management) |
 | [[entities/room-tag]] | Tag assigned to rooms/employees for Dynamic Policy access control | tags-desk-parking |
 | [[entities/maintenance-period]] | Scheduled room downtime window (create/delete; optional booking block) | meeting-rooms |
 | [[entities/parking-slot]] | Bookable parking space (assignment type, vehicle type, dynamic policy tags) | parking-management |

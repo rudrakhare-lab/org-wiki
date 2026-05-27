@@ -3,7 +3,7 @@ type: module
 status: active
 owner: Aditya Dutta / Rishabh M
 depends_on: [employee-experience, meeting-rooms, visitor-management, desk-management, mobile-app]
-used_by: [meeting-rooms, visitor-management, desk-management]
+used_by: []
 last_updated: 2023-01-31
 source: "[[sources/delegation-prd]]"
 ---
@@ -54,6 +54,9 @@ access to modules they would not otherwise see.
 | `emailSentOnDelegateeActions` | — | Copies delegator on all delegatee actions |
 
 _Module-level delegatability is configured separately under `Project Management Service > delegation` (a JSON map of module keys — see Key Features)._
+
+## Data Entities Used
+- [[entities/employee]] — employee identity record (identity, entitlements, relationships)
 
 ## Open Questions
 - v2 scope listed as "to be updated later" — has time-bounded delegation (a validity window for delegated rights) been built since Jan 2023?

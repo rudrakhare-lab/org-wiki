@@ -3,7 +3,7 @@ type: module
 status: active
 owner: unknown
 depends_on: [tags-desk-parking, floor-kiosk, mobile-app, ms-teams-integration]
-used_by: [meal-management]
+used_by: [meal-management, access-management, delegation]
 last_updated: 2024-03-12
 source: "[[sources/meeting-rooms-app-prd]], [[sources/kiosk-meeting-rooms-prd]], [[sources/meeting-rooms-catering-prd]], [[sources/dynamic-policy-meeting-rooms]], [[sources/meeting-rooms-room-maintenance]], [[sources/outlook-integration-permissions]], [[sources/outlook-addin-setup]], [[sources/meeting-rooms-resources]]"
 ---
@@ -66,6 +66,7 @@ Tag-based access control restricting which employees can book which rooms. _Sour
 - [[entities/cafeteria]] — **owned by meeting-rooms** (full catering management UI per Catering PRD v2.3: Manage Premise → cafeterias → menus → items); **consumed by [[modules/meal-management]]** (meal-consumption location reference)
 - [[entities/maintenance-period]] — owns this entity
 - [[entities/room-tag]] — consumes from `tags-desk-parking`
+- [[entities/employee]] — employee identity record (identity, entitlements, relationships)
 
 ## Dependencies on Other Modules
 - [[modules/tags-desk-parking]] — borrows the tag engine for Dynamic Policy; employee and resource tags are created and owned there, reused here for room access control

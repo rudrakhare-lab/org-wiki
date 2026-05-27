@@ -3,7 +3,7 @@ type: module
 status: stub
 owner: unknown
 depends_on: []
-used_by: []
+used_by: [access-management, delegation, implementation, meal-management, parking-management]
 last_updated: 2026-05-26
 source: "[[sources/_placeholder]]"
 ---

@@ -3,7 +3,7 @@ type: module
 status: active
 owner: unknown
 depends_on: []
-used_by: []
+used_by: [ms-teams-integration]
 last_updated: 2024-09-25
 source: "[[sources/sso-oauth-onboarding]], [[sources/sso-integration-sop]], [[sources/sso-okta]], [[sources/sso-azure-ad]]"
 ---

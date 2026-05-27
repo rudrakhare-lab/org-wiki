@@ -2,8 +2,8 @@
 type: module
 status: active
 owner: unknown
-depends_on: [parking-management, guard-app-kiosks, ms-teams-integration]
-used_by: []
+depends_on: [parking-management, guard-app-kiosks, ms-teams-integration, floor-kiosk]
+used_by: [delegation, safe-reach]
 last_updated: 2023-07-11
 source: "[[sources/vms-prd]], [[sources/vms-implementation]]"
 ---
@@ -63,6 +63,7 @@ employee checks themselves in at a VMS kiosk device.
 - [[entities/visitor-profile]] — owns this entity
 
 _Note: the Self Check-in kiosk has a distinct **employee** check-in path separate from the invited/walk-in visitor flows — relevant to the employee-vs-visitor entity boundary._
+- [[entities/employee]] — employee identity record (identity, entitlements, relationships)
 
 ## Dependencies on Other Modules
 - [[modules/parking-management]] — visitor-tagged parking slots auto-allocated at invite creation; parking module owns the slot and booking infrastructure

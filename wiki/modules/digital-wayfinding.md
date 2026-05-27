@@ -1,8 +1,8 @@
 ---
 type: module
 status: active
-owner: Aditya Dutta / Ujjwal Trivedi (floor plan team lead: Vikas Upadhyay)
-depends_on: [mobile-app, parking-management]
+owner: "Aditya Dutta / Ujjwal Trivedi (floor plan team lead: Vikas Upadhyay)"
+depends_on: [mobile-app, parking-management, floor-kiosk]
 used_by: []
 last_updated: 2024-02-27
 source: "[[sources/digital-wayfinding-sop]]"

@@ -3,7 +3,7 @@ type: module
 status: active
 owner: unknown
 depends_on: [sso]
-used_by: [meeting-rooms]
+used_by: [meeting-rooms, visitor-management]
 last_updated: 2024-01-08
 source: "[[sources/ms-teams-app-permissions-security]]"
 ---

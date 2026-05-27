@@ -3,7 +3,7 @@ type: module
 status: active
 owner: unknown
 depends_on: [desk-management, meeting-rooms, parking-management, meal-management]
-used_by: []
+used_by: [meal-management]
 last_updated: 2025-02-10
 source: "[[sources/access-mgmt-integration-api-based]], [[sources/access-mgmt-integration-api-based-ind]], [[sources/access-mgmt-integration-file-based]]"
 ---
@@ -42,6 +42,7 @@ username/password issued per integration, NOT the `sso` module's Azure AD).
 
 ## Data Entities Used
 - [[entities/booking]] — consumed and optionally created via the integration; the booking itself is owned by the relevant booking module (desk / meeting-rooms / parking / meal)
+- [[entities/employee]] — employee identity record (identity, entitlements, relationships)
 
 ## Dependencies on Other Modules
 - [[modules/desk-management]] — OFFICE bookings updated/created by access-card check-in

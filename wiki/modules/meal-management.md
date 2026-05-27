@@ -2,8 +2,8 @@
 type: module
 status: active
 owner: Aditya Dutta / Ujjwal Trivedi
-depends_on: [access-management, floor-kiosk, desk-management]
-used_by: [desk-management, meeting-rooms]
+depends_on: [access-management, floor-kiosk, desk-management, meeting-rooms]
+used_by: [access-management]
 last_updated: 2025-05-05
 source: "[[sources/meal-checkin-prd]]"
 ---
@@ -38,6 +38,7 @@ Only one active meal booking per employee per day. WFO booking with meals and st
 ## Data Entities Used
 - [[entities/meal-booking]] — owns this entity
 - [[entities/cafeteria]] — ⚠️ shared with `meeting-rooms` — ownership TBD once core meal PRD is ingested
+- [[entities/employee]] — employee identity record (identity, entitlements, relationships)
 
 ## Dependencies on Other Modules
 - [[modules/access-management]] — RFID/HID access card reader infrastructure for meal check-in

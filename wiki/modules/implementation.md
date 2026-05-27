@@ -93,6 +93,9 @@ The WIS Implementation Checklist workbook tracks onboarding across **~21 enterpr
 
 _Note: individual client module adoption (VMS, meeting-rooms, etc.) is a per-client operational choice recorded in the checklist, not a structural dependency of the implementation process._
 
+## Data Entities Used
+- [[entities/employee]] — employee identity record (identity, entitlements, relationships)
+
 ## Open Questions
 - The "more comprehensive implementation guide" referenced in April-28 is now catalogued: the **ELC Guide 1.0** and **WIS Implementation Checklist** workbooks (above). Remaining: is there a single canonical, non-ETS-era WIS onboarding guide, or is the ELC Guide (transport-leaning) still the primary reference?
 - What are the standard SE ticket templates for WIS onboarding? (Partially covered by the ELC Guide's "Tickets to create" sheet.)
