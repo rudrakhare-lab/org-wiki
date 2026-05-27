@@ -4,7 +4,7 @@ status: active
 owner: Aditya Dutta / Ujjwal Trivedi
 depends_on: [access-management, floor-kiosk, desk-management]
 used_by: [desk-management, meeting-rooms]
-last_updated: 2026-04-28
+last_updated: 2025-05-05
 source: "[[sources/meal-checkin-prd]]"
 ---
 
@@ -27,10 +27,10 @@ reader/access card infrastructure (owned by `access-management`), or the kiosk t
 
 ## Key Features
 - **WFO-integrated meal booking**: employee adds meal to their office/WFO booking (pre-existing feature)
-- **Standalone meal booking** (new in v1.0): bookable independently via mobile app or web; also creatable at cafeteria via RFID swipe
-- **RFID/HID access card check-in** (new in v1.0): swipe at cafeteria → tablet shows booking → select meal → register consumption. Replaces mobile QR for phone-averse employees
+- **Standalone meal booking** (new in v1.0): bookable independently via mobile app or web — implemented as a new entity (the PRD notes it is created "just like the New Room Type"); also creatable at the cafeteria via RFID swipe
+- **RFID/HID access card check-in** (new in v1.0): swipe at cafeteria → tablet (Android/iOS) shows booking → select meal → register consumption. Replaces mobile QR for phone-averse employees. The tablet screen shows: Office & Cafeteria; meal selection (single meal shown directly, multiple meals listed for choice); meal category & item(s); description (if set); and price (if set)
 - **On-the-spot booking via RFID**: employees without a booking can swipe → create booking at kiosk → check in immediately
-- **Vendor/admin dashboard**: shows employee details after swipe (reuses existing Vendor Dashboard)
+- **Vendor/admin dashboard**: shows employee details after swipe (reuses existing Vendor Dashboard) — lets the vendor verify the swiped user's details when they cannot see the user-facing tablet screen
 
 ## Constraint — One Meal Per Day
 Only one active meal booking per employee per day. WFO booking with meals and standalone meal booking are mutually exclusive.
@@ -54,4 +54,4 @@ Only one active meal booking per employee per day. WFO booking with meals and st
 - Is the Vendor Dashboard a separate module or part of meal-management?
 
 ## Last Updated
-2026-04-28 — _Source: [[sources/meal-checkin-prd]]_
+2025-05-05 — _Source: [[sources/meal-checkin-prd]]_
