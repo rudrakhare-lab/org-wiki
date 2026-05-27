@@ -28,3 +28,9 @@ _All terms, abbreviations, and naming conventions. Updated on every ingest._
 | Parking Waitlist | IRCTC-style FCFS queue for when all parking slots on a level are full. Real-time position number shown to employee. | [[modules/parking-management]] | Level-based; multi-level joining supported. |
 | WFO Booking | Work From Office booking — the parent booking record an employee creates when planning an office day. Parking and desk are add-ons to WFO booking. | [[modules/desk-management]] | Entry point for parking booking. |
 | WIS | WorkInSync — the product. | All | |
+| SCIM | System for Cross-domain Identity Management, RFC 7644; protocol for IdP-driven user provisioning to WorkInSync via SCIM 2.0 endpoints. | [[modules/employee-provisioning]] | Azure AD / Okta / any SCIM-compliant IdP. Users only — Groups not supported. |
+| SSO | Single Sign-On; WorkInSync acts as Service Provider, supporting SAML 2.0 and OAuth 2.0/OIDC. | [[modules/sso]] | Web + mobile SSO. |
+| SAML | Security Assertion Markup Language 2.0; XML-based SSO via IdP/SP metadata exchange; WIS uses `<client>.workinsync.io` as SP. | [[modules/sso]] | IdP guides: Azure AD, Okta. |
+| OAuth | OAuth 2.0 / OpenID Connect SSO via the `auth.moveinsync.com/mis-auth` service; BUID as registration-id. | [[modules/sso]] | Scopes: openid, email. |
+| IdP | Identity Provider (also: Asserting Party). System that authenticates users and issues assertions. Examples: Azure AD, Okta, Google. | [[modules/sso]] | Contrast with SP. |
+| SP | Service Provider (also: Relying Party). System that consumes IdP assertions to authenticate users. WorkInSync acts as SP in SAML flows. | [[modules/sso]] | Contrast with IdP. |

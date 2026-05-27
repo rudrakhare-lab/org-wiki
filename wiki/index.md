@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
-_Last updated: 2026-05-26_
-_Total pages: 87 | Modules: 19 | Configs: 11 | Entities: 11 | Concepts: 0 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 25 | Cross-module: 8_
+_Last updated: 2026-05-27_
+_Total pages: 100 | Modules: 22 | Configs: 11 | Entities: 11 | Concepts: 0 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 35 | Cross-module: 8_
 
 ---
 
@@ -19,6 +19,9 @@ _Total pages: 87 | Modules: 19 | Configs: 11 | Entities: 11 | Concepts: 0 | Answ
 | [[modules/ms-teams-integration]] | WorkInSync app on Microsoft Teams — Azure AD SSO, Graph API permissions, license/install flows | active | unknown | sso |
 | [[modules/third-party]] | WorkInSync's Slack integration — workspace install, WFO/WFH booking from Home tab, check-in notifications, Slack status updates | active | unknown | — |
 | [[modules/safe-reach]] | Late-departure employee safety workflow — VMS kiosk-initiated, configurable form, gender-trigger, ETA, IVR/mobile/email notification chain, WIS dashboard, reports | active | unknown | visitor-management |
+| [[modules/access-management]] | External access-card vendor integration — REST API (.com/.in) + SFTP file-based modes; card swipe → booking check-in/out | active | unknown | desk-management, meeting-rooms, parking-management, meal-management |
+| [[modules/employee-provisioning]] | Inbound employee data sync — SCIM 2.0 (Azure AD / Okta / any IdP) + SFTP CSV modes; users-only, 40-min cadence | active | unknown | — |
+| [[modules/sso]] | Single Sign-On — SAML 2.0 (workinsync.io SP) + OAuth 2.0/OIDC (mis-auth); IdP-agnostic (Azure AD / Okta / ADFS / Google); TechOps integration process | active | unknown | — |
 
 ## Concepts
 | Page | Summary | Used By |
