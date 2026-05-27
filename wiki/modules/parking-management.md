@@ -4,7 +4,7 @@ status: active
 owner: unknown
 depends_on: [tags-desk-parking, mobile-app, desk-management]
 used_by: [desk-management]
-last_updated: 2026-04-28
+last_updated: 2025-10-22
 source: "[[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]]"
 ---
 
@@ -30,14 +30,27 @@ Does **not** own: the tag engine (owned by `tags-desk-parking`), the mobile app 
 - **Premise hierarchy**: Office → Zone (parking facility) → Level (floor) → Slot (car/bike)
 - **Slot assignment types**: Hotslot (open to all), Employee (dedicated), Team, Blocked, Unallocated
 - **Two booking modes**:
-  - *Auto Allocation*: system picks optimal slot based on assignment priority (Employee > Team > Hotslot)
+  - *Auto Allocation*: system picks optimal slot based on assignment priority (Employee > Team > Hotslot); slots are allocated **sequentially** within the chosen category
   - *Grid-based (Manual)*: employee visually selects a slot from the floor plan
-- **Dynamic Policy (tags)**: vehicle-type-based access control; reuses tag engine from `tags-desk-parking`. Includes special `BLOCK_HOTSEAT` policy to prevent hotslot booking for specific employees.
-- **Waitlist**: IRCTC-style FCFS waitlist per level when all slots are full. Real-time position number shown. Multi-level waitlist joining supported.
+- **Dynamic Policy (tags)**: tag-based access control reusing the **general-purpose** tag engine from `tags-desk-parking`. Most commonly vehicle-build policies, but tags are general (e.g. PWD-only slots, `WeekendOnly` slots). Includes the special `BLOCK_HOTSEAT` policy. See the **Dynamic Policy (Parking)** section below for mechanics.
+- **Waitlist**: IRCTC-style FCFS waitlist per level when all slots are full. Real-time position number shown. Multi-level waitlist joining supported; a waitlisted employee can still book any open slot on a different level if one frees up.
 - **Vehicle number**: stored per booking (not overwriting profile). Both car + bike registration storable on profile.
 - **Default loading**: pre-fills last 30-day booking's zone/level to reduce re-selection friction.
 - **Check-in**: QR scan at premise or Digipass on mobile. Premise check-in is chainable (parking check-in can automatically check-in to office, or remain independent — configurable).
 - **Buffer times**: `MM` minutes before login time / after logout time for slot availability window.
+
+## Dynamic Policy (Parking)
+Dynamic policies restrict which employees can book which slots, most commonly by **vehicle build**.
+_Source: Dynamic Policy for Parking v1.3 (2025-10-22)._
+
+- **Dual mapping**: a policy must be assigned to **both** the employee **and** the parking slot/resource. The system matches the two — a slot is bookable by an employee only when the same policy value matches on both sides (e.g. employee `User A = Sedan` + slot `L1-S69 = Sedan` → User A can book that slot).
+- **Vehicle-build policies available**: `Crossover/SUV/MUV`, `Sedan`, `Small/Hatchback`, `Micro/Hatchback`.
+- **Value semantics** (in the bulk-upload tagging files):
+  - `Yes` — assign the policy (pattern match; the slot becomes bookable by matching employees)
+  - `Null/null` — remove the policy from that employee/slot
+  - *Blank* — ignore the entry (existing policy left unmodified)
+- **`BLOCK_HOTSEAT`**: blocks an employee from booking **hotslots only**. A user who has a matching policy (e.g. `Sedan` on both their profile and a `Sedan` slot) can still book that policy-matched slot — `BLOCK_HOTSEAT` does not block policy-assigned slots, only open hotslots.
+- Configured via bulk upload: Sidenav → Desk Allocation → Desk Bulk Upload → **Employee Tagging** and **Parking Tagging** (see Admin Operations).
 
 ## Data Entities Used
 - [[entities/parking-slot]] — owns this entity
@@ -72,4 +85,4 @@ Does **not** own: the tag engine (owned by `tags-desk-parking`), the mobile app 
 - Does the waitlist mechanism auto-assign slot or notify employee to book?
 
 ## Last Updated
-2026-04-28 — _Source: [[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]]_
+2025-10-22 — _Source: [[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]]_

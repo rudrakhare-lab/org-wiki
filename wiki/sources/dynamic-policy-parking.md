@@ -1,6 +1,6 @@
 ---
 type: source
-raw_path: raw/modules/parking-management/MoveInSync Workplace - Dynamic Policy for Parking.docx
+raw_path: raw/modules/parking-management/ MoveInSync Workplace - Dynamic Policy for Parking.docx
 ingested: 2026-04-28
 doc_type: spec
 ---
