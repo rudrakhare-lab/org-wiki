@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
 _Last updated: 2026-05-27_
-_Total pages: 100 | Modules: 22 | Configs: 11 | Entities: 11 | Concepts: 0 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 35 | Cross-module: 8_
+_Total pages: 101 | Modules: 22 | Configs: 11 | Entities: 12 | Concepts: 0 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 35 | Cross-module: 8_
 
 ---
 
@@ -30,6 +30,7 @@ _Total pages: 100 | Modules: 22 | Configs: 11 | Entities: 11 | Concepts: 0 | Ans
 ## Entities
 | Page | Summary | Owned By |
 |------|---------|----------|
+| [[entities/employee]] | Foundational identity record — subject of bookings, visitor-hosting, delegation, RFID access; loaded via provisioning | employee-provisioning |
 | [[entities/room]] | Physical meeting room resource (capacity, amenities, calendar type) | meeting-rooms |
 | [[entities/booking]] | Meeting room reservation (organizer, time slot, check-in state, catering) | meeting-rooms |
 | [[entities/catering-order]] | Food/beverage order attached to a meeting booking (per cafeteria × slot) | meeting-rooms |
