@@ -24,6 +24,19 @@ You **OWN** everything in `wiki/` — create, update, and maintain all pages the
 At the start of every session, read this file completely before doing anything else.
 Then read `wiki/index.md` to understand the current state of the wiki.
 
+## Operational Safety & Edit Policy
+
+- **Never create or edit a `.py` file inside the project tree while the backend runs with
+  `--reload`.** A `.py` write triggers a uvicorn reload → lifespan → `wiki_retriever.build_index()`,
+  which rebuilds the in-memory index from disk. If disk and memory have diverged, this can DESTROY
+  in-memory state. (This caused a wiki-loss incident — see `wiki/log.md`.) Put all throwaway
+  scripts — extraction, analysis, bulk writes — in `/tmp/`, never in the repo.
+- **Wiki writes:** compose new or fully-rewritten pages via a `/tmp/` script or shell heredoc.
+  The **Edit tool IS allowed on `wiki/*.md`** for small post-composition fixes (a frontmatter line,
+  a `raw_path`, a typo) — disclose each such edit. `.md` writes do NOT trigger a reload.
+- After a batch of `.md` writes, you may `touch backend/api.py` ONCE to force an index rebuild,
+  then verify via `/health` (the `wiki_pages` count) before committing.
+
 ## Module Naming Convention
 Module pages use kebab-case slugs matching `raw/modules/<slug>/`. The known
 WorkInSync modules are:
@@ -483,6 +496,15 @@ spaces or "Copy of" prefixes in the filename. Run `ls raw/modules/<slug>/` to co
 the exact filename before writing. An incorrect `raw_path` causes false "broken reference"
 alerts in the ingest audit.
 
+**Drive duplicate variants:** a single source often appears in `raw/` as multiple filename
+variants — `Copy of …`, `Copy of Copy of …`, or a leading-space ` …`. These are Google Drive
+revision artifacts. Pick ONE canonical file (prefer the non-"Copy of" name; otherwise the
+variant the source page's `raw_path` already targets) and verify the others are **text-identical**
+(same extracted text — byte differences are usually just ZIP container metadata) before silently
+deduplicating. If two variants differ in **content**, flag it — the larger/newer one may be a
+real revision worth evaluating. Point `raw_path` at the canonical file and fix it if it is stale
+or broken (a missing leading space or a `Copy of`/`Copy of Copy of` mismatch silently breaks it).
+
 ### Step 4 — Process Entities
 Identify every data model, domain object, or system entity mentioned.
 
@@ -534,6 +556,28 @@ Add all new terms to the glossary table.
 - **If a module is mentioned but under-documented:** Create a stub with `status: stub` and an `## Open Questions` section.
 - **Always cite sources:** Every section you write or update must end with `_Source: [[sources/<filename>]]_`.
 - **Bidirectional links are mandatory:** If Module A's page says `depends_on: [B]`, Module B's page MUST have `used_by: [A]` in its frontmatter and `Used By` section.
+
+### Re-Ingesting an Existing Curated Page (diff-and-decide)
+
+When a page ALREADY exists with curated content and you are re-ingesting its source(s)
+(e.g. after a Drive refresh or a recovery), do NOT blindly overwrite. Use **diff-and-decide**:
+
+1. Read the existing page — this is the curation baseline.
+2. Fresh-extract the source(s) to `/tmp/` and read them into the current context (never
+   compose from memory).
+3. Build a section-by-section diff table:
+   `Section | existing has | fresh has | Classification | Action`
+   - Classifications: **NEW FACTS / LOST CURATION / CONTRADICTION / STYLE IMPROVEMENT**
+   - Actions: **KEEP / REPLACE / MERGE / AUGMENT / DEFER**
+4. **Default bias: preserve existing curation** — choose KEEP/AUGMENT over REPLACE when in doubt.
+5. **Frontmatter preservation:** carry forward real `owner`/`status` values; only change
+   `last_updated` (to the source doc's date) and any flagged fixes. Never reset a real value to "unknown".
+6. **Large sources (>40 KB extract): summarize-on-read** — examine headings + targeted greps
+   rather than dumping full content to context. Capture a curated subset and point to the source
+   (or to `[[modules/...]]`) for exhaustive detail (e.g. a ~90-property config table).
+7. `depends_on` is finalized during re-ingest; `used_by` reciprocation is deferred to the
+   graph-consistency sweep (see Section 7).
+8. PAUSE and present the diff table for approval before writing.
 
 ---
 
@@ -1018,6 +1062,12 @@ Anything outside markers is human-owned. Never modify it during synthesis.
 The `enrich_modules.py` and `synthesize_patterns.py` scripts (Phase 4 and 5)
 operate strictly between markers.
 
+> **Status (2026-05): Phase 4/5 are NOT implemented.** `enrich_modules.py` and
+> `synthesize_patterns.py` are stubs (docstring only), and **no module page currently carries
+> `AUTO` markers**. The auto-enrichment/synthesis overlay is a future phase — today the wiki is
+> entirely human/source-authored. Add the markers and implement the scripts before relying on
+> any auto-generated sections.
+
 ### Rule 5: Existing connections are preserved
 Pre-existing module-to-module, module-to-entity, and cross-module links
 derived from PRDs and design docs are NEVER modified by ticket synthesis.
@@ -1115,6 +1165,9 @@ a body footer:
 ```
 
 ### Lint expectations
+
+_Status (2026-05): the linter and the Phase 4/5 scripts are not yet implemented — the checks
+below are future-phase. No pages currently carry `AUTO` markers or `type: pattern`/`epic` frontmatter._
 
 The linter (Phase 4+) checks:
 - Pattern pages with `last_synthesized` >60 days old → stale flag

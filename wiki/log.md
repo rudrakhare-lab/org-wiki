@@ -160,3 +160,50 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - Source count reconciled: sso/ has 4 PDFs + .gitkeep (gap analysis's "5" counted the .gitkeep).
 - Synthesis: WorkInSync SSO supports BOTH **SAML 2.0** (Okta + Azure AD docs; workinsync.io SP) AND **OAuth 2.0/OIDC** (MIS_OAuth doc; auth.moveinsync.com/mis-auth; BUID as registration-id). Okta + Azure AD are parallel SAML flavors (same protocol, different IdP setup). The SOP is an internal TechOps process doc (Emp-exp POD ownership, TO-ticket workflow, SLAs, site types: Production SG / Mumbai / POC / UAT).
 - Flags: ⚠️ **ms-teams used_by asymmetry** — ms-teams-integration declares depends_on:[sso] (grounded in its Azure AD identity reference) but SSO docs don't mention Teams; used_by left empty per source-fidelity (option a); flagged in Open Questions with the exact agreed wording; Tier 2.5 to reconcile (alongside visitor-management↔safe-reach from A.3). ⚠️ **Okta doc "SCIM" misnomer** — Document-Name says "SSO with SCIM to WorkInSync (OKTA)" but content is SAML 2.0; SCIM is the provisioning protocol (employee-provisioning), not SSO; flagged in sso-okta source page + module Open Questions. ⚠️ **Username-type conflict** — Azure doc "Email ID only" vs SOP intake "Email or Employee ID"; both quotes surfaced in Open Questions; technical doc authoritative for current behavior. ⚠️ **Credential redaction** — MIS_OAuth doc's "Sample Data" Google ClientId + Client Secret look real; rendered as <client_id>/<client_secret> placeholders in BOTH module + source pages; verified no raw client credentials remain in wiki/ (literal grep for the secret prefix + ClientId project-number returns clean). **Duplicate filing**: Azure AD SSO doc exists identically in sso/ AND employee-provisioning/ (2,431,014 bytes); sso/ is canonical (ingested); employee-provisioning/ copy left in place (NOT deleted — hygiene item for future pass; file-deletion deliberately avoided). depends_on: [] (foundational auth), used_by: [] (asymmetry flagged). last_updated 2024-09-25 (SOP newest). Fresh-read legacy workflow: 4 PDFs extracted via pdfplumber to /tmp/sso_*.txt, all read into current turn context (incl. Azure AD re-read), Step 2 discussion with per-doc line-anchored quotes, user approved all 4 questions (single page, asymmetry option-a, 5 glossary entries, SAML/OAuth split structure).
+
+
+---
+
+## [2026-05-28 04:02] recovery | Wiki destruction incident + full rebuild (Tier 1 → Tier 2.5 → endgame)
+
+### Incident (2026-05-27)
+- During a parity-eval run, eval question **Q30 (claude-code mode) executed `rm -rf wiki/`**, deleting the entire wiki directory from disk (~127 pages).
+- A second, compounding failure followed during the recovery attempt itself: a `.py` script was written **into the project tree** while the backend was running under uvicorn `--reload`. The reload triggered lifespan → `wiki_retriever.build_index()`, which **rebuilt the in-memory index from the now-empty disk**, destroying the last surviving (in-memory) copy.
+- Net loss: ~127 wiki pages (disk + in-memory).
+
+### Recovery baseline
+- `git checkout` of tag **`april28-restored` (commit c98a437)** restored **60 pages** — the last committed wiki state (April 28).
+- Pre-flight: rclone Drive sync refreshed `raw/` (**07c42c2** — 4 modified docs + 2 new PDFs).
+
+### Rebuild (commit-by-commit)
+- **Tier 1 + Wave A** — `fa18242` — 27 new pages: 11 PMS config pages + meal-cutoff answer + 7 stubs; Wave A modules (ms-teams-integration, third-party, safe-reach).
+- **Wave B** — `316f6b1` — access-management, employee-provisioning, sso (+ 10 source pages).
+- **Tier 2.5** — re-ingest of the 9 April-28-surviving COVERED modules via diff-and-decide:
+  M1 delegation `2d9841a` · M2 digital-wayfinding `236c0f9` · M3 employee-experience `2e4feb1` · M4 meal-management `f61834d` · M5 floor-kiosk `3cbac21` · M6 parking-management `b1493cb` · M7 visitor-management `6cd799c` · M8 meeting-rooms `d1c3aaa` · M9 implementation `eef0b71`
+- **Endgame** — entities/employee.md `1e2aea1` · asymmetry graph sweep `19a80b9` · CLAUDE.md schema update + this log entry (final commit).
+
+### Key findings & resolutions
+- ⚠️ **premiseId contradiction** (access-management): global API doc = "location ID"; IND doc = booking-type enum (OFFICE/PARKING/MEALS/MEETING). Surfaced verbatim in both source pages + Open Questions; no interpretation forced. Distinct from the wayfinding/Premise-service `premiseID` (location-hierarchy sense).
+- ✅ **Cafeteria ownership RESOLVED** (M8): meeting-rooms OWNS the Cafeteria entity (full catering management UI, Catering PRD v2.3); meal-management CONSUMES it. Removed the long-standing "⚠️ shared/TBD" flag.
+- ✅ **Credential-leak self-catch** (Wave B.3): MIS_OAuth doc's Sample Data held real-looking Google ClientId + Client Secret → redacted to `<client_id>`/`<client_secret>` in module + source pages; verified no raw secret remains.
+- ⚠️ **Okta SSO doc mislabel** (Wave B.3): the Okta doc's Document-Name says "SSO with SCIM to WorkInSync" but its content is SAML 2.0 — SCIM template residue (SCIM is the provisioning protocol, not SSO); flagged in the sso-okta source page + module Open Questions.
+- ✅ **raw_path bugs fixed** (in-band): digital-wayfinding-sop (→ canonical digital-wayfinding/ folder), diy-floor-planner-prd (single→double "Copy of"), dynamic-policy-parking (missing leading space).
+- ✅ **Drive duplicate-variant precedent**: "Copy of"/"Copy of Copy of"/leading-space = Drive revision artifacts → pick canonical, verify text-identical, dedupe (now in CLAUDE.md §4).
+- ✅ **Privacy boundary** (M9): ~21 enterprise client names + decision-maker contacts in the Implementation Checklist NOT reproduced (count + schema only).
+- ✅ **entities/employee.md synthesized** (endgame A): foundational cross-module entity — curated field tables + Relationship Roles (delegator/delegatee, visitor host, RFID holder, booking holder, meeting organizer); dual-key ⚠️ (SCIM `userName` vs SFTP `EmployeeId`).
+
+### Graph sweep (endgame B)
+- 27 forward reciprocations (depends_on → used_by) + 10 reverse asymmetries resolved (7 removals + 3 add-deps: wayfinding+floor-kiosk, visitor+floor-kiosk, meal+meeting-rooms).
+- Module graph: **3 consistent links → 33**; **0 forward gaps, 0 reverse asymmetries**. All 22 modules now parse under strict YAML (quoted the digital-wayfinding owner colon).
+
+### Final state
+- **101 pages** (from 60 restored): 22 modules, 12 entities (incl. new `employee`), 11 configs, 8 decisions, 8 cross-module, 35 sources, 1 answer.
+- Backend stable throughout (wiki_pages 100 / 101 .md — log.md excluded from index). Module graph fully bidirectionally consistent.
+
+### Tier 3 (Jira enrichment): stub — not implemented; future phase
+- `enrich_modules.py` and `synthesize_patterns.py` are stubs (docstring only); no module page carries `AUTO` markers. The Jira auto-enrichment/synthesis overlay was NOT part of this recovery (which restored the human/source-authored wiki).
+
+### Lessons learned (now encoded in CLAUDE.md)
+- **§1 Operational Safety:** never write `.py` into the project tree under uvicorn `--reload` (rebuilds index from disk → can destroy in-memory state); throwaway scripts → `/tmp/`; Edit tool allowed on `wiki/*.md` for small fixes.
+- **§4:** diff-and-decide re-ingest methodology + Drive duplicate-variant handling.
+- **§10/§11:** Phase 4/5 (enrich/synthesize) marked as unimplemented stubs.
