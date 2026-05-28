@@ -12,12 +12,18 @@ Design notes:
 """
 from __future__ import annotations
 
+import logging
 import re
 import threading
 from dataclasses import dataclass, field
 from pathlib import Path
 
+import frontmatter  # python-frontmatter — same library used by wiki_propose_tools
+import yaml         # for yaml.YAMLError catch in _parse_frontmatter
+
 from backend.config import WIKI_DIR, WIKI_INDEX_EXCLUDE
+
+_LOG = logging.getLogger("wiki_retriever")
 
 _STOPWORDS = {
     "a", "an", "the", "is", "in", "on", "at", "to", "for", "of", "and", "or",
@@ -66,6 +72,7 @@ class WikiPage:
     title: str
     full_text: str
     tokens: list[str] = field(default_factory=list, repr=False)
+    frontmatter: dict = field(default_factory=dict, repr=False)  # parsed YAML frontmatter
 
     def excerpt(self, max_chars: int = 400) -> str:
         lines = [l for l in self.full_text.splitlines() if l.strip() and not l.startswith("#")]
@@ -96,7 +103,8 @@ class WikiIndex:
             text = md_file.read_text(encoding="utf-8", errors="replace")
             title = _extract_title(text, rel.stem)
             tokens = _tokenize(text)
-            page = WikiPage(path=rel_str, title=title, full_text=text, tokens=tokens)
+            fm = _parse_frontmatter(text)
+            page = WikiPage(path=rel_str, title=title, full_text=text, tokens=tokens, frontmatter=fm)
             pages[rel_str] = page
             for tok in set(tokens):
                 index.setdefault(tok, []).append(rel_str)
@@ -166,6 +174,30 @@ def _extract_title(text: str, fallback: str) -> str:
         if line.startswith("title:"):
             return line.split(":", 1)[1].strip().strip('"')
     return fallback.replace("-", " ").title()
+
+
+def _parse_frontmatter(text: str) -> dict:
+    """
+    Best-effort YAML frontmatter parser. Returns parsed dict on success, or
+    empty dict on any failure mode (no frontmatter block, malformed YAML,
+    non-mapping payload). Never raises.
+
+    Uses python-frontmatter so in-body `---` separators (horizontal rules)
+    don't confuse parsing — same as wiki_propose_tools._extract_frontmatter.
+    """
+    if not text.startswith("---"):
+        return {}
+    try:
+        post = frontmatter.loads(text)
+    except yaml.YAMLError as exc:
+        _LOG.warning("malformed frontmatter — returning empty dict: %s", exc)
+        return {}
+    except Exception as exc:
+        _LOG.warning("unexpected frontmatter parse error: %s", exc)
+        return {}
+    if isinstance(post.metadata, dict):
+        return post.metadata
+    return {}
 
 
 def _tokenize(text: str) -> list[str]:

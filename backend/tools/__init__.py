@@ -31,6 +31,15 @@ from backend.tools.jira_tools import (
 from backend.tools.jira_live_tools import (
     JIRA_LIVE_GET_TICKET_SCHEMA, _jira_live_get_ticket_handler,
 )
+from backend.tools.jira_count import (
+    JIRA_COUNT_SCHEMA, _jira_count_handler,
+)
+from backend.tools.jira_cross_module import (
+    JIRA_SEARCH_CROSS_MODULE_SCHEMA, _jira_search_cross_module_handler,
+)
+from backend.tools.trigger_sync import (
+    TRIGGER_JIRA_SYNC_SCHEMA, _trigger_jira_sync_handler,
+)
 from backend.tools.pms_tools import (
     PMS_DEFAULT_PROPERTIES_SCHEMA, PMS_RUNTIME_VALUES_SCHEMA,
     PMS_LIST_OFFICES_SCHEMA, PMS_LIST_CRITERIA_SCHEMA,
@@ -53,6 +62,9 @@ def build_registry(user_role: str = "viewer") -> ToolRegistry:
     r.register(JIRA_GET_TICKET_SCHEMA, _jira_get_ticket_handler)
     r.register(JIRA_NAMED_QUERY_SCHEMA, _jira_named_query_handler)
     r.register(JIRA_LIVE_GET_TICKET_SCHEMA, _jira_live_get_ticket_handler)
+    r.register(JIRA_COUNT_SCHEMA, _jira_count_handler)
+    r.register(JIRA_SEARCH_CROSS_MODULE_SCHEMA, _jira_search_cross_module_handler)
+    r.register(TRIGGER_JIRA_SYNC_SCHEMA, _trigger_jira_sync_handler)
     r.register(PMS_DEFAULT_PROPERTIES_SCHEMA, _pms_default_properties_handler)
     r.register(PMS_RUNTIME_VALUES_SCHEMA, _pms_runtime_values_handler)
     r.register(PMS_LIST_OFFICES_SCHEMA, _pms_list_offices_handler)

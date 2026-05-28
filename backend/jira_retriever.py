@@ -72,6 +72,7 @@ def extract_keywords(question: str, max_terms: int = 3) -> list[str]:
 def search(
     question: str,
     functional_area: str | None = None,
+    module: str | None = None,
     limit: int = 25,
     include_stale: bool = False,
 ) -> dict:
@@ -102,6 +103,20 @@ def search(
                 if r["key"] not in seen_keys:
                     seen_keys.add(r["key"])
                     all_rows.append(r)
+
+        # Module post-filter — when set, drop rows for keys not tagged to this module.
+        # confidence_floor=0.5 matches the read-path convention; classifier writes ≥0.65.
+        if module:
+            module_keys = _fetch_module_tagged_keys(conn, module, confidence_floor=0.5)
+            all_rows = [r for r in all_rows if r["key"] in module_keys]
+
+        # Batched modules-array enrichment — one query, indexed PK, no N+1.
+        if all_rows:
+            modules_map = _fetch_modules_for_keys(
+                conn, [r["key"] for r in all_rows], confidence_floor=0.5
+            )
+            for r in all_rows:
+                r["modules"] = modules_map.get(r["key"], [])
     finally:
         conn.close()
 
@@ -123,3 +138,210 @@ def search(
         "rows": all_rows,
         "buckets": buckets,
     }
+
+
+# ── Module-tag helpers (Step 4 additions) ─────────────────────────────────────
+
+def _fetch_module_tagged_keys(
+    conn,
+    module_slug: str,
+    confidence_floor: float = 0.5,
+) -> set[str]:
+    """Set of ticket keys tagged to `module_slug` at or above `confidence_floor`."""
+    cur = conn.execute(
+        "SELECT ticket_key FROM ticket_module_tags "
+        "WHERE module_slug = ? AND confidence >= ?",
+        (module_slug, confidence_floor),
+    )
+    return {row[0] for row in cur.fetchall()}
+
+
+def _fetch_modules_for_keys(
+    conn,
+    keys: list[str],
+    confidence_floor: float = 0.5,
+) -> dict[str, list[dict]]:
+    """
+    Batched lookup of modules array for many ticket keys.
+    Returns {ticket_key: [{"slug": str, "confidence": float}, ...]}.
+    Tickets with no tagged modules are absent from the dict (caller defaults to []).
+    """
+    if not keys:
+        return {}
+    placeholders = ",".join("?" for _ in keys)
+    sql = (
+        "SELECT ticket_key, module_slug, confidence "
+        "FROM ticket_module_tags "
+        f"WHERE ticket_key IN ({placeholders}) AND confidence >= ? "
+        "ORDER BY ticket_key, confidence DESC"
+    )
+    params = list(keys) + [confidence_floor]
+    cur = conn.execute(sql, params)
+    out: dict[str, list[dict]] = {}
+    for ticket_key, module_slug, confidence in cur.fetchall():
+        out.setdefault(ticket_key, []).append({"slug": module_slug, "confidence": confidence})
+    return out
+
+
+def by_module(
+    module_slug: str,
+    query: str | None = None,
+    limit: int = 5,
+    confidence_floor: float = 0.5,
+) -> list[dict]:
+    """
+    Query-aware retrieval scoped to a single module.
+
+    If `query` has extractable keywords: returns intersection of
+    (module-tagged) ∩ (query-relevant), mirroring fetch_ranked's bucket
+    semantics. If `query` is None or yields no keywords: returns top
+    general-signal tickets in the module.
+
+    Rows are enriched with the `modules` array for cross-module attribution
+    (same enrichment search() does).
+    """
+    keywords = extract_keywords(query) if query else []
+    conn = _open_readonly()
+    try:
+        if keywords:
+            rows = _fetch_module_query_intersection(
+                conn, module_slug, keywords, limit, confidence_floor
+            )
+        else:
+            rows = _fetch_module_top(conn, module_slug, limit, confidence_floor)
+
+        # Enrich both paths with modules array (Step 4 amendment).
+        if rows:
+            modules_map = _fetch_modules_for_keys(
+                conn, [r["key"] for r in rows], confidence_floor=0.5
+            )
+            for r in rows:
+                r["modules"] = modules_map.get(r["key"], [])
+        return rows
+    finally:
+        conn.close()
+
+
+def _fetch_module_query_intersection(
+    conn,
+    module_slug: str,
+    keywords: list[str],
+    limit: int,
+    confidence_floor: float,
+) -> list[dict]:
+    """Intersection of: tickets tagged to module AND matching any keyword.
+    Bucket/ordering mirrors fetch_ranked()'s WITH matches CTE."""
+    from datetime import datetime, timedelta, timezone
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=180)).date().isoformat()
+
+    kw_filters: list[str] = []
+    kw_params: dict = {
+        "module_slug": module_slug,
+        "conf_floor": confidence_floor,
+        "cutoff_date": cutoff,
+        "limit": limit,
+    }
+    for i, kw in enumerate(keywords):
+        kw_params[f"kw{i}"] = f"%{kw}%"
+        kw_filters.append(
+            f"(t.summary LIKE :kw{i} COLLATE NOCASE "
+            f"OR t.description_text LIKE :kw{i} COLLATE NOCASE "
+            f"OR t.comments_text LIKE :kw{i} COLLATE NOCASE)"
+        )
+    kw_where = " OR ".join(kw_filters)
+
+    sql = f"""
+        SELECT
+          CASE
+            WHEN substr(t.updated_at, 1, 10) >= :cutoff_date
+              OR substr(t.resolved_at, 1, 10) >= :cutoff_date THEN 'LATEST'
+            WHEN t.status_category IN ('new', 'indeterminate')
+              AND substr(t.updated_at, 1, 10) < :cutoff_date THEN 'STALE-OPEN'
+            ELSE 'HISTORICAL'
+          END AS bucket,
+          t.key, t.status_category, t.priority,
+          substr(t.updated_at, 1, 10)  AS updated,
+          substr(t.resolved_at, 1, 10) AS resolved,
+          t.comment_count,
+          COALESCE(length(t.description_text), 0)
+            + COALESCE(length(t.comments_text), 0) AS content_size,
+          CASE WHEN t.summary LIKE :kw0 COLLATE NOCASE THEN 1 ELSE 0 END AS hit_summary,
+          CASE WHEN t.description_text LIKE :kw0 COLLATE NOCASE THEN 1 ELSE 0 END AS hit_desc,
+          t.links_json,
+          t.summary,
+          m.confidence AS module_confidence
+        FROM tickets t
+        JOIN ticket_module_tags m ON t.key = m.ticket_key
+        WHERE m.module_slug = :module_slug
+          AND m.confidence  >= :conf_floor
+          AND ({kw_where})
+        ORDER BY
+          CASE
+            WHEN substr(t.updated_at, 1, 10) >= :cutoff_date
+              OR substr(t.resolved_at, 1, 10) >= :cutoff_date THEN 0
+            WHEN t.status_category IN ('new', 'indeterminate')
+              AND substr(t.updated_at, 1, 10) < :cutoff_date THEN 2
+            ELSE 1
+          END,
+          hit_summary DESC,
+          hit_desc DESC,
+          CASE WHEN t.status_category = 'done' AND t.resolved_at IS NOT NULL THEN 0 ELSE 1 END,
+          updated DESC,
+          content_size DESC
+        LIMIT :limit
+    """
+    cur = conn.execute(sql, kw_params)
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, row)) for row in cur.fetchall()]
+
+
+def _fetch_module_top(
+    conn,
+    module_slug: str,
+    limit: int,
+    confidence_floor: float,
+) -> list[dict]:
+    """No-keyword path: top tickets in module by bucket + confidence + recency."""
+    from datetime import datetime, timedelta, timezone
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=180)).date().isoformat()
+
+    sql = """
+        SELECT
+          CASE
+            WHEN substr(t.updated_at, 1, 10) >= :cutoff_date
+              OR substr(t.resolved_at, 1, 10) >= :cutoff_date THEN 'LATEST'
+            WHEN t.status_category IN ('new', 'indeterminate')
+              AND substr(t.updated_at, 1, 10) < :cutoff_date THEN 'STALE-OPEN'
+            ELSE 'HISTORICAL'
+          END AS bucket,
+          t.key, t.status_category, t.priority,
+          substr(t.updated_at, 1, 10)  AS updated,
+          substr(t.resolved_at, 1, 10) AS resolved,
+          t.comment_count,
+          COALESCE(length(t.description_text), 0)
+            + COALESCE(length(t.comments_text), 0) AS content_size,
+          t.links_json,
+          t.summary,
+          m.confidence AS module_confidence
+        FROM tickets t
+        JOIN ticket_module_tags m ON t.key = m.ticket_key
+        WHERE m.module_slug = :module_slug
+          AND m.confidence  >= :conf_floor
+        ORDER BY
+          CASE
+            WHEN substr(t.updated_at, 1, 10) >= :cutoff_date
+              OR substr(t.resolved_at, 1, 10) >= :cutoff_date THEN 0
+            ELSE 1
+          END,
+          m.confidence DESC,
+          content_size DESC,
+          updated DESC
+        LIMIT :limit
+    """
+    cur = conn.execute(
+        sql,
+        {"module_slug": module_slug, "conf_floor": confidence_floor,
+         "cutoff_date": cutoff, "limit": limit},
+    )
+    cols = [d[0] for d in cur.description]
+    return [dict(zip(cols, row)) for row in cur.fetchall()]

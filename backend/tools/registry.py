@@ -34,6 +34,9 @@ _TOOL_PERMISSIONS: dict[str, str] = {
     "wiki_propose_edit": "contributor",
     "wiki_propose_append": "contributor",
     "wiki_propose_multi_edit": "contributor",
+    # Step 8: trigger_jira_sync spends real money ($0.04/delta, ~$37/full).
+    # Admin-only so casual contributors can't accidentally trigger a $37 run.
+    "trigger_jira_sync": "admin",
 }
 
 

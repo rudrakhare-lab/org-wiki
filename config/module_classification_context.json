@@ -1,0 +1,245 @@
+{
+  "access-management": {
+    "overview": "Access Management is WorkInSync's integration surface for **external / third-party access-card\nvendors**. When an employee swipes their access card at an office reader, the vendor's system\nrelays that check-in/check-out event to WorkInSync, which records it against the employee's\nbooking (and can optionally create a booking if none exists). The module supports **two\nintegration modes**: a real-time **REST API** (since 2022) and an **SFTP file-based** CSV\ntransfer (since Feb 2025). The API mode is regionally deployed across `api.moveinsync.com`\n(global) and `api.moveinsync.in` (IND region).",
+    "key_features": "- **API-based integration (REST)**: external vendors push check-in/out events via `POST /integration/bookings/ci-co`. Regionally deployed — see API Endpoints for the `.com` and `.in` baseUrls\n- **Bearer-token authentication**: a client-specific username/password is exchanged via `POST /auth/token` (HTTP Basic) for a short-lived Bearer access token (`expires_in: 172799`, ~48h); the token is re-fetched on expiry\n- **Check-in / check-out to bookings**: `bookingStatus` of `SIGNED_IN` checks in (or creates+checks-in), `SIGNED_OUT` signs the employee out of an existing booking\n- **`createBookingIfNotPresent` flag**: when true, creates an office booking for employees who scan in without one, based on scan time + end time (flag location/scope not documented — see Open Questions)\n- **RFID card support**: the `rfid` field (added in v1.2, Jul 2024) allows lookup by card number; `filter` can be left blank when `rfid` is supplied\n- **Employee resolution by `filter`**: accepts EmployeeID, EmployeeName, or EmployeeEmailID\n- **File-based integration (SFTP)**: an alternative mode (since Feb 2025) where clients push CSV swipe-data files to an SFTP server on a configured frequency, instead of real-time API calls. Setup requires SSH key, IP whitelisting, optional encryption, and a file-frequency agreement\n- **Anomaly + utilization reporting (file-based mode)**: highlights employees who entered without a booking; optional configs to reject entry without a booking or auto-create one; resource-utilization reports for admins",
+    "depends_on": [
+      "desk-management",
+      "meeting-rooms",
+      "parking-management",
+      "meal-management"
+    ],
+    "used_by": [
+      "meal-management"
+    ],
+    "stub_status": false
+  },
+  "admin-experience": {
+    "overview": "(no overview yet — placeholder for canonical module)",
+    "key_features": "(none documented)",
+    "depends_on": [],
+    "used_by": [],
+    "stub_status": true
+  },
+  "create-employee-form": {
+    "overview": "(no overview yet — placeholder for canonical module)",
+    "key_features": "(none documented)",
+    "depends_on": [],
+    "used_by": [],
+    "stub_status": true
+  },
+  "delegation": {
+    "overview": "Delegation is a cross-cutting feature that allows an employee (Delegator) to grant their\nresource booking privileges to another employee (Delegatee). Common use cases: CXOs delegating\nto executive assistants, team managers delegating to colleagues when unavailable.\nThe Delegatee acts on behalf of the Delegator by switching their profile in the sidenav.",
+    "key_features": "- **Profile switcher**: Delegatee sees a \"Switch Profile\" panel in sidenav listing all delegators. On switch, sidenav shows only the modules the delegator granted them. The page displays the first granted module; the \"Switch to MIS\" button is hidden while in a delegated profile.\n- **Delegatable modules** (v1): Admin Dashboard, Employee Web, Work Planner, Premises, Meeting Rooms, Desk Management, Reports, Visitor Management, Vaccination Review, Broadcast Message, Mobile App.\n- **Per-module enablement via PMS**: which modules are delegatable is controlled under `Project Management Service > delegation` as a JSON map. Documented keys: `MEETING_ROOM_ENABLED`, `WORK_PLANNER_ENABLED`, `BOOKING_HISTORY`, `UPCOMING_VISITOR` (Visitor Management), `FRONT_DESK`, `EMPLOYEE_WEB_EXPERIENCE`, `MOBILE_APP`.\n- **Delegatee cap**: one employee can hold delegation rights from at most 10 people.\n- **No limit** on how many delegatees a delegator can assign.\n- **Partial save**: if some delegatees reach the cap, save partially succeeds (e.g. \"1 user(s) successfully added. 2 user(s) were not successful\") with a clear error message.\n- **Delegator profile read-only**: delegatee cannot edit delegator's personal profile.\n- **Session stateless**: on re-login, delegatee always loads their own profile (not delegator's).\n- **Audit trail**: \"Updated By\" in all audit logs and reports shows delegatee's name.\n- **Meeting Rooms integration**: backend correctly records meeting as created by delegatee; delegatee excluded from attendee list/calendar invite.\n- **Email notifications** (configurable):\n  - `blockDelegationEmail`: suppress assignment notification to delegatee\n  - `delegatorDelegateeEmailsEnabled`: controls email to delegatee on actions\n  - `emailSentOnDelegateeActions`: copies delegator on delegatee's actions",
+    "depends_on": [
+      "employee-experience",
+      "meeting-rooms",
+      "visitor-management",
+      "desk-management",
+      "mobile-app"
+    ],
+    "used_by": [],
+    "stub_status": false
+  },
+  "desk-management": {
+    "overview": "(no overview yet — placeholder for canonical module)",
+    "key_features": "(none documented)",
+    "depends_on": [],
+    "used_by": [
+      "access-management",
+      "delegation",
+      "implementation",
+      "meal-management",
+      "parking-management"
+    ],
+    "stub_status": true
+  },
+  "digital-wayfinding": {
+    "overview": "Digital Wayfinding provides turn-by-turn indoor navigation on the mobile app, helping employees\nnavigate to desks, parking slots, meeting rooms, washrooms, lifts, cafeterias, and other amenities\nwithin an office floor plan. Visible only on mobile (config-gated: `ENABLE_INDOOR_NAVIGATION`).",
+    "key_features": "- **Floor plan pipeline**: CAD files (DWG/PNG/PDF) → DIY Floorplanner (CADViewer) → marked amenities + drawn paths → JSON+SVG export → Wayfinding service (uploaded by SE team via Postman).\n- **File-size constraint**: a DWG converted to SVG must be **< 2 MB**; if larger, convert it to PNG so floor plans do not take excessive time to load.\n- **Amenity types**: desks, parking (car/bike, stacked, vehicle type: Hatchback/Sedan/SUV), meeting rooms, washrooms, lifts, entry/exit, reception, cafeteria, stairs.\n- **Reception as navigation source**: one reception per floor plan marked as de-facto starting point. Multiple receptions may exist on a floor plan, but only one is treated as the source.\n- **Multi-floor support**: amenities spanning floors (stairs, elevators) use the same name across all floors.\n- **Meeting room names must match Outlook/Google calendar** exactly (critical for correct mapping).\n- **Seat labeling**: every marked seat must have a name **and an orientation (angle)**. Client naming conventions (supplied via Excel or an image/PDF) are followed strictly; if none is given, the floor-plan team establishes a standard convention.\n- **Parking support** (v2.0 added Feb 2024): parking floor plan paths are unidirectional (cars flow one-way); stacked/bike slot types configurable.\n- **Path direction**: office = bi-directional; parking = unidirectional (each unidirectional path may be set RTL or LTR).",
+    "depends_on": [
+      "mobile-app",
+      "parking-management",
+      "floor-kiosk"
+    ],
+    "used_by": [],
+    "stub_status": false
+  },
+  "employee-experience": {
+    "overview": "`emp-exp` (Employee Experience) is the backend service that hosts cross-cutting employee-facing\nfeatures that don't belong to a specific resource module. Currently documented as the host for:\n- **Delegation** — profile switching and booking privilege delegation\n- **Digital Wayfinding** — indoor navigation (filed under employee-experience in Drive)\n\nThis page is intentionally thin: the only emp-exp-specific document in Drive (\"Employee\nExperience – Delegation\") is a copy of the [[sources/delegation-prd]], so delegation detail lives\non [[modules/delegation]] and is not duplicated here. The page will be expanded if/when a\ndistinct emp-exp service doc (beyond the hosted features) is ingested.",
+    "key_features": "",
+    "depends_on": [],
+    "used_by": [
+      "delegation"
+    ],
+    "stub_status": false
+  },
+  "employee-provisioning": {
+    "overview": "Employee Provisioning is the inbound data-sync surface that loads employee records from a\nclient's identity provider (IdP) or HRMS into WorkInSync. It supports two integration\nmechanisms: **SCIM 2.0** (IdP-driven, real-time-ish — Azure AD, Okta, or any SCIM-compliant\nsource) and **SFTP CSV file transfer** (an older, transport-era batch mode). Both keep the\nWorkInSync employee directory in sync with the client's source-of-truth system, including\nadditions, updates, and deactivations.",
+    "key_features": "- **SCIM 2.0 provisioning**: IdP-driven user sync via a SCIM-compliant API (RFC 7644). Setup guides exist for **Azure AD** and **Okta**, but any SCIM-compliant IdP / HRMS works\n- **Users-only**: SCIM syncs Users; **Groups are explicitly NOT supported**\n- **Regional SCIM endpoints**: `https://scim.workinsync.io/scim/v2` (AWS Singapore) and `https://scim.eu.workinsync.io/scim/v2/` (EU)\n- **Secret-token auth**: SCIM connection uses a unique token generated and shared by the WorkInSync account manager (not SSO, not per-user)\n- **40-minute default sync cadence** with a Provisioning status/error overview and per-record \"Provision on Demand\" retry (SCIM mode)\n- **SFTP CSV mode**: alternative batch integration — client pushes a delta CSV to an SFTP server; WorkInSync polls on a configurable frequency. Setup needs SSH public key + IP whitelist\n- **Delta-file model (SFTP)**: only changed fields are pushed, with `EmployeeId` and `RemoveEmployee` always included; errors are emailed back per row/field for correction and re-upload\n- **Auto-creation (SFTP)**: unknown `ProjectTeam` / `CostCenter` / `BusinessUnit` values are auto-created; unknown `Nodal` / `ShuttlePoint` / `OfficeName` / `BillingZone` throw errors",
+    "depends_on": [],
+    "used_by": [],
+    "stub_status": false
+  },
+  "esg-dashboard": {
+    "overview": "(no overview yet — placeholder for canonical module)",
+    "key_features": "(none documented)",
+    "depends_on": [],
+    "used_by": [],
+    "stub_status": true
+  },
+  "floor-kiosk": {
+    "overview": "The Floor Kiosk module is the infrastructure layer that powers:\n1. **Physical kiosk devices** — large-format Android tablets deployed in offices for room/floor-level interactions (meeting room kiosk, guard app kiosk, etc.)\n2. **DIY Floor Planner** — internal tool for creating, editing, and versioning interactive floor plan SVGs from client CAD files\n3. **Floor plan data pipeline** — process for ingesting client floor plans into the WorkInSync system\n\nOther modules (Meeting Rooms, Guard App, Digital Wayfinding) depend on this infrastructure.",
+    "key_features": "### Device Infrastructure\n- **Hardware spec**: Android 12.0+, 25\"+ screen, 12GB RAM, 128GB ROM, Wi-Fi 6, Bluetooth 5, capacitive 10-point touch\n- **Kiosk mode**: guided mode — disables back button, restricts URL exit, locks to single app\n- **MDM**: manages device enrollment, updates, and policy enforcement\n- **Pairing**: each device paired to a specific room or floor via a pairing code + admin email\n\n### DIY Floor Planner (Internal Tool)\n- Converts client DWG/CAD files to interactive SVG format\n- Marks amenities (desks, meeting rooms, parking slots, washrooms, lifts, cafeteria, exits)\n- Draws walkway paths for navigation (top-down approach; bi-directional for office, uni-directional for parking)\n- **Why version control**: preserves floor-plan development effort, allows restoring a prior version when a client changes requirements (e.g. remove 10 seats → add a meeting room), and enables auditing of who changed what (accountability on large MNC floor plans)\n- **Phase 1** (completed): ported into the WorkInSync ecosystem — scope limited to `workinsync.io`; accessible by the **Global Admin** role only, via a new sidenav item. Closes the prior security gap (the tool was previously a public website with no authentication, exposing client floor plans)\n- **Phase 2** (planned): version control — DWG + JSON saved to an **S3 bucket** (replacing the prior ~5 GB server folder), versioned by timestamp with a `[v1, v2…vN]` naming scheme. Importing a DWG with an existing name shows an overwrite prompt; a **'Restore JSON'** CTA restores mappings by timestamp/name\n- **Appendix QoL** (related to the tool, not core version control): highlight unlabelled seats (name = `null`) in red; warn on duplicate seat names at save; UI grouping of common buttons (`PB-218870`)\n\n### Floor Plan Data Pipeline\n```\nClient provides DWG/PNG/PDF\n    → Floor plan team cleans and imports into DIY Floorplanner\n    → Mark all amenities + draw paths\n    → Verify/validate paths ('Verify Data' button)\n    → Export JSON + SVG\n    → SE team uploads via Postman to Wayfinding service (JSON) and Premise service\n    → SE ticket to enable feature flag per BUID\n```\n- DWG → SVG must be < 2 MB (else use PNG)\n- Every seat must have a name and an orientation (angle); meeting room names must match Outlook/Google calendar names exactly\n- Export feeds the Premise service (older name for the Wayfinding service), which uses `premiseID` / `parentPremiseID` for path computation\n- Floor plan updates: re-draw affected paths → re-export JSON → re-upload",
+    "depends_on": [],
+    "used_by": [
+      "meeting-rooms",
+      "digital-wayfinding",
+      "visitor-management",
+      "implementation",
+      "meal-management"
+    ],
+    "stub_status": false
+  },
+  "guard-app-kiosks": {
+    "overview": "(no overview yet — placeholder for canonical module)",
+    "key_features": "(none documented)",
+    "depends_on": [],
+    "used_by": [
+      "visitor-management"
+    ],
+    "stub_status": true
+  },
+  "implementation": {
+    "overview": "The Implementation module is **not a product feature module** — it is a collection of internal\nSOPs, reference guides, and operational checklists used by the WorkInSync implementation/SE team\nwhen onboarding new clients or migrating existing MoveInSync (ETS) clients to WorkInSync Workplace.\nIt owns no product entities. Three artifact types are catalogued here: a **migration SOP**, a\n**configuration/support reference guide**, and a **per-client onboarding checklist**.",
+    "key_features": "",
+    "depends_on": [
+      "desk-management",
+      "parking-management",
+      "mobile-app",
+      "floor-kiosk"
+    ],
+    "used_by": [],
+    "stub_status": false
+  },
+  "meal-management": {
+    "overview": "Meal Management handles employee meal booking and consumption tracking at office cafeterias.\nCurrently documented only via the \"Meal Check-in via Access Card\" PRD (May 2025) —\na feature that adds RFID/HID card-based check-in as an alternative to QR scan on mobile.\nThe core meal booking feature (as part of WFO/office booking) pre-dates this doc and is\nassumed to be operational; detailed PRD for it is not yet ingested.",
+    "key_features": "- **WFO-integrated meal booking**: employee adds meal to their office/WFO booking (pre-existing feature)\n- **Standalone meal booking** (new in v1.0): bookable independently via mobile app or web — implemented as a new entity (the PRD notes it is created \"just like the New Room Type\"); also creatable at the cafeteria via RFID swipe\n- **RFID/HID access card check-in** (new in v1.0): swipe at cafeteria → tablet (Android/iOS) shows booking → select meal → register consumption. Replaces mobile QR for phone-averse employees. The tablet screen shows: Office & Cafeteria; meal selection (single meal shown directly, multiple meals listed for choice); meal category & item(s); description (if set); and price (if set)\n- **On-the-spot booking via RFID**: employees without a booking can swipe → create booking at kiosk → check in immediately\n- **Vendor/admin dashboard**: shows employee details after swipe (reuses existing Vendor Dashboard) — lets the vendor verify the swiped user's details when they cannot see the user-facing tablet screen",
+    "depends_on": [
+      "access-management",
+      "floor-kiosk",
+      "desk-management",
+      "meeting-rooms"
+    ],
+    "used_by": [
+      "access-management"
+    ],
+    "stub_status": false
+  },
+  "meeting-rooms": {
+    "overview": "Meeting Rooms is WorkInSync's room booking and management module. It allows employees to\ndiscover, book, check-in, and manage meeting room usage across web, mobile app, kiosk, and\nOutlook/Google calendar. It is one of the most feature-rich modules in the product with several\nsub-systems: catering, dynamic access policy (tags), kiosk view, room maintenance, and\nOutlook/Google calendar integration.",
+    "key_features": "- **Web booking**: search, filter (office/floor/capacity/amenity), sort, book, edit, cancel meeting rooms\n- **Mobile App booking**: Book Now (instant, auto-check-in) and Book Later (calendar slot picker) via the WorkInSync mobile app\n- **Kiosk view**: native tablet app per room — real-time status display, ad-hoc booking, check-in, extend/end meeting, find alternate room\n- **Outlook/Google integration**: bidirectional calendar sync; bookings created in Outlook reflect in WIS and vice versa\n- **Outlook Add-in**: WIS booking UI embedded in Outlook (web + desktop); deployed via manifest URL\n- **Catering**: food/beverage ordering during booking — see the **Catering** section below\n- **Dynamic Policy (tags)**: tag-based access control for native rooms — see the **Dynamic Policy (Meeting Rooms)** section below\n- **Room Maintenance**: admins schedule maintenance periods (create/delete); advance-scheduling limit (default 90 days); optional booking block; email notifications to a configured list on create/delete; configurable user-facing message; notification banners across all channels\n- **Auto-release**: rooms released if no check-in within configurable window (`MEETING_ROOM_RELEASE_IF_NO_CHECKIN`); organizer notified. Meeting start/end reminder notifications (`MEETING_START_NOTIFICATION` / `MEETING_END_NOTIFICATION`)\n- **QR check-in**: employees scan room QR code via mobile app or kiosk to check in",
+    "depends_on": [
+      "tags-desk-parking",
+      "floor-kiosk",
+      "mobile-app",
+      "ms-teams-integration"
+    ],
+    "used_by": [
+      "meal-management",
+      "access-management",
+      "delegation"
+    ],
+    "stub_status": false
+  },
+  "mobile-app": {
+    "overview": "(no overview yet — placeholder for canonical module)",
+    "key_features": "(none documented)",
+    "depends_on": [],
+    "used_by": [
+      "delegation",
+      "digital-wayfinding",
+      "implementation",
+      "meeting-rooms",
+      "parking-management"
+    ],
+    "stub_status": true
+  },
+  "ms-teams-integration": {
+    "overview": "MS Teams Integration is the surface that exposes WorkInSync inside Microsoft Teams. The\nWorkInSync app is published on the **Microsoft Teams Marketplace** (primary) and on\n**Microsoft AppSource** (alternative procurement channel) as a transactable app with three\npricing tiers (Free, Standard, Professional). It is **Publisher Attested** under Microsoft\n365 App Compliance, processes and stores **no Microsoft customer data**, and authenticates\nusers via the **Microsoft Identity Platform (Azure AD SSO)**. The app calls Microsoft Graph\nin delegated mode for read-only access to user profile, presence, contacts, and basic\nprofiles of other org users; one application permission (`MailBoxSettings.Read`) is used\nonly to fetch user mailbox timezone for region identification.",
+    "key_features": "- **Microsoft Teams Marketplace listing**: app discoverable inside Teams; transactable purchase with one-time payment; Microsoft issues invoice on completion\n- **Microsoft AppSource listing**: alternative procurement channel for organizations that source via AppSource\n- **Three pricing tiers**: **Free** (up to 50 users), **Standard**, **Professional**; feature offering mirrors the WiS Pricing Page\n- **License management — WorkInSync portal**: under **People → Employees**, admins see licensed employees; new users can be invited and assigned a license; users can be deactivated or reactivated\n- **License management — Microsoft Admin Center**: add or remove license purchases at the org level; individual assignment cannot be done here — must use the WorkInSync portal\n- **Onboarding post-purchase**: once the one-time purchase completes, the buyer is directed to a landing page where the organization is onboarded into WorkInSync\n- **Per-user installation**: employees install from the Teams app directory; on first use, each user is prompted to grant `Consent as an Employee`\n- **Admin-managed installation**: an Azure AD admin grants one-time org-wide consent via the `Consent as an Admin` prompt; all current and future users use the app without per-user prompts\n- **Auto-install via Microsoft Teams app setup policies**: Teams admins use **app setup policies** — built-in **Global (Org-wide default)** and **FirstlineWorker** (for Frontline Workers; not customizable), or **Custom** policies — to install and pin the WorkInSync app for users when Teams launches and during meetings\n- **Microsoft Graph delegated permissions**: read-only access to user profile, presence (own + all org users), relevant people list, and basic profiles of other org users; refresh-token access via `offline_access` — full permission table below\n- **Microsoft Graph application permission**: `MailBoxSettings.Read`, used only to fetch the user's mailbox timezone for region identification\n- **Publisher Attested compliance**: adheres to Microsoft 365 App Compliance; **no Microsoft customer data is processed or stored**; GDPR compliant with named capabilities for personal-data **delete**, **restrict / limit processing**, and **correct / update**; OWASP Top 10 vulnerability classes documented as prevented via an established vulnerability identification + risk-ranking process\n- **MFA on internal infrastructure** (not product-side): the source explicitly names three areas where WorkInSync supports MFA — **Code Repositories**, **DNS Management**, and **Credential/Key Stores**. End-user MFA goes through Azure AD SSO (see `sso` module).",
+    "depends_on": [
+      "sso"
+    ],
+    "used_by": [
+      "meeting-rooms",
+      "visitor-management"
+    ],
+    "stub_status": false
+  },
+  "parking-management": {
+    "overview": "Parking Management allows organizations to digitize and manage employee parking allocation.\nEmployees book parking as part of their WFO (Work From Office) booking — parking is an add-on\nto the desk/office day booking, not a standalone flow. Parking slots are organized in a\nhierarchical premise structure (Office → Zone → Level → Slot) and access is controlled via\nassignment types and dynamic policy tags (same tag engine as desks and meeting rooms).",
+    "key_features": "- **WFO-integrated booking**: parking is added via the WFO/desk booking form (web and app). Not bookable independently.\n- **Premise hierarchy**: Office → Zone (parking facility) → Level (floor) → Slot (car/bike)\n- **Slot assignment types**: Hotslot (open to all), Employee (dedicated), Team, Blocked, Unallocated\n- **Two booking modes**:\n  - *Auto Allocation*: system picks optimal slot based on assignment priority (Employee > Team > Hotslot); slots are allocated **sequentially** within the chosen category\n  - *Grid-based (Manual)*: employee visually selects a slot from the floor plan\n- **Dynamic Policy (tags)**: tag-based access control reusing the **general-purpose** tag engine from `tags-desk-parking`. Most commonly vehicle-build policies, but tags are general (e.g. PWD-only slots, `WeekendOnly` slots). Includes the special `BLOCK_HOTSEAT` policy. See the **Dynamic Policy (Parking)** section below for mechanics.\n- **Waitlist**: IRCTC-style FCFS waitlist per level when all slots are full. Real-time position number shown. Multi-level waitlist joining supported; a waitlisted employee can still book any open slot on a different level if one frees up.\n- **Vehicle number**: stored per booking (not overwriting profile). Both car + bike registration storable on profile.\n- **Default loading**: pre-fills last 30-day booking's zone/level to reduce re-selection friction.\n- **Check-in**: QR scan at premise or Digipass on mobile. Premise check-in is chainable (parking check-in can automatically check-in to office, or remain independent — configurable).\n- **Buffer times**: `MM` minutes before login time / after logout time for slot availability window.",
+    "depends_on": [
+      "tags-desk-parking",
+      "mobile-app",
+      "desk-management"
+    ],
+    "used_by": [
+      "access-management",
+      "digital-wayfinding",
+      "implementation",
+      "visitor-management"
+    ],
+    "stub_status": false
+  },
+  "safe-reach": {
+    "overview": "**Safe Reach** is WorkInSync's late-departure safety workflow for employees leaving the\noffice after designated hours (e.g. 8 PM). It is initiated at the **VMS self check-in\nkiosk** and orchestrates a notification chain (mobile app → IVR calls → escalation to\nmanual verification by security personnel) to confirm the employee's safe arrival at their\ndestination. WIS Safe Reach is **independent of company-provided transport** — unlike the\npre-existing ETS Safe Reach, which is tied to company cab bookings, this module operates\nfor employees using any mode of transport. Configuration is split across four PMS service\ncategories with office-level overrides of BUID-level defaults.",
+    "key_features": "- **VMS kiosk-initiated checkout** with three booking-state scenarios — pre-8PM booking (auto-checkout or manual), post-8PM booking, or no booking — all funnel relevant info to the Safe Reach module. Mixed visitor+employee records: employee flow takes precedence; visitor flow is ignored. Visibility of Safe Reach fields depends on time-of-day controlled by `SafeReachVmsTimeInMin`\n- **Configurable safety-information form** via `SafeReachInputFields` JSON: Email / Name / Employee ID prefilled and locked; Mobile editable (but does not update Employee profile); Emergency Contact, Mode of Transport (dropdown + \"Others\" free text), Vehicle Details, Drop Location, Escort Required (with branching logic for \"Escort Guard Name\" + \"Office Gate\" or \"Home Location\" when Yes + non-personal transport)\n- **Gender-based trigger** — `triggerSafeReachForFemaleOnly` (BUID-level Boolean) restricts the workflow to female employees only. Edge case: if gender is missing from the employee profile, Safe Reach will NOT be triggered for that employee\n- **Employee-configurable ETA** — dropdown *\"ETA to Reach Destination\"* in the kiosk flow drives mobile-notification + IVR timing. Default 90 min if not selected. Source body references `safeReachETAOptions` for the dropdown values (see Open Questions for naming caveat)\n- **NDA consent capture** — checkbox OR digital signature, switchable via `enableSignatureForConsentSafeReach`. Content provided by the client team\n- **Sequential notification chain** — (a) VMS success message immediately on checkout (*\"Safe reach has been initiated. You will receive a call in [Selected ETA or 90] mins to confirm if you have reached your destination.\"*); (b) mobile-app notification at user-selected ETA or default time; (c) **up to 3 IVR calls** if mobile fails (*\"Press 1 to confirm you have reached, Press 2 if you are still traveling\"*); (d) failed-verification email at configurable intervals\n- **Real-time WIS dashboard** for office admins and security teams — accessible from WIS side nav. Refresh button retains all filters (status, date, employee search, BUID). Columns customized for WIS (ETS-irrelevant fields removed). \"No data matching the filter\" message when refresh returns empty\n- **Failed-verification email pipeline** — multi-interval send (e.g. every 30 min) replaces the prior single 8 AM next-day run. Subject template: *\"Alert: Unconfirmed Safe Arrival of {Employee Name} ({Employee ID}) - {Office Location Name}\"*. Office-level CC list with BUID fallback via `safeReachCcList`. Reporting Manager removed from CC for WIS clients (ETS clients unaffected)\n- **WIS Safe Reach Report** — 14 standard columns (Emp Id, Employee Email, Emp Name, Gender, Emp Contact, **Safe Reach Contact**, ETA to Destination, Time of Leaving Office, Verification Status, Verification Type, Verification Time, Verified By, Comment, **Drop Location (new)**) plus dynamic custom fields from `SafeReachInputFields`. Removals from the ETS-equivalent report: Shift Time, Confirmed-by THD/Co-Pax/Not-Travelled/TPT, Planned/Actual Sign-in Time, \"P\" prefix from visit time values, Drop Address from detail view. Renames: Planned Drop Time → Planned Arrival Time; Actual Drop Time → Confirmed Arrival Time\n- **Office-level overrides of BUID defaults** — `KioskSafeReachInterval` (office-level Array) overrides the BUID-level Safe Reach trigger time. Fallback to BUID if office-level is not set\n- **Dynamic phone-number sourcing** — Safe Reach uses the phone number entered at checkout, not the Employee DB record. Stored separately in the Safe Reach DB; **does not overwrite** the Employee profile. Reports flag phone-edited cases. Validation prevents invalid entries",
+    "depends_on": [
+      "visitor-management"
+    ],
+    "used_by": [],
+    "stub_status": false
+  },
+  "sso": {
+    "overview": "SSO (Single Sign-On) is WorkInSync's authentication-integration surface. WorkInSync acts as\nthe **Service Provider (SP)** and federates authentication to a client's **Identity Provider\n(IdP)**. Two protocols are supported: **SAML 2.0** (via per-client `workinsync.io` URLs) and\n**OAuth 2.0 / OpenID Connect** (via the `auth.moveinsync.com/mis-auth` service). The\nintegration is IdP-agnostic — Azure AD, Okta, ADFS, Google, or any compliant SAML/OIDC\nprovider. Setup is coordinated through a TechOps ticket process owned by the\nemployee-experience (Emp-exp) POD.",
+    "key_features": "- **SAML 2.0 support** — SSO via per-client `workinsync.io` Service Provider URLs; IdP-agnostic (any SAML 2.0 IdP). WorkInSync is the SP / Relying Party\n- **OAuth 2.0 / OIDC support** — SSO via the `auth.moveinsync.com/mis-auth` service; the client's BUID is the OAuth `registration-id`; uses `openid` + `email` scopes\n- **Mobile SSO** — mobile-app SSO support, added in v1.2 of both the Okta and Azure AD SAML docs (Aditya Dutta, 27/06/2023)\n- **Multiple IdP support** — documented setup guides for **Azure AD** and **Okta**; also names **ADFS**, Pingdom Federation, Shibboleth, and Google; works with any SAML/OIDC-compliant IdP\n- **TechOps integration process** — SSO setup is requested via a TechOps (TO) ticket, owned by the **Emp-exp POD** per the SOP. Site types: **Production SG, POC, UAT, Production Mumbai** (distinct SP metadata per site). SLA tiers: Minor/Major/Critical TOs require 4 working days' notice; P0 (Blocker) requires 1 working day with KDV/charan/Dibyendu approval",
+    "depends_on": [],
+    "used_by": [
+      "ms-teams-integration"
+    ],
+    "stub_status": false
+  },
+  "tags-desk-parking": {
+    "overview": "(no overview yet — placeholder for canonical module)",
+    "key_features": "(none documented)",
+    "depends_on": [],
+    "used_by": [
+      "meeting-rooms",
+      "parking-management"
+    ],
+    "stub_status": true
+  },
+  "third-party": {
+    "overview": "**WorkInSync's Slack integration** is a Slack-workspace app that exposes WorkInSync booking\nand presence inside the user's Slack client. From the app's **Home tab**, users can book\nWFO seats, create work-from-home bookings, edit or cancel bookings, find where colleagues\nare working today, and search colleagues. The app pushes **alerts and notifications** when\nteammates check in (office or home) or clock out, and **automatically updates the user's\nSlack status** to *\"Working from Home\"* or *\"Working from office\"* on check-in. The Slack\napp is installed at the workspace level with a per-user account-connection step.",
+    "key_features": "- **Workspace install with per-user account connection**: 6-step Slack-workspace flow (page 2 of source) — search WorkInSync in the Slack apps directory, install, click `Connect your account` on the Home tab, review permissions, click `Allow`. On completion the app is configured and ready\n- **Workspace-admin restriction handling**: if the organization restricts third-party app installs, the user is instructed to *\"reach out to your workspace admin to allow installation of the WorkinSync app\"* (quote from page 2)\n- **WFO and WFH booking from the Home tab**: book a seat in office for in-office work, create a work-from-home booking, edit or cancel an existing booking\n- **Colleague location lookup**: find where a colleague is working today; search colleagues; view booking details; create a new booking from a colleague's context\n- **Check-in / clock-out notifications**: receive Slack messages when teammates check in (office or home) or when teammates clock out\n- **Automatic Slack status updates**: WorkInSync updates the user's Slack status to *\"Working from Home\"* or *\"Working from office\"* on check-in, visible to colleagues\n- **Onboarding redirect for new WorkInSync users**: if the Slack user does not have an active WorkInSync registered account, the Slack app redirects them to the WorkInSync signup page for onboarding\n- **Inherits Slack's compliance posture**: by virtue of running on Slack's infrastructure, the integration inherits Slack's certifications — **SOC 2**, **SOC 3**, **ISO/IEC 27001**, **GDPR compliant**; configurable for **HIPAA** and **FINRA**; supports **Enterprise Key Management** (admin-controlled encryption) and **Slack Connect** (cross-org channels). _Note:_ these are Slack's own claims; the source does NOT make WorkInSync-specific compliance claims for the Slack app (no Publisher-Attested-equivalent for this integration)",
+    "depends_on": [],
+    "used_by": [],
+    "stub_status": false
+  },
+  "visitor-management": {
+    "overview": "Visitor Management handles the complete lifecycle of visitor access to office premises.\nIt supports two visitor types — **Invited** (scheduled in advance by an employee) and\n**Walk-in** (handled at the reception desk on arrival). The system manages invites,\nvisitor registration/profile, manager approval workflows, digipass generation, 2-step check-in\n(security gate + front desk), badge printing, visitor parking, and compliance/GDPR.",
+    "key_features": "- **Scheduled invite**: Employee creates event, invites visitors by email/bulk upload → Visitors accept, complete profile → Receive Digipass → 2-step check-in\n- **Walk-in visitor**: Receptionist captures visitor details at desk, OTP sent to visitor phone/email for identity; optional host approval via OTP\n- **2-step check-in**: (1) Security gate — guard scans visitor digipass via Guard App; (2) Front desk — receptionist verifies ID/photo, allows entry, prints badge\n- **Digipass**: QR code emailed to visitor post-profile-completion. Configurable per office. Auto-send available (skip accept step)\n- **Manager approval workflow**: Invite can require manager sign-off before visitor is notified. Auto-approve or auto-reject on timeout\n- **Visitor parking**: VMS auto-allocates visitor-tagged parking slots (separate from employee slots, invisible to employees). Receptionist notes parking slot at check-in\n- **Badge printing**: Configurable badge with org logo. Audit trail per print (who, when, count)\n- **NDA management**: Configurable NDA display on registration form. NDA validity reusable for N days for repeat visitors\n- **Temporary check-out**: Visitor can step out and return without full re-checkin\n- **Recurring invites**: Up to 90 days ahead; Daily/Weekly/Monthly/Custom patterns\n- **Dynamic fields**: Extra configurable fields on invite form (host-side and visitor-side)\n- **Reporting**: Summary view (invites by date/office/organizer) + Detailed view (per visitor: check-in/out times, duration, status, parking data)\n- **GDPR**: PII stored separately; forgotten after X configurable days (see `Visitor_Document_Storage`)\n- **Self Check-in (Kiosk)**: self-service kiosk check-in for invited/walk-in/employee visitors — see the **Self Check-in (Kiosk)** section below\n- **Visitor blacklisting**: admins can blacklist visitor profiles — blacklisted visitors cannot be invited, checked in (QR / walk-in / self check-in), or bulk-uploaded; future bookings are cancelled\n- **OTP-failure override**: when self-check-in/walk-in OTP fails, front desk can issue a 6-digit override PIN (15-min, single-use) or skip OTP (walk-in)\n- **MS Teams notifications**: visitor check-in and approval/reject notifications delivered to the host's MS Teams (via [[modules/ms-teams-integration]])\n- **Face-recognition employee check-in (⚠️ POC)**: kiosk face-match check-in for employees — POC phase, **not GA**",
+    "depends_on": [
+      "parking-management",
+      "guard-app-kiosks",
+      "ms-teams-integration",
+      "floor-kiosk"
+    ],
+    "used_by": [
+      "delegation",
+      "safe-reach"
+    ],
+    "stub_status": false
+  }
+}

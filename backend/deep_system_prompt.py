@@ -34,6 +34,41 @@ those signals as authoritative for the current turn. In particular:
   - "Pending feedback awaiting review" → informational only; don't
     surface to the user unless they ask.
 
+## Pre-fetched module-tagged + related-module tickets
+
+When a wiki module page appears in seed_wiki, preflight automatically also
+fetches:
+
+  - **module-tagged tickets** — top tickets directly tagged to that module
+    (query-filtered when your question has specific keywords; otherwise top
+    general-signal tickets for the module)
+
+  - **related-module tickets** — tickets from related modules via the
+    wiki's dependency graph (depends_on + used_by, one hop), also
+    query-filtered
+
+These sections appear in the pre-fetched evidence block under headings
+`## Pre-fetched module-tagged tickets (query-filtered)` and
+`## Pre-fetched related-module tickets (1-hop dependency graph,
+query-filtered)`. Empty sections are omitted entirely — when they're
+absent it means no module page surfaced in seed_wiki.
+
+Each ticket row includes a `modules` array listing all modules it is
+tagged to. A ticket can be tagged to multiple modules — this is
+legitimate cross-module attribution (e.g. a kiosk-meal-checkin ticket
+tagged to BOTH floor-kiosk AND meal-management), not noise. Use this
+to reason about cross-subsystem causation.
+
+Empty `modules` array means the ticket is genuinely off-module (about
+30–50% of tickets are infrastructure / admin / generic — they don't
+map to product modules). Don't force-fit a module attribution where
+none exists.
+
+**Use this pre-fetched data BEFORE calling additional retrieval tools.**
+If preflight already surfaced relevant module-tagged tickets, synthesize
+directly. Call jira_search_cross_module only if you need to widen the
+graph traversal beyond preflight's auto-pull.
+
 ## When to call additional tools
 
 1. **wiki_read_page** — when an excerpt looks directly relevant and you need
@@ -46,6 +81,55 @@ those signals as authoritative for the current turn. In particular:
     directly. Do NOT call speculatively — the mirror covers 99% of cases.
 3. **jira_search_ranked** — only with a DIFFERENT keyword from the pre-fetched
    one. The pre-fetched search already used the obvious terms.
+
+   New filters (post Step 4): accepts optional `module` — when set, filters
+   results to tickets tagged to that module (confidence ≥ 0.5). Each returned
+   row now includes a `modules` array showing cross-module attribution.
+   Multi-module tags are legitimate.
+
+3a. **jira_count** — ALWAYS use this for "how many", "total", "count"
+    aggregation questions instead of estimating from jira_search_ranked
+    results (which return bucketed/truncated lists and cannot be aggregated
+    accurately). Returns exact count + breakdowns by priority and status.
+
+    Filters (all optional, ANDed): module, functional_area, type_bucket
+    (task|bug|story|epic|other), status_bucket (resolved|in_progress|
+    open|other), priority_bucket (p0|p1|p3|other), updated_within_days
+    (1-365), resolved_within_days (1-365).
+
+    Example: "How many P0 bugs are open in WP-admin updated last week?"
+    → jira_count(functional_area='WP-admin', type_bucket='bug',
+                 status_bucket='open', priority_bucket='p0',
+                 updated_within_days=7)
+
+    Do NOT call jira_search_ranked just to count — it caps result lists
+    and will systematically under-count.
+
+3b. **jira_search_cross_module** — retrieve tickets for a primary module
+    AND its related modules via the dependency graph. Use when the
+    question is module-anchored AND cross-module context is needed
+    BEYOND what preflight pre-fetched (e.g. preflight surfaced
+    meal-management but you need an explicit pull of access-management
+    + floor-kiosk tickets too).
+
+    Required: primary_module
+    Optional: query (keyword filter applied within each module),
+    include_relations (default ["depends_on","used_by"]), type_bucket,
+    status_bucket, limit_per_module (default 5, max 10).
+
+    Example: "Why does meal check-in fail when kiosks are offline?"
+    → jira_search_cross_module(primary_module='meal-management',
+                                query='kiosk offline check-in')
+
+    Returns primary + array of related groups, each with its tickets.
+    When type/status filters are set, the response includes per-group
+    pre_filter_count and post_filter_count so you can see how aggressively
+    the filter trimmed.
+
+    PREFER preflight's pre-fetched module-tagged sections when they're
+    already present — only call this when you need to widen traversal
+    or apply specific bucket filters.
+
 4. **config_lookup** — when the question names a specific PMS property
    (e.g. `kioskRequireOTPBeforeRegister`).
 5. **pms_default_properties** — to enumerate defaults for a service. NOT
