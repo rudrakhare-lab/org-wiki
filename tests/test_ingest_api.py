@@ -75,3 +75,40 @@ def test_plan_returns_409_when_locked(authed_client):
         assert response.status_code == 409
     finally:
         ingest_service.release_lock()
+
+
+def test_execute_returns_410_for_expired_session(authed_client):
+    response = authed_client.post(
+        "/api/ingest/execute",
+        json={"session_id": "no-such-session"},
+        headers={"Authorization": "Bearer fake"},
+    )
+    assert response.status_code == 410
+
+
+def test_execute_returns_409_when_locked(authed_client):
+    from backend import ingest_service as svc
+    import time
+
+    # Store a valid session so the 410 check passes
+    session = svc.IngestSession(
+        session_id="test-session-409",
+        upload_id="up-1",
+        plan={"operations": []},
+        created_at=time.time(),
+        slug="test",
+        filename="test.pdf",
+        original_path="/tmp/test.pdf",
+    )
+    svc.store_session(session)
+
+    svc.acquire_lock()
+    try:
+        response = authed_client.post(
+            "/api/ingest/execute",
+            json={"session_id": "test-session-409"},
+            headers={"Authorization": "Bearer fake"},
+        )
+        assert response.status_code == 409
+    finally:
+        svc.release_lock()

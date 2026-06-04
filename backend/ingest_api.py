@@ -253,3 +253,146 @@ def plan_ingest(req: PlanRequest):
 
     finally:
         ingest_service.release_lock()
+
+
+# ── Execute endpoint ──────────────────────────────────────────────────────────
+
+class ExecuteRequest(BaseModel):
+    session_id: str
+
+
+@router.post("/execute")
+def execute_ingest(req: ExecuteRequest):
+    session = ingest_service.get_session(req.session_id)
+    if session is None:
+        raise HTTPException(
+            status_code=410,
+            detail="Plan expired or not found. Please re-upload and re-plan.",
+        )
+
+    if not ingest_service.acquire_lock():
+        raise HTTPException(
+            status_code=409,
+            detail="Another ingestion is in progress. Try again in a moment.",
+        )
+
+    async def event_stream() -> AsyncGenerator[str, None]:
+        try:
+            registry = ingest_service.build_execute_registry()
+            api_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+
+            plan = session.plan
+            operations = plan.get("operations", [])
+            total = len(operations) + 1  # +1 for rebuild_index
+
+            user_msg = (
+                f"Execute this approved ingestion plan for file '{session.filename}':\n\n"
+                f"{json.dumps(plan, indent=2)}"
+            )
+            messages: list[dict] = [{"role": "user", "content": user_msg}]
+
+            files_created: list[str] = []
+            files_modified: list[str] = []
+            completed = 0
+
+            for _ in range(30):  # max 30 rounds
+                response = api_client.messages.create(
+                    model=MODEL,
+                    max_tokens=4096,
+                    system=EXECUTE_SYSTEM_PROMPT,
+                    tools=registry.schemas,
+                    messages=messages,
+                )
+
+                tool_results = []
+                for block in response.content:
+                    if block.type == "tool_use":
+                        result_str, _ = registry.execute(block.name, block.input, round_num=0)
+                        result = json.loads(result_str)
+                        tool_results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": result_str,
+                        })
+                        completed += 1
+
+                        # Track created vs modified
+                        path = block.input.get("path", "")
+                        if block.name == "wiki_create_page" and result.get("created"):
+                            files_created.append(path)
+                        elif block.name in {"wiki_edit_page", "wiki_append_section", "wiki_update_frontmatter"}:
+                            if path and path not in files_modified:
+                                files_modified.append(path)
+
+                        # Determine status label
+                        if "error" in result:
+                            status_label = "error"
+                        elif block.name == "wiki_create_page":
+                            status_label = "created"
+                        elif block.name == "wiki_rebuild_index":
+                            status_label = "rebuilt"
+                        else:
+                            status_label = "edited"
+
+                        event = {
+                            "type": "progress",
+                            "tool": block.name,
+                            "path": path,
+                            "status": status_label,
+                            "result": result,
+                            "completed": completed,
+                            "total": total,
+                        }
+                        yield f"data: {json.dumps(event)}\n\n"
+
+                        if "error" in result:
+                            err_event = {
+                                "message": result["error"],
+                                "tool": block.name,
+                                "path": path,
+                            }
+                            yield f"event: error\ndata: {json.dumps(err_event)}\n\n"
+                            return
+
+                if response.stop_reason == "end_turn":
+                    break
+
+                messages.append({"role": "assistant", "content": response.content})
+                messages.append({"role": "user", "content": tool_results})
+
+            # Move uploaded file to proper raw/modules/{slug}/ location
+            src = pathlib.Path(session.original_path)
+            if src.exists():
+                dest_dir = pathlib.Path(UPLOAD_DIR).parent / session.slug
+                dest_dir.mkdir(parents=True, exist_ok=True)
+                dest = dest_dir / session.filename
+                src.rename(dest)
+                try:
+                    src.parent.rmdir()
+                except OSError:
+                    pass  # directory not empty or already gone
+
+            # Emit completion event
+            links = [p.replace("wiki/", "").replace(".md", "") for p in files_created]
+            complete_event = {
+                "type": "complete",
+                "files_created": files_created,
+                "files_modified": files_modified,
+                "links": links,
+            }
+            yield f"event: complete\ndata: {json.dumps(complete_event)}\n\n"
+
+        except Exception as exc:
+            yield f"event: error\ndata: {json.dumps({'message': str(exc)})}\n\n"
+        finally:
+            ingest_service.release_lock()
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
