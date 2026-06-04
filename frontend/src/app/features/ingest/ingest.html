@@ -1,0 +1,43 @@
+<div class="ingest-page">
+  <div class="ingest-container">
+
+    @switch (phase()) {
+      @case ('upload') {
+        <app-upload-step (done)="onUploaded($event)" />
+        @if (planningError()) {
+          <div class="error-banner">{{ planningError() }}</div>
+        }
+      }
+
+      @case ('planning') {
+        <div class="planning-spinner">
+          <div class="spinner"></div>
+          <p>Analysing document…</p>
+        </div>
+      }
+
+      @case ('plan-review') {
+        @if (planResponse(); as pr) {
+          <app-plan-step
+            [plan]="pr.plan"
+            [filename]="uploadResult()?.filename ?? ''"
+            [sessionId]="pr.session_id"
+            (approve)="onApprove()"
+            (cancel)="onCancel()"
+          />
+        }
+      }
+
+      @case ('executing') {
+        @if (planResponse(); as pr) {
+          <app-execute-step
+            [sessionId]="pr.session_id"
+            [filename]="uploadResult()?.filename ?? ''"
+            (ingestAnother)="onIngestAnother()"
+          />
+        }
+      }
+    }
+
+  </div>
+</div>

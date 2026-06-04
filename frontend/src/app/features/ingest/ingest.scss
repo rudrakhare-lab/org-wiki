@@ -1,0 +1,107 @@
+.ingest-page {
+  display: flex;
+  justify-content: center;
+  padding: 32px 16px;
+  min-height: calc(100vh - 60px);
+}
+
+.ingest-container {
+  width: 100%;
+  max-width: 700px;
+}
+
+// ── Upload step ──────────────────────────────────────────────────────────────
+.drop-zone {
+  border: 2px dashed #90caf9;
+  border-radius: 12px;
+  padding: 48px 32px;
+  text-align: center;
+  background: #f8fbff;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+
+  &:hover, &.drag-over { border-color: #1976d2; background: #e3f2fd; }
+  &.has-file { border-style: solid; border-color: #4caf50; background: #f1f8e9; }
+
+  .drop-icon { font-size: 2.5em; display: block; margin-bottom: 12px; }
+  .drop-types { display: block; font-size: 0.82em; color: #888; margin-top: 6px; }
+  .file-info { display: flex; align-items: center; gap: 12px; justify-content: center; }
+  .file-name { font-weight: 600; color: #1976d2; }
+  .file-size { color: #888; font-size: 0.85em; }
+}
+
+.form-field {
+  margin-top: 20px;
+  label { display: block; font-size: 0.82em; font-weight: 600; color: #555; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .optional { font-weight: 400; color: #aaa; }
+  textarea, input[type="text"] { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 0.9em; resize: vertical; box-sizing: border-box; }
+}
+
+// ── Plan step ─────────────────────────────────────────────────────────────────
+.plan-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; }
+.filename { font-size: 0.85em; color: #888; }
+.summary-box { background: #e8f5e9; border-radius: 8px; padding: 16px; margin-bottom: 20px;
+  ul { margin: 0; padding-left: 18px; }
+  li { line-height: 1.8; font-size: 0.88em; }
+}
+.section-label { font-size: 0.75em; font-weight: 700; color: #555; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.classification-badges { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+.badge { background: #e3f2fd; padding: 10px 16px; border-radius: 8px; font-size: 0.82em;
+  .badge-label { display: block; color: #888; font-size: 0.85em; }
+  .badge-value { font-weight: 600; }
+}
+.ops-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.ops-list { list-style: none; padding: 12px; margin: 0; background: #f9f9f9; border-radius: 6px;
+  li { display: flex; flex-direction: column; gap: 2px; margin-bottom: 10px; font-size: 0.83em; }
+  .op-path { font-family: monospace; color: #333; }
+  .op-desc, .op-preview { color: #888; font-size: 0.9em; }
+  .empty { color: #bbb; font-style: italic; }
+}
+.warnings-box { background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 12px; margin-bottom: 20px;
+  .warning-item { font-size: 0.85em; }
+}
+.plan-actions { display: flex; gap: 12px; }
+
+// ── Execute step ──────────────────────────────────────────────────────────────
+.execute-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.elapsed { font-size: 0.85em; color: #888; }
+.progress-list { margin-bottom: 16px; }
+.progress-item { display: flex; gap: 10px; align-items: flex-start; font-size: 0.84em; line-height: 2;
+  &.done { color: #2e7d32; }
+  &.error { color: #c62828; }
+  &.in_progress { color: #1976d2; }
+  &.pending { color: #ccc; }
+}
+.progress-bar { background: #e0e0e0; border-radius: 4px; height: 6px; margin-bottom: 24px;
+  .progress-fill { background: #1976d2; height: 6px; border-radius: 4px; transition: width 0.3s; }
+}
+.success-box { background: #e8f5e9; border-radius: 8px; padding: 16px; margin-bottom: 16px;
+  .success-title { font-weight: 600; color: #2e7d32; margin-bottom: 10px; }
+}
+.result-links { display: flex; flex-wrap: wrap; gap: 8px;
+  .result-link { color: #1976d2; font-size: 0.85em; text-decoration: none;
+    &:hover { text-decoration: underline; }
+  }
+}
+.error-box { background: #ffebee; border-radius: 8px; padding: 16px; margin-bottom: 16px;
+  .error-title { font-weight: 600; color: #c62828; }
+  .error-detail { font-size: 0.85em; color: #555; margin-top: 6px; }
+}
+.warning-note { font-size: 0.8em; color: #888; text-align: center; margin-top: 12px; }
+.error-banner { background: #ffebee; color: #c62828; padding: 12px; border-radius: 6px; margin-top: 12px; font-size: 0.88em; }
+.planning-spinner { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 80px 0;
+  .spinner { width: 40px; height: 40px; border: 3px solid #e0e0e0; border-top-color: #1976d2; border-radius: 50%; animation: spin 0.8s linear infinite; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+// ── Shared buttons ────────────────────────────────────────────────────────────
+.btn-primary { width: 100%; padding: 14px; background: #1976d2; color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer;
+  &:hover:not(:disabled) { background: #1565c0; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+.btn-approve { flex: 2; padding: 13px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.95em; cursor: pointer;
+  &:hover { background: #1b5e20; }
+}
+.btn-secondary { flex: 1; padding: 13px; background: #f5f5f5; color: #555; border: none; border-radius: 8px; font-size: 0.95em; cursor: pointer;
+  &:hover { background: #e0e0e0; }
+}
