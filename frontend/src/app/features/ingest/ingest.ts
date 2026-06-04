@@ -1,4 +1,4 @@
-import { Component, signal, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService, IngestPlanResponse } from '../../core/api.service';
 import { inject } from '@angular/core';
@@ -8,6 +8,9 @@ import { ExecuteStep } from './execute-step';
 
 type IngestPhase = 'upload' | 'planning' | 'plan-review' | 'executing';
 
+const STORAGE_JOB_ID  = 'conwo_active_ingest_job';
+const STORAGE_FILENAME = 'conwo_active_ingest_filename';
+
 @Component({
   selector: 'app-ingest',
   standalone: true,
@@ -16,13 +19,25 @@ type IngestPhase = 'upload' | 'planning' | 'plan-review' | 'executing';
   styleUrl: './ingest.scss',
   encapsulation: ViewEncapsulation.None,
 })
-export class Ingest {
+export class Ingest implements OnInit {
   private api = inject(ApiService);
 
   phase = signal<IngestPhase>('upload');
   uploadResult = signal<UploadResult | null>(null);
   planResponse = signal<IngestPlanResponse | null>(null);
   planningError = signal('');
+
+  ngOnInit() {
+    // If there's an active job from a previous visit, resume showing it
+    const savedJobId = localStorage.getItem(STORAGE_JOB_ID);
+    const savedFilename = localStorage.getItem(STORAGE_FILENAME) ?? '';
+    if (savedJobId) {
+      this.uploadResult.set({ uploadId: '', filename: savedFilename, notes: '', targetSlug: '' });
+      // planResponse session_id is not needed for resume — execute-step reads the jobId from localStorage
+      this.planResponse.set({ session_id: '', plan: {} as any });
+      this.phase.set('executing');
+    }
+  }
 
   onUploaded(result: UploadResult) {
     this.uploadResult.set(result);
@@ -54,6 +69,8 @@ export class Ingest {
   }
 
   private reset() {
+    localStorage.removeItem(STORAGE_JOB_ID);
+    localStorage.removeItem(STORAGE_FILENAME);
     this.phase.set('upload');
     this.uploadResult.set(null);
     this.planResponse.set(null);
