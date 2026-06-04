@@ -7,4 +7,5 @@ pydantic==2.10.3
 tomli==2.2.1        # Python <3.11 fallback for tomllib
 PyYAML==6.0.3       # frontmatter parsing in wiki_propose_tools
 python-frontmatter==1.1.0  # G35 — robust YAML frontmatter parsing
+python-multipart>=0.0.12  # file upload support for /api/ingest/upload
 pytest>=7.0

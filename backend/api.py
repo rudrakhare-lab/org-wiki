@@ -976,3 +976,9 @@ def trigger_drive_sync(_admin: dict = Depends(_require_admin)):
 # trace_api.py needs no import from api.py (avoids a circular import).
 from backend import trace_api  # noqa: E402
 app.include_router(trace_api.router, dependencies=[Depends(_require_admin)])
+
+# Ingest endpoints (/api/ingest/*). Registered at the end so _require_user is
+# defined. Any authenticated user — auth applied here at include time so
+# ingest_api.py needs no import from api.py (avoids a circular import).
+from backend import ingest_api  # noqa: E402
+app.include_router(ingest_api.router, dependencies=[Depends(_require_user)])
