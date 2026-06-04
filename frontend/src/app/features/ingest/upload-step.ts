@@ -74,7 +74,7 @@ export interface UploadResult {
         />
         <datalist id="module-slugs">
           @for (slug of knownSlugs; track slug) {
-            <option [value]="slug" />
+            <option [value]="slug"></option>
           }
         </datalist>
       </div>

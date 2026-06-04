@@ -53,3 +53,6 @@ pms_debug_*.json
 # Python virtualenvs (in case user creates one in-repo)
 .venv/
 venv/
+
+# Ingest uploads (ephemeral — moved to raw/modules/{slug}/ on success)
+raw/modules/_uploads/

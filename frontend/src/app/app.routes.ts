@@ -37,5 +37,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/traces/trace-detail').then(m => m.TraceDetail),
   },
+  {
+    path: 'ingest',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/ingest/ingest').then(m => m.Ingest),
+  },
   { path: '**', redirectTo: 'ask' },
 ];
