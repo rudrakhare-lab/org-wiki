@@ -1351,3 +1351,83 @@ the human-readable office name alongside every OFFICEID:
 
 If `list-offices` returns empty, verify the BUID string is correct. The mapping
 is cached for the lifetime of the session — no re-fetch needed.
+
+---
+
+## Section 13 — Observability & Request Tracing
+
+The backend instruments every `/query` and `/query/stream` request. Three files own this:
+`backend/trace_middleware.py` (HTTP boundary), `backend/trace_store.py` (SQLite writes,
+fail-open), `backend/trace_api.py` (read-only admin API). Data lives in
+`raw/traces/traces.sqlite` (gitignored). The frontend UI lives at
+`frontend/src/app/features/traces/` (trace-list, trace-detail, dashboard).
+
+### Session status enum
+
+| Status | Meaning |
+|---|---|
+| `in_progress` | Request currently running |
+| `success` | Completed, response sent |
+| `error` | Backend raised unhandled exception |
+| `client_disconnect` | Client closed connection before response |
+| `rejected` | Gateway rejected (auth / rate / missing key) — typically <10ms |
+| `orphaned` | Never finalized — crash mid-request or CORS ghost; set by `reconcile_orphans()` on restart |
+
+`reconcile_orphans()` runs automatically at module import and transitions any stale
+`in_progress` row from a previous backend process.
+
+### Dashboard metrics — distribution vs. performance
+
+Intentionally different status filters per category:
+
+| Category | Status filter | Metrics |
+|---|---|---|
+| **Distribution** | All non-orphaned | `total_queries`, `status_breakdown`, `mode_breakdown` |
+| **Performance** | `IN ('success','error')` | Latency avg/p50/p95/p99, `total_cost_usd`, cost by day, cost percentiles, token/cache totals |
+
+`error_rate = errors / (errors + successes)` — `rejected`, `orphaned`, `client_disconnect` never count.
+
+**Why the split:** `rejected` traces end in <10ms (auth check, no LLM work). Including them
+in latency or cost averages produces misleading numbers (confirmed: 21.6s ghost avg vs 43.1s
+real avg during Step 7 verification). They belong in distribution counts, not performance budgets.
+
+### Operational notes
+
+- **OPTIONS exclusion:** `trace_middleware.py` guards `request.method != "OPTIONS"` before
+  opening a session. Without this, CORS preflight requests to `/query` create ghost
+  `in_progress` rows (one was discovered and fixed during Step 7).
+- **SQLite foreign_keys:** `PRAGMA foreign_keys=ON` is per-connection, not database-persistent.
+  `trace_store._write()` and `_read_conn()` both set it. Raw `sqlite3` shells need:
+  `sqlite3 raw/traces/traces.sqlite -cmd "PRAGMA foreign_keys=ON"`.
+- **Stop backend before editing trace `.py` files** — same rule as all backend edits
+  (see §1 Operational Safety).
+
+### Investigating a slow query
+
+1. Open `/traces` in the UI — find the trace by question text or sort by duration
+2. Click the row → **Detail page**
+3. Check the **Breakdown** section: which phase (LLM / Tools / Preflight) owns the time?
+4. In the **Timeline**, expand individual events — LLM events show token counts; tool
+   events show input/output summaries
+5. If a tool dominates (e.g. `jira_search` 8s), cross-reference Jira for known issues
+
+### Model pricing (for cost calculations)
+
+| Model | Input | Output | Cache read | Cache write |
+|---|---|---|---|---|
+| Sonnet 4.6 | $3.00/M | $15.00/M | $0.30/M | $3.75/M |
+| Haiku 4.5 | $0.80/M | $4.00/M | $0.08/M | $1.00/M |
+
+Cost computed in `trace_store._aggregate_events()` from `llm_response` event metadata
+(`tokens_input`, `tokens_output`, `tokens_cached_input`, `cost_usd`).
+
+### File reference
+
+| File | Role |
+|---|---|
+| `backend/trace_middleware.py` | Mints `trace_id`; opens session at HTTP boundary; guards OPTIONS |
+| `backend/trace_store.py` | All SQLite writes; `reconcile_orphans`; fail-open on every call |
+| `backend/trace_api.py` | Read-only FastAPI router (`/api/traces/*`); admin-gated |
+| `raw/traces/traces.sqlite` | Live trace data (gitignored — never commit) |
+| `scripts/init_traces_db.py` | Schema init (idempotent — safe to re-run) |
+| `frontend/src/app/features/traces/` | UI: `trace-list.ts`, `trace-detail.ts`, `dashboard.ts` |

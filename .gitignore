@@ -39,6 +39,13 @@ raw/conversations/
 # Auth store — runtime user/token data, not source-controlled
 raw/auth/
 
+# Request tracing DB — runtime observability data, regenerable via scripts/init_traces_db.py
+raw/traces/
+raw/traces/*.sqlite
+raw/traces/*.sqlite-journal
+raw/traces/*.sqlite-wal
+raw/traces/*.sqlite-shm
+
 # Live debug session files — contain customer config data, stored in /tmp/ by default
 # but guard against accidental in-repo saves
 pms_debug_*.json

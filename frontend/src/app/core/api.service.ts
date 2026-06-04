@@ -299,6 +299,110 @@ export interface FeedbackRecord {
   created_at: string;
 }
 
+// ── Traces / observability (admin-only) — shapes mirror backend/trace_api.py ──
+export interface TraceSessionSummary {
+  trace_id: string;
+  started_at: string;
+  ended_at: string | null;
+  duration_ms: number | null;
+  mode: string;            // api | claude-code
+  status: string;          // success | error | rejected | client_disconnect | orphaned
+  question: string | null;
+  total_tokens_input: number | null;
+  total_tokens_output: number | null;
+  total_cost_usd: number | null;
+  tool_call_count: number;
+  round_count: number;
+}
+
+export interface TraceSessionList {
+  total: number;
+  limit: number;
+  offset: number;
+  sessions: TraceSessionSummary[];
+}
+
+export interface TraceEvent {
+  event_id: string;
+  trace_id: string;
+  sequence: number;
+  timestamp: string;
+  component: string;
+  event_type: string;
+  duration_ms: number | null;
+  round_num: number | null;
+  tool_name: string | null;
+  tool_input_json: string | null;
+  tool_output_summary: string | null;
+  status: string | null;
+  metadata_json: string | null;
+}
+
+export interface TraceMetrics {
+  trace_id: string;
+  latency_total_ms: number | null;
+  latency_preflight_ms: number | null;
+  latency_llm_ms: number | null;
+  latency_tools_ms: number | null;
+  tool_calls_by_name_json: string | null;
+  tokens_input: number | null;
+  tokens_output: number | null;
+  tokens_cached_input: number | null;
+  cost_usd: number | null;
+  errors_count: number;
+}
+
+export interface TraceDetail {
+  session: TraceSessionSummary & {
+    error_message?: string | null;
+    conversation_id?: string | null;
+    message_id?: string | null;
+  };
+  events: TraceEvent[];
+  metrics: TraceMetrics | null;
+}
+
+export interface TraceOverview {
+  total_queries: number;
+  status_breakdown: Record<string, number>;
+  error_rate: number | null;
+  latency_ms: { avg: number | null; p50: number | null; p95: number | null; p99: number | null };
+  total_cost_usd: number;
+  cost_by_day: { day: string; cost: number; queries: number }[];
+  top_tools: { tool_name: string; call_count: number }[];
+  mode_breakdown: Record<string, number>;
+}
+
+export interface TraceToolsResponse {
+  tools: { tool_name: string; call_count: number; avg_duration_ms: number | null; error_rate_pct: number }[];
+}
+
+export interface TraceErrorsResponse {
+  errors_by_component: Record<string, number>;
+  exceptions_by_type: Record<string, number>;
+  recent_exceptions: {
+    trace_id: string; timestamp: string; exception_type: string;
+    exception_message: string | null; where: string | null;
+  }[];
+}
+
+export interface TraceCostResponse {
+  cost_by_day: { day: string; cost: number }[];
+  cost_per_query: { avg: number | null; p50: number | null; p95: number | null };
+  tokens: { input: number; output: number; cached_input: number };
+  cache_hit_rate: number | null;
+}
+
+export interface TraceListParams {
+  limit?: number;
+  offset?: number;
+  mode?: string;
+  status?: string;
+  since?: string;
+  search?: string;
+  include_orphaned?: boolean;
+}
+
 const API_BASE = 'http://localhost:8000';
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 const MODE_STORAGE = 'conwo_query_mode';
@@ -522,6 +626,42 @@ export class ApiService {
 
   private adminHeaders(): HttpHeaders {
     return new HttpHeaders({ Authorization: `Bearer ${this.getAdminToken()}` });
+  }
+
+  // ── Traces / observability (admin-only) ────────────────────────────────
+  listTraces(params: TraceListParams = {}): Observable<TraceSessionList> {
+    const qs = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') qs.set(k, String(v));
+    });
+    return this.http.get<TraceSessionList>(
+      `${API_BASE}/api/traces/sessions?${qs.toString()}`, { headers: this.adminHeaders() });
+  }
+
+  getTrace(traceId: string): Observable<TraceDetail> {
+    return this.http.get<TraceDetail>(
+      `${API_BASE}/api/traces/sessions/${encodeURIComponent(traceId)}`, { headers: this.adminHeaders() });
+  }
+
+  traceOverview(timeRange = '7d', includeOrphaned = false): Observable<TraceOverview> {
+    return this.http.get<TraceOverview>(
+      `${API_BASE}/api/traces/dashboard/overview?time_range=${timeRange}&include_orphaned=${includeOrphaned}`,
+      { headers: this.adminHeaders() });
+  }
+
+  traceTools(timeRange = '7d'): Observable<TraceToolsResponse> {
+    return this.http.get<TraceToolsResponse>(
+      `${API_BASE}/api/traces/dashboard/tools?time_range=${timeRange}`, { headers: this.adminHeaders() });
+  }
+
+  traceErrors(timeRange = '7d'): Observable<TraceErrorsResponse> {
+    return this.http.get<TraceErrorsResponse>(
+      `${API_BASE}/api/traces/dashboard/errors?time_range=${timeRange}`, { headers: this.adminHeaders() });
+  }
+
+  traceCost(timeRange = '7d'): Observable<TraceCostResponse> {
+    return this.http.get<TraceCostResponse>(
+      `${API_BASE}/api/traces/dashboard/cost?time_range=${timeRange}`, { headers: this.adminHeaders() });
   }
 
   getSyncStatus(): Observable<SyncStatus> {

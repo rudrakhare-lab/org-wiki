@@ -1,0 +1,328 @@
+.page {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 16px;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+
+  h1 {
+    font-size: 1.5rem;
+    color: var(--text);
+    margin: 0;
+  }
+}
+
+.refresh-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+
+  &:hover { background: var(--surface-muted); }
+}
+
+.section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+
+// ── Filter bar ──────────────────────────────────────────────────────────────
+
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 6px 10px;
+  font-size: 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+
+  &::placeholder { color: var(--text-subtle); }
+
+  &:focus {
+    outline: none;
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px var(--accent-ring);
+  }
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+
+  select {
+    padding: 5px 8px;
+    font-size: 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+  }
+}
+
+.filter-check {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+
+  input[type='checkbox'] { cursor: pointer; }
+}
+
+// ── Table ───────────────────────────────────────────────────────────────────
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+
+  th {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-subtle);
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 9px 10px;
+    border-bottom: 1px solid var(--surface-muted);
+    color: var(--text);
+    vertical-align: middle;
+  }
+}
+
+.trace-row {
+  cursor: pointer;
+
+  &:hover td { background: var(--surface-hover); }
+  &:last-child td { border-bottom: none; }
+}
+
+.col-date {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.col-question {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.col-mode code {
+  font-size: 0.78rem;
+  background: var(--surface-muted);
+  padding: 1px 6px;
+  border-radius: var(--radius-xs);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.col-status { white-space: nowrap; }
+
+.col-num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.col-cost {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+
+.cost-null {
+  color: var(--text-subtle);
+  cursor: help;
+}
+
+// ── Status chips ─────────────────────────────────────────────────────────────
+
+.status-chip {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  border: 1px solid transparent;
+
+  &.chip-success {
+    color: var(--success);
+    background: var(--success-soft);
+    border-color: var(--success-border);
+  }
+
+  &.chip-error {
+    color: var(--error);
+    background: var(--error-soft);
+    border-color: var(--error-border);
+  }
+
+  &.chip-warning {
+    color: var(--warning);
+    background: var(--warning-soft);
+    border-color: var(--warning-border);
+  }
+
+  &.chip-info {
+    color: var(--info);
+    background: var(--info-soft);
+    border-color: var(--info-border);
+  }
+
+  &.chip-orphaned,
+  &.chip-unknown {
+    color: var(--text-subtle);
+    background: var(--surface-muted);
+    border-color: var(--border);
+  }
+}
+
+// ── Pagination ───────────────────────────────────────────────────────────────
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.page-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 14px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+
+  &:hover:not(:disabled) {
+    background: var(--surface-muted);
+    color: var(--text);
+  }
+
+  &:disabled {
+    color: var(--text-subtle);
+    cursor: not-allowed;
+  }
+}
+
+.page-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  min-width: 110px;
+  text-align: center;
+}
+
+// ── Feedback states ───────────────────────────────────────────────────────────
+
+.loading-text {
+  color: var(--text-subtle);
+  font-size: 0.875rem;
+  padding: 32px 0;
+  text-align: center;
+}
+
+.error-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--error-soft);
+  border: 1px solid var(--error-border);
+  border-radius: var(--radius);
+  color: var(--error);
+  font-size: 0.875rem;
+}
+
+.retry-btn {
+  background: none;
+  border: 1px solid var(--error-border);
+  color: var(--error);
+  border-radius: var(--radius-sm);
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 0.82rem;
+
+  &:hover { background: var(--error-soft); }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--text-subtle);
+
+  p {
+    margin: 0 0 14px;
+    font-size: 0.9rem;
+  }
+}
+
+.reset-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 6px 16px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+
+  &:hover {
+    background: var(--surface-muted);
+    color: var(--text);
+  }
+}

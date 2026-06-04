@@ -21,11 +21,13 @@ from __future__ import annotations
 
 import os
 import re
+import time
 from dataclasses import dataclass, field
 
 import anthropic
 from anthropic.types import ToolUseBlock
 
+from backend import trace_store
 from backend.tools.registry import ToolRegistry, ToolTraceEntry
 
 # G24: model id configurable via env so we can swap without redeploy.
@@ -74,6 +76,7 @@ class DeepQueryProvider:
         tool_registry: ToolRegistry,
         max_rounds: int = _MAX_ROUNDS_ABSOLUTE,
         prior_messages: list[dict] | None = None,
+        trace_id: str | None = None,
     ) -> DeepProviderResult:
         max_rounds = min(max_rounds, _MAX_ROUNDS_ABSOLUTE)
         messages: list[dict] = list(prior_messages or []) + [
@@ -87,6 +90,7 @@ class DeepQueryProvider:
             while round_num < max_rounds:
                 round_num += 1
 
+                _t0 = time.perf_counter()
                 resp = self._client.messages.create(
                     model=_MODEL,
                     max_tokens=_MAX_TOKENS,
@@ -94,6 +98,8 @@ class DeepQueryProvider:
                     tools=tool_registry.schemas,
                     messages=messages,
                 )
+                _record_llm(trace_id, resp, round_num,
+                            int((time.perf_counter() - _t0) * 1000), is_synthesis=False)
 
                 # MUST append full content list before processing tool calls
                 messages.append({"role": "assistant", "content": resp.content})
@@ -118,6 +124,7 @@ class DeepQueryProvider:
                             name=block.name,
                             tool_input=dict(block.input) if block.input else {},
                             round_num=round_num,
+                            trace_id=trace_id,
                         )
                         tool_trace.append(trace_entry)
                         tool_result_contents.append({
@@ -132,6 +139,7 @@ class DeepQueryProvider:
                     # If this was the last allowed round, force synthesis
                     if round_num >= max_rounds:
                         messages.append({"role": "user", "content": _FORCE_SYNTHESIS})
+                        _t0 = time.perf_counter()
                         final_resp = self._client.messages.create(
                             model=_MODEL,
                             max_tokens=_MAX_TOKENS,
@@ -139,6 +147,8 @@ class DeepQueryProvider:
                             tools=tool_registry.schemas,
                             messages=messages,
                         )
+                        _record_llm(trace_id, final_resp, round_num,
+                                    int((time.perf_counter() - _t0) * 1000), is_synthesis=True)
                         result.raw_answer = _extract_text(final_resp.content)
                         break
 
@@ -156,6 +166,23 @@ class DeepQueryProvider:
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _record_llm(trace_id, resp, round_num, duration_ms, is_synthesis):
+    """Fail-open llm_response trace event. Tolerates missing/changed resp.usage shape."""
+    u = getattr(resp, "usage", None)
+    trace_store.record_event(
+        trace_id, component="llm_call", event_type="llm_response",
+        duration_ms=duration_ms, round_num=round_num, status="ok",
+        metadata={
+            "model": getattr(resp, "model", _MODEL),
+            "input_tokens": getattr(u, "input_tokens", 0),
+            "output_tokens": getattr(u, "output_tokens", 0),
+            "cache_read_input_tokens": getattr(u, "cache_read_input_tokens", 0),
+            "cache_creation_input_tokens": getattr(u, "cache_creation_input_tokens", 0),
+            "stop_reason": getattr(resp, "stop_reason", None),
+            "is_synthesis": is_synthesis,
+        })
+
 
 def _extract_text(content: list) -> str:
     parts = []

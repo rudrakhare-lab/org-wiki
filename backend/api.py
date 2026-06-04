@@ -29,16 +29,19 @@ Auth (Phase 1):
 """
 from __future__ import annotations
 
+import asyncio
 import json
 from contextlib import asynccontextmanager
 from typing import Annotated, Literal
 
-from fastapi import Depends, FastAPI, HTTPException, Header, status
+from fastapi import Depends, FastAPI, HTTPException, Header, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
+from backend import trace_store
+from backend.trace_middleware import TraceMiddleware
 from backend import config as _config
 from backend.config import local_claude_code_enabled
 from backend.feedback_service import log_answer, record_feedback
@@ -106,6 +109,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Request-lifecycle tracing. Registered AFTER CORS so that — because FastAPI runs
+# middleware in REVERSE order of registration — TraceMiddleware sees the request
+# FIRST (trace_id minted before CORS processing) and the response LAST.
+app.add_middleware(TraceMiddleware)
 
 
 # ---------------------------------------------------------------------------
@@ -266,6 +274,18 @@ def health():
     }
 
 
+@app.get("/trace/health")
+def trace_health():
+    """Verify trace storage is operational. Used during Step 3c verification
+    and for ongoing ops health checks."""
+    return {
+        "ok": True,
+        "db": str(trace_store._DB_PATH),
+        "exists": trace_store._DB_PATH.exists(),
+        "enabled": trace_store._check_tracing_enabled(),
+    }
+
+
 @app.get("/health/claude-code")
 def health_claude_code():
     available = orchestrator.claude_code_available()
@@ -296,134 +316,160 @@ def health_claude_code():
 @app.post("/query", response_model=QueryResponse)
 def query(
     req: QueryRequest,
+    request: Request,
     user: dict | None = Depends(_get_user),
 ):
-    # claude-code (legacy single-shot) mode: require Bearer token unless the
-    # operator has explicitly enabled local-dev mode.
-    if req.mode == "claude-code" and not user and not local_claude_code_enabled():
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=(
-                "Claude Code mode requires authentication. "
-                "Provide a valid Bearer token, or set CONWO_LOCAL_CLAUDE_CODE=true "
-                "for local-dev."
-            ),
-        )
-
-    # API mode: always require authentication. The server's ANTHROPIC_API_KEY is
-    # the only key source (single-key deployment), so anonymous callers would
-    # otherwise burn the org's Anthropic quota with no per-user rate limit.
-    if req.mode == "api" and not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authentication required. Sign in to send queries.",
-        )
-
-    user_email = (user or {}).get("email")
-    user_role = (user or {}).get("role", "viewer")
-
-    # Rate limit check before any DB writes (skip for unauthenticated users).
-    if user:
-        from backend.rate_limit import check_rate_limit
-        # Use token as key; fall back to email when token is absent/empty.
-        rate_key = user.get("token") or user.get("email", "")
-        if not check_rate_limit(rate_key, user_role):
+    trace_id = getattr(request.state, "trace_id", None)
+    trace_status = "success"   # NOT named `status` — that's the fastapi module used below
+    try:
+        # claude-code (legacy single-shot) mode: require Bearer token unless the
+        # operator has explicitly enabled local-dev mode.
+        if req.mode == "claude-code" and not user and not local_claude_code_enabled():
             raise HTTPException(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Daily query limit reached (30/day). Resets at midnight UTC.",
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=(
+                    "Claude Code mode requires authentication. "
+                    "Provide a valid Bearer token, or set CONWO_LOCAL_CLAUDE_CODE=true "
+                    "for local-dev."
+                ),
             )
 
-    # Resolve / create conversation up front so we can persist the user message
-    # even if the orchestrator fails downstream.
-    conversation_id = req.conversation_id
-    if conversation_id:
-        if not conversation_store.get_conversation(conversation_id):
-            conversation_id = None  # treat missing id as "start fresh"
-    if not conversation_id:
-        conv = conversation_store.create_conversation(
-            title=conversation_store.auto_title_from_question(req.question),
-            user_email=user_email,
+        # API mode: always require authentication. The server's ANTHROPIC_API_KEY is
+        # the only key source (single-key deployment), so anonymous callers would
+        # otherwise burn the org's Anthropic quota with no per-user rate limit.
+        if req.mode == "api" and not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required. Sign in to send queries.",
+            )
+
+        user_email = (user or {}).get("email")
+        user_role = (user or {}).get("role", "viewer")
+
+        # Rate limit check before any DB writes (skip for unauthenticated users).
+        if user:
+            from backend.rate_limit import check_rate_limit
+            # Use token as key; fall back to email when token is absent/empty.
+            rate_key = user.get("token") or user.get("email", "")
+            if not check_rate_limit(rate_key, user_role):
+                raise HTTPException(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    detail="Daily query limit reached (30/day). Resets at midnight UTC.",
+                )
+
+        # Resolve / create conversation up front so we can persist the user message
+        # even if the orchestrator fails downstream.
+        conversation_id = req.conversation_id
+        if conversation_id:
+            if not conversation_store.get_conversation(conversation_id):
+                conversation_id = None  # treat missing id as "start fresh"
+        if not conversation_id:
+            conv = conversation_store.create_conversation(
+                title=conversation_store.auto_title_from_question(req.question),
+                user_email=user_email,
+            )
+            conversation_id = conv["id"]
+
+        # Enrich the (middleware-created) trace session with real mode/question/conv.
+        trace_store.start_session(trace_id, mode=req.mode, question=req.question,
+                                  conversation_id=conversation_id)
+
+        conversation_store.add_message(
+            conversation_id=conversation_id,
+            role="user",
+            content=req.question,
+            mode=req.mode,
+            server=req.server,
+            buid=req.buid,
         )
-        conversation_id = conv["id"]
 
-    conversation_store.add_message(
-        conversation_id=conversation_id,
-        role="user",
-        content=req.question,
-        mode=req.mode,
-        server=req.server,
-        buid=req.buid,
-    )
+        from backend.config import resolve_api_key
+        try:
+            resolved_key = resolve_api_key()
+        except ValueError as e:
+            # Server isn't configured with an API key — return the user-facing
+            # message the frontend renders verbatim.
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="This deployment is missing an API key. Contact your admin.",
+            ) from e
 
-    from backend.config import resolve_api_key
-    try:
-        resolved_key = resolve_api_key()
-    except ValueError as e:
-        # Server isn't configured with an API key — return the user-facing
-        # message the frontend renders verbatim.
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="This deployment is missing an API key. Contact your admin.",
-        ) from e
+        result = orchestrator.run(
+            question=req.question,
+            mode=req.mode,
+            claude_api_key=resolved_key,
+            server=req.server,
+            buid=req.buid,
+            functional_area=req.functional_area,
+            service=req.service,
+            officeid=req.officeid,
+            roomid=req.roomid,
+            role=req.role,
+            user_role=user_role,
+            conversation_id=conversation_id,
+            trace_id=trace_id,
+        )
 
-    result = orchestrator.run(
-        question=req.question,
-        mode=req.mode,
-        claude_api_key=resolved_key,
-        server=req.server,
-        buid=req.buid,
-        functional_area=req.functional_area,
-        service=req.service,
-        officeid=req.officeid,
-        roomid=req.roomid,
-        role=req.role,
-        user_role=user_role,
-        conversation_id=conversation_id,
-    )
+        # Persist the assistant message — even on error we save something so the
+        # conversation reflects the attempt.
+        assistant_content = result.answer_text or (f"[error] {result.error}" if result.error else "")
+        conversation_store.add_message(
+            conversation_id=conversation_id,
+            role="assistant",
+            content=assistant_content,
+            mode=result.mode,
+            server=req.server,
+            buid=req.buid,
+            answer_id=result.answer_id or None,
+            confidence=result.confidence,
+            sources={
+                "wiki_pages": result.sources.wiki_pages,
+                "jira_keys": result.sources.jira_keys,
+                "pms_configs": result.sources.pms_configs,
+            },
+            tool_trace=result.tool_trace,
+            missing_context=result.missing_context,
+        )
 
-    # Persist the assistant message — even on error we save something so the
-    # conversation reflects the attempt.
-    assistant_content = result.answer_text or (f"[error] {result.error}" if result.error else "")
-    conversation_store.add_message(
-        conversation_id=conversation_id,
-        role="assistant",
-        content=assistant_content,
-        mode=result.mode,
-        server=req.server,
-        buid=req.buid,
-        answer_id=result.answer_id or None,
-        confidence=result.confidence,
-        sources={
-            "wiki_pages": result.sources.wiki_pages,
-            "jira_keys": result.sources.jira_keys,
-            "pms_configs": result.sources.pms_configs,
-        },
-        tool_trace=result.tool_trace,
-        missing_context=result.missing_context,
-    )
-
-    return QueryResponse(
-        answer_id=result.answer_id,
-        answer_text=result.answer_text,
-        confidence=result.confidence,
-        sources={
-            "wiki_pages": result.sources.wiki_pages,
-            "jira_keys": result.sources.jira_keys,
-            "pms_configs": result.sources.pms_configs,
-        },
-        retrieval=result.retrieval,
-        mode=result.mode,
-        error=result.error,
-        tool_trace=result.tool_trace,
-        missing_context=result.missing_context,
-        deep_search_used=result.deep_search_used,
-        conversation_id=conversation_id,
-    )
+        return QueryResponse(
+            answer_id=result.answer_id,
+            answer_text=result.answer_text,
+            confidence=result.confidence,
+            sources={
+                "wiki_pages": result.sources.wiki_pages,
+                "jira_keys": result.sources.jira_keys,
+                "pms_configs": result.sources.pms_configs,
+            },
+            retrieval=result.retrieval,
+            mode=result.mode,
+            error=result.error,
+            tool_trace=result.tool_trace,
+            missing_context=result.missing_context,
+            deep_search_used=result.deep_search_used,
+            conversation_id=conversation_id,
+        )
+    except HTTPException:
+        # Expected gateway rejection (401 auth / 429 rate-limit / 503 missing-key).
+        # NOT a query error → recorded as 'rejected', excluded from error rate.
+        # NOTE: if orchestrator.run ever raises HTTPException directly, it would be
+        # misclassified here — catch specific status codes if that becomes a concern.
+        trace_status = "rejected"
+        raise
+    except Exception as exc:
+        trace_status = "error"
+        trace_store.record_event(
+            trace_id, "api_gateway", "error",
+            metadata={"exception_type": type(exc).__name__,
+                      "exception_message": str(exc)[:500], "where": "query_handler"})
+        raise
+    finally:
+        trace_store.end_session(trace_id, status=trace_status)
 
 
 @app.post("/query/stream")
 async def query_stream(
     req: AgentStreamRequest,
+    request: Request,
     user: dict = Depends(_require_admin),
 ):
     """
@@ -479,6 +525,12 @@ async def query_stream(
         buid=req.buid,
     )
 
+    # Enrich the (middleware-created) trace session. This endpoint streams
+    # claude-code only (G25); end_session runs in the generator's finally below.
+    trace_id = getattr(request.state, "trace_id", None)
+    trace_store.start_session(trace_id, mode="claude-code", question=req.question,
+                              conversation_id=conversation_id)
+
     # Deterministic preflight: run the SAME wiki+Jira+ticket retrieval we do
     # for Deep Search, then prepend the result to the question we hand to
     # Claude Code. This guarantees the agent never starts blind, regardless
@@ -491,7 +543,7 @@ async def query_stream(
         "0", "false", "no", "off"
     }
     if preflight_enabled:
-        bundle = run_preflight(req.question)
+        bundle = run_preflight(req.question, trace_id=trace_id)
         augmented_question = build_agent_preamble(bundle) + f"**User question:** {req.question}"
         preflight_keys = [t.get("key") for t in bundle.preflight_tickets if t.get("key")]
     else:
@@ -500,6 +552,7 @@ async def query_stream(
         preflight_keys = []
 
     async def event_source():
+        trace_status = "success"
         # Front-load events the client uses to wire up state.
         yield (
             f"event: conversation\n"
@@ -514,8 +567,21 @@ async def query_stream(
             async for event in stream_claude_code(augmented_question):
                 yield f"data: {json.dumps(event)}\n\n"
             yield "event: done\ndata: {}\n\n"
+        except (asyncio.CancelledError, GeneratorExit):
+            # Client closed the connection before the stream completed.
+            trace_status = "client_disconnect"
+            raise
         except Exception as exc:
+            trace_status = "error"
+            trace_store.record_event(
+                trace_id, "api_gateway", "error",
+                metadata={"exception_type": type(exc).__name__,
+                          "exception_message": str(exc)[:500], "where": "query_stream.event_source"})
             yield f"event: error\ndata: {json.dumps({'error': str(exc)})}\n\n"
+        finally:
+            # CASE B: work runs inside this generator, so end_session lives here
+            # (not the handler), which returns StreamingResponse immediately.
+            trace_store.end_session(trace_id, status=trace_status)
 
     return StreamingResponse(
         event_source(),
@@ -903,3 +969,10 @@ def admin_reject_wiki_proposal(
 @app.post("/admin/trigger-drive-sync")
 def trigger_drive_sync(_admin: dict = Depends(_require_admin)):
     return admin_api.trigger_drive_sync()
+
+
+# Read-only trace/observability endpoints (/api/traces/*). Registered at the end
+# so _require_admin is defined. Admin-only — auth applied here at include time so
+# trace_api.py needs no import from api.py (avoids a circular import).
+from backend import trace_api  # noqa: E402
+app.include_router(trace_api.router, dependencies=[Depends(_require_admin)])

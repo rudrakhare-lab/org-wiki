@@ -22,5 +22,20 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/admin/admin-dashboard').then(m => m.AdminDashboard),
   },
+  {
+    path: 'dashboard',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/traces/dashboard').then(m => m.Dashboard),
+  },
+  {
+    path: 'traces',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/traces/trace-list').then(m => m.TraceList),
+  },
+  {
+    path: 'traces/:traceId',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/traces/trace-detail').then(m => m.TraceDetail),
+  },
   { path: '**', redirectTo: 'ask' },
 ];

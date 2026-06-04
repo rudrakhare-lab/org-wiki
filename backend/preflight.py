@@ -17,9 +17,10 @@ Deep Search and prepended to the question for Claude Code agent mode.
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass, field
 
-from backend import jira_retriever, wiki_retriever
+from backend import jira_retriever, trace_store, wiki_retriever
 from backend.tools import build_registry
 from backend.tools.registry import ToolRegistry, ToolTraceEntry
 
@@ -101,11 +102,28 @@ def run_preflight(
     functional_area: str | None = None,
     registry: ToolRegistry | None = None,
     latest_limit: int = _PREFLIGHT_LATEST_LIMIT,
+    trace_id: str | None = None,
 ) -> PreflightBundle:
     """Run the deterministic preflight retrieval. Always runs for every query."""
     bundle = PreflightBundle()
+    _t = time.perf_counter()
     bundle.seed_wiki = wiki_retriever.search(question, top_n=_PREFLIGHT_WIKI_TOP_N)
+    trace_store.record_event(
+        trace_id, "preflight", "preflight_wiki",
+        duration_ms=int((time.perf_counter() - _t) * 1000), round_num=0,
+        metadata={"results_count": len(bundle.seed_wiki),
+                  "top_paths": [p.path for p in bundle.seed_wiki[:3]]})
+
+    _t = time.perf_counter()
     bundle.seed_jira = jira_retriever.search(question, functional_area=functional_area)
+    _buckets = bundle.seed_jira.get("buckets", {})          # buckets are NESTED under "buckets"
+    trace_store.record_event(
+        trace_id, "preflight", "preflight_jira",
+        duration_ms=int((time.perf_counter() - _t) * 1000), round_num=0,
+        metadata={"bucket_counts": {
+            "LATEST": len(_buckets.get("LATEST", [])),
+            "HISTORICAL": len(_buckets.get("HISTORICAL", [])),
+            "STALE-OPEN": len(_buckets.get("STALE-OPEN", []))}})
 
     if registry is None:
         registry = build_registry()
@@ -159,6 +177,25 @@ def run_preflight(
         keep_related = max(0, _PREFLIGHT_MODULE_TOTAL_CAP - len(bundle.module_tagged_jira))
         bundle.related_module_jira = bundle.related_module_jira[:keep_related]
 
+    if bundle.module_tagged_jira:
+        trace_store.record_event(
+            trace_id, "preflight", "preflight_module_tagged", round_num=0,
+            metadata={
+                "module_count": len({t.get("_preflight_module")
+                                     for t in bundle.module_tagged_jira if t.get("_preflight_module")}),
+                "ticket_count": len(bundle.module_tagged_jira),
+                "modules": sorted({t.get("_preflight_module")
+                                   for t in bundle.module_tagged_jira if t.get("_preflight_module")})})
+    if bundle.related_module_jira:
+        trace_store.record_event(
+            trace_id, "preflight", "preflight_related_module", round_num=0,
+            metadata={
+                "module_count": len({t.get("_preflight_module")
+                                     for t in bundle.related_module_jira if t.get("_preflight_module")}),
+                "ticket_count": len(bundle.related_module_jira),
+                "via_module": sorted({t.get("_preflight_relation_to")
+                                      for t in bundle.related_module_jira if t.get("_preflight_relation_to")})})
+
     # Auto-fetch top LATEST tickets so the model NEVER has to guess based on
     # the summary alone. Goes through the registry so the trace is sanitized
     # and consistent with model-initiated tool calls.
@@ -168,6 +205,7 @@ def run_preflight(
             name="jira_get_ticket",
             tool_input={"key": key},
             round_num=0,   # 0 = preflight (model rounds start at 1)
+            trace_id=trace_id,
         )
         bundle.preflight_trace.append(entry)
         try:

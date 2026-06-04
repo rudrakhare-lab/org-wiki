@@ -133,6 +133,7 @@ def run(
     role: str | None = None,
     user_role: str = "viewer",
     conversation_id: str | None = None,
+    trace_id: str | None = None,
 ) -> OrchestratorResult:
     """
     Execute the full QUERY workflow and return a structured result.
@@ -141,12 +142,14 @@ def run(
     mode="claude-code":  claude_api_key ignored — single-shot subprocess call.
     """
     if mode == "claude-code":
-        result = run_single_shot(question, mode, None, server, buid, functional_area, user_role)
+        result = run_single_shot(question, mode, None, server, buid, functional_area,
+                                 user_role, trace_id=trace_id)
         result.deep_search_used = False
         return result
     return run_deep(
         question, mode, claude_api_key, server, buid, functional_area,
         service, officeid, roomid, role, user_role, conversation_id,
+        trace_id=trace_id,
     )
 
 
@@ -163,6 +166,7 @@ def run_deep(
     role: str | None = None,
     user_role: str = "viewer",
     conversation_id: str | None = None,
+    trace_id: str | None = None,
 ) -> OrchestratorResult:
     """Agentic deep search via Anthropic tool_use loop with deterministic preflight."""
     from backend.deep_system_prompt import load_deep_system_prompt
@@ -175,7 +179,8 @@ def run_deep(
 
     # 1. Deterministic preflight: wiki search + Jira ranked search +
     #    full bodies of top LATEST tickets. Runs for EVERY query.
-    bundle = run_preflight(question, functional_area=functional_area, registry=registry)
+    bundle = run_preflight(question, functional_area=functional_area, registry=registry,
+                           trace_id=trace_id)
 
     # 2. Build seeded user message (full Jira bodies + larger wiki excerpts)
     scope_parts: list[str] = [f".{server} server"]
@@ -206,6 +211,7 @@ def run_deep(
         user_message=user_message,
         tool_registry=registry,
         prior_messages=history,
+        trace_id=trace_id,
     )
 
     # Preflight tool calls (round_num=0) appear first in the trace
@@ -282,8 +288,14 @@ def run_single_shot(
     buid: str | None = None,
     functional_area: str | None = None,
     user_role: str = "viewer",
+    trace_id: str | None = None,
 ) -> OrchestratorResult:
-    """Single-shot RAG — used for mode=claude-code (subprocess can't do tool_use)."""
+    """Single-shot RAG — used for mode=claude-code (subprocess can't do tool_use).
+
+    trace_id is threaded for consistency but NOT used to emit an llm_response
+    event: claude-code billing is external (no resp.usage), and emitting a
+    zero-token event would roll up tokens/cost as 0 instead of the agreed NULL.
+    """
     # 1. Wiki retrieval
     wiki_pages = wiki_retriever.search(question, top_n=5)
 

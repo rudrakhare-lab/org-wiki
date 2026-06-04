@@ -12,7 +12,10 @@ from __future__ import annotations
 
 import json
 import re
+import time
 from typing import Callable, TypedDict
+
+from backend import trace_store
 
 _SECRET_RE = re.compile(
     r"("
@@ -47,6 +50,20 @@ class ToolTraceEntry(TypedDict):
     output_summary: str   # first 300 chars of result JSON
 
 
+def _status_from_result(result: str) -> str:
+    """Map a tool's JSON result string to a trace status. Never raises."""
+    try:
+        obj = json.loads(result)
+        if isinstance(obj, dict):
+            if obj.get("status") == "credentials_required":
+                return "credentials_required"
+            if obj.get("code") or obj.get("error"):
+                return "error"
+    except Exception:
+        pass
+    return "ok"
+
+
 class ToolRegistry:
     def __init__(self, user_role: str = "viewer") -> None:
         self._user_role = user_role
@@ -66,12 +83,30 @@ class ToolRegistry:
         name: str,
         tool_input: dict,
         round_num: int,
+        trace_id: str | None = None,
     ) -> tuple[str, ToolTraceEntry]:
         """
         Run a tool by name. Returns (json_result_string, trace_entry).
         Never raises — errors are returned as JSON error objects so the tool
         loop can continue without crashing.
+
+        If trace_id is provided, a fail-open `tool_call` event is recorded for
+        this execution (timing + status). trace_id=None → no-op (back-compat).
         """
+        _t0 = time.perf_counter()
+
+        def _emit(entry: ToolTraceEntry, result: str) -> None:
+            # Fail-open tool_call event. entry["input"]/["output_summary"] are
+            # ALREADY sanitized above — pass them straight through.
+            trace_store.record_event(
+                trace_id, component="tool_execution", event_type="tool_call",
+                duration_ms=int((time.perf_counter() - _t0) * 1000),
+                round_num=round_num, tool_name=name,
+                tool_input_json=json.dumps(entry["input"], default=str),
+                tool_output_summary=entry["output_summary"],
+                status=_status_from_result(result),
+            )
+
         # Permission check before dispatch
         required_role = _TOOL_PERMISSIONS.get(name, "viewer")
         if _ROLE_ORDER.get(self._user_role, 0) < _ROLE_ORDER.get(required_role, 0):
@@ -85,6 +120,7 @@ class ToolRegistry:
                 "input": self._sanitize_dict(tool_input),
                 "output_summary": self._sanitize_str(result)[:300],
             }
+            _emit(entry, result)
             return result, entry
 
         handler = self._handlers.get(name)
@@ -103,6 +139,7 @@ class ToolRegistry:
             "input": self._sanitize_dict(tool_input),
             "output_summary": self._sanitize_str(result)[:300],
         }
+        _emit(entry, result)
         return result, entry
 
     # ── Sanitizers ────────────────────────────────────────────────────────────
