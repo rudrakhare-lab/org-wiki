@@ -5,6 +5,9 @@ import { Subscription } from 'rxjs';
 import { ApiService } from '../../core/api.service';
 import { inject } from '@angular/core';
 
+const STORAGE_JOB_ID   = 'conwo_active_ingest_job';
+const STORAGE_FILENAME = 'conwo_active_ingest_filename';
+
 interface ProgressItem {
   path: string;
   status: 'done' | 'error';
@@ -84,9 +87,6 @@ interface ProgressItem {
     </div>
   `,
 })
-const STORAGE_JOB_ID   = 'conwo_active_ingest_job';
-const STORAGE_FILENAME = 'conwo_active_ingest_filename';
-
 export class ExecuteStep implements OnInit, OnDestroy {
   private api = inject(ApiService);
 
