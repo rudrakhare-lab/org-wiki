@@ -1,7 +1,9 @@
 ---
 type: source
 raw_path: raw/modules/safe-reach/Safe Reach PRD (WIS).docx
+raw_path_alt: raw/modules/safe-reach/Safe Reach PRD (WIS).pdf
 ingested: 2026-05-26
+ingested_alt: 2026-06-03
 doc_type: PRD
 ---
 

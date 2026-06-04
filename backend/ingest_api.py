@@ -9,6 +9,7 @@ nothing from backend.api to avoid circular imports.
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import pathlib
@@ -151,7 +152,7 @@ class PlanRequest(BaseModel):
 
 
 @router.post("/plan")
-def plan_ingest(req: PlanRequest):
+async def plan_ingest(req: PlanRequest):
     if not ingest_service.acquire_lock():
         raise HTTPException(
             status_code=409,
@@ -179,14 +180,14 @@ def plan_ingest(req: PlanRequest):
         )
 
         registry = ingest_service.build_plan_registry()
-        api_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+        api_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
 
         messages: list[dict] = [{"role": "user", "content": user_message}]
         plan_json: dict = {}
 
         # Run tool-use loop until agent returns end_turn
         for _ in range(20):  # max 20 rounds
-            response = api_client.messages.create(
+            response = await api_client.messages.create(
                 model=MODEL,
                 max_tokens=4096,
                 system=PLAN_SYSTEM_PROMPT,
@@ -197,7 +198,9 @@ def plan_ingest(req: PlanRequest):
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
-                    result_str, _ = registry.execute(block.name, block.input, round_num=0)
+                    result_str, _ = await asyncio.to_thread(
+                        registry.execute, block.name, block.input, 0
+                    )
                     tool_results.append({
                         "type": "tool_result",
                         "tool_use_id": block.id,
@@ -279,7 +282,7 @@ def execute_ingest(req: ExecuteRequest):
     async def event_stream() -> AsyncGenerator[str, None]:
         try:
             registry = ingest_service.build_execute_registry()
-            api_client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
+            api_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
 
             plan = session.plan
             operations = plan.get("operations", [])
@@ -296,7 +299,7 @@ def execute_ingest(req: ExecuteRequest):
             completed = 0
 
             for _ in range(30):  # max 30 rounds
-                response = api_client.messages.create(
+                response = await api_client.messages.create(
                     model=MODEL,
                     max_tokens=4096,
                     system=EXECUTE_SYSTEM_PROMPT,
@@ -307,7 +310,9 @@ def execute_ingest(req: ExecuteRequest):
                 tool_results = []
                 for block in response.content:
                     if block.type == "tool_use":
-                        result_str, _ = registry.execute(block.name, block.input, round_num=0)
+                        result_str, _ = await asyncio.to_thread(
+                            registry.execute, block.name, block.input, 0
+                        )
                         result = json.loads(result_str)
                         tool_results.append({
                             "type": "tool_result",
