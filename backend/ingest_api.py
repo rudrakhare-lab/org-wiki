@@ -17,7 +17,7 @@ import time
 from typing import AsyncGenerator
 
 import anthropic
-from fastapi import APIRouter, HTTPException, UploadFile
+from fastapi import APIRouter, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -112,8 +112,8 @@ MODEL = "claude-sonnet-4-6"
 @router.post("/upload")
 async def upload_file(
     file: UploadFile,
-    notes: str = "",
-    target_slug: str = "",
+    notes: str = Form(""),
+    target_slug: str = Form(""),
 ):
     ext = pathlib.Path(file.filename or "").suffix.lower()
     if ext not in SUPPORTED_EXTENSIONS:

@@ -37,6 +37,7 @@ def test_upload_returns_upload_id(tmp_path, authed_client):
     data = response.json()
     assert "upload_id" in data
     assert data["filename"] == "test.txt"
+    assert data["notes"] == "test upload"  # verifies notes is read as Form field
 
 
 def test_upload_rejects_unsupported_type(tmp_path, authed_client):
