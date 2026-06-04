@@ -403,6 +403,46 @@ export interface TraceListParams {
   include_orphaned?: boolean;
 }
 
+// ── Ingest types ──────────────────────────────────────────────────────────────
+
+export interface IngestUploadResponse {
+  upload_id: string;
+  filename: string;
+  size: number;
+  file_path: string;
+  notes: string;
+  target_slug: string | null;
+}
+
+export interface IngestOperation {
+  type: 'create' | 'edit' | 'append' | 'update_frontmatter';
+  path: string;
+  frontmatter?: Record<string, unknown>;
+  preview?: string;
+  change_description?: string;
+}
+
+export interface IngestPlan {
+  summary_bullets: string[];
+  classification: string;
+  target_slug: string;
+  operations: IngestOperation[];
+  cross_references: string[];
+  warnings: string[];
+  agent_reasoning: string;
+}
+
+export interface IngestPlanResponse {
+  session_id: string;
+  plan: IngestPlan;
+}
+
+export type IngestProgressEvent =
+  | { type: 'progress'; tool: string; path: string; status: string; result: Record<string, unknown>; completed: number; total: number }
+  | { type: 'complete'; files_created: string[]; files_modified: string[]; links: string[] }
+  | { type: 'error'; message: string; tool?: string; path?: string }
+  | { type: '__sse_error'; error: string };
+
 const API_BASE = 'http://localhost:8000';
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 const MODE_STORAGE = 'conwo_query_mode';
@@ -728,6 +768,83 @@ export class ApiService {
   health(): Observable<{ status: string; wiki_pages: number; has_server_key: boolean }> {
     return this.http.get<{ status: string; wiki_pages: number; has_server_key: boolean }>(`${API_BASE}/health`);
   }
+
+  // ── Ingest ─────────────────────────────────────────────────────────────────
+
+  uploadIngestFile(
+    file: File,
+    notes: string,
+    targetSlug: string
+  ): Observable<IngestUploadResponse> {
+    const token = this.getAdminToken();
+    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
+    const body = new FormData();
+    body.append('file', file);
+    if (notes) body.append('notes', notes);
+    if (targetSlug) body.append('target_slug', targetSlug);
+    return this.http.post<IngestUploadResponse>(`${API_BASE}/api/ingest/upload`, body, { headers });
+  }
+
+  planIngest(uploadId: string, notes: string, targetSlug: string): Observable<IngestPlanResponse> {
+    const token = this.getAdminToken();
+    const headers = token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' })
+      : new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.post<IngestPlanResponse>(
+      `${API_BASE}/api/ingest/plan`,
+      { upload_id: uploadId, notes, target_slug: targetSlug },
+      { headers }
+    );
+  }
+
+  streamExecuteIngest(sessionId: string): Observable<IngestProgressEvent> {
+    return new Observable<IngestProgressEvent>(subscriber => {
+      const ctrl = new AbortController();
+      const token = this.getAdminToken();
+
+      fetch(`${API_BASE}/api/ingest/execute`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: token ? `Bearer ${token}` : '',
+          Accept: 'text/event-stream',
+        },
+        body: JSON.stringify({ session_id: sessionId }),
+        signal: ctrl.signal,
+      })
+        .then(async resp => {
+          if (!resp.ok) {
+            const err = await resp.json().catch(() => ({ detail: resp.statusText }));
+            subscriber.next({ type: '__sse_error', error: err.detail ?? resp.statusText });
+            subscriber.complete();
+            return;
+          }
+          const reader = resp.body!.getReader();
+          const decoder = new TextDecoder();
+          let buffer = '';
+
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value, { stream: true });
+            let sep: number;
+            while ((sep = buffer.indexOf('\n\n')) !== -1) {
+              const frame = buffer.slice(0, sep);
+              buffer = buffer.slice(sep + 2);
+              const parsed = parseIngestSseFrame(frame);
+              if (parsed) subscriber.next(parsed);
+            }
+          }
+          subscriber.complete();
+        })
+        .catch(err => {
+          subscriber.next({ type: '__sse_error', error: String(err?.message ?? err) });
+          subscriber.complete();
+        });
+
+      return () => ctrl.abort();
+    });
+  }
 }
 
 /**
@@ -776,5 +893,25 @@ function parseSseFrame(frame: string): AgentEvent | null {
     return JSON.parse(dataPayload) as AgentEvent;
   } catch {
     return { type: 'raw', line: dataPayload };
+  }
+}
+
+function parseIngestSseFrame(frame: string): IngestProgressEvent | null {
+  let eventType = 'data';
+  let dataLine = '';
+
+  for (const line of frame.split('\n')) {
+    if (line.startsWith('event: ')) eventType = line.slice(7).trim();
+    else if (line.startsWith('data: ')) dataLine = line.slice(6).trim();
+  }
+
+  if (!dataLine) return null;
+  try {
+    const parsed = JSON.parse(dataLine);
+    if (eventType === 'error') return { type: 'error', ...parsed };
+    if (eventType === 'complete') return { type: 'complete', ...parsed };
+    return parsed as IngestProgressEvent;
+  } catch {
+    return null;
   }
 }
