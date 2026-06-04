@@ -443,6 +443,24 @@ export type IngestProgressEvent =
   | { type: 'error'; message: string; tool?: string; path?: string }
   | { type: '__sse_error'; error: string };
 
+export interface IngestJobResponse {
+  job_id: string;
+  status: 'running' | 'complete' | 'error';
+  events: Array<{
+    type: string;
+    tool: string;
+    path: string;
+    status: string;
+    result: Record<string, unknown>;
+    completed: number;
+    total: number;
+  }>;
+  files_created: string[];
+  files_modified: string[];
+  links: string[];
+  error_msg: string;
+}
+
 const API_BASE = 'http://localhost:8000';
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 const MODE_STORAGE = 'conwo_query_mode';
@@ -795,6 +813,24 @@ export class ApiService {
       { upload_id: uploadId, notes, target_slug: targetSlug },
       { headers }
     );
+  }
+
+  startIngestJob(sessionId: string): Observable<{ job_id: string; status: string }> {
+    const token = this.getAdminToken();
+    const headers = token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' })
+      : new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.post<{ job_id: string; status: string }>(
+      `${API_BASE}/api/ingest/execute`,
+      { session_id: sessionId },
+      { headers }
+    );
+  }
+
+  getIngestJob(jobId: string): Observable<IngestJobResponse> {
+    const token = this.getAdminToken();
+    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
+    return this.http.get<IngestJobResponse>(`${API_BASE}/api/ingest/job/${jobId}`, { headers });
   }
 
   streamExecuteIngest(sessionId: string): Observable<IngestProgressEvent> {

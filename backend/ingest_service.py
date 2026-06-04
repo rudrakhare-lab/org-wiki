@@ -153,6 +153,55 @@ def build_plan_registry():
     return r
 
 
+# ── job store ─────────────────────────────────────────────────────────────────
+
+import asyncio as _asyncio
+
+JOB_TTL = 3600  # 1 hour
+
+@dataclass
+class IngestJob:
+    job_id: str
+    status: str           # "running" | "complete" | "error"
+    events: list          # progress dicts appended as each tool runs
+    files_created: list
+    files_modified: list
+    links: list
+    error_msg: str
+    created_at: float
+    _task: object = None  # asyncio.Task — kept to prevent GC
+
+
+_jobs: dict[str, "IngestJob"] = {}
+
+
+def create_job(job_id: str) -> "IngestJob":
+    job = IngestJob(
+        job_id=job_id,
+        status="running",
+        events=[],
+        files_created=[],
+        files_modified=[],
+        links=[],
+        error_msg="",
+        created_at=time.time(),
+    )
+    _jobs[job_id] = job
+    return job
+
+
+def get_job(job_id: str) -> "IngestJob | None":
+    job = _jobs.get(job_id)
+    if job is None:
+        return None
+    if time.time() - job.created_at > JOB_TTL:
+        del _jobs[job_id]
+        return None
+    return job
+
+
+# ── tool registries ───────────────────────────────────────────────────────────
+
 def build_execute_registry():
     """Phase 2: write tools plus read access for self-verification. No extraction tools."""
     from backend.tools.registry import ToolRegistry

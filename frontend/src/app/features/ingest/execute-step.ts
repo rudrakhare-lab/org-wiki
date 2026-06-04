@@ -2,12 +2,12 @@ import { Component, input, OnDestroy, OnInit, output, signal } from '@angular/co
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
-import { ApiService, IngestProgressEvent } from '../../core/api.service';
+import { ApiService } from '../../core/api.service';
 import { inject } from '@angular/core';
 
 interface ProgressItem {
   path: string;
-  status: 'pending' | 'in_progress' | 'done' | 'error';
+  status: 'done' | 'error';
   label: string;
 }
 
@@ -22,22 +22,30 @@ interface ProgressItem {
         <span class="elapsed">⏱ {{ elapsedSeconds() }}s elapsed</span>
       </div>
 
-      <div class="progress-list">
-        <div class="section-label">Progress</div>
-        @for (item of progressItems(); track item.path + item.label) {
-          <div class="progress-item" [class]="item.status">
-            <span class="item-icon">
-              @switch (item.status) {
-                @case ('done') { ✅ }
-                @case ('error') { ❌ }
-                @case ('in_progress') { ⏳ }
-                @default { ○ }
-              }
-            </span>
-            <span class="item-path">{{ item.path || item.label }}</span>
-          </div>
-        }
-      </div>
+      @if (!jobId() && !errorMsg()) {
+        <div class="planning-spinner">
+          <div class="spinner"></div>
+          <p>Starting ingestion job…</p>
+        </div>
+      }
+
+      @if (progressItems().length > 0) {
+        <div class="progress-list">
+          <div class="section-label">Progress</div>
+          @for (item of progressItems(); track item.path + item.label) {
+            <div class="progress-item" [class]="item.status">
+              <span class="item-icon">{{ item.status === 'done' ? '✅' : '❌' }}</span>
+              <span class="item-path">{{ item.path || item.label }}</span>
+            </div>
+          }
+        </div>
+      }
+
+      @if (jobId() && !done() && !errorMsg()) {
+        <div class="progress-item pending" style="color:#888;font-size:0.84em;margin-top:4px">
+          ⏳ Running in background — you can safely switch tabs
+        </div>
+      }
 
       @if (total() > 0) {
         <div class="progress-bar">
@@ -52,9 +60,7 @@ interface ProgressItem {
           </div>
           <div class="result-links">
             @for (link of resultLinks(); track link) {
-              <a routerLink="/ask" [queryParams]="{q: link}" class="result-link">
-                {{ link }}
-              </a>
+              <a routerLink="/ask" [queryParams]="{q: link}" class="result-link">{{ link }}</a>
             }
           </div>
         </div>
@@ -68,10 +74,6 @@ interface ProgressItem {
         </div>
         <button class="btn-secondary" (click)="ingestAnother.emit()">Go back</button>
       }
-
-      @if (!done() && !errorMsg()) {
-        <div class="warning-note">⚠ Ingestion in progress — please don't close this tab</div>
-      }
     </div>
   `,
 })
@@ -82,7 +84,9 @@ export class ExecuteStep implements OnInit, OnDestroy {
   filename = input<string>('');
   ingestAnother = output<void>();
 
+  jobId = signal('');
   progressItems = signal<ProgressItem[]>([]);
+  seenPaths = new Set<string>();
   total = signal(0);
   completed = signal(0);
   done = signal(false);
@@ -92,7 +96,8 @@ export class ExecuteStep implements OnInit, OnDestroy {
   modifiedCount = signal(0);
   elapsedSeconds = signal(0);
 
-  private sub?: Subscription;
+  private startSub?: Subscription;
+  private pollHandle?: ReturnType<typeof setInterval>;
   private timerHandle?: ReturnType<typeof setInterval>;
   private startedAt = Date.now();
 
@@ -107,51 +112,66 @@ export class ExecuteStep implements OnInit, OnDestroy {
       this.elapsedSeconds.set(Math.round((Date.now() - this.startedAt) / 1000));
     }, 1000);
 
-    this.sub = this.api.streamExecuteIngest(this.sessionId()).subscribe({
-      next: (evt: IngestProgressEvent) => this.handleEvent(evt),
-      error: (err: unknown) => this.errorMsg.set(String((err as Error)?.message ?? err)),
+    this.startSub = this.api.startIngestJob(this.sessionId()).subscribe({
+      next: (resp) => {
+        this.jobId.set(resp.job_id);
+        this.startPolling(resp.job_id);
+      },
+      error: (err: { error?: { detail?: string } }) => {
+        this.errorMsg.set(err?.error?.detail ?? 'Failed to start ingestion job.');
+        this.stopTimers();
+      },
     });
   }
 
   ngOnDestroy() {
-    this.sub?.unsubscribe();
-    if (this.timerHandle) clearInterval(this.timerHandle);
+    this.startSub?.unsubscribe();
+    this.stopTimers();
   }
 
-  private handleEvent(evt: IngestProgressEvent) {
-    switch (evt.type) {
-      case 'progress': {
+  private startPolling(jobId: string) {
+    this.pollHandle = setInterval(() => {
+      this.api.getIngestJob(jobId).subscribe({
+        next: (job) => this.applyJobState(job),
+        error: () => { /* poll again next tick */ },
+      });
+    }, 2000);
+  }
+
+  private applyJobState(job: { status: string; events: Array<{ type: string; tool: string; path: string; status: string; result: Record<string, unknown>; completed: number; total: number }>; files_created: string[]; files_modified: string[]; links: string[]; error_msg: string }) {
+    // Append only new events (avoid duplicating items already shown)
+    for (const evt of job.events) {
+      if (evt.type === 'progress') {
         this.total.set(evt.total);
         this.completed.set(evt.completed);
-        const items = [...this.progressItems()];
-        const idx = items.findIndex(i => i.path === evt.path && i.status === 'pending');
-        const newItem: ProgressItem = {
-          path: evt.path,
-          status: evt.status === 'error' ? 'error' : 'done',
-          label: `${evt.tool}: ${evt.path}`,
-        };
-        if (idx >= 0) items[idx] = newItem;
-        else items.push(newItem);
-        this.progressItems.set(items);
-        break;
-      }
-      case 'complete': {
-        this.done.set(true);
-        this.resultLinks.set(evt.links);
-        this.createdCount.set(evt.files_created.length);
-        this.modifiedCount.set(evt.files_modified.length);
-        if (this.timerHandle) clearInterval(this.timerHandle);
-        break;
-      }
-      case 'error':
-      case '__sse_error': {
-        const msg = (evt as { message?: string; error?: string }).message
-          ?? (evt as { message?: string; error?: string }).error
-          ?? 'Unknown error';
-        this.errorMsg.set(msg);
-        if (this.timerHandle) clearInterval(this.timerHandle);
-        break;
+        const key = evt.path || evt.tool;
+        if (!this.seenPaths.has(key)) {
+          this.seenPaths.add(key);
+          const items = [...this.progressItems()];
+          items.push({
+            path: evt.path,
+            status: evt.status === 'error' ? 'error' : 'done',
+            label: `${evt.tool}: ${evt.path}`,
+          });
+          this.progressItems.set(items);
+        }
       }
     }
+
+    if (job.status === 'complete') {
+      this.done.set(true);
+      this.resultLinks.set(job.links);
+      this.createdCount.set(job.files_created.length);
+      this.modifiedCount.set(job.files_modified.length);
+      this.stopTimers();
+    } else if (job.status === 'error') {
+      this.errorMsg.set(job.error_msg || 'Ingestion failed.');
+      this.stopTimers();
+    }
+  }
+
+  private stopTimers() {
+    if (this.pollHandle) { clearInterval(this.pollHandle); this.pollHandle = undefined; }
+    if (this.timerHandle) { clearInterval(this.timerHandle); this.timerHandle = undefined; }
   }
 }
