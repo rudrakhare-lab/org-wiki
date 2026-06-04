@@ -5,7 +5,6 @@ wiki_check_duplicate — check whether a slug already exists on disk
 """
 from __future__ import annotations
 
-import os
 import pathlib
 
 from backend import wiki_retriever
@@ -55,18 +54,25 @@ WIKI_LIST_PAGES_SCHEMA: dict = {
 
 def _wiki_list_pages_handler(inp: dict) -> dict:
     category = inp.get("category", "").strip().lower()
-    all_pages = wiki_retriever.all_pages()
 
-    if category and category in CATEGORY_DIRS:
-        prefix = f"wiki/{category}/"
-        filtered = [p for p in all_pages if p.path.startswith(prefix)]
+    if category and category not in CATEGORY_DIRS:
+        return {"error": f"Unknown category: {category!r}", "code": "unknown_category"}
+
+    all_paths = wiki_retriever.all_paths()
+
+    if category:
+        prefix = f"{category}/"
+        filtered_paths = [p for p in all_paths if p.startswith(prefix)]
     else:
-        filtered = all_pages
+        filtered_paths = all_paths
 
     pages = []
-    for p in filtered:
-        slug = pathlib.Path(p.path).stem
-        pages.append({"path": p.path, "title": p.title, "slug": slug})
+    for rel_path in filtered_paths:
+        page = wiki_retriever.get_page(rel_path)
+        if page is None:
+            continue
+        slug = pathlib.Path(rel_path).stem
+        pages.append({"path": rel_path, "title": page.title, "slug": slug})
 
     return {"pages": pages, "total": len(pages)}
 

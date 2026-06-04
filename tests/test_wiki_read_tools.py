@@ -3,33 +3,38 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 
+def _make_page(path: str, title: str) -> MagicMock:
+    """Create a mock WikiPage with path and title set."""
+    p = MagicMock()
+    p.path = path
+    p.title = title
+    return p
+
+
 def test_list_pages_modules():
     from backend.tools.wiki_read_tools import _wiki_list_pages_handler
 
     with patch("backend.tools.wiki_read_tools.wiki_retriever") as mock_r:
-        mock_page = MagicMock()
-        mock_page.path = "wiki/modules/visitor-management.md"
-        mock_page.title = "Visitor Management"
-        mock_r.all_pages.return_value = [mock_page]
+        page = _make_page("modules/visitor-management.md", "Visitor Management")
+        mock_r.all_paths.return_value = ["modules/visitor-management.md"]
+        mock_r.get_page.return_value = page
 
         result = _wiki_list_pages_handler({"category": "modules"})
 
     assert result["total"] == 1
-    assert result["pages"][0]["path"] == "wiki/modules/visitor-management.md"
+    assert result["pages"][0]["path"] == "modules/visitor-management.md"
     assert result["pages"][0]["slug"] == "visitor-management"
 
 
 def test_list_pages_all():
     from backend.tools.wiki_read_tools import _wiki_list_pages_handler
 
+    paths = [f"{cat}/foo.md" for cat in ["modules", "entities", "sources"]]
+    pages = {p: _make_page(p, "Foo") for p in paths}
+
     with patch("backend.tools.wiki_read_tools.wiki_retriever") as mock_r:
-        pages = []
-        for cat in ["modules", "entities", "sources"]:
-            m = MagicMock()
-            m.path = f"wiki/{cat}/foo.md"
-            m.title = "Foo"
-            pages.append(m)
-        mock_r.all_pages.return_value = pages
+        mock_r.all_paths.return_value = paths
+        mock_r.get_page.side_effect = lambda p: pages.get(p)
 
         result = _wiki_list_pages_handler({})
 
@@ -39,19 +44,32 @@ def test_list_pages_all():
 def test_list_pages_filters_by_category():
     from backend.tools.wiki_read_tools import _wiki_list_pages_handler
 
+    all_paths = ["modules/sso.md", "entities/user.md"]
+    pages = {
+        "modules/sso.md": _make_page("modules/sso.md", "SSO"),
+        "entities/user.md": _make_page("entities/user.md", "User"),
+    }
+
     with patch("backend.tools.wiki_read_tools.wiki_retriever") as mock_r:
-        module_page = MagicMock()
-        module_page.path = "wiki/modules/sso.md"
-        module_page.title = "SSO"
-        entity_page = MagicMock()
-        entity_page.path = "wiki/entities/user.md"
-        entity_page.title = "User"
-        mock_r.all_pages.return_value = [module_page, entity_page]
+        mock_r.all_paths.return_value = all_paths
+        mock_r.get_page.side_effect = lambda p: pages.get(p)
 
         result = _wiki_list_pages_handler({"category": "modules"})
 
     assert result["total"] == 1
     assert result["pages"][0]["slug"] == "sso"
+
+
+def test_list_pages_unknown_category():
+    from backend.tools.wiki_read_tools import _wiki_list_pages_handler
+
+    with patch("backend.tools.wiki_read_tools.wiki_retriever") as mock_r:
+        mock_r.all_paths.return_value = []
+
+        result = _wiki_list_pages_handler({"category": "nonexistent"})
+
+    assert "error" in result
+    assert result["code"] == "unknown_category"
 
 
 def test_check_duplicate_exists():
