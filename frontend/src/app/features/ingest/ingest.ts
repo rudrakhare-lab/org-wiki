@@ -35,6 +35,7 @@ export class Ingest implements OnInit, OnDestroy {
   planningError = signal('');
 
   private planSub?: Subscription;
+  private planRetryHandle?: ReturnType<typeof setTimeout>;
 
   ngOnInit() {
     // Case 1: execute job already running → jump straight to execute screen
@@ -61,6 +62,7 @@ export class Ingest implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.planSub?.unsubscribe();
+    if (this.planRetryHandle) clearTimeout(this.planRetryHandle);
   }
 
   onUploaded(result: UploadResult) {
@@ -77,18 +79,27 @@ export class Ingest implements OnInit, OnDestroy {
     this._runPlan(result.uploadId, result.notes, result.targetSlug);
   }
 
-  private _runPlan(uploadId: string, notes: string, targetSlug: string) {
+  private _runPlan(uploadId: string, notes: string, targetSlug: string, retries = 0) {
     this.planSub?.unsubscribe();
+    this.planningError.set('');
     this.planSub = this.api.planIngest(uploadId, notes, targetSlug).subscribe({
       next: (resp) => {
-        localStorage.removeItem(STORAGE_UPLOAD_ID);  // plan done, no need to re-trigger
+        localStorage.removeItem(STORAGE_UPLOAD_ID);
         this.planResponse.set(resp);
         this.phase.set('plan-review');
       },
-      error: (err: { error?: { detail?: string } }) => {
-        localStorage.removeItem(STORAGE_UPLOAD_ID);
-        this.planningError.set(err?.error?.detail ?? 'Planning failed. Try again.');
-        this.phase.set('upload');
+      error: (err: { status?: number; error?: { detail?: string } }) => {
+        if (err.status === 409 && retries < 20) {
+          // Previous plan still holding the lock — stay on spinner and retry in 3s
+          this.planRetryHandle = setTimeout(
+            () => this._runPlan(uploadId, notes, targetSlug, retries + 1),
+            3000
+          );
+        } else {
+          localStorage.removeItem(STORAGE_UPLOAD_ID);
+          this.planningError.set(err?.error?.detail ?? 'Planning failed. Try again.');
+          this.phase.set('upload');
+        }
       },
     });
   }

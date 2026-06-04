@@ -31,8 +31,19 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 from contextlib import asynccontextmanager
 from typing import Annotated, Literal
+
+# Configure application-level loggers so INFO messages appear in the uvicorn terminal.
+# Uvicorn controls its own loggers; this ensures custom loggers (e.g. "ingest") are visible.
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(levelname)s:%(name)s:%(message)s",
+)
+# Reduce noise from very chatty libraries
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 from fastapi import Depends, FastAPI, HTTPException, Header, Request, status
 from fastapi.middleware.cors import CORSMiddleware
