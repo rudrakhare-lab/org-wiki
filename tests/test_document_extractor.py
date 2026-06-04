@@ -1,7 +1,4 @@
 """Tests for document_extractor — uses real tiny fixtures."""
-import json
-import os
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -49,10 +46,11 @@ def tmp(tmp_path):
 def test_extract_txt(tmp):
     from backend.document_extractor import extract_text_file
 
-    p = make_txt(tmp, "hello.txt", "Hello world\nLine two")
+    content = "Hello world\nLine two"
+    p = make_txt(tmp, "hello.txt", content)
     result = extract_text_file(str(p))
-    assert result["text"] == "Hello world\nLine two"
-    assert result["char_count"] == 20
+    assert result["text"] == content
+    assert result["char_count"] == len(content)
 
 
 def test_extract_docx(tmp):
@@ -107,3 +105,23 @@ def test_dispatch_by_extension(tmp):
     p = make_txt(tmp, "readme.txt", "plain text")
     result = extract_document(str(p))
     assert "plain text" in result["text"]
+
+
+def test_xlsx_truncation(tmp):
+    from backend.document_extractor import extract_xlsx
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Big"
+    # Each row ~ 100 chars; 600 rows = ~60k chars > MAX_CHARS
+    for i in range(600):
+        ws.append([f"property_{i}", "x" * 90])
+    p = tmp / "big.xlsx"
+    wb.save(str(p))
+
+    result = extract_xlsx(str(p))
+    assert result["truncated"] is True
+    assert len(result["text_repr"]) == 50_000
+    assert result["char_count"] > 50_000
+    assert "sheets" in result

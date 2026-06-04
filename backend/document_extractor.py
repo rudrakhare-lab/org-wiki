@@ -12,7 +12,7 @@ import pathlib
 
 MAX_CHARS = 50_000
 
-SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".doc", ".xlsx", ".xls", ".md", ".txt", ".rtf"}
+SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".md", ".txt", ".rtf"}
 
 
 class UnsupportedFileType(ValueError):
@@ -26,9 +26,9 @@ def extract_document(file_path: str) -> dict:
         raise UnsupportedFileType(f"Unsupported file type: {ext!r}")
     if ext == ".pdf":
         return extract_pdf(file_path)
-    if ext in {".docx", ".doc"}:
+    if ext == ".docx":
         return extract_docx(file_path)
-    if ext in {".xlsx", ".xls"}:
+    if ext == ".xlsx":
         return extract_xlsx(file_path)
     # .md, .txt, .rtf — plain text
     return extract_text_file(file_path)
@@ -84,6 +84,8 @@ def extract_xlsx(file_path: str) -> dict:
 
     wb = load_workbook(file_path, read_only=True, data_only=True)
     sheets: list[dict] = []
+    all_lines: list[str] = []
+
     for sheet_name in wb.sheetnames:
         ws = wb[sheet_name]
         rows: list[list[str]] = []
@@ -91,9 +93,18 @@ def extract_xlsx(file_path: str) -> dict:
             str_row = [str(cell) if cell is not None else "" for cell in row]
             if any(c.strip() for c in str_row):
                 rows.append(str_row)
+                all_lines.append(" | ".join(str_row))
         sheets.append({"name": sheet_name, "rows": rows})
     wb.close()
-    return {"sheets": sheets}
+
+    full_text = "\n".join(all_lines)
+    truncated = len(full_text) > MAX_CHARS
+    return {
+        "sheets": sheets,
+        "text_repr": full_text[:MAX_CHARS],
+        "char_count": len(full_text),
+        "truncated": truncated,
+    }
 
 
 def extract_text_file(file_path: str) -> dict:
