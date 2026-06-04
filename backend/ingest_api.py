@@ -231,6 +231,9 @@ def plan_ingest(req: PlanRequest):
             messages.append({"role": "assistant", "content": response.content})
             messages.append({"role": "user", "content": tool_results})
 
+        if not plan_json:
+            raise HTTPException(status_code=500, detail="Agent returned no parseable plan. Try again.")
+
         # Detect slug from plan
         slug = plan_json.get("target_slug") or req.target_slug or "unknown"
 
