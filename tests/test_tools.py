@@ -15,7 +15,7 @@ from backend.tools.pms_tools import _pms_runtime_values_handler
 from backend.tools.registry import ToolRegistry
 
 
-# ── 1. Registry loads all 19 tools ────────────────────────────────────────────
+# ── 1. Registry loads all 21 tools ────────────────────────────────────────────
 
 def test_registry_loads_all_tools():
     registry = build_registry(user_role="contributor")  # contributor sees wiki_propose_* tools
@@ -34,6 +34,13 @@ def test_registry_loads_all_tools():
         "wiki_propose_edit",
         "wiki_propose_append",
         "wiki_propose_multi_edit",
+        # Phase 1 ingestion read tools:
+        "wiki_list_pages",
+        "wiki_check_duplicate",
+        # Jira utility tools:
+        "jira_count",
+        "jira_search_cross_module",
+        "trigger_jira_sync",
     }
     assert names == expected, f"Missing tools: {expected - names}"
 

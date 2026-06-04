@@ -50,10 +50,14 @@ from backend.tools.pms_tools import (
 )
 from backend.tools.config_tools import CONFIG_LOOKUP_SCHEMA, _config_lookup_handler
 from backend.tools.feedback_tools import FEEDBACK_RECORD_SCHEMA, _feedback_record_handler
+from backend.tools.wiki_read_tools import (
+    WIKI_LIST_PAGES_SCHEMA, _wiki_list_pages_handler,
+    WIKI_CHECK_DUPLICATE_SCHEMA, _wiki_check_duplicate_handler,
+)
 
 
 def build_registry(user_role: str = "viewer") -> ToolRegistry:
-    """Build a new ToolRegistry with all 19 tools registered."""
+    """Build a new ToolRegistry with all 21 tools registered."""
     r = ToolRegistry(user_role=user_role)
     r.register(WIKI_SEARCH_SCHEMA, _wiki_search_handler)
     r.register(WIKI_READ_PAGE_SCHEMA, _wiki_read_page_handler)
@@ -78,6 +82,9 @@ def build_registry(user_role: str = "viewer") -> ToolRegistry:
     r.register(WIKI_PROPOSE_EDIT_SCHEMA, _wiki_propose_edit_handler)
     r.register(WIKI_PROPOSE_APPEND_SCHEMA, _wiki_propose_append_handler)
     r.register(WIKI_PROPOSE_MULTI_EDIT_SCHEMA, _wiki_propose_multi_edit_handler)
+    # Phase 1 ingestion read tools
+    r.register(WIKI_LIST_PAGES_SCHEMA, _wiki_list_pages_handler)
+    r.register(WIKI_CHECK_DUPLICATE_SCHEMA, _wiki_check_duplicate_handler)
     return r
 
 
