@@ -11,6 +11,13 @@
 }
 
 // ── Upload step ──────────────────────────────────────────────────────────────
+.upload-step {
+  h2 { margin: 0 0 6px; font-size: 1.4em; }
+  .subtitle { margin: 0 0 24px; color: #666; font-size: 0.9em; }
+  .error-msg { color: #c62828; font-size: 0.85em; margin-top: 8px; }
+  .btn-primary { margin-top: 24px; }
+}
+
 .drop-zone {
   border: 2px dashed #90caf9;
   border-radius: 12px;

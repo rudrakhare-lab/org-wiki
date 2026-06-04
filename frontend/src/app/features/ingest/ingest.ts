@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService, IngestPlanResponse } from '../../core/api.service';
 import { inject } from '@angular/core';
@@ -14,6 +14,7 @@ type IngestPhase = 'upload' | 'planning' | 'plan-review' | 'executing';
   imports: [CommonModule, UploadStep, PlanStep, ExecuteStep],
   templateUrl: './ingest.html',
   styleUrl: './ingest.scss',
+  encapsulation: ViewEncapsulation.None,
 })
 export class Ingest {
   private api = inject(ApiService);
