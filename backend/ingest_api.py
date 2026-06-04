@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import os
 import pathlib
 import secrets
@@ -23,6 +24,7 @@ from pydantic import BaseModel
 from backend import ingest_service
 
 router = APIRouter(prefix="/api/ingest")
+_LOG = logging.getLogger("ingest")
 
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024  # 100 MB
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".md", ".txt", ".rtf"}
@@ -131,6 +133,9 @@ async def upload_file(
     dest_file = dest_dir / (file.filename or "upload" + ext)
     dest_file.write_bytes(content)
 
+    size_kb = len(content) / 1024
+    _LOG.info("[upload] %s → upload_id=%s  size=%.1f KB  hint=%r",
+              file.filename, upload_id, size_kb, target_slug or "auto-detect")
     return {
         "upload_id": upload_id,
         "filename": file.filename,
@@ -169,6 +174,8 @@ async def plan_ingest(req: PlanRequest):
         file_path = str(files[0])
         filename = files[0].name
 
+        _LOG.info("[plan] starting  file=%s  upload_id=%s", filename, req.upload_id)
+
         # Compose the user message
         hint = f"\nUser hint — target module: {req.target_slug}" if req.target_slug else ""
         context = f"\nUser context: {req.notes}" if req.notes else ""
@@ -196,6 +203,8 @@ async def plan_ingest(req: PlanRequest):
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
+                    _LOG.info("[plan]   tool → %s(%s)", block.name,
+                              ", ".join(f"{k}={v!r}" for k, v in (block.input or {}).items())[:120])
                     result_str, _ = await asyncio.to_thread(
                         registry.execute, block.name, block.input, 0
                     )
@@ -233,10 +242,14 @@ async def plan_ingest(req: PlanRequest):
             messages.append({"role": "user", "content": tool_results})
 
         if not plan_json:
+            _LOG.error("[plan] agent returned no parseable JSON  file=%s", filename)
             raise HTTPException(status_code=500, detail="Agent returned no parseable plan. Try again.")
 
         # Detect slug from plan
         slug = plan_json.get("target_slug") or req.target_slug or "unknown"
+        ops = plan_json.get("operations", [])
+        _LOG.info("[plan] done  slug=%s  ops=%d  warnings=%d",
+                  slug, len(ops), len(plan_json.get("warnings", [])))
 
         session_id = ingest_service.new_session_id()
         session = ingest_service.IngestSession(
@@ -264,6 +277,9 @@ class ExecuteRequest(BaseModel):
 
 async def _run_ingest_job(session: ingest_service.IngestSession, job: ingest_service.IngestJob) -> None:
     """Background coroutine — runs the Phase 2 agent. No HTTP connection required."""
+    _LOG.info("[execute] job=%s  file=%s  slug=%s  ops=%d",
+              job.job_id[:8], session.filename, session.slug,
+              len(session.plan.get("operations", [])))
     try:
         registry = ingest_service.build_execute_registry()
         api_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
@@ -291,6 +307,9 @@ async def _run_ingest_job(session: ingest_service.IngestSession, job: ingest_ser
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
+                    path = (block.input or {}).get("path", "")
+                    _LOG.info("[execute]   %d/%d  %s  %s",
+                              completed + 1, total, block.name, path or "")
                     result_str, _ = await asyncio.to_thread(
                         registry.execute, block.name, block.input, 0
                     )
@@ -303,16 +322,22 @@ async def _run_ingest_job(session: ingest_service.IngestSession, job: ingest_ser
                     completed += 1
 
                     # Track created vs modified
-                    path = block.input.get("path", "")
                     if block.name == "wiki_create_page" and result.get("created"):
                         job.files_created.append(path)
+                        _LOG.info("[execute]   ✓ created  %s", path)
                     elif block.name in {"wiki_edit_page", "wiki_append_section", "wiki_update_frontmatter"}:
                         if path and path not in job.files_modified:
                             job.files_modified.append(path)
+                        _LOG.info("[execute]   ✓ edited   %s", path)
+                    elif block.name == "wiki_rebuild_index":
+                        _LOG.info("[execute]   ✓ index rebuilt  pages=%s",
+                                  result.get("pages_indexed", "?"))
 
                     # Determine status label
                     if "error" in result:
                         status_label = "error"
+                        _LOG.error("[execute]   ✗ tool error  %s: %s",
+                                   block.name, result["error"])
                     elif block.name == "wiki_create_page":
                         status_label = "created"
                     elif block.name == "wiki_rebuild_index":
@@ -349,6 +374,7 @@ async def _run_ingest_job(session: ingest_service.IngestSession, job: ingest_ser
             dest_dir.mkdir(parents=True, exist_ok=True)
             dest = dest_dir / session.filename
             src.rename(dest)
+            _LOG.info("[execute]   file moved → raw/modules/%s/%s", session.slug, session.filename)
             try:
                 src.parent.rmdir()
             except OSError:
@@ -356,12 +382,16 @@ async def _run_ingest_job(session: ingest_service.IngestSession, job: ingest_ser
 
         job.links = [p.replace("wiki/", "").replace(".md", "") for p in job.files_created]
         job.status = "complete"
+        _LOG.info("[execute] DONE  job=%s  created=%d  modified=%d",
+                  job.job_id[:8], len(job.files_created), len(job.files_modified))
 
     except Exception as exc:
         job.status = "error"
         job.error_msg = str(exc)
+        _LOG.exception("[execute] FAILED  job=%s  error=%s", job.job_id[:8], exc)
     finally:
         ingest_service.release_lock()
+        _LOG.info("[execute] lock released  job=%s", job.job_id[:8])
 
 
 @router.post("/execute")
@@ -386,6 +416,8 @@ async def execute_ingest(req: ExecuteRequest):
     task = asyncio.create_task(_run_ingest_job(session, job))
     job._task = task
 
+    _LOG.info("[execute] job started  job=%s  file=%s  slug=%s",
+              job_id[:8], session.filename, session.slug)
     return {"job_id": job_id, "status": "running"}
 
 
