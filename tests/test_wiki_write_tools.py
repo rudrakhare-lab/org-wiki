@@ -192,3 +192,68 @@ def test_update_frontmatter_no_duplicate(wiki_tmp):
 
     text = target.read_text()
     assert text.count("visitor-management") == 1
+
+
+def test_update_frontmatter_with_block_style_list(wiki_tmp):
+    """Verify update_frontmatter works on pages created by wiki_create_page (block-style YAML)."""
+    from backend.tools.wiki_write_tools import _wiki_create_page_handler, _wiki_update_frontmatter_handler
+    import yaml
+
+    # Create a page using wiki_create_page (produces block-style YAML)
+    with patch("backend.tools.wiki_write_tools.WIKI_ROOT", str(wiki_tmp)):
+        _wiki_create_page_handler({
+            "path": "wiki/modules/parking.md",
+            "frontmatter": {"type": "module", "used_by": ["meeting-rooms"]},
+            "body": "## Overview\nParking module.",
+        })
+        result = _wiki_update_frontmatter_handler({
+            "path": "wiki/modules/parking.md",
+            "field": "used_by",
+            "value": "visitor-management",
+        })
+
+    assert result.get("updated") is True
+    text = (wiki_tmp / "wiki" / "modules" / "parking.md").read_text()
+    # Must be valid YAML
+    parts = text.split("---\n", 2)
+    fm = yaml.safe_load(parts[1])
+    assert "visitor-management" in fm["used_by"]
+    assert "meeting-rooms" in fm["used_by"]
+
+
+def test_update_frontmatter_no_false_positive_from_body(wiki_tmp):
+    """Body references to a slug should NOT prevent frontmatter update."""
+    from backend.tools.wiki_write_tools import _wiki_update_frontmatter_handler
+
+    target = wiki_tmp / "wiki" / "modules" / "mod.md"
+    # Body mentions 'visitor-management' but frontmatter list is empty
+    target.write_text(
+        "---\ntype: module\nused_by: []\n---\n\nSee [[modules/visitor-management]] for details.\n"
+    )
+
+    with patch("backend.tools.wiki_write_tools.WIKI_ROOT", str(wiki_tmp)):
+        result = _wiki_update_frontmatter_handler({
+            "path": "wiki/modules/mod.md",
+            "field": "used_by",
+            "value": "visitor-management",
+        })
+
+    assert result.get("updated") is True
+    assert "no change" not in result.get("note", "")
+
+
+def test_update_frontmatter_empty_value_returns_error(wiki_tmp):
+    from backend.tools.wiki_write_tools import _wiki_update_frontmatter_handler
+
+    target = wiki_tmp / "wiki" / "modules" / "mod.md"
+    target.write_text("---\ntype: module\nused_by: []\n---\n")
+
+    with patch("backend.tools.wiki_write_tools.WIKI_ROOT", str(wiki_tmp)):
+        result = _wiki_update_frontmatter_handler({
+            "path": "wiki/modules/mod.md",
+            "field": "used_by",
+            "value": "",
+        })
+
+    assert "error" in result
+    assert result["code"] == "missing_input"

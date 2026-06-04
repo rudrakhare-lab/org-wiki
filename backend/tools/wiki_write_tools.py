@@ -16,7 +16,6 @@ import re
 from backend import wiki_retriever
 
 WIKI_ROOT = str(pathlib.Path(__file__).resolve().parents[2])
-_WIKI_SUBDIR = str(pathlib.Path(WIKI_ROOT) / "wiki")
 
 LIST_FIELDS = {"depends_on", "used_by", "modules", "servers"}
 
@@ -149,9 +148,17 @@ def _wiki_append_section_handler(inp: dict) -> dict:
 
     heading = str(inp.get("heading", "")).strip()
     content = str(inp.get("content", "")).strip()
+
+    if not heading:
+        return {"error": "heading cannot be empty", "code": "missing_input"}
+
     text = target.read_text(encoding="utf-8")
 
-    if f"## {heading}" in text:
+    # Check heading only in the body (after frontmatter)
+    parts = text.split("---\n", 2)
+    body_to_check = parts[2] if len(parts) >= 3 else text
+
+    if f"## {heading}" in body_to_check:
         return {"error": f"Heading '## {heading}' already exists in {rel}", "code": "heading_exists"}
 
     new_text = text.rstrip() + f"\n\n## {heading}\n{content}\n"
@@ -190,35 +197,51 @@ def _wiki_update_frontmatter_handler(inp: dict) -> dict:
     field = str(inp.get("field", "")).strip()
     value = str(inp.get("value", "")).strip()
 
+    if not value:
+        return {"error": "value cannot be empty", "code": "missing_input"}
     if field not in LIST_FIELDS:
         return {"error": f"Field {field!r} is not a known list field", "code": "unknown_field"}
 
+    import yaml
+
     text = target.read_text(encoding="utf-8")
 
-    # Check already present
-    if value in text:
+    # Split into frontmatter + body
+    # Format: "---\n<yaml>\n---\n<body>"
+    parts = text.split("---\n", 2)
+    if len(parts) < 3:
+        return {"error": "No frontmatter block found in file", "code": "no_frontmatter"}
+
+    # parts[0] is empty string before first "---\n"
+    # parts[1] is the YAML content
+    # parts[2] is the body after second "---\n"
+    fm_str = parts[1]
+    body = parts[2]
+
+    try:
+        fm = yaml.safe_load(fm_str) or {}
+    except yaml.YAMLError as e:
+        return {"error": f"Cannot parse frontmatter: {e}", "code": "parse_error"}
+
+    # Get or initialize the list field
+    current = fm.get(field)
+    if current is None:
+        current = []
+    elif isinstance(current, str):
+        current = [current]
+    elif not isinstance(current, list):
+        current = list(current)
+
+    if value in current:
         return {"updated": True, "path": rel, "note": "already present — no change"}
 
-    # Find the field line and append value
-    pattern = re.compile(r"^(" + re.escape(field) + r":\s*\[)([^\]]*)\]", re.MULTILINE)
-    match = pattern.search(text)
-    if match:
-        existing = match.group(2).strip()
-        new_val = f"{existing}, {value}" if existing else value
-        new_text = pattern.sub(f"{match.group(1)}{new_val}]", text, count=1)
-        target.write_text(new_text, encoding="utf-8")
-        return {"updated": True, "path": rel}
+    current.append(value)
+    fm[field] = current
 
-    # Field not on one line — append as a new list item after the field
-    line_pattern = re.compile(r"^" + re.escape(field) + r":", re.MULTILINE)
-    lm = line_pattern.search(text)
-    if lm:
-        insert_pos = text.index("\n", lm.start()) + 1
-        new_text = text[:insert_pos] + f"  - {value}\n" + text[insert_pos:]
-        target.write_text(new_text, encoding="utf-8")
-        return {"updated": True, "path": rel}
-
-    return {"error": f"Field {field!r} not found in frontmatter of {rel}", "code": "field_not_found"}
+    new_fm_str = yaml.dump(fm, default_flow_style=False, allow_unicode=True)
+    new_text = f"---\n{new_fm_str}---\n{body}"
+    target.write_text(new_text, encoding="utf-8")
+    return {"updated": True, "path": rel}
 
 
 # ── wiki_rebuild_index ───────────────────────────────────────────────────────
