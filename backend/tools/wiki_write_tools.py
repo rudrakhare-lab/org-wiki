@@ -17,7 +17,9 @@ from backend import wiki_retriever
 
 WIKI_ROOT = str(pathlib.Path(__file__).resolve().parents[2])
 
-LIST_FIELDS = {"depends_on", "used_by", "modules", "servers"}
+# Fields that are always scalars — never allow treating them as lists
+_SCALAR_FIELDS = {"type", "status", "owner", "module", "last_updated", "ingested",
+                  "doc_type", "date", "auto_generated", "human_edited", "cluster_id"}
 
 
 def _safe_path(rel_path: str) -> pathlib.Path | None:
@@ -171,8 +173,11 @@ def _wiki_append_section_handler(inp: dict) -> dict:
 WIKI_UPDATE_FRONTMATTER_SCHEMA: dict = {
     "name": "wiki_update_frontmatter",
     "description": (
-        "Append a value to a list field (depends_on, used_by, modules) "
-        "in an existing wiki page's frontmatter. No-ops if the value is already present."
+        "Append a value to a list field in an existing wiki page's frontmatter. "
+        "Works with any list field: depends_on, used_by, modules, servers, alternate_paths, "
+        "contributing_tickets, related_modules, or any new list field. "
+        "No-ops if the value is already present. "
+        "Cannot be used on scalar fields like type, status, owner."
     ),
     "input_schema": {
         "type": "object",
@@ -199,8 +204,9 @@ def _wiki_update_frontmatter_handler(inp: dict) -> dict:
 
     if not value:
         return {"error": "value cannot be empty", "code": "missing_input"}
-    if field not in LIST_FIELDS:
-        return {"error": f"Field {field!r} is not a known list field", "code": "unknown_field"}
+    if field in _SCALAR_FIELDS:
+        return {"error": f"Field {field!r} is a scalar field and cannot be used as a list",
+                "code": "scalar_field"}
 
     import yaml
 
@@ -226,10 +232,16 @@ def _wiki_update_frontmatter_handler(inp: dict) -> dict:
     # Get or initialize the list field
     current = fm.get(field)
     if current is None:
-        current = []
+        current = []  # new field — create as list
+    elif isinstance(current, list):
+        pass  # already a list
     elif isinstance(current, str):
-        current = [current]
-    elif not isinstance(current, list):
+        current = [current]  # upgrade single string to list
+    elif isinstance(current, (int, float, bool)):
+        # Existing scalar value — refuse to corrupt it
+        return {"error": f"Field {field!r} exists as a scalar ({current!r}), not a list",
+                "code": "scalar_field"}
+    else:
         current = list(current)
 
     if value in current:
