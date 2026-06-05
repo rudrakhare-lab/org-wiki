@@ -146,7 +146,7 @@ async def upload_file(
     }
 
 
-# ── Plan endpoint ─────────────────────────────────────────────────────────────
+# ── Plan endpoint (background job) ───────────────────────────────────────────
 
 class PlanRequest(BaseModel):
     upload_id: str
@@ -154,31 +154,18 @@ class PlanRequest(BaseModel):
     target_slug: str = ""
 
 
-@router.post("/plan")
-async def plan_ingest(req: PlanRequest):
-    if not ingest_service.acquire_lock():
-        raise HTTPException(
-            status_code=409,
-            detail="Another ingestion is in progress. Try again in a moment.",
-        )
-
+async def _run_plan_job(
+    job: ingest_service.IngestPlanJob,
+    file_path: str,
+    filename: str,
+    notes: str,
+    target_slug: str,
+) -> None:
+    """Background coroutine — runs the Phase 1 planner agent. Releases lock when done."""
+    _LOG.info("[plan_job] job=%s  file=%s", job.plan_job_id[:8], filename)
     try:
-        # Locate the uploaded file
-        upload_dir = pathlib.Path(UPLOAD_DIR) / req.upload_id
-        if not upload_dir.exists():
-            raise HTTPException(status_code=404, detail=f"Upload {req.upload_id!r} not found")
-
-        files = [f for f in upload_dir.iterdir() if f.is_file()]
-        if not files:
-            raise HTTPException(status_code=404, detail="Upload directory is empty")
-        file_path = str(files[0])
-        filename = files[0].name
-
-        _LOG.info("[plan] starting  file=%s  upload_id=%s", filename, req.upload_id)
-
-        # Compose the user message
-        hint = f"\nUser hint — target module: {req.target_slug}" if req.target_slug else ""
-        context = f"\nUser context: {req.notes}" if req.notes else ""
+        hint = f"\nUser hint — target module: {target_slug}" if target_slug else ""
+        context = f"\nUser context: {notes}" if notes else ""
         user_message = (
             f"Ingest the document at: {file_path}{hint}{context}\n\n"
             "Produce the JSON plan as your final response."
@@ -186,12 +173,10 @@ async def plan_ingest(req: PlanRequest):
 
         registry = ingest_service.build_plan_registry()
         api_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
-
         messages: list[dict] = [{"role": "user", "content": user_message}]
         plan_json: dict = {}
 
-        # Run tool-use loop until agent returns end_turn
-        for _ in range(20):  # max 20 rounds
+        for _ in range(20):
             response = await api_client.messages.create(
                 model=MODEL,
                 max_tokens=4096,
@@ -203,7 +188,7 @@ async def plan_ingest(req: PlanRequest):
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
-                    _LOG.info("[plan]   tool → %s(%s)", block.name,
+                    _LOG.info("[plan_job]   tool → %s(%s)", block.name,
                               ", ".join(f"{k}={v!r}" for k, v in (block.input or {}).items())[:120])
                     result_str, _ = await asyncio.to_thread(
                         registry.execute, block.name, block.input, 0
@@ -215,15 +200,13 @@ async def plan_ingest(req: PlanRequest):
                     })
 
             if response.stop_reason == "end_turn":
-                # Extract JSON from the final text block
                 for block in response.content:
                     if hasattr(block, "text"):
                         text = block.text.strip()
-                        # Strip markdown code fences if present
                         if "```" in text:
                             parts = text.split("```")
                             for i, part in enumerate(parts):
-                                if i % 2 == 1:  # inside a code fence
+                                if i % 2 == 1:
                                     if part.startswith("json"):
                                         part = part[4:]
                                     try:
@@ -242,19 +225,21 @@ async def plan_ingest(req: PlanRequest):
             messages.append({"role": "user", "content": tool_results})
 
         if not plan_json:
-            _LOG.error("[plan] agent returned no parseable JSON  file=%s", filename)
-            raise HTTPException(status_code=500, detail="Agent returned no parseable plan. Try again.")
+            _LOG.error("[plan_job] agent returned no parseable JSON  file=%s  job=%s",
+                       filename, job.plan_job_id[:8])
+            job.error_msg = "Agent returned no parseable plan. Try again."
+            job.status = "error"
+            return
 
-        # Detect slug from plan
-        slug = plan_json.get("target_slug") or req.target_slug or "unknown"
+        slug = plan_json.get("target_slug") or target_slug or "unknown"
         ops = plan_json.get("operations", [])
-        _LOG.info("[plan] done  slug=%s  ops=%d  warnings=%d",
-                  slug, len(ops), len(plan_json.get("warnings", [])))
+        _LOG.info("[plan_job] done  slug=%s  ops=%d  warnings=%d  job=%s",
+                  slug, len(ops), len(plan_json.get("warnings", [])), job.plan_job_id[:8])
 
         session_id = ingest_service.new_session_id()
         session = ingest_service.IngestSession(
             session_id=session_id,
-            upload_id=req.upload_id,
+            upload_id=job.upload_id,
             plan=plan_json,
             created_at=time.time(),
             slug=slug,
@@ -263,10 +248,69 @@ async def plan_ingest(req: PlanRequest):
         )
         ingest_service.store_session(session)
 
-        return {"session_id": session_id, "plan": plan_json}
+        job.session_id = session_id
+        job.plan = plan_json
+        job.status = "done"
 
+    except Exception as exc:
+        job.status = "error"
+        job.error_msg = str(exc)
+        _LOG.exception("[plan_job] FAILED  job=%s  error=%s", job.plan_job_id[:8], exc)
     finally:
         ingest_service.release_lock()
+        _LOG.info("[plan_job] lock released  job=%s", job.plan_job_id[:8])
+
+
+@router.post("/plan")
+async def plan_ingest(req: PlanRequest):
+    # Idempotent: reuse any running plan job for this upload_id
+    existing = ingest_service.get_running_plan_job_for_upload(req.upload_id)
+    if existing:
+        _LOG.info("[plan] reusing existing job=%s for upload_id=%s",
+                  existing.plan_job_id[:8], req.upload_id)
+        return {"plan_job_id": existing.plan_job_id, "status": "running"}
+
+    # Locate upload before acquiring the lock
+    upload_dir = pathlib.Path(UPLOAD_DIR) / req.upload_id
+    if not upload_dir.exists():
+        raise HTTPException(status_code=404, detail=f"Upload {req.upload_id!r} not found")
+    files = [f for f in upload_dir.iterdir() if f.is_file()]
+    if not files:
+        raise HTTPException(status_code=404, detail="Upload directory is empty")
+    file_path = str(files[0])
+    filename = files[0].name
+
+    if not ingest_service.acquire_lock():
+        raise HTTPException(
+            status_code=409,
+            detail="Another ingestion is in progress. Try again in a moment.",
+        )
+
+    plan_job_id = ingest_service.new_session_id()
+    job = ingest_service.create_plan_job(plan_job_id, req.upload_id)
+
+    task = asyncio.create_task(
+        _run_plan_job(job, file_path, filename, req.notes, req.target_slug)
+    )
+    job._task = task
+
+    _LOG.info("[plan] job started  job=%s  file=%s  upload_id=%s",
+              plan_job_id[:8], filename, req.upload_id)
+    return {"plan_job_id": plan_job_id, "status": "running"}
+
+
+@router.get("/plan_job/{plan_job_id}")
+async def get_plan_job_status(plan_job_id: str):
+    job = ingest_service.get_plan_job(plan_job_id)
+    if job is None:
+        raise HTTPException(status_code=404, detail="Plan job not found or expired.")
+    return {
+        "plan_job_id": plan_job_id,
+        "status": job.status,
+        "session_id": job.session_id,
+        "plan": job.plan,
+        "error_msg": job.error_msg,
+    }
 
 
 # ── Execute endpoint ──────────────────────────────────────────────────────────

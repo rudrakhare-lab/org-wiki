@@ -200,6 +200,55 @@ def get_job(job_id: str) -> "IngestJob | None":
     return job
 
 
+# ── plan job store ─────────────────────────────────────────────────────────────
+
+@dataclass
+class IngestPlanJob:
+    plan_job_id: str
+    upload_id: str
+    status: str          # "running" | "done" | "error"
+    session_id: str      # set when done
+    plan: dict           # set when done
+    error_msg: str
+    created_at: float
+    _task: object = None  # asyncio.Task — prevents GC
+
+
+_plan_jobs: dict[str, "IngestPlanJob"] = {}
+
+
+def create_plan_job(plan_job_id: str, upload_id: str) -> "IngestPlanJob":
+    job = IngestPlanJob(
+        plan_job_id=plan_job_id,
+        upload_id=upload_id,
+        status="running",
+        session_id="",
+        plan={},
+        error_msg="",
+        created_at=time.time(),
+    )
+    _plan_jobs[plan_job_id] = job
+    return job
+
+
+def get_plan_job(plan_job_id: str) -> "IngestPlanJob | None":
+    job = _plan_jobs.get(plan_job_id)
+    if job is None:
+        return None
+    if time.time() - job.created_at > JOB_TTL:
+        del _plan_jobs[plan_job_id]
+        return None
+    return job
+
+
+def get_running_plan_job_for_upload(upload_id: str) -> "IngestPlanJob | None":
+    """Return an existing running plan job for this upload_id, if any."""
+    for job in _plan_jobs.values():
+        if job.upload_id == upload_id and job.status == "running":
+            return job
+    return None
+
+
 # ── tool registries ───────────────────────────────────────────────────────────
 
 def build_execute_registry():

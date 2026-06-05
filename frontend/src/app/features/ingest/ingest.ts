@@ -1,22 +1,18 @@
-import { Component, OnInit, signal, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService, IngestPlanResponse } from '../../core/api.service';
 import { inject } from '@angular/core';
 import { UploadStep, UploadResult } from './upload-step';
 import { PlanStep } from './plan-step';
 import { ExecuteStep } from './execute-step';
-
-import { OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 type IngestPhase = 'upload' | 'planning' | 'plan-review' | 'executing';
 
 // localStorage keys — persist state across tab switches
-const STORAGE_JOB_ID    = 'conwo_active_ingest_job';
-const STORAGE_FILENAME  = 'conwo_active_ingest_filename';
-const STORAGE_UPLOAD_ID = 'conwo_active_ingest_upload_id';
-const STORAGE_NOTES     = 'conwo_active_ingest_notes';
-const STORAGE_SLUG      = 'conwo_active_ingest_slug';
+const STORAGE_JOB_ID      = 'conwo_active_ingest_job';
+const STORAGE_FILENAME    = 'conwo_active_ingest_filename';
+const STORAGE_PLAN_JOB_ID = 'conwo_active_ingest_plan_job';
 
 @Component({
   selector: 'app-ingest',
@@ -34,8 +30,8 @@ export class Ingest implements OnInit, OnDestroy {
   planResponse = signal<IngestPlanResponse | null>(null);
   planningError = signal('');
 
-  private planSub?: Subscription;
-  private planRetryHandle?: ReturnType<typeof setTimeout>;
+  private planStartSub?: Subscription;
+  private planPollHandle?: ReturnType<typeof setInterval>;
 
   ngOnInit() {
     // Case 1: execute job already running → jump straight to execute screen
@@ -48,60 +44,90 @@ export class Ingest implements OnInit, OnDestroy {
       return;
     }
 
-    // Case 2: plan was in progress when user left → re-trigger the plan
-    const savedUploadId = localStorage.getItem(STORAGE_UPLOAD_ID);
-    if (savedUploadId) {
+    // Case 2: plan job was running when user left → resume polling it
+    const savedPlanJobId = localStorage.getItem(STORAGE_PLAN_JOB_ID);
+    if (savedPlanJobId) {
       const savedFilename = localStorage.getItem(STORAGE_FILENAME) ?? '';
-      const savedNotes    = localStorage.getItem(STORAGE_NOTES)    ?? '';
-      const savedSlug     = localStorage.getItem(STORAGE_SLUG)     ?? '';
-      this.uploadResult.set({ uploadId: savedUploadId, filename: savedFilename, notes: savedNotes, targetSlug: savedSlug });
+      this.uploadResult.set({ uploadId: '', filename: savedFilename, notes: '', targetSlug: '' });
       this.phase.set('planning');
-      this._runPlan(savedUploadId, savedNotes, savedSlug);
+      this._startPlanPolling(savedPlanJobId);
     }
   }
 
   ngOnDestroy() {
-    this.planSub?.unsubscribe();
-    if (this.planRetryHandle) clearTimeout(this.planRetryHandle);
+    this.planStartSub?.unsubscribe();
+    if (this.planPollHandle) {
+      clearInterval(this.planPollHandle);
+      this.planPollHandle = undefined;
+    }
+    // Keep localStorage — the background job is still running and we need to resume
   }
 
   onUploaded(result: UploadResult) {
     this.uploadResult.set(result);
     this.phase.set('planning');
     this.planningError.set('');
-
-    // Persist upload state so returning to this tab can re-trigger planning
-    localStorage.setItem(STORAGE_UPLOAD_ID, result.uploadId);
-    localStorage.setItem(STORAGE_FILENAME,  result.filename);
-    localStorage.setItem(STORAGE_NOTES,     result.notes);
-    localStorage.setItem(STORAGE_SLUG,      result.targetSlug);
-
-    this._runPlan(result.uploadId, result.notes, result.targetSlug);
+    localStorage.setItem(STORAGE_FILENAME, result.filename);
+    this._startPlanJob(result.uploadId, result.notes, result.targetSlug);
   }
 
-  private _runPlan(uploadId: string, notes: string, targetSlug: string, retries = 0) {
-    this.planSub?.unsubscribe();
+  private _startPlanJob(uploadId: string, notes: string, targetSlug: string) {
+    this.planStartSub?.unsubscribe();
     this.planningError.set('');
-    this.planSub = this.api.planIngest(uploadId, notes, targetSlug).subscribe({
+
+    this.planStartSub = this.api.startPlanJob(uploadId, notes, targetSlug).subscribe({
       next: (resp) => {
-        localStorage.removeItem(STORAGE_UPLOAD_ID);
-        this.planResponse.set(resp);
-        this.phase.set('plan-review');
+        localStorage.setItem(STORAGE_PLAN_JOB_ID, resp.plan_job_id);
+        this._startPlanPolling(resp.plan_job_id);
       },
       error: (err: { status?: number; error?: { detail?: string } }) => {
-        if (err.status === 409 && retries < 20) {
-          // Previous plan still holding the lock — stay on spinner and retry in 3s
-          this.planRetryHandle = setTimeout(
-            () => this._runPlan(uploadId, notes, targetSlug, retries + 1),
-            3000
-          );
+        if (err.status === 409) {
+          // Extremely rare now — another ingestion is already running (not our plan)
+          this.planningError.set('Another ingestion is in progress. Please wait and try again.');
         } else {
-          localStorage.removeItem(STORAGE_UPLOAD_ID);
-          this.planningError.set(err?.error?.detail ?? 'Planning failed. Try again.');
-          this.phase.set('upload');
+          this.planningError.set(err?.error?.detail ?? 'Failed to start planning. Try again.');
         }
+        this.phase.set('upload');
       },
     });
+  }
+
+  private _startPlanPolling(planJobId: string) {
+    if (this.planPollHandle) {
+      clearInterval(this.planPollHandle);
+      this.planPollHandle = undefined;
+    }
+
+    this.planPollHandle = setInterval(() => {
+      this.api.getPlanJob(planJobId).subscribe({
+        next: (job) => {
+          if (job.status === 'done') {
+            clearInterval(this.planPollHandle);
+            this.planPollHandle = undefined;
+            localStorage.removeItem(STORAGE_PLAN_JOB_ID);
+            this.planResponse.set({ session_id: job.session_id, plan: job.plan });
+            this.phase.set('plan-review');
+          } else if (job.status === 'error') {
+            clearInterval(this.planPollHandle);
+            this.planPollHandle = undefined;
+            localStorage.removeItem(STORAGE_PLAN_JOB_ID);
+            this.planningError.set(job.error_msg || 'Planning failed. Try again.');
+            this.phase.set('upload');
+          }
+          // status === 'running' → keep polling
+        },
+        error: (err: { status?: number }) => {
+          if (err.status === 404) {
+            clearInterval(this.planPollHandle);
+            this.planPollHandle = undefined;
+            localStorage.removeItem(STORAGE_PLAN_JOB_ID);
+            this.planningError.set('Plan job expired on server. Please re-upload and try again.');
+            this.phase.set('upload');
+          }
+          // Other HTTP errors: retry on next poll tick
+        },
+      });
+    }, 2000);
   }
 
   onApprove() {
@@ -117,11 +143,14 @@ export class Ingest implements OnInit, OnDestroy {
   }
 
   private reset() {
+    if (this.planPollHandle) {
+      clearInterval(this.planPollHandle);
+      this.planPollHandle = undefined;
+    }
+    this.planStartSub?.unsubscribe();
     localStorage.removeItem(STORAGE_JOB_ID);
     localStorage.removeItem(STORAGE_FILENAME);
-    localStorage.removeItem(STORAGE_UPLOAD_ID);
-    localStorage.removeItem(STORAGE_NOTES);
-    localStorage.removeItem(STORAGE_SLUG);
+    localStorage.removeItem(STORAGE_PLAN_JOB_ID);
     this.phase.set('upload');
     this.uploadResult.set(null);
     this.planResponse.set(null);
