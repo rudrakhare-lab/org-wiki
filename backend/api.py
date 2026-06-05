@@ -32,6 +32,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 from contextlib import asynccontextmanager
 from typing import Annotated, Literal
 
@@ -117,9 +118,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_CORS_ENV = os.getenv("ALLOWED_ORIGINS", "")
+_CORS_ORIGINS: list[str] = (
+    [o.strip() for o in _CORS_ENV.split(",") if o.strip()]
+    if _CORS_ENV.strip()
+    else ["http://localhost:4200", "http://localhost:4201", "http://127.0.0.1:4200"]
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:4200", "http://localhost:4201", "http://127.0.0.1:4200"],
+    allow_origins=_CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

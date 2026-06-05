@@ -6,7 +6,7 @@ import { ApiService } from '../../core/api.service';
 
 declare const google: any;
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = '';
 // Fill this in from Google Cloud Console → APIs & Services → Credentials
 // It ends in .apps.googleusercontent.com
 const GOOGLE_CLIENT_ID = '394997129475-vptjprrehufpvhnlh3tad78uqk69u54h.apps.googleusercontent.com';

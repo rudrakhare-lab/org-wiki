@@ -469,7 +469,7 @@ export interface IngestJobResponse {
   error_msg: string;
 }
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = '';
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 const USER_EMAIL_KEY = 'conwo_user_email';
 const USER_NAME_KEY = 'conwo_user_name';

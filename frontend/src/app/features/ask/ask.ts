@@ -644,7 +644,7 @@ export class Ask implements OnInit {
       },
       error: err => {
         this.loading.set(false);
-        this.error.set(err?.error?.detail ?? 'Request failed. Is the backend running on localhost:8000?');
+        this.error.set(err?.error?.detail ?? 'Request failed. Could not reach the backend.');
       },
     });
   }

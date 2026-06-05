@@ -12,7 +12,7 @@
 email = "rudra.khare@moveinsync.com"
 role = "admin"
 # Generate with: python -c "import hashlib; print(hashlib.sha256(b'rudra.khare@moveinsync.com').hexdigest()[:32])"
-token = "1f45d149ff8cd563415eefce0bc6c3c8"
+token = ""  # generate on VM: python -c "import hashlib; print(hashlib.sha256(b'<your-email>').hexdigest()[:32])"
 
 # Add more users below as needed:
 # [users.alice]
