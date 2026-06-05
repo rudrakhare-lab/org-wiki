@@ -1,8 +1,14 @@
 ---
 type: source
 raw_path: raw/modules/floor-kiosk/Copy of WorkInSync Floor plan - Add | Update - SOP.docx
+raw_path_alt: raw/modules/_uploads/ff05be16060ed24c/Copy of WorkInSync Floor plan - Add | Update - SOP.docx
 ingested: 2026-04-28
-doc_type: spec
+doc_type: SOP
+version: "1.0"
+date: "2022-08-26"
+author: Aditya Dutta
+approved_by: Ujjwal Trivedi
+classification_label: Confidential
 ---
 
 # Floor Plan — Add/Update SOP

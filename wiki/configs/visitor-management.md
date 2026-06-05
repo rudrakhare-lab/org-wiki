@@ -269,3 +269,13 @@ _74 properties present on the `.com` server but absent from the `.in` config lis
 
 _Last updated: 2026-05-26_
 _Source: [[sources/pms-configs-in-all-wis-configs]] | [[sources/pms-configs-com-wis-service-configs]]_
+
+---
+
+## Feedback Notes
+
+<!-- feedback:b59a3148952d -->
+- **2026-06-04** — score `2` · label `wrong_config` · answer `dce3843acf6b` · feedback `b59a3148952d`
+    - Correction: The actual default is 30 minutes, not 60.
+    - Sources cited: wiki/configs/visitor-management.md
+    - Affected: VISITOR:kioskRequireOTPBeforeRegister

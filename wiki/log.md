@@ -3,6 +3,15 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 
 ---
 
+## [2026-06-04 09:16] feedback-apply | wrong_config — feedback b59a3148952d
+
+- Score `2` feedback applied as Feedback Notes block.
+- Patched: [[configs/visitor-management]]
+- Answer ID: `dce3843acf6b`
+- Correction summary: The actual default is 30 minutes, not 60.
+
+---
+
 ## [RESET 2026-04-27] Wiki reset for real ingest
 - All test pages cleared. Ready to ingest real WorkInSync feature docs.
 - Per-feature folders created under `raw/modules/` matching the Conwo WorkInSync Docs Drive structure.
