@@ -534,7 +534,8 @@ async def query_stream(
         conversation_id = None
     if not conversation_id:
         conv = conversation_store.create_conversation(
-            title=conversation_store.auto_title_from_question(req.question)
+            title=conversation_store.auto_title_from_question(req.question),
+            user_email=user.get("email"),
         )
         conversation_id = conv["id"]
 
