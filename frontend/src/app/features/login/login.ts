@@ -9,7 +9,7 @@ declare const google: any;
 const API_BASE = 'http://localhost:8000';
 // Fill this in from Google Cloud Console → APIs & Services → Credentials
 // It ends in .apps.googleusercontent.com
-const GOOGLE_CLIENT_ID = '';
+const GOOGLE_CLIENT_ID = '394997129475-vptjprrehufpvhnlh3tad78uqk69u54h.apps.googleusercontent.com';
 
 @Component({
   selector: 'app-login',
