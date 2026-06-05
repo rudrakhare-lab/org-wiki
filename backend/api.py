@@ -35,6 +35,9 @@ import logging
 from contextlib import asynccontextmanager
 from typing import Annotated, Literal
 
+from dotenv import load_dotenv
+load_dotenv()
+
 # Configure application-level loggers so INFO messages appear in the uvicorn terminal.
 # Uvicorn controls its own loggers; this ensures custom loggers (e.g. "ingest") are visible.
 logging.basicConfig(
