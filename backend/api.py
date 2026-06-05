@@ -58,6 +58,7 @@ from backend.config import local_claude_code_enabled
 from backend.feedback_service import log_answer, record_feedback
 from backend.operational_context import _age_hours
 from backend.providers.claude_code_agent import claude_available, stream_claude_code
+from backend.google_auth import verify_google_credential
 
 
 # ---------------------------------------------------------------------------
@@ -269,6 +270,16 @@ class CreateUserRequest(BaseModel):
 
 class WikiProposalRejectRequest(BaseModel):
     admin_note: str = ""
+
+
+class GoogleLoginRequest(BaseModel):
+    credential: str
+
+
+class GoogleLoginResponse(BaseModel):
+    token: str
+    email: str
+    name: str
 
 
 # ---------------------------------------------------------------------------
@@ -814,6 +825,38 @@ def public_status(user: dict = Depends(_require_user)):
 
 
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Auth — Google Sign-In
+# ---------------------------------------------------------------------------
+
+@app.post("/auth/google", response_model=GoogleLoginResponse)
+def google_login(req: GoogleLoginRequest) -> GoogleLoginResponse:
+    """Exchange a Google ID token for a Conwo session token.
+
+    Verifies the Google credential, enforces @moveinsync.com domain,
+    auto-provisions the user on first login (role: viewer), and returns
+    a random session token stored in auth_store.
+    """
+    import os
+    client_id = os.getenv("GOOGLE_CLIENT_ID", "").strip()
+    if not client_id:
+        raise HTTPException(
+            status_code=500,
+            detail="GOOGLE_CLIENT_ID is not configured on the server.",
+        )
+    try:
+        user_info = verify_google_credential(req.credential, client_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=403, detail=str(exc))
+
+    email = user_info["email"]
+    from backend import auth_store
+    if not auth_store.get_user(email):
+        auth_store.create_user(email, role="viewer")
+    token = auth_store.create_token(email)
+    return GoogleLoginResponse(token=token, email=email, name=user_info["name"])
+
+
 # Admin endpoints (require admin Bearer token)
 # ---------------------------------------------------------------------------
 
