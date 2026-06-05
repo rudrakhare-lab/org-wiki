@@ -443,6 +443,14 @@ export type IngestProgressEvent =
   | { type: 'error'; message: string; tool?: string; path?: string }
   | { type: '__sse_error'; error: string };
 
+export interface IngestPlanJobResponse {
+  plan_job_id: string;
+  status: 'running' | 'done' | 'error';
+  session_id: string;
+  plan: IngestPlan;
+  error_msg: string;
+}
+
 export interface IngestJobResponse {
   job_id: string;
   status: 'running' | 'complete' | 'error';
@@ -463,6 +471,8 @@ export interface IngestJobResponse {
 
 const API_BASE = 'http://localhost:8000';
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
+const USER_EMAIL_KEY = 'conwo_user_email';
+const USER_NAME_KEY = 'conwo_user_name';
 const MODE_STORAGE = 'conwo_query_mode';
 
 @Injectable({ providedIn: 'root' })
@@ -477,6 +487,24 @@ export class ApiService {
 
   setAdminToken(token: string): void {
     localStorage.setItem(ADMIN_TOKEN_KEY, token);
+  }
+
+  setUserInfo(email: string, name: string): void {
+    localStorage.setItem(USER_EMAIL_KEY, email);
+    localStorage.setItem(USER_NAME_KEY, name);
+  }
+
+  getUserEmail(): string {
+    return localStorage.getItem(USER_EMAIL_KEY) ?? '';
+  }
+
+  getUserName(): string {
+    return localStorage.getItem(USER_NAME_KEY) ?? '';
+  }
+
+  clearUserInfo(): void {
+    localStorage.removeItem(USER_EMAIL_KEY);
+    localStorage.removeItem(USER_NAME_KEY);
   }
 
   isAdmin(): boolean {
@@ -813,6 +841,24 @@ export class ApiService {
       { upload_id: uploadId, notes, target_slug: targetSlug },
       { headers }
     );
+  }
+
+  startPlanJob(uploadId: string, notes: string, targetSlug: string): Observable<{ plan_job_id: string; status: string }> {
+    const token = this.getAdminToken();
+    const headers = token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' })
+      : new HttpHeaders({ 'Content-Type': 'application/json' });
+    return this.http.post<{ plan_job_id: string; status: string }>(
+      `${API_BASE}/api/ingest/plan`,
+      { upload_id: uploadId, notes, target_slug: targetSlug },
+      { headers }
+    );
+  }
+
+  getPlanJob(planJobId: string): Observable<IngestPlanJobResponse> {
+    const token = this.getAdminToken();
+    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
+    return this.http.get<IngestPlanJobResponse>(`${API_BASE}/api/ingest/plan_job/${planJobId}`, { headers });
   }
 
   startIngestJob(sessionId: string): Observable<{ job_id: string; status: string }> {
