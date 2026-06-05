@@ -9,3 +9,4 @@ PyYAML==6.0.3       # frontmatter parsing in wiki_propose_tools
 python-frontmatter==1.1.0  # G35 — robust YAML frontmatter parsing
 python-multipart>=0.0.12  # file upload support for /api/ingest/upload
 pytest>=7.0
+google-auth>=2.29.0
