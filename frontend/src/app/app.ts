@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
+import { ApiService } from './core/api.service';
 
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 
@@ -14,9 +15,11 @@ const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 export class App {
   readonly title = 'Conwo';
   private router = inject(Router);
+  private api = inject(ApiService);
 
   currentUrl = signal<string>(this.router.url);
   signedIn = signal<boolean>(this.readToken().length > 0);
+  userEmail = signal<string>(this.api.getUserEmail());
 
   constructor() {
     this.router.events
@@ -24,6 +27,7 @@ export class App {
       .subscribe(e => {
         this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
         this.signedIn.set(this.readToken().length > 0);
+        this.userEmail.set(this.api.getUserEmail());
       });
   }
 
@@ -35,7 +39,9 @@ export class App {
     try {
       localStorage.removeItem(ADMIN_TOKEN_KEY);
     } catch { /* private mode */ }
+    this.api.clearUserInfo();
     this.signedIn.set(false);
+    this.userEmail.set('');
     this.router.navigateByUrl('/login');
   }
 
