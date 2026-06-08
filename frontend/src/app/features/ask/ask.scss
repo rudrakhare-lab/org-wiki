@@ -198,6 +198,25 @@
   border-color: var(--success-border);
 }
 
+.pill-intent {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #e8f0fe;
+  color: #1a56db;
+  font-weight: 500;
+  white-space: nowrap;
+  text-transform: none;
+
+  &[data-intent="debugging"]     { background: #fde8e8; color: #c81e1e; }
+  &[data-intent="configuration"] { background: #e8f0fe; color: #1a56db; }
+  &[data-intent="how_to"]        { background: #e8f4e8; color: #057a55; }
+  &[data-intent="definition"]    { background: #fef3c7; color: #92400e; }
+  &[data-intent="comparison"]    { background: #f0e8fe; color: #6c2bd9; }
+  &[data-intent="architectural"] { background: #e8f4fe; color: #0369a1; }
+  &[data-intent="status"]        { background: #e8fef4; color: #065f46; }
+}
+
 .answer-body {
   font-size: 0.96rem;
   line-height: 1.75;

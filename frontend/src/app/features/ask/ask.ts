@@ -98,7 +98,12 @@ const PMS_SERVICES = [
                           {{ m.mode === 'agent' ? 'Claude Code' : 'Deep Search' }}
                         </span>
                       }
-                      @if (m.answer_id) {
+                      @if (m.intent && m.intent !== 'GENERAL') {
+                      <span class="pill pill-intent" [attr.data-intent]="m.intent?.toLowerCase()">
+                        {{ intentEmoji(m.intent) }} {{ formatIntent(m.intent) }}
+                      </span>
+                    }
+                    @if (m.answer_id) {
                         <span class="answer-id" title="Answer ID">{{ m.answer_id }}</span>
                       }
                     </div>
@@ -688,11 +693,28 @@ export class Ask implements OnInit {
       sources: res.sources,
       tool_trace: res.tool_trace,
       missing_context: res.missing_context,
+      intent: res.intent,
+      rewritten_query: res.rewritten_query,
+      intent_confidence: res.intent_confidence,
     };
     this.messages.update(arr => [...arr, msg]);
   }
 
   // ── Template helpers ─────────────────────────────────────────────────
+
+  intentEmoji(intent: string): string {
+    const map: Record<string, string> = {
+      DEBUGGING: '🐛', CONFIGURATION: '⚙️', HOW_TO: '📖',
+      DEFINITION: '📝', COMPARISON: '⚖️', ARCHITECTURAL: '🏗️',
+      STATUS: '📊',
+    };
+    return map[intent] ?? '💬';
+  }
+
+  formatIntent(intent: string): string {
+    return intent.replace('_', ' ').toLowerCase()
+      .replace(/\b\w/g, c => c.toUpperCase());
+  }
 
   sendButtonTitle(): string {
     if (this.loading() || this.agentActive()) return 'Working…';
