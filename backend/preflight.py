@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from backend import jira_retriever, trace_store, wiki_retriever
 from backend.tools import build_registry
 from backend.tools.registry import ToolRegistry, ToolTraceEntry
+from backend.intent_classifier import classify_intent, IntentResult, QueryIntent
 
 _PREFLIGHT_LATEST_LIMIT = 2     # auto-fetch top N LATEST tickets
 _PREFLIGHT_WIKI_TOP_N = 3       # number of wiki pages to seed
@@ -78,6 +79,7 @@ class PreflightBundle:
     # Step 5 — module-tagged + related-module pre-fetched tickets
     module_tagged_jira: list[dict] = field(default_factory=list)
     related_module_jira: list[dict] = field(default_factory=list)
+    intent_result: "IntentResult | None" = field(default=None)
 
     def latest_keys(self) -> list[str]:
         return [r["key"] for r in self.seed_jira.get("buckets", {}).get("LATEST", [])]
@@ -106,8 +108,17 @@ def run_preflight(
 ) -> PreflightBundle:
     """Run the deterministic preflight retrieval. Always runs for every query."""
     bundle = PreflightBundle()
+
+    # classify intent and apply retrieval hints
+    _intent_result = classify_intent(question)
+    bundle.intent_result = _intent_result
+    _hints = _intent_result.retrieval_hints
+    _search_query = _intent_result.rewritten_query
+    _wiki_top_n_eff = _hints.get("wiki_top_n", _PREFLIGHT_WIKI_TOP_N)
+    _latest_limit_eff = _hints.get("jira_latest_limit", latest_limit)
+
     _t = time.perf_counter()
-    bundle.seed_wiki = wiki_retriever.search(question, top_n=_PREFLIGHT_WIKI_TOP_N)
+    bundle.seed_wiki = wiki_retriever.search(_search_query, top_n=_wiki_top_n_eff)
     trace_store.record_event(
         trace_id, "preflight", "preflight_wiki",
         duration_ms=int((time.perf_counter() - _t) * 1000), round_num=0,
@@ -115,7 +126,7 @@ def run_preflight(
                   "top_paths": [p.path for p in bundle.seed_wiki[:3]]})
 
     _t = time.perf_counter()
-    bundle.seed_jira = jira_retriever.search(question, functional_area=functional_area)
+    bundle.seed_jira = jira_retriever.search(_search_query, functional_area=functional_area)
     _buckets = bundle.seed_jira.get("buckets", {})          # buckets are NESTED under "buckets"
     trace_store.record_event(
         trace_id, "preflight", "preflight_jira",
@@ -199,7 +210,7 @@ def run_preflight(
     # Auto-fetch top LATEST tickets so the model NEVER has to guess based on
     # the summary alone. Goes through the registry so the trace is sanitized
     # and consistent with model-initiated tool calls.
-    keys_to_fetch = bundle.latest_keys()[:latest_limit]
+    keys_to_fetch = bundle.latest_keys()[:_latest_limit_eff]
     for key in keys_to_fetch:
         json_output, entry = registry.execute(
             name="jira_get_ticket",
@@ -370,10 +381,18 @@ def build_seed_message(
     module_tagged_block  = (module_tagged_text  + "\n---\n\n") if module_tagged_text  else ""
     related_module_block = (related_module_text + "\n---\n\n") if related_module_text else ""
     latest_count = len(bundle.seed_jira.get("buckets", {}).get("LATEST", []))
+    _intent_line = ""
+    if bundle.intent_result and bundle.intent_result.intent != QueryIntent.GENERAL:
+        ir = bundle.intent_result
+        _intent_line = (
+            f"**Intent:** {ir.intent.value} (conf: {ir.confidence:.2f})"
+            f" | query: \"{ir.rewritten_query}\"\n"
+        )
     return (
         f"{op_block}"
         f"**Question:** {question}\n"
-        f"**Scope:** {scope_line}\n\n"
+        f"**Scope:** {scope_line}\n"
+        f"{_intent_line}\n"
         f"{summary_block}"
         f"---\n\n"
         f"## Pre-fetched wiki evidence (top {len(bundle.seed_wiki)} pages, ~800-char excerpts)\n\n"
@@ -405,7 +424,15 @@ def build_agent_preamble(bundle: PreflightBundle) -> str:
     related_module_text = format_related_module_for_seed(bundle.related_module_jira)
     module_tagged_block  = (module_tagged_text  + "\n") if module_tagged_text  else ""
     related_module_block = (related_module_text + "\n") if related_module_text else ""
+    _intent_line = ""
+    if bundle.intent_result and bundle.intent_result.intent != QueryIntent.GENERAL:
+        ir = bundle.intent_result
+        _intent_line = (
+            f"**Intent:** {ir.intent.value} (conf: {ir.confidence:.2f})"
+            f" | query: \"{ir.rewritten_query}\"\n\n"
+        )
     return (
+        f"{_intent_line}"
         "## Pre-fetched evidence from Conwo backend\n\n"
         "The Conwo backend has already searched the wiki and Jira mirror and "
         "fetched the most relevant LATEST ticket bodies. Use this as your "
