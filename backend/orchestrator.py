@@ -118,6 +118,9 @@ class OrchestratorResult:
     tool_trace: list[dict] = field(default_factory=list)
     missing_context: list[str] = field(default_factory=list)
     deep_search_used: bool = False
+    intent: str = "GENERAL"
+    rewritten_query: str = ""
+    intent_confidence: float = 0.0
 
 
 def run(
@@ -182,6 +185,10 @@ def run_deep(
     bundle = run_preflight(question, functional_area=functional_area, registry=registry,
                            trace_id=trace_id)
 
+    _intent = bundle.intent_result.intent.value if bundle.intent_result else "GENERAL"
+    _rewritten_query = bundle.intent_result.rewritten_query if bundle.intent_result else ""
+    _intent_conf = bundle.intent_result.confidence if bundle.intent_result else 0.0
+
     # 2. Build seeded user message (full Jira bodies + larger wiki excerpts)
     scope_parts: list[str] = [f".{server} server"]
     if buid:
@@ -229,6 +236,9 @@ def run_deep(
             tool_trace=deep_result.tool_trace,
             missing_context=deep_result.missing_context,
             deep_search_used=True,
+            intent=_intent,
+            rewritten_query=_rewritten_query,
+            intent_confidence=_intent_conf,
         )
 
     # 4. Extract sources from tool trace (preflight + model rounds combined)
@@ -277,6 +287,9 @@ def run_deep(
         tool_trace=deep_result.tool_trace,
         missing_context=deep_result.missing_context,
         deep_search_used=True,
+        intent=_intent,
+        rewritten_query=_rewritten_query,
+        intent_confidence=_intent_conf,
     )
 
 
