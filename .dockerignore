@@ -1,0 +1,48 @@
+# Secrets — must never enter the image
+.env
+.env.*
+
+# Runtime data — mounted as volumes at runtime, never baked into the image
+raw/
+wiki/
+
+# Python build artefacts
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Version control
+.git/
+.gitignore
+
+# Node / frontend build artefacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# Python virtual environments
+venv/
+.venv/
+.venv-test/
+
+# SQLite databases (runtime data)
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# Logs
+logs/
+
+# Development-only directories (not needed in production image)
+tests/
+eval/
+eval_runs/
+scratch/
+
+# Obsidian / editor artefacts
+.obsidian/
+*.canvas
+.superpowers/
+.pytest_cache/
