@@ -1,0 +1,13 @@
+{
+  "/auth": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/query": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/search": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/wiki": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/health": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/status": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/conversations": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/feedback": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/admin": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/api": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/traces": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true }
+}

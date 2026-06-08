@@ -34,6 +34,7 @@ import json
 import logging
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import Annotated, Literal
 
 from dotenv import load_dotenv
@@ -51,7 +52,7 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 from fastapi import Depends, FastAPI, HTTPException, Header, Request, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
@@ -1047,3 +1048,25 @@ app.include_router(trace_api.router, dependencies=[Depends(_require_admin)])
 # ingest_api.py needs no import from api.py (avoids a circular import).
 from backend import ingest_api  # noqa: E402
 app.include_router(ingest_api.router, dependencies=[Depends(_require_user)])
+
+
+# ---------------------------------------------------------------------------
+# Frontend static file serving (production)
+# ---------------------------------------------------------------------------
+# Serves the pre-built Angular app for any route that doesn't match an API
+# endpoint. Only activates when frontend/dist/frontend/browser/ exists — safe
+# to omit during local dev (ng serve runs separately on port 4200).
+
+_FRONTEND_DIST = (
+    Path(__file__).parent.parent / "frontend" / "dist" / "frontend" / "browser"
+)
+
+
+@app.get("/{full_path:path}", include_in_schema=False)
+async def serve_frontend(full_path: str):
+    if _FRONTEND_DIST.is_dir():
+        candidate = _FRONTEND_DIST / full_path
+        if candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(_FRONTEND_DIST / "index.html")
+    raise HTTPException(status_code=404, detail="Frontend not built. Run: cd frontend && npm run build")
