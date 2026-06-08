@@ -42,6 +42,9 @@ export interface QueryResponse {
   missing_context: string[];
   deep_search_used: boolean;
   conversation_id?: string;
+  intent?: string;
+  rewritten_query?: string;
+  intent_confidence?: number;
 }
 
 // ── Conversations / chat history ───────────────────────────────────────────
@@ -68,6 +71,9 @@ export interface ChatMessage {
   sources?: SourceInfo | null;
   tool_trace?: ToolTraceEntry[] | null;
   missing_context?: string[] | null;
+  intent?: string | null;
+  rewritten_query?: string | null;
+  intent_confidence?: number | null;
 }
 
 export interface Conversation {
