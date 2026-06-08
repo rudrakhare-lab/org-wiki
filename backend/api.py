@@ -224,6 +224,9 @@ class QueryResponse(BaseModel):
     missing_context: list[str] = []
     deep_search_used: bool = False
     conversation_id: str | None = None
+    intent: str = "GENERAL"
+    rewritten_query: str = ""
+    intent_confidence: float = 0.0
 
 
 class AgentStreamRequest(BaseModel):
@@ -480,6 +483,9 @@ def query(
             missing_context=result.missing_context,
             deep_search_used=result.deep_search_used,
             conversation_id=conversation_id,
+            intent=result.intent,
+            rewritten_query=result.rewritten_query,
+            intent_confidence=result.intent_confidence,
         )
     except HTTPException:
         # Expected gateway rejection (401 auth / 429 rate-limit / 503 missing-key).
