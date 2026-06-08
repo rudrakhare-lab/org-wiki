@@ -42,5 +42,10 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./features/ingest/ingest').then(m => m.Ingest),
   },
+  {
+    path: 'graph',
+    canActivate: [authGuard],
+    loadComponent: () => import('./features/graph/graph-page').then(m => m.GraphPage),
+  },
   { path: '**', redirectTo: 'ask' },
 ];

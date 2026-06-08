@@ -449,6 +449,23 @@ export type IngestProgressEvent =
   | { type: 'error'; message: string; tool?: string; path?: string }
   | { type: '__sse_error'; error: string };
 
+// ── Wiki graph ────────────────────────────────────────────────────────────────
+
+export interface WikiGraphNode {
+  id: string;
+  label: string;
+  type: string;
+  path: string;
+  val: number;
+}
+
+export interface WikiGraphData {
+  nodes: WikiGraphNode[];
+  links: { source: string; target: string }[];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export interface IngestPlanJobResponse {
   plan_job_id: string;
   status: 'running' | 'done' | 'error';
@@ -668,6 +685,12 @@ export class ApiService {
 
   getWikiPage(path: string): Observable<WikiPage> {
     return this.http.get<WikiPage>(`${API_BASE}/wiki/${path}`);
+  }
+
+  getWikiGraph(): Observable<WikiGraphData> {
+    const token = this.getAdminToken();
+    const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
+    return this.http.get<WikiGraphData>(`${API_BASE}/api/wiki/graph`, { headers });
   }
 
   // ── Conversations ──────────────────────────────────────────────────────

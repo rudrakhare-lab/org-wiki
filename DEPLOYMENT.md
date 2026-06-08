@@ -342,9 +342,21 @@ crontab -e
 # Paste the contents of deploy/crontab.example
 ```
 
+The Jira cron runs `jira_daily_sync.py` which is the **two-stage orchestrator**:
+- **Stage 1** — `jira_sync.py --incremental`: fetches delta tickets from Jira API into SQLite
+- **Stage 2** — `classify_jira.py --delta 2 --yes`: AI-classifies newly-synced tickets into `functional_area`
+
+Both stages must run together or ranked Jira search returns unclassified results. Never swap this back to `jira_sync.py --incremental` alone.
+
 Verify log directory is writable:
 ```bash
 ls /var/log/conwo/
+```
+
+After first cron run, verify both stages completed:
+```bash
+grep "DONE\|STAGE_FAIL" /var/log/conwo/jira-sync.log | tail -5
+# Expected: [timestamp] DONE total=<N>s cost=$<X> sync_ok=True classify_ok=True
 ```
 
 ---

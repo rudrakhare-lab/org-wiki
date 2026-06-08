@@ -1055,6 +1055,9 @@ app.include_router(trace_api.router, dependencies=[Depends(_require_admin)])
 from backend import ingest_api  # noqa: E402
 app.include_router(ingest_api.router, dependencies=[Depends(_require_user)])
 
+from backend import wiki_graph_api  # noqa: E402
+app.include_router(wiki_graph_api.router, dependencies=[Depends(_require_user)])
+
 
 # ---------------------------------------------------------------------------
 # Frontend static file serving (production)

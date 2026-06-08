@@ -1,0 +1,69 @@
+<div class="graph-shell">
+
+  <!-- Canvas target — force-graph mounts here -->
+  <div #graphContainer class="graph-canvas"></div>
+
+  <!-- Top overlay bar -->
+  <header class="graph-header">
+    <a routerLink="/ask" class="back-btn">← Ask</a>
+    <span class="graph-title">Wiki Knowledge Graph</span>
+    @if (!loading()) {
+      <span class="graph-stats">{{ nodeCount() }} pages · {{ edgeCount() }} connections</span>
+    }
+  </header>
+
+  <!-- Legend (bottom-left) -->
+  @if (!loading()) {
+    <aside class="graph-legend">
+      @for (item of legendItems; track item.type) {
+        <div class="legend-row">
+          <span class="legend-dot" [style.background]="item.color"></span>
+          <span class="legend-label">{{ item.label }}</span>
+        </div>
+      }
+    </aside>
+  }
+
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="graph-loading">
+      <div class="spinner"></div>
+      <span>Building graph…</span>
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (errorMsg()) {
+    <div class="graph-error">{{ errorMsg() }}</div>
+  }
+
+  <!-- Page content modal -->
+  @if (modalOpen()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+
+        <div class="modal-head">
+          <div class="modal-meta">
+            <h2 class="modal-title">{{ selectedNode()?.label }}</h2>
+            <span class="modal-badge" [style.background]="nodeColor(selectedNode())">
+              {{ selectedNode()?.type }}
+            </span>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeModal()" aria-label="Close">×</button>
+        </div>
+
+        <div class="modal-body">
+          @if (pageLoading()) {
+            <div class="page-spinner"><div class="spinner"></div></div>
+          } @else if (pageError()) {
+            <div class="page-error">{{ pageError() }}</div>
+          } @else {
+            <pre class="page-markdown">{{ pageContent() }}</pre>
+          }
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>
