@@ -99,7 +99,7 @@ const PMS_SERVICES = [
                         </span>
                       }
                       @if (m.intent && m.intent !== 'GENERAL') {
-                      <span class="pill pill-intent" [attr.data-intent]="m.intent?.toLowerCase()">
+                      <span class="pill pill-intent" [attr.data-intent]="m.intent.toLowerCase()">
                         {{ intentEmoji(m.intent) }} {{ formatIntent(m.intent) }}
                       </span>
                     }
