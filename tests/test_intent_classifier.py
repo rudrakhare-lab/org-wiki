@@ -123,6 +123,43 @@ def test_single_word_is_general_query_unchanged():
     assert r.rewritten_query == "help"
 
 
+# ── UPPER_SNAKE_CASE config names ──────────────────────────────────────────────
+
+def test_upper_snake_what_does_is_configuration():
+    # "MEETING_ROOM_ENABLED" is UPPER_SNAKE_CASE — must route to CONFIGURATION not DEFINITION
+    r = classify_intent("What does MEETING_ROOM_ENABLED do?")
+    assert r.intent == QueryIntent.CONFIGURATION
+    assert r.confidence >= 0.85
+
+
+def test_upper_snake_what_is_is_configuration():
+    r = classify_intent("What does MEETING_ROOM_ENABLED do and at what level can it be set?")
+    assert r.intent == QueryIntent.CONFIGURATION
+
+
+def test_upper_snake_alone_is_configuration():
+    r = classify_intent("VISITOR_DIGIPASS")
+    assert r.intent == QueryIntent.CONFIGURATION
+
+
+def test_upper_snake_with_config_noun_is_configuration():
+    r = classify_intent("RELEASE_MEETING_ROOM config meaning")
+    assert r.intent == QueryIntent.CONFIGURATION
+
+
+# ── COMPARISON tie-breaking over DEFINITION ─────────────────────────────────────
+
+def test_what_is_difference_between_is_comparison():
+    # "what is" (DEFINITION=2.0) + "difference between" (COMPARISON=3.0) → COMPARISON wins
+    r = classify_intent("What is the difference between visitor configs on .in vs .com servers?")
+    assert r.intent == QueryIntent.COMPARISON
+
+
+def test_what_is_difference_between_simple_is_comparison():
+    r = classify_intent("what is the difference between .in and .com?")
+    assert r.intent == QueryIntent.COMPARISON
+
+
 # ── BEHAVIORAL / CROSS-CUTTING ─────────────────────────────────────────────────
 
 def test_complex_camelcase_alone_is_high_confidence_configuration():

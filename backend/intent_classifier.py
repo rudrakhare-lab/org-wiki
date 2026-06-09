@@ -38,6 +38,8 @@ _CAMEL_RE = re.compile(
     r"\b[a-z][a-z0-9]*(?:[A-Z][a-z0-9]*)+[a-zA-Z0-9]*\b"
     r"|\b[A-Z]{2,}[a-z][a-zA-Z0-9]*\b"
 )
+# Matches UPPER_SNAKE_CASE PMS config constants: MEETING_ROOM_ENABLED, VISITOR_DIGIPASS, etc.
+_UPPER_SNAKE_RE = re.compile(r"\b[A-Z][A-Z0-9]{1,}(?:_[A-Z0-9]+)+\b")
 _JIRA_KEY_RE = re.compile(r"\b[A-Z]{2,5}-\d{3,6}\b")
 _DEBUG_STRONG   = re.compile(r"\b(broken|bug|error)\b|not\s+work(?:ing)?|doesn'?t\s+work")
 _DEBUG_MODERATE = re.compile(r"\bfailing\b|doesn'?t\s+show|not\s+showing")
@@ -51,24 +53,26 @@ def _count_uppercase(tokens: list[str]) -> int:
 def _score(q: str) -> tuple[QueryIntent, float]:
     ql = q.lower()
     camel_tokens = _CAMEL_RE.findall(q)
-    has_camel = bool(camel_tokens)
-    is_complex_camel = _count_uppercase(camel_tokens) >= 3
+    has_camel       = bool(camel_tokens)
+    has_const_name  = bool(_UPPER_SNAKE_RE.search(q))  # UPPER_SNAKE_CASE config constant
+    has_config_token = has_camel or has_const_name
+    is_complex_token = _count_uppercase(camel_tokens) >= 3 or has_const_name
     has_config_verb  = bool(re.search(r"\b(configure|configured|configuration)\b", ql))
     has_config_noun  = bool(re.search(r"\b(config|property|setting|settings|pms)\b", ql))
     has_what_is      = bool(re.search(r"^what\s+(is|are|does|do)\b", ql))
     scores: dict[QueryIntent, float] = {}
 
     # CONFIGURATION
-    if has_camel and has_what_is:
+    if has_config_token and has_what_is:
         scores[QueryIntent.CONFIGURATION] = 3.0
     elif has_config_verb:
-        scores[QueryIntent.CONFIGURATION] = 3.0 + (1.0 if has_camel else 0.0)
-    elif has_camel and has_config_noun:
+        scores[QueryIntent.CONFIGURATION] = 3.0 + (1.0 if has_config_token else 0.0)
+    elif has_config_token and has_config_noun:
         scores[QueryIntent.CONFIGURATION] = 3.0
     elif has_config_noun:
         scores[QueryIntent.CONFIGURATION] = 2.0
-    elif has_camel:
-        scores[QueryIntent.CONFIGURATION] = 3.0 if is_complex_camel else 1.5
+    elif has_config_token:
+        scores[QueryIntent.CONFIGURATION] = 3.0 if is_complex_token else 1.5
 
     # DEBUGGING
     if _DEBUG_STRONG.search(ql):
@@ -102,11 +106,11 @@ def _score(q: str) -> tuple[QueryIntent, float]:
             and not has_config_verb:
         scores[QueryIntent.HOW_TO] = scores.get(QueryIntent.HOW_TO, 0) + 1.0
 
-    # COMPARISON
+    # COMPARISON — score 3.0 for explicit comparison phrases so they beat DEFINITION (2.0)
     if re.search(r"\bvs\.?\b|\bversus\b", ql):
-        scores[QueryIntent.COMPARISON] = 2.0
+        scores[QueryIntent.COMPARISON] = 2.5
     if re.search(r"\bdifference\s+between\b", ql):
-        scores[QueryIntent.COMPARISON] = max(scores.get(QueryIntent.COMPARISON, 0), 2.0)
+        scores[QueryIntent.COMPARISON] = max(scores.get(QueryIntent.COMPARISON, 0), 3.0)
     if re.search(r"\bcompare\b.+\b(to|with|and)\b", ql):
         scores[QueryIntent.COMPARISON] = max(scores.get(QueryIntent.COMPARISON, 0), 1.5)
     if re.search(r"\b(better|worse|same\s+as)\b", ql):
