@@ -653,6 +653,21 @@ matches. Do not stop after one failed query.
 
 **"Not documented" is NEVER a final answer** until both wiki AND Jira return nothing.
 
+### Step 2b — Config lookup (for config property questions)
+
+When the question names or describes a specific PMS config property, call
+`config_lookup` BEFORE calling `pms_runtime_values` or `pms_diagnose_property`.
+`config_lookup` returns the full static context for that property: description,
+which hierarchy levels it supports (`criteria_priority_list`), related Jira tickets,
+dependent configs, and which module pages document it.
+
+Use `criteria_priority_list` from `config_lookup` to decide which levels to
+diagnose: if the list includes `"OFFICEID"`, pass `officeid` to `pms_diagnose_property`.
+If it includes `"ROOMID"`, use `criteria='ROOM_ID'` in `pms_list_criteria` first.
+
+`config_lookup` queries a SQLite knowledge base covering all ~1800 PMS configs across
+`.in` and `.com` servers. When SQLite has no result, it falls back to wiki TF-IDF.
+
 ### Step 3 — Detect conflict and evolution
 
 After bucketing, explicitly ask:
