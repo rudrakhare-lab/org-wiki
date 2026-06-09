@@ -84,6 +84,7 @@ const PMS_SERVICES = [
               } @else if (m.role === 'assistant') {
                 <article class="message message-assistant">
                   <div class="message-meta">
+                    <img src="logo.png" alt="" class="conwo-avatar" />
                     Conwo
                     @if (m.mode) { <span class="meta-sub">· {{ modeLabel(m.mode) }}</span> }
                   </div>
@@ -227,7 +228,7 @@ const PMS_SERVICES = [
 
             @if (loading()) {
               <article class="message message-assistant">
-                <div class="message-meta">Conwo</div>
+                <div class="message-meta"><img src="logo.png" alt="" class="conwo-avatar" />Conwo</div>
                 <div class="message-body">
                   <div class="thinking">
                     <span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -239,7 +240,7 @@ const PMS_SERVICES = [
 
             @if (agentActive()) {
               <article class="message message-assistant">
-                <div class="message-meta">Conwo <span class="meta-sub">· Claude Code</span></div>
+                <div class="message-meta"><img src="logo.png" alt="" class="conwo-avatar" />Conwo <span class="meta-sub">· Claude Code</span></div>
                 <div class="message-body">
                   <app-agent-transcript
                     [request]="agentRequest()"

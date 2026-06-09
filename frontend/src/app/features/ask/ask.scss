@@ -90,7 +90,19 @@
   gap: 8px;
 }
 
+.conwo-avatar {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 5px;
+  flex-shrink: 0;
+}
+
 .message-meta {
+  display: flex;
+  align-items: center;
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.06em;
