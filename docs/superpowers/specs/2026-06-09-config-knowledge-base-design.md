@@ -2,15 +2,19 @@
 
 **Date:** 2026-06-09
 **Status:** Approved
-**Feature:** Enriched PMS config knowledge base backed by SQLite for accurate, low-latency config lookup
+**Feature:** Enriched PMS config knowledge base — dual output: SQLite (precision) + regenerated wiki pages (browsability + TF-IDF fallback)
 
 ---
 
 ## Goal
 
-Replace the current TF-IDF-based config lookup (11 large wiki pages, 800-char excerpt truncation) with a dedicated SQLite config knowledge base covering all ~1800 PMS configs across `.in` and `.com` servers. Each config entry is enriched with Jira ticket cross-references, wiki module page links, hierarchy metadata (`criteriaPriorityList`), and LLM-inferred dependency relationships between configs.
+Build a dual-layer config knowledge base covering all ~1800 PMS configs across `.in` and `.com` servers:
 
-The chatbot gains complete, untruncated context for any config property in a single tool call — accurate answers, ~1ms lookup latency, no TF-IDF scaling penalty.
+1. **SQLite** (`raw/configs/configs.sqlite`) — precision lookup layer. Each config enriched with Jira cross-references, wiki module links, `criteriaPriorityList` hierarchy metadata, and LLM-inferred dependencies. The `config_lookup` tool queries this first — ~1ms, full context, no truncation.
+
+2. **Regenerated wiki pages** (`wiki/configs/*.md`) — 11 service pages rebuilt from scratch with all ~1800 configs (filling the current ~600 gap) and richer columns (description, data type, default value, hierarchy levels, server presence). Serves human browsability in Obsidian, "what configs exist for X service" queries via TF-IDF, and fallback when SQLite lookup misses.
+
+Both outputs are generated from the same source (Excel + CSV raw files) by one script. Single source of truth, two representations.
 
 ---
 
@@ -20,22 +24,36 @@ The chatbot gains complete, untruncated context for any config property in a sin
 - `pms_diagnose_property` — full hierarchy walk for one property at one BUID
 - `pms_list_offices`, `pms_list_criteria`, `pms_verify_buid` — BUID/office discovery
 - `pms_default_properties` — all default property metadata from live PMS API
-- The 11 `wiki/configs/*.md` pages — kept as browsable service overviews
 - Intent classifier → CONFIGURATION intent already boosts config pages in preflight
+
+The 11 `wiki/configs/*.md` pages are **regenerated** (not kept as-is) — they are rebuilt with all ~1800 configs and richer columns.
 
 ---
 
 ## Architecture
 
 ```
-raw/configs/configs.sqlite          ← new config knowledge base (single source of truth)
-scripts/build_config_db.py          ← Phase 1: ingest Excel/CSV → SQLite
-scripts/enrich_config_db.py         ← Phase 2: Jira links + module links + LLM dependencies
-backend/tools/config_tools.py       ← rewrite config_lookup to query SQLite (not wiki TF-IDF)
+scripts/build_config_db.py
+    ├── reads: raw/modules/pms-configs-in/All WIS CONFIGS.xlsx
+    │          raw/modules/pms-configs-in/wis_unique_configs.xlsx
+    │          raw/modules/pms-configs-com/wis_service_configs/*.csv
+    ├── writes: raw/configs/configs.sqlite   ← precision lookup (SQLite)
+    └── writes: wiki/configs/*.md            ← 11 regenerated pages, all 1800 configs
+
+scripts/enrich_config_db.py         ← Phase 2: Jira links + module links + LLM dependencies → SQLite only
+backend/tools/config_tools.py       ← rewrite config_lookup: SQLite first, wiki TF-IDF fallback
 backend/wiki_graph_api.py           ← add configs as toggleable graph layer
 ```
 
 No changes to: `wiki_retriever.py`, TF-IDF index, `pms_tools.py`, `preflight.py`, orchestrator, API, or Angular frontend.
+
+### Two retrieval paths
+
+| Query type | Primary path | What it returns |
+|-----------|-------------|----------------|
+| "what is `kioskRequireOTPBeforeRegister`?" | SQLite exact/FTS match | Full enriched record — description, hierarchy, Jira links, dependencies |
+| "what configs exist for visitor management?" | Wiki TF-IDF → `wiki/configs/visitor-management.md` | Complete 800-char excerpt from the regenerated page listing all visitor configs |
+| Both paths miss | Rare; surface as "not found" | — |
 
 ---
 
@@ -145,9 +163,37 @@ END;
 python scripts/build_config_db.py [--reset]
 ```
 
-- `--reset`: drop and recreate the database (full rebuild)
-- Without `--reset`: upsert only (update existing rows, insert new ones)
-- Prints summary: total inserted, updated, skipped (duplicates), errors
+- `--reset`: drop and recreate the SQLite database (full rebuild) and regenerate all 11 wiki pages
+- Without `--reset`: upsert SQLite rows only; wiki pages always fully regenerated (idempotent)
+- Prints summary: total SQLite rows inserted/updated, wiki pages written, errors
+
+### Wiki page output format (`wiki/configs/<service>.md`)
+
+Each of the 11 pages is fully regenerated. All configs for that service appear as a markdown table with these columns:
+
+| Property | Description | Type | Default | Hierarchy | Server |
+|----------|-------------|------|---------|-----------|--------|
+| `kioskRequireOTPBeforeRegister` | Requires OTP verification before kiosk self-registration | Boolean | false | BUID, OFFICEID | both |
+| `requireOTPForCheckIn` | ... | Boolean | false | BUID | .in |
+
+- **Property**: camelCase name, code-formatted
+- **Description**: from Excel/CSV source (trimmed to 200 chars if long)
+- **Type**: Boolean, Integer, String, etc.
+- **Default**: default value from source
+- **Hierarchy**: which override levels this config supports (from `criteriaPriorityList` if available from live PMS; otherwise left blank)
+- **Server**: `both`, `.in only`, or `.com only`
+
+Pages are sorted alphabetically by property name within each service. Each page has a frontmatter header:
+
+```yaml
+---
+title: "PMS Configs — Visitor Management"
+service: VISITOR
+total_configs: 241
+servers: [com, in]
+generated: 2026-06-09
+---
+```
 
 ---
 
@@ -296,11 +342,12 @@ If it includes "ROOMID", use `criteria='ROOM_ID'` in `pms_list_criteria` first.
 
 | File | Action |
 |------|--------|
-| `raw/configs/configs.sqlite` | CREATE — config knowledge base |
-| `scripts/build_config_db.py` | CREATE — ingestion pipeline |
-| `scripts/enrich_config_db.py` | CREATE — Jira + module + LLM enrichment |
-| `backend/tools/config_tools.py` | MODIFY — rewrite `config_lookup` to query SQLite |
-| `backend/wiki_graph_api.py` | MODIFY — add `include_configs` parameter |
+| `raw/configs/configs.sqlite` | CREATE — SQLite precision lookup knowledge base |
+| `scripts/build_config_db.py` | CREATE — ingestion: Excel/CSV → SQLite + regenerate 11 wiki pages |
+| `scripts/enrich_config_db.py` | CREATE — Jira links + module links + LLM dependency enrichment |
+| `wiki/configs/*.md` (11 files) | REGENERATE — all 1800 configs, richer columns, via build_config_db.py |
+| `backend/tools/config_tools.py` | MODIFY — rewrite `config_lookup`: SQLite first, wiki TF-IDF fallback |
+| `backend/wiki_graph_api.py` | MODIFY — add `include_configs` toggleable layer |
 | `CLAUDE.md` | MODIFY — add Step 2b to Section 5 |
 
 ---
