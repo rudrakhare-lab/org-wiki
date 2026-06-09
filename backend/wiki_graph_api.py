@@ -9,12 +9,14 @@ from __future__ import annotations
 
 import pathlib
 import re
+import sqlite3
 
 from fastapi import APIRouter
 
 router = APIRouter(prefix="/api/wiki")
 
 _WIKI_DIR = pathlib.Path(__file__).resolve().parent.parent / "wiki"
+_CONFIG_DB = pathlib.Path(__file__).resolve().parent.parent / "raw" / "configs" / "configs.sqlite"
 
 _SKIP: set[str] = set()  # show all pages
 
@@ -32,8 +34,73 @@ def _extract_links(text: str) -> list[str]:
     return re.findall(r"\[\[([^\]|#]+?)(?:[|#][^\]]+)?\]\]", text)
 
 
+def _add_config_layer(
+    nodes: dict[str, dict],
+    links: list[dict],
+    seen: set[tuple[str, str]],
+) -> None:
+    """Overlay PMS config nodes and edges onto the wiki graph."""
+    if not _CONFIG_DB.exists():
+        return
+
+    con = sqlite3.connect(f"file:{_CONFIG_DB}?mode=ro", uri=True)
+    try:
+        # Build a jira_link_count lookup keyed by property_name
+        jira_counts: dict[str, int] = {}
+        for row in con.execute(
+            "SELECT property_name, COUNT(*) AS cnt FROM jira_links GROUP BY property_name"
+        ):
+            jira_counts[row[0]] = row[1]
+
+        # Add config nodes for each unique (property_name, service) pair
+        for row in con.execute(
+            "SELECT DISTINCT property_name, service FROM configs"
+        ):
+            property_name, service = row[0], row[1]
+            node_id = f"configs/{property_name}"
+            if node_id not in nodes:
+                nodes[node_id] = {
+                    "id": node_id,
+                    "label": property_name,
+                    "type": "config",
+                    "service": service,
+                    "path": node_id,
+                    "val": max(1, jira_counts.get(property_name, 0)),
+                }
+
+        # Add service_match edges: config node → module node
+        for row in con.execute(
+            "SELECT property_name, module_id FROM module_links WHERE link_type='service_match'"
+        ):
+            property_name, module_id = row[0], row[1]
+            source = f"configs/{property_name}"
+            target = module_id
+            if source not in nodes or target not in nodes:
+                continue
+            key = (min(source, target), max(source, target))
+            if key in seen:
+                continue
+            seen.add(key)
+            links.append({"source": source, "target": target})
+
+        # Add dependency edges
+        for row in con.execute(
+            "SELECT source_id, target_id, dep_type FROM dependencies WHERE confidence >= 0.7"
+        ):
+            source, target, dep_type = row[0], row[1], row[2]
+            if source not in nodes or target not in nodes:
+                continue
+            key = (min(source, target), max(source, target))
+            if key in seen:
+                continue
+            seen.add(key)
+            links.append({"source": source, "target": target, "dep_type": dep_type})
+    finally:
+        con.close()
+
+
 @router.get("/graph")
-async def wiki_graph() -> dict:
+async def wiki_graph(include_configs: bool = False) -> dict:
     nodes: dict[str, dict] = {}
     texts: dict[str, str] = {}
 
@@ -76,5 +143,8 @@ async def wiki_graph() -> dict:
 
     for nid, d in degree.items():
         nodes[nid]["val"] = max(1, d)
+
+    if include_configs:
+        _add_config_layer(nodes, links, seen)
 
     return {"nodes": list(nodes.values()), "links": links}
