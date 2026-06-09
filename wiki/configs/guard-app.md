@@ -1,73 +1,50 @@
 ---
+title: "Guard App — Config Properties"
+service: GUARD-APP
+total_configs: 34
+servers: [in, com]
+generated: 2026-06-09
 type: config
 module: guard-app-kiosks
-servers:
-  - in
-  - com
-last_updated: 2026-05-26
-sources:
-  in: "[[sources/pms-configs-in-all-wis-configs]]"
-  com: "[[sources/pms-configs-com-wis-service-configs]]"
 ---
 
-# Guard App Service — Config Properties
+# Guard App — Config Properties
 
-## Service
-Guard App Service. Linked module: [[modules/guard-app-kiosks]].
+Auto-generated on 2026-06-09. Total configs: **34**.
 
-_Source: [[sources/pms-configs-in-all-wis-configs]] | [[sources/pms-configs-com-wis-service-configs]]_
-
-## Config Comparison
-
-> **Server key:** ✅ = property present in that server's config list | — = absent
-> **Description source:** `.com` description preferred; falls back to `.in`, PMS Description Cleaned, then `wis_unique_configs`.
-> ⚠️ `undocumented` = no description found in any source — contact the owning team.
-
-| Property Name | .in | .com | Data Type | Description |
-|---------------|-----|------|-----------|-------------|
-| `enableParkingCheckOutWithOfficeCheckOut` | ✅ | ✅ | BOOLEAN | Controls whether parking checkout is automatically performed along with office checkout. |
-| `enableQrCodeForSeatManagement` | ✅ | ✅ | BOOLEAN | Enables QR based validation for check in |
-| `enableQrCodeForSeatSanitize` | ✅ | ✅ | BOOLEAN | Enables or disables QR code scanning for seat sanitization. |
-| `entryType` | ✅ | ✅ | STRING | (Inferred) Defines the default physical entry categorization code logged during a guard scan. |
-| `env` | ✅ | ✅ | JSON | Defines the environment to which the site is mapped. |
-| `featureBookingBuids` | ✅ | ✅ | STRING | (Inferred) Defines specific Business Unit IDs (BUIDs) where Guard App feature booking is active. |
-| `featurePhoneEnabled` | ✅ | ✅ | DOUBLE | (Inferred) Controls the enablement of phone/dialer features within the Guard App interface. |
-| `FLOOR_VIEW` | ✅ | ✅ | JSON | Controls the group type configuration for hierarchy setup on the floor plan. |
-| `forecastingColumns` | ✅ | ✅ | JSON | Defines the set of data columns displayed in forecasting reports. |
-| `groupTypes` | ✅ | ✅ | JSON | Defines the group types used for hierarchy setup. |
-| `guardAppCutOffTime` | ✅ | ✅ | STRING | Defines the cutoff time for guard application actions such as entry validation. |
-| `isAutoEntryAllowed` | ✅ | ✅ | BOOLEAN | Automatically switches to the next DigiPass scan mode after the first scan is completed. |
-| `isCoreBuid` | ✅ | ✅ | BOOLEAN | Tells the Guard service which BUID is the primary (default) site for that Guard configuration block. |
-| `isMultipleScan` | ✅ | ✅ | BOOLEAN | Controls whether a QR code can be scanned multiple times for the same context. |
-| `isSendEmailOnHighTemperature` | ✅ | ✅ | BOOLEAN | Sends email notifications to configured stakeholders when an employee's temperature meets or exceeds the maximum threshold during guard app check-in. |
-| `isSummedFloorCapacity` | ✅ | ✅ | BOOLEAN | When enabled, the system calculates total seat capacity by summing floor capacities; when disabled, seat capacity can be manually defined. |
-| `isTemperatureScanEnabled` | ✅ | ✅ | BOOLEAN | Enables the temperature scan feature. |
-| `listOfIpsWithRange` | ✅ | ✅ | LIST | Defines whitelisted IP addresses or IP ranges for office check-in restrictions. |
-| `maxTemperatureAllowed` | ✅ | ✅ | DOUBLE | Defines the maximum temperature threshold allowed for entry validation. |
-| `minTemperatureAllowed` | ✅ | ✅ | DOUBLE | Defines the minimum temperature threshold allowed for entry validation. |
-| `neighbourSeatsRadius` | ✅ | ✅ | INTEGER | Defines the radius within which a seat cannot be booked. |
-| `pmsEnabled` | ✅ | ✅ | BOOLEAN | Controls whether the Property Management System (PMS) integration is enabled. |
-| `qrImageClientLogoUrl` | ✅ | ✅ | STRING | Controls the URL of the client logo displayed on generated QR codes. |
-| `qrImagefooterUrl` | ✅ | ✅ | STRING | Controls the URL of the footer image displayed on generated QR codes. |
-| `receiverEmailId` | ✅ | ✅ | LIST | List of email IDs to which notifications or communication should be sent from the Guard App. |
-| `scanInterval` | ✅ | ✅ | DOUBLE | Defines the minimum time interval required between consecutive scans. |
-| `seatMetricsTimes` | ✅ | ✅ | LIST | Defines configured time intervals used for calculating seat utilization and booking metrics. |
-| `seatSanitizeCuttoffInMinute` | ✅ | ✅ | DOUBLE | Defines the seat sanitization cutoff time in minutes. |
-| `smsTriggerTime` | ✅ | ✅ | STRING | Defines the configured time at which SMS notifications are triggered. |
-| `checkInBookingsType` | — | ✅ | LIST | Controls which booking types are auto-checked-in together when one check-in action happens. |
-| `enableCarbonFootprintTrackingInParking` | — | ✅ | BOOLEAN | Enables carbon footprint tracking for employee commutes and displays emissions metrics. |
-| `enableOfficeCheckInWithParkingCheckIn` | — | ✅ | BOOLEAN | Controls whether office check-in is automatically completed along with parking check-in. |
-| `maintenanceWindow` | — | ✅ | JSON | Controls the maintenance event suggestion window. |
-| `roomMaintenanceNotificationEmails` | — | ✅ | LIST | Controls the email recipient list of room maintenance events. |
-
-## .com-only Configs
-_5 properties present on the `.com` server but absent from the `.in` config list._
-
-- `checkInBookingsType` — Controls which booking types are auto-checked-in together when one check-in action happens.
-- `enableCarbonFootprintTrackingInParking` — Enables carbon footprint tracking for employee commutes and displays emissions metrics.
-- `enableOfficeCheckInWithParkingCheckIn` — Controls whether office check-in is automatically completed along with parking check-in.
-- `maintenanceWindow` — Controls the maintenance event suggestion window.
-- `roomMaintenanceNotificationEmails` — Controls the email recipient list of room maintenance events.
-
-_Last updated: 2026-05-26_
-_Source: [[sources/pms-configs-in-all-wis-configs]] | [[sources/pms-configs-com-wis-service-configs]]_
+| Property | Description | Type | Default | Server |
+|----------|-------------|------|---------|--------|
+| `checkInBookingsType` | Controls which booking types are auto-checked-in together when one check-in action happens. | LIST |  | .com only |
+| `enableCarbonFootprintTrackingInParking` | Enables carbon footprint tracking for employee commutes and displays emissions metrics. | BOOLEAN |  | .com only |
+| `enableOfficeCheckInWithParkingCheckIn` | Controls whether office check-in is automatically completed along with parking check-in. | BOOLEAN |  | .com only |
+| `enableParkingCheckOutWithOfficeCheckOut` | Controls whether parking checkout is automatically performed along with office checkout. | BOOLEAN |  | both |
+| `enableQrCodeForSeatManagement` | Enables QR based validation for check in | BOOLEAN |  | both |
+| `enableQrCodeForSeatSanitize` | Enables or disables QR code scanning for seat sanitization. | BOOLEAN |  | both |
+| `entryType` | - | STRING |  | both |
+| `env` | Defines the environment to which the site is mapped. | JSON |  | both |
+| `featureBookingBuids` | - | STRING |  | both |
+| `featurePhoneEnabled` | - | DOUBLE |  | both |
+| `FLOOR_VIEW` | Controls the group type configuration for hierarchy setup on the floor plan. | JSON |  | both |
+| `forecastingColumns` | Defines the set of data columns displayed in forecasting reports. | JSON |  | both |
+| `groupTypes` | Defines the group types used for hierarchy setup. | JSON |  | both |
+| `guardAppCutOffTime` | Defines the cutoff time for guard application actions such as entry validation. | STRING |  | both |
+| `isAutoEntryAllowed` | Automatically switches to the next DigiPass scan mode after the first scan is completed. | BOOLEAN |  | both |
+| `isCoreBuid` | Tells the Guard service which BUID is the primary (default) site for that Guard configuration block. | BOOLEAN |  | both |
+| `isMultipleScan` | Controls whether a QR code can be scanned multiple times for the same context. | BOOLEAN |  | both |
+| `isSendEmailOnHighTemperature` | Sends email notifications to configured stakeholders when an employee's temperature meets or exceeds the maximum threshold during guard app check-in. | BOOLEAN |  | both |
+| `isSummedFloorCapacity` | When enabled, the system calculates total seat capacity by summing floor capacities; when disabled, seat capacity can be manually defined. | BOOLEAN |  | both |
+| `isTemperatureScanEnabled` | Enables the temperature scan feature. | BOOLEAN |  | both |
+| `listOfIpsWithRange` | Defines whitelisted IP addresses or IP ranges for office check-in restrictions. | LIST |  | both |
+| `maintenanceWindow` | Controls the maintenance event suggestion window. | JSON |  | .com only |
+| `maxTemperatureAllowed` | Defines the maximum temperature threshold allowed for entry validation. | DOUBLE |  | both |
+| `minTemperatureAllowed` | Defines the minimum temperature threshold allowed for entry validation. | DOUBLE |  | both |
+| `neighbourSeatsRadius` | Defines the radius within which a seat cannot be booked. | INTEGER |  | both |
+| `pmsEnabled` | Controls whether the Property Management System (PMS) integration is enabled. | BOOLEAN |  | both |
+| `qrImageClientLogoUrl` | Controls the URL of the client logo displayed on generated QR codes. | STRING |  | both |
+| `qrImagefooterUrl` | Controls the URL of the footer image displayed on generated QR codes. | STRING |  | both |
+| `receiverEmailId` | List of email IDs to which notifications or communication should be sent from the Guard App. | LIST |  | both |
+| `roomMaintenanceNotificationEmails` | Controls the email recipient list of room maintenance events. | LIST |  | .com only |
+| `scanInterval` | Defines the minimum time interval required between consecutive scans. | DOUBLE |  | both |
+| `seatMetricsTimes` | Defines configured time intervals used for calculating seat utilization and booking metrics. | LIST |  | both |
+| `seatSanitizeCuttoffInMinute` | Defines the seat sanitization cutoff time in minutes. | DOUBLE |  | both |
+| `smsTriggerTime` | Defines the configured time at which SMS notifications are triggered. | STRING |  | both |

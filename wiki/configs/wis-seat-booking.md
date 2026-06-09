@@ -1,79 +1,51 @@
 ---
+title: "WIS Seat Booking — Config Properties"
+service: WIS-SEAT-BOOKING
+total_configs: 35
+servers: [in, com]
+generated: 2026-06-09
 type: config
-module: desk-management
-servers:
-  - in
-  - com
-last_updated: 2026-05-26
-sources:
-  in: "[[sources/pms-configs-in-all-wis-configs]]"
-  com: "[[sources/pms-configs-com-wis-service-configs]]"
+module: wis-seat-booking
 ---
 
-# WIS Seat Booking Service — Config Properties
+# WIS Seat Booking — Config Properties
 
-## Service
-WIS Seat Booking Service. Linked module: [[modules/desk-management]].
+Auto-generated on 2026-06-09. Total configs: **35**.
 
-_Source: [[sources/pms-configs-in-all-wis-configs]] | [[sources/pms-configs-com-wis-service-configs]]_
-
-## Config Comparison
-
-> **Server key:** ✅ = property present in that server's config list | — = absent
-> **Description source:** `.com` description preferred; falls back to `.in`, PMS Description Cleaned, then `wis_unique_configs`.
-> ⚠️ `undocumented` = no description found in any source — contact the owning team.
-
-| Property Name | .in | .com | Data Type | Description |
-|---------------|-----|------|-----------|-------------|
-| `amenitiesBulkUpload` | ✅ | ✅ | BOOLEAN | Enables bulk upload flow for amenities |
-| `approvalFlowInInWfhEnabled` | ✅ | ✅ | BOOLEAN | Controls whether the approval workflow is enabled for Work From Home bookings. |
-| `approvalFlowInWfoEnabled` | ✅ | ✅ | BOOLEAN | Controls whether the approval workflow is enabled for Work From Office bookings. |
-| `approvedRequestNotificationEnabled` | ✅ | ✅ | BOOLEAN | Controls whether notifications are sent for approved booking approval requests. |
-| `autoExpireHour` | ✅ | ✅ | STRING | Defines at what period hour your booking request expires |
-| `autoRequestApprovalEnabled` | ✅ | ✅ | BOOLEAN | Controls whether booking requests are automatically approved without manual intervention. |
-| `bookingApprovalEmailsEnabled` | ✅ | ✅ | BOOLEAN | Controls whether email notifications are sent for booking approvals. |
-| `bookingRequestApprovalFlowEnabled` | ✅ | ✅ | BOOLEAN | Controls whether the booking request approval workflow is enabled. |
-| `buidsEnabledForSeatBookingPMS` | ✅ | ✅ | LIST | Defines service availaibility on PMS |
-| `cancelSchedulesEnabled` | ✅ | ✅ | BOOLEAN | Defines whether it should allow cancellation of commute service |
-| `deskTagHeaders` | ✅ | ✅ | LIST | Headers for desk tag |
-| `employeeTagHeaders` | ✅ | ✅ | LIST | Headers for employee tag |
-| `expiredRequestNotificationEnabled` | ✅ | ✅ | BOOLEAN | Controls whether notifications are sent when booking approval requests expire. |
-| `expiryCutOffInMinutes` | ✅ | ✅ | STRING | Controls when a pending seat booking request should be treated as expired |
-| `expiryNotificationCutOffInMinutes` | ✅ | ✅ | STRING | Defines how many minutes before a booking approval request expires, used in conjunction with expiryCutOffInMinutes for approval-flow reminders. |
-| `forecastingColumns` | ✅ | ✅ | JSON | Defines the column mapping and labels used in forecasting reports. |
-| `landingPlanHeaders` | ✅ | ✅ | LIST | Headers for landing plan |
-| `parkingTagHeaders` | ✅ | ✅ | LIST | Headers for parking tag |
-| `pendingRequestsNotificationEnabled` | ✅ | ✅ | BOOLEAN | Controls whether notifications are sent for pending booking approval requests. |
-| `rejectedRequestNotificationEnabled` | ✅ | ✅ | BOOLEAN | Controls whether notifications are sent for rejected booking approval requests. |
-| `roomTagHeaders` | ✅ | ✅ | LIST | Headers for room tag |
-| `seatBookingUrl` | ✅ | ✅ | STRING | Defines the Seat Booking service URL. |
-| `seatingPlanHeaders` | ✅ | ✅ | LIST | Headers for seating plan |
-| `tagsEnabled` | ✅ | ✅ | LIST | Defines the list of enabled booking tags (e.g. WFO, WFH). |
-| `TestPropertySeatBooking` | ✅ | ✅ | BOOLEAN | Defines whether the PMS is working on the wisseatbooking service |
-| `wfhMonthlyLimit` | ✅ | ✅ | INTEGER | Defines the maximum number of Work From Home bookings allowed per month. |
-| `wfhWeeklyLimit` | ✅ | ✅ | INTEGER | Defines the maximum number of Work From Home bookings allowed per week. |
-| `wfoMonthlyLimit` | ✅ | ✅ | INTEGER | Defines the maximum number of Work From Office bookings allowed per month. |
-| `wfoWeeklyLimit` | ✅ | ✅ | INTEGER | Defines the maximum number of Work From Office bookings allowed per week. |
-| `dynamicData / DynamicData` | ✅ | — | — | Defines configurable dynamic fields displayed in the booking form (e.g., Waiter needed, Reimbursement, Allergies, Commute method). |
-| `autoExpireBeforeNoOfdays` | — | ✅ | INTEGER | - |
-| `dynamicData` | — | ✅ | LIST | Defines configurable dynamic fields displayed in the booking form. |
-| `DynamicData` | — | ✅ | LIST | Defines dynamic field setup for seat booking |
-| `seatTagHeaders` | — | ✅ | LIST | Headers for seat tag |
-| `TEST` | — | ✅ | BOOLEAN | - |
-
-## .in-only Configs
-_1 properties present on the `.in` server but absent from the `.com` config list._
-
-- `dynamicData / DynamicData` — Defines configurable dynamic fields displayed in the booking form (e.g., Waiter needed, Reimbursement, Allergies, Commute method).
-
-## .com-only Configs
-_5 properties present on the `.com` server but absent from the `.in` config list._
-
-- `autoExpireBeforeNoOfdays` — -
-- `dynamicData` — Defines configurable dynamic fields displayed in the booking form.
-- `DynamicData` — Defines dynamic field setup for seat booking
-- `seatTagHeaders` — Headers for seat tag
-- `TEST` — -
-
-_Last updated: 2026-05-26_
-_Source: [[sources/pms-configs-in-all-wis-configs]] | [[sources/pms-configs-com-wis-service-configs]]_
+| Property | Description | Type | Default | Server |
+|----------|-------------|------|---------|--------|
+| `amenitiesBulkUpload` | Enables bulk upload flow for amenities | BOOLEAN |  | both |
+| `approvalFlowInInWfhEnabled` | Controls whether the approval workflow is enabled for Work From Home bookings. | BOOLEAN |  | both |
+| `approvalFlowInWfoEnabled` | Controls whether the approval workflow is enabled for Work From Office bookings. | BOOLEAN |  | both |
+| `approvedRequestNotificationEnabled` | Controls whether notifications are sent for approved booking approval requests. | BOOLEAN |  | both |
+| `autoExpireBeforeNoOfdays` | - | INTEGER |  | .com only |
+| `autoExpireHour` | Defines at what period hour your booking request expires | STRING |  | both |
+| `autoRequestApprovalEnabled` | Controls whether booking requests are automatically approved without manual intervention. | BOOLEAN |  | both |
+| `bookingApprovalEmailsEnabled` | Controls whether email notifications are sent for booking approvals. | BOOLEAN |  | both |
+| `bookingRequestApprovalFlowEnabled` | Controls whether the booking request approval workflow is enabled. | BOOLEAN |  | both |
+| `buidsEnabledForSeatBookingPMS` | Defines service availaibility on PMS | LIST |  | both |
+| `cancelSchedulesEnabled` | Defines whether it should allow cancellation of commute service | BOOLEAN |  | both |
+| `deskTagHeaders` | Headers for desk tag | LIST |  | both |
+| `DynamicData` | Defines dynamic field setup for seat booking | LIST |  | .com only |
+| `dynamicData` | Defines configurable dynamic fields displayed in the booking form. | LIST |  | .com only |
+| `dynamicData / DynamicData` | Defines configurable dynamic fields displayed in the booking form (e.g., Waiter needed, Reimbursement, Allergies, Commute method). |  |  | .in only |
+| `employeeTagHeaders` | Headers for employee tag | LIST |  | both |
+| `expiredRequestNotificationEnabled` | Controls whether notifications are sent when booking approval requests expire. | BOOLEAN |  | both |
+| `expiryCutOffInMinutes` | Controls when a pending seat booking request should be treated as expired | STRING |  | both |
+| `expiryNotificationCutOffInMinutes` | Defines how many minutes before a booking approval request expires, used in conjunction with expiryCutOffInMinutes for approval-flow reminders. | STRING |  | both |
+| `forecastingColumns` | Defines the column mapping and labels used in forecasting reports. | JSON |  | both |
+| `landingPlanHeaders` | Headers for landing plan | LIST |  | both |
+| `parkingTagHeaders` | Headers for parking tag | LIST |  | both |
+| `pendingRequestsNotificationEnabled` | Controls whether notifications are sent for pending booking approval requests. | BOOLEAN |  | both |
+| `rejectedRequestNotificationEnabled` | Controls whether notifications are sent for rejected booking approval requests. | BOOLEAN |  | both |
+| `roomTagHeaders` | Headers for room tag | LIST |  | both |
+| `seatBookingUrl` | Defines the Seat Booking service URL. | STRING |  | both |
+| `seatingPlanHeaders` | Headers for seating plan | LIST |  | both |
+| `seatTagHeaders` | Headers for seat tag | LIST |  | .com only |
+| `tagsEnabled` | Defines the list of enabled booking tags (e.g. WFO, WFH). | LIST |  | both |
+| `TEST` | - | BOOLEAN |  | .com only |
+| `TestPropertySeatBooking` | Defines whether the PMS is working on the wisseatbooking service | BOOLEAN |  | both |
+| `wfhMonthlyLimit` | Defines the maximum number of Work From Home bookings allowed per month. | INTEGER |  | both |
+| `wfhWeeklyLimit` | Defines the maximum number of Work From Home bookings allowed per week. | INTEGER |  | both |
+| `wfoMonthlyLimit` | Defines the maximum number of Work From Office bookings allowed per month. | INTEGER |  | both |
+| `wfoWeeklyLimit` | Defines the maximum number of Work From Office bookings allowed per week. | INTEGER |  | both |

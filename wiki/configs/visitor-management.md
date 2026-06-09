@@ -1,281 +1,173 @@
 ---
+title: "Visitor Management Service — Config Properties"
+service: VISITOR
+total_configs: 157
+servers: [in, com]
+generated: 2026-06-09
 type: config
 module: visitor-management
-servers:
-  - in
-  - com
-last_updated: 2026-05-26
-sources:
-  in: "[[sources/pms-configs-in-all-wis-configs]]"
-  com: "[[sources/pms-configs-com-wis-service-configs]]"
 ---
 
-# Visitor Management Service (VMS) — Config Properties
+# Visitor Management Service — Config Properties
 
-## Service
-Visitor Management Service (VMS). Linked module: [[modules/visitor-management]].
+Auto-generated on 2026-06-09. Total configs: **157**.
 
-_Source: [[sources/pms-configs-in-all-wis-configs]] | [[sources/pms-configs-com-wis-service-configs]]_
-
-## Config Comparison
-
-> **Server key:** ✅ = property present in that server's config list | — = absent
-> **Description source:** `.com` description preferred; falls back to `.in`, PMS Description Cleaned, then `wis_unique_configs`.
-> ⚠️ `undocumented` = no description found in any source — contact the owning team.
-
-| Property Name | .in | .com | Data Type | Description |
-|---------------|-----|------|-----------|-------------|
-| `addCustomFieldsWithVisitorBulkUpload` | ✅ | ✅ | BOOLEAN | Adds custom fields to visitor bulk upload headers. |
-| `addRoomWithVisitorBulkUpload` | ✅ | ✅ | BOOLEAN | Adds room details to visitor bulk upload headers. |
-| `approvalFlowEmailExpiryTimeInMinutes` | ✅ | ✅ | INTEGER | Defines approval email expiry time in minutes. |
-| `approveEntryFromFrontdesk` | ✅ | ✅ | BOOLEAN | Allows visitor approval or rejection from Front Desk. |
-| `approveMsTeamsTemplate` | ✅ | ✅ | JSON | Defines MS Teams template for approval notifications. |
-| `checkinBufferFromKiosk` | ✅ | ✅ | INTEGER | Defines buffer time (in minutes) for active booking check-in via kiosk. |
-| `checkoutPageRedirectionTimeout` | ✅ | ✅ | INTEGER | Defines redirection timeout (in minutes) after self check-in completion. |
-| `configureVisitorKiosk` | ✅ | ✅ | BOOLEAN | Controls visibility of Configure Visitor Kiosk button on Front Desk. |
-| `controlSearchSections` | ✅ | ✅ | LIST | Controls visibility of sections in Front Desk search dropdown. |
-| `creatorNotifications` | ✅ | ✅ | JSON | Controls creator notifications (backend property). |
-| `defaultInviteTitle` | ✅ | ✅ | STRING | Defines default title for Invite Form. |
-| `defaultKioskBookingDurationInMinutes` | ✅ | ✅ | INTEGER | Defines fixed visit duration for each visitor check-in. |
-| `defaultVisitTypeSelection` | ✅ | ✅ | BOOLEAN | Controls default selection behavior for Type of Visit field. |
-| `digipass` | ✅ | ✅ | LIST | Controls DigiPass visibility across email and badge channels. |
-| `enableCalendarInvite` | ✅ | ✅ | BOOLEAN | Creates calendar event in host email upon invite creation. |
-| `enabledBuidForVisitorConfigs` | ✅ | ✅ | LIST | Enables visitor notification page. |
-| `enableOTPValidationSelfCheckinList` | ✅ | ✅ | LIST | Enables OTP validation in kiosk self check-in flow. |
-| `enablePrintBadgeForInviteFlow` | ✅ | ✅ | BOOLEAN | Enables badge printing for visitors via Invite flow. |
-| `enableVisitorParking` | ✅ | ✅ | BOOLEAN | Enables parking for visitors (currently not in use). |
-| `entryTimeInLimit` | ✅ | ✅ | INTEGER | Defines buffer time for entry in the 2-step check-in/checkout process. |
-| `externalEmployeeList` | ✅ | ✅ | LIST | Stores external stakeholder email and name details. |
-| `floorKioskConfigs` | ✅ | ✅ | JSON | Defines Floor Kiosk configurations in Settings. |
-| `forms_configurations` | ✅ | ✅ | JSON | Controls belongings configuration for VMS self check-in flow. |
-| `formsMetaDataForHost` | ✅ | ✅ | JSON | Controls host-side custom fields in invited flow. |
-| `formsMetaDataForHostPWC` | ✅ | ✅ | JSON | Handles host-side custom fields and belongings in invited flow (PWC). |
-| `formsMetaDataForVisitor` | ✅ | ✅ | JSON | Controls visitor-side custom fields in invited flow. |
-| `formsMetaDataForVisitorPWC` | ✅ | ✅ | JSON | Handles visitor-side custom fields and belongings in invited flow (PWC). |
-| `formsMetaDataForWalkIn` | ✅ | ✅ | JSON | Handles custom fields and belongings for Walk-in flow. |
-| `front_desk_configurations` | ✅ | ✅ | JSON | Defines core functionalities visible on Front Desk. |
-| `GUEST_BULK_UPLOAD` | ✅ | ✅ | BOOLEAN | Enables bulk upload option for visitors. |
-| `hostNotifications` | ✅ | ✅ | JSON | Controls host notifications (backend property). |
-| `identification` | ✅ | ✅ | BOOLEAN | Allows enablement of identification on front desk |
-| `inviteFormDefaultOfficeSelection` | ✅ | ✅ | BOOLEAN | Defines default office selection in Invite Visitor form. |
-| `is2StepCheckInEnabled` | ✅ | ✅ | BOOLEAN | Enables 2-step check-in and check-out process. |
-| `isEditEndTimeOnFrontDeskEnabled` | ✅ | ✅ | BOOLEAN | Enables editing of invite end time on Front Desk. |
-| `isEmployeeFlowEnabled` | ✅ | ✅ | BOOLEAN | Enables employee check-in flow on kiosk. |
-| `IsGuestWifiEnabled` | ✅ | ✅ | BOOLEAN | Enables or disables Guest Wi-Fi. |
-| `isTemporaryCheckoutEnabled` | ✅ | ✅ | BOOLEAN | Enables temporary checkout option on Front Desk. |
-| `isVisitorCheckinMsTeamsNotificationEnabled` | ✅ | ✅ | BOOLEAN | Enables visitor check-in notifications via email and MS Teams. |
-| `isVisitorCheckoutMsTeamsNotificationEnabled` | ✅ | ✅ | BOOLEAN | Controls visitor check-out notifications on MS Teams. |
-| `kioskInviteOptions` | ✅ | ✅ | LIST | Controls QR-based check-in and check-out options on kiosk. |
-| `ndaCheckbox` | ✅ | ✅ | BOOLEAN | Controls NDA checkbox visibility. |
-| `ndaCheckboxContent` | ✅ | ✅ | STRING | Defines content displayed below NDA checkbox. |
-| `notesToAdmins` | ✅ | ✅ | BOOLEAN | Enables optional notes to admins via email. |
-| `noteToFrontDesk` | ✅ | ✅ | BOOLEAN | Enables optional notes to receptionist/security via email. |
-| `notificationConfigs` | ✅ | ✅ | JSON | Defines notification page configuration values. |
-| `notificationMetaData` | ✅ | ✅ | JSON | Defines metadata configuration for notification page. |
-| `overStayAlertBuffer` | ✅ | ✅ | INTEGER | Defines buffer time (in minutes) after end time to trigger overstay alerts. |
-| `overStayAlertMsTeamsTemplate` | ✅ | ✅ | JSON | Defines MS Teams template for overstay alerts. |
-| `overStayAlertRecipients` | ✅ | ✅ | LIST | Defines recipient list for overstay alerts. |
-| `overstayTriggerList` | ✅ | ✅ | LIST | Defines channels (MS Teams/Email) for overstay alerts. |
-| `preFillVisitorPhotoForExistingVisitor` | ✅ | ✅ | BOOLEAN | Allows pre-filling of visitor photo for existing visitors. |
-| `Print_Visitor_Badge` | ✅ | ✅ | BOOLEAN | Enables Print Badge button on Front Desk dashboard. |
-| `profileFieldsMetaData` | ✅ | ✅ | LIST | Handles profile fields configuration for invited flow. |
-| `SafeReachInputFields` | ✅ | ✅ | LIST | Defines customizable fields in Safe Reach form. |
-| `SafeReachVmsTimeInMin` | ✅ | ✅ | INTEGER | Defines Safe Reach trigger time in minutes. |
-| `selfCheckinSuccessMessage` | ✅ | ✅ | STRING | Defines success message displayed after visitor self check-in. |
-| `sendHostEmailsToDelegate` | ✅ | ✅ | BOOLEAN | Sends all host-triggered emails to the delegate as well. |
-| `sendHostMsTeamsNotificationToDelegate` | ✅ | ✅ | BOOLEAN | Controls whether MS Teams notifications are sent to delegate. |
-| `sendInviteEmail` | ✅ | ✅ | JSON | Defines default state of visitor, host, and creator email checkboxes. |
-| `showDefaultInviteTitle` | ✅ | ✅ | BOOLEAN | Enables default invite title on Invite Visitor page. |
-| `tempEntryTimeLimit` | ✅ | ✅ | INTEGER | Defines buffer time for entry after temporary checkout in the 2-step check-in/checkout process. |
-| `visitDurationHours` | ✅ | ✅ | INTEGER | Defines dropdown options for visit duration. |
-| `Visitor_Document_Storage` | ✅ | ✅ | BOOLEAN | Enables visitor document storage configuration. |
-| `Visitor_Document_Storage_Document_Type` | ✅ | ✅ | LIST | Defines document types applicable for visitor data storage. |
-| `Visitor_Document_Storage_Duration` | ✅ | ✅ | INTEGER | Defines retention period (in days) for visitor data storage. |
-| `VISITOR_PROFILE_ID` | ✅ | ✅ | BOOLEAN | Controls whether visitor identity proof upload is required. |
-| `Visitor_Profile_ID_Document_Upload_Field_Inputs` | ✅ | ✅ | LIST | Defines allowed document types for visitor upload. |
-| `visitor_wifi_name` | ✅ | ✅ | STRING | Stores client Wi-Fi name. |
-| `visitorApprovalMsTeamsNotification` | ✅ | ✅ | BOOLEAN | Controls visitor approval notification on MS Teams. |
-| `visitorBulkUploadData` | ✅ | ✅ | JSON | Defines headers and data rules for visitor bulk upload; must comply with profileFieldsMetaData. |
-| `visitorBulkUploadFields` | ✅ | ✅ | JSON | Defines headers and default values for visitor bulk upload. |
-| `visitorCheckinMsTeamsTemplate` | ✅ | ✅ | JSON | Defines visitor check-in email template. |
-| `visitorCheckoutMsTeamsTemplate` | ✅ | ✅ | JSON | Defines MS Teams template for visitor check-out notification. |
-| `visitorFormsMetaDataPWC` | ✅ | ✅ | LIST | Handles profile and custom fields in VMS self check-in flow (PWC). |
-| `visitorKioskConfigs` | ✅ | ✅ | JSON | Handles UI formatting for VMS self check-in flow. |
-| `visitorProfileFields` | ✅ | ✅ | JSON | Controls visitor profile fields for Walk-in flow. |
-| `visitorProfilePhotoUpload` | ✅ | ✅ | BOOLEAN | Controls whether profile photo is mandatory in invited flow. |
-| `visitorWidgetEnabled` | ✅ | ✅ | BOOLEAN | Controls visibility of VMS widget on Employee Home. |
-| `vmsInviteTrigger` | ✅ | ✅ | LIST | Triggers visitor invite based on configured list. |
-| `vmsQrCodeTrigger` | ✅ | ✅ | LIST | Controls sending DigiPass and checkout QR via SMS or email. |
-| `mandateAcceptNda` | ✅ | — | — | NDA mandatory? |
-| `ndaPagePosition` | ✅ | — | — | Position of NDA. |
-| `<p>Iagreethatalldetailssharedbymearecorrect</p>` | — | ✅ | STRING | - |
-| `absoluteVisitDurationHours` | — | ✅ | LIST | This is list of option for time duration selection in vms kiosk in min |
-| `addCustomFieldsForBulkUpload` | — | ✅ | BOOLEAN | Determines whether custom fields are included in bulk upload header. |
-| `allowBookingsForOthers` | — | ✅ | BOOLEAN | Allows booking on behalf of others in visitor flow. |
-| `autofillCustomFields` | — | ✅ | BOOLEAN | Auto-populates custom fields for returning visitors. |
-| `blacklistKioskPopup` | — | ✅ | JSON | Defines heading and subheading for blacklist popup on kiosk. |
-| `BULK_OPERATION_VISITOR_BOOKING` | — | ✅ | BOOLEAN | Enables visitor bulk operation. |
-| `cancelInviteMsTeamTemplateForHost` | — | ✅ | JSON | Defines MS Teams template for host when invite is canceled. |
-| `cancelInviteNotifications` | — | ✅ | LIST | Notifies host when invite is canceled from Front Desk. |
-| `canteenKioskConfigs` | — | ✅ | JSON | Contains all the configs related for Canteen Kiosk |
-| `checkoutOnFDEmployee` | — | ✅ | BOOLEAN | Shows checkout CTA for employee flow on Front Desk. |
-| `consentCheckboxContentSafeReach` | — | ✅ | STRING | Defines consent checkbox content for Safe Reach kiosk. |
-| `DefaultEndTimeOfEmployeeBooking` | — | ✅ | INTEGER | Defines default end time for employee booking. |
-| `digipassAutoSend` | — | ✅ | BOOLEAN | Automatically sends DigiPass. |
-| `digipassAutoSendBuffer` | — | ✅ | INTEGER | Defines buffer time for sending DigiPass after booking creation. |
-| `DynamicFields` | — | ✅ | LIST | Not in use. |
-| `emailListToAdmin` | — | ✅ | LIST | Defines email list for admin notes. |
-| `emailListToReceptionist` | — | ✅ | LIST | Defines email list for receptionist/security notes. |
-| `employeeCheckinMsTeamsTemplateAdmin` | — | ✅ | JSON | Defines MS Teams template for admin employee check-in notifications. |
-| `employeeCheckinMsTeamsTemplateCreator` | — | ✅ | JSON | Defines MS Teams template for employee self check-in notifications. |
-| `employeeCheckoutPrompt` | — | ✅ | LIST | Defines confirmation modal checklist for employee checkout. |
-| `employeeFaceOnboardingForRecognition` | — | ✅ | BOOLEAN | Onboards employee photos into face recognition service. |
-| `employeeFlowWithoutVisitor` | — | ✅ | BOOLEAN | enabling employee flow without visitor |
-| `enableBlacklistVisitorProfiles` | — | ✅ | BOOLEAN | Enables visitor blacklist feature. |
-| `enableConsentCheckboxSafeReach` | — | ✅ | BOOLEAN | Enables additional consent checkbox in Safe Reach form. |
-| `enableDynamicFields` | — | ✅ | BOOLEAN | Not in use. |
-| `enableEmployeeEmailNotification` | — | ✅ | BOOLEAN | Enables check-in notifications to employees. |
-| `enableEmployeeMSTeamNotification` | — | ✅ | BOOLEAN | Enables MS Teams notifications for employee check-in flow. |
-| `enableNoninteractiveVisitorInvite` | — | ✅ | BOOLEAN | Enables non-interactive email notifications. |
-| `enableOtpOverride` | — | ✅ | BOOLEAN | Enables OTP override flow on VMS kiosk. |
-| `enableOTPValidationSelfCheckin` | — | ✅ | BOOLEAN | Enables OTP validation on kiosk. |
-| `enableScrollToConsentEnforcement` | — | ✅ | BOOLEAN | This property controlled whether user have to scroll till end to enable the CTA's or not |
-| `enableSelfRegistrationOnKiosk` | — | ✅ | BOOLEAN | Enables employee self-registration on kiosk. |
-| `enableSignatureForConsentSafeReach` | — | ✅ | BOOLEAN | Requires signature-based consent in Safe Reach form. |
-| `enableWalkInEmail` | — | ✅ | BOOLEAN | Not in use. |
-| `entryApprovalFromFrontdesk` | — | ✅ | BOOLEAN | Not in use. |
-| `externalEmailIdsMapToTriggerOnVisitorCheckin` | — | ✅ | JSON | Not in use. |
-| `externalEmailIdsToTriggerOnVisitorCheckin` | — | ✅ | LIST | Not in use. |
-| `externalNotifications` | — | ✅ | JSON | Controls external notifications (backend property). |
-| `FDReportColumnsEmployee` | — | ✅ | JSON | Defines configurable columns for Employee Front Desk report. |
-| `FDReportColumnsVisitor` | — | ✅ | JSON | Defines configurable columns for Visitor Front Desk report. |
-| `finalScreenCTATextSelfCheckInFlow` | — | ✅ | JSON | This property controlled what to show as the end button text in different flows |
-| `floorKioskAllowOfficeCheckin` | — | ✅ | LIST | New property for controlling office check-in via Floor Kiosk. |
-| `frontDeskColumns` | — | ✅ | LIST | Controls column dropdown configuration on Front Desk. |
-| `GUEST_POLICY_HEADER` | — | ✅ | STRING | Adds a customizable guest policy header. |
-| `HOST_POLICY_HEADER` | — | ✅ | STRING | Adds a customizable host policy header. |
-| `isVisitorPhotoCaptureEnabled` | — | ✅ | LIST | Controls whether photo capture is required during self check-in. |
-| `kioskEmployeeRegistrationFields` | — | ✅ | JSON | Controls fields displayed in kiosk employee self-registration form. |
-| `kioskRequireOTPBeforeRegister` | — | ✅ | BOOLEAN | Enables OTP validation before kiosk employee registration. |
-| `KioskSafeReachInterval` | — | ✅ | LIST | Defines Safe Reach interval (in minutes) for VMS kiosk. |
-| `NDA` | — | ✅ | BOOLEAN | Not in use. |
-| `ndaScreenHeader` | — | ✅ | STRING | This property controlled nda screen header text |
-| `otpApprovalFlow` | — | ✅ | BOOLEAN | Not in use. |
-| `printerConnectionModes` | — | ✅ | LIST | Defines available printer connection modes. |
-| `qrCheckInBufferTime` | — | ✅ | INTEGER | Defines buffer time (in minutes) before booking start when QR check-in is allowed. |
-| `safeReachConsentContent` | — | ✅ | STRING | Defines consent statement with checkbox in Safe Reach kiosk form. |
-| `safeReachFailedVerificationTrigger` | — | ✅ | INTEGER | Defines trigger conditions for Safe Reach escalation email. |
-| `safeReachManualVerificationTrigger` | — | ✅ | INTEGER | Defines timeout for Safe Reach Level 2 escalation. |
-| `safeReachSecurityTeamContacts` | — | ✅ | LIST | Defines security contacts for Safe Reach Level 1 escalation. |
-| `sendVisitorInviteEmail` | — | ✅ | BOOLEAN | DTO key for sending visitor invite emails. |
-| `showBelongings` | — | ✅ | BOOLEAN | Not in use. |
-| `showDelegateeBookForSomeoneElse` | — | ✅ | LIST | Displays delegatees in host search for booking on behalf. |
-| `triggerExternalEmails` | — | ✅ | LIST | Triggers emails to designated roles such as Global Admin. |
-| `triggerListForLandlords` | — | ✅ | JSON | Defines external stakeholder email trigger list. |
-| `triggerSafeReachForFemaleOnly` | — | ✅ | BOOLEAN | Triggers Safe Reach for female visitors only. |
-| `triggerVisitorEmailsFromRooms` | — | ✅ | BOOLEAN | Controls visitor email triggers in Meeting Rooms workflow. |
-| `vendorKioskConfigs` | — | ✅ | JSON | Contains all the configs related for Vendor Kiosk |
-| `VISITOR_DIGIPASS` | — | ✅ | BOOLEAN | Not in use. |
-| `visitorCheckinMsTeamsBodyTemplate` | — | ✅ | STRING | Defines body template for MS Teams visitor check-in notification. |
-| `visitorCheckinMsTeamsHeaderTemplate` | — | ✅ | STRING | Defines salutation header for MS Teams visitor check-in notification. |
-| `visitorFormsMetaData` | — | ✅ | LIST | Not in use. |
-| `visitorNotifications` | — | ✅ | JSON | Controls visitor notifications. |
-| `visitorSelfCheckOutDigiPass` | — | ✅ | BOOLEAN | Not in use. |
-| `walkInEnabled` | — | ✅ | BOOLEAN | Not in use. |
-
-## .in-only Configs
-_2 properties present on the `.in` server but absent from the `.com` config list._
-
-- `mandateAcceptNda` — NDA mandatory?
-- `ndaPagePosition` — Position of NDA.
-
-## .com-only Configs
-_74 properties present on the `.com` server but absent from the `.in` config list._
-
-- `<p>Iagreethatalldetailssharedbymearecorrect</p>` — -
-- `absoluteVisitDurationHours` — This is list of option for time duration selection in vms kiosk in min
-- `addCustomFieldsForBulkUpload` — Determines whether custom fields are included in bulk upload header.
-- `allowBookingsForOthers` — Allows booking on behalf of others in visitor flow.
-- `autofillCustomFields` — Auto-populates custom fields for returning visitors.
-- `blacklistKioskPopup` — Defines heading and subheading for blacklist popup on kiosk.
-- `BULK_OPERATION_VISITOR_BOOKING` — Enables visitor bulk operation.
-- `cancelInviteMsTeamTemplateForHost` — Defines MS Teams template for host when invite is canceled.
-- `cancelInviteNotifications` — Notifies host when invite is canceled from Front Desk.
-- `canteenKioskConfigs` — Contains all the configs related for Canteen Kiosk
-- `checkoutOnFDEmployee` — Shows checkout CTA for employee flow on Front Desk.
-- `consentCheckboxContentSafeReach` — Defines consent checkbox content for Safe Reach kiosk.
-- `DefaultEndTimeOfEmployeeBooking` — Defines default end time for employee booking.
-- `digipassAutoSend` — Automatically sends DigiPass.
-- `digipassAutoSendBuffer` — Defines buffer time for sending DigiPass after booking creation.
-- `DynamicFields` — Not in use.
-- `emailListToAdmin` — Defines email list for admin notes.
-- `emailListToReceptionist` — Defines email list for receptionist/security notes.
-- `employeeCheckinMsTeamsTemplateAdmin` — Defines MS Teams template for admin employee check-in notifications.
-- `employeeCheckinMsTeamsTemplateCreator` — Defines MS Teams template for employee self check-in notifications.
-- `employeeCheckoutPrompt` — Defines confirmation modal checklist for employee checkout.
-- `employeeFaceOnboardingForRecognition` — Onboards employee photos into face recognition service.
-- `employeeFlowWithoutVisitor` — enabling employee flow without visitor
-- `enableBlacklistVisitorProfiles` — Enables visitor blacklist feature.
-- `enableConsentCheckboxSafeReach` — Enables additional consent checkbox in Safe Reach form.
-- `enableDynamicFields` — Not in use.
-- `enableEmployeeEmailNotification` — Enables check-in notifications to employees.
-- `enableEmployeeMSTeamNotification` — Enables MS Teams notifications for employee check-in flow.
-- `enableNoninteractiveVisitorInvite` — Enables non-interactive email notifications.
-- `enableOtpOverride` — Enables OTP override flow on VMS kiosk.
-- `enableOTPValidationSelfCheckin` — Enables OTP validation on kiosk.
-- `enableScrollToConsentEnforcement` — This property controlled whether user have to scroll till end to enable the CTA's or not
-- `enableSelfRegistrationOnKiosk` — Enables employee self-registration on kiosk.
-- `enableSignatureForConsentSafeReach` — Requires signature-based consent in Safe Reach form.
-- `enableWalkInEmail` — Not in use.
-- `entryApprovalFromFrontdesk` — Not in use.
-- `externalEmailIdsMapToTriggerOnVisitorCheckin` — Not in use.
-- `externalEmailIdsToTriggerOnVisitorCheckin` — Not in use.
-- `externalNotifications` — Controls external notifications (backend property).
-- `FDReportColumnsEmployee` — Defines configurable columns for Employee Front Desk report.
-- `FDReportColumnsVisitor` — Defines configurable columns for Visitor Front Desk report.
-- `finalScreenCTATextSelfCheckInFlow` — This property controlled what to show as the end button text in different flows
-- `floorKioskAllowOfficeCheckin` — New property for controlling office check-in via Floor Kiosk.
-- `frontDeskColumns` — Controls column dropdown configuration on Front Desk.
-- `GUEST_POLICY_HEADER` — Adds a customizable guest policy header.
-- `HOST_POLICY_HEADER` — Adds a customizable host policy header.
-- `isVisitorPhotoCaptureEnabled` — Controls whether photo capture is required during self check-in.
-- `kioskEmployeeRegistrationFields` — Controls fields displayed in kiosk employee self-registration form.
-- `kioskRequireOTPBeforeRegister` — Enables OTP validation before kiosk employee registration.
-- `KioskSafeReachInterval` — Defines Safe Reach interval (in minutes) for VMS kiosk.
-- `NDA` — Not in use.
-- `ndaScreenHeader` — This property controlled nda screen header text
-- `otpApprovalFlow` — Not in use.
-- `printerConnectionModes` — Defines available printer connection modes.
-- `qrCheckInBufferTime` — Defines buffer time (in minutes) before booking start when QR check-in is allowed.
-- `safeReachConsentContent` — Defines consent statement with checkbox in Safe Reach kiosk form.
-- `safeReachFailedVerificationTrigger` — Defines trigger conditions for Safe Reach escalation email.
-- `safeReachManualVerificationTrigger` — Defines timeout for Safe Reach Level 2 escalation.
-- `safeReachSecurityTeamContacts` — Defines security contacts for Safe Reach Level 1 escalation.
-- `sendVisitorInviteEmail` — DTO key for sending visitor invite emails.
-- `showBelongings` — Not in use.
-- `showDelegateeBookForSomeoneElse` — Displays delegatees in host search for booking on behalf.
-- `triggerExternalEmails` — Triggers emails to designated roles such as Global Admin.
-- `triggerListForLandlords` — Defines external stakeholder email trigger list.
-- `triggerSafeReachForFemaleOnly` — Triggers Safe Reach for female visitors only.
-- `triggerVisitorEmailsFromRooms` — Controls visitor email triggers in Meeting Rooms workflow.
-- `vendorKioskConfigs` — Contains all the configs related for Vendor Kiosk
-- `VISITOR_DIGIPASS` — Not in use.
-- `visitorCheckinMsTeamsBodyTemplate` — Defines body template for MS Teams visitor check-in notification.
-- `visitorCheckinMsTeamsHeaderTemplate` — Defines salutation header for MS Teams visitor check-in notification.
-- `visitorFormsMetaData` — Not in use.
-- `visitorNotifications` — Controls visitor notifications.
-- `visitorSelfCheckOutDigiPass` — Not in use.
-- `walkInEnabled` — Not in use.
-
-_Last updated: 2026-05-26_
-_Source: [[sources/pms-configs-in-all-wis-configs]] | [[sources/pms-configs-com-wis-service-configs]]_
-
----
-
-## Feedback Notes
-
-<!-- feedback:b59a3148952d -->
-- **2026-06-04** — score `2` · label `wrong_config` · answer `dce3843acf6b` · feedback `b59a3148952d`
-    - Correction: The actual default is 30 minutes, not 60.
-    - Sources cited: wiki/configs/visitor-management.md
-    - Affected: VISITOR:kioskRequireOTPBeforeRegister
+| Property | Description | Type | Default | Server |
+|----------|-------------|------|---------|--------|
+| `<p>Iagreethatalldetailssharedbymearecorrect</p>` | - | STRING |  | .com only |
+| `absoluteVisitDurationHours` | This is list of option for time duration selection in vms kiosk in min | LIST |  | .com only |
+| `addCustomFieldsForBulkUpload` | Determines whether custom fields are included in bulk upload header. | BOOLEAN |  | .com only |
+| `addCustomFieldsWithVisitorBulkUpload` | Adds custom fields to visitor bulk upload headers. | BOOLEAN |  | both |
+| `addRoomWithVisitorBulkUpload` | Adds room details to visitor bulk upload headers. | BOOLEAN |  | both |
+| `allowBookingsForOthers` | Allows booking on behalf of others in visitor flow. | BOOLEAN |  | .com only |
+| `approvalFlowEmailExpiryTimeInMinutes` | Defines approval email expiry time in minutes. | INTEGER |  | both |
+| `approveEntryFromFrontdesk` | Allows visitor approval or rejection from Front Desk. | BOOLEAN |  | both |
+| `approveMsTeamsTemplate` | Defines MS Teams template for approval notifications. | JSON |  | both |
+| `autofillCustomFields` | Auto-populates custom fields for returning visitors. | BOOLEAN |  | .com only |
+| `blacklistKioskPopup` | Defines heading and subheading for blacklist popup on kiosk. | JSON |  | .com only |
+| `BULK_OPERATION_VISITOR_BOOKING` | Enables visitor bulk operation. | BOOLEAN |  | .com only |
+| `cancelInviteMsTeamTemplateForHost` | Defines MS Teams template for host when invite is canceled. | JSON |  | .com only |
+| `cancelInviteNotifications` | Notifies host when invite is canceled from Front Desk. | LIST |  | .com only |
+| `canteenKioskConfigs` | Contains all the configs related for Canteen Kiosk | JSON |  | .com only |
+| `checkinBufferFromKiosk` | Defines buffer time (in minutes) for active booking check-in via kiosk. | INTEGER |  | both |
+| `checkoutOnFDEmployee` | Shows checkout CTA for employee flow on Front Desk. | BOOLEAN |  | .com only |
+| `checkoutPageRedirectionTimeout` | Defines redirection timeout (in minutes) after self check-in completion. | INTEGER |  | both |
+| `configureVisitorKiosk` | Controls visibility of Configure Visitor Kiosk button on Front Desk. | BOOLEAN |  | both |
+| `consentCheckboxContentSafeReach` | Defines consent checkbox content for Safe Reach kiosk. | STRING |  | .com only |
+| `controlSearchSections` | Controls visibility of sections in Front Desk search dropdown. | LIST |  | both |
+| `creatorNotifications` | Controls creator notifications (backend property). | JSON |  | both |
+| `DefaultEndTimeOfEmployeeBooking` | Defines default end time for employee booking. | INTEGER |  | .com only |
+| `defaultInviteTitle` | Defines default title for Invite Form. | STRING |  | both |
+| `defaultKioskBookingDurationInMinutes` | Defines fixed visit duration for each visitor check-in. | INTEGER |  | both |
+| `defaultVisitTypeSelection` | Controls default selection behavior for Type of Visit field. | BOOLEAN |  | both |
+| `digipass` | Controls DigiPass visibility across email and badge channels. | LIST |  | both |
+| `digipassAutoSend` | Automatically sends DigiPass. | BOOLEAN |  | .com only |
+| `digipassAutoSendBuffer` | Defines buffer time for sending DigiPass after booking creation. | INTEGER |  | .com only |
+| `DynamicFields` | Not in use. | LIST |  | .com only |
+| `emailListToAdmin` | Defines email list for admin notes. | LIST |  | .com only |
+| `emailListToReceptionist` | Defines email list for receptionist/security notes. | LIST |  | .com only |
+| `employeeCheckinMsTeamsTemplateAdmin` | Defines MS Teams template for admin employee check-in notifications. | JSON |  | .com only |
+| `employeeCheckinMsTeamsTemplateCreator` | Defines MS Teams template for employee self check-in notifications. | JSON |  | .com only |
+| `employeeCheckoutPrompt` | Defines confirmation modal checklist for employee checkout. | LIST |  | .com only |
+| `employeeFaceOnboardingForRecognition` | Onboards employee photos into face recognition service. | BOOLEAN |  | .com only |
+| `employeeFlowWithoutVisitor` | enabling employee flow without visitor | BOOLEAN |  | .com only |
+| `enableBlacklistVisitorProfiles` | Enables visitor blacklist feature. | BOOLEAN |  | .com only |
+| `enableCalendarInvite` | Creates calendar event in host email upon invite creation. | BOOLEAN |  | both |
+| `enableConsentCheckboxSafeReach` | Enables additional consent checkbox in Safe Reach form. | BOOLEAN |  | .com only |
+| `enabledBuidForVisitorConfigs` | Enables visitor notification page. | LIST |  | both |
+| `enableDynamicFields` | Not in use. | BOOLEAN |  | .com only |
+| `enableEmployeeEmailNotification` | Enables check-in notifications to employees. | BOOLEAN |  | .com only |
+| `enableEmployeeMSTeamNotification` | Enables MS Teams notifications for employee check-in flow. | BOOLEAN |  | .com only |
+| `enableNoninteractiveVisitorInvite` | Enables non-interactive email notifications. | BOOLEAN |  | .com only |
+| `enableOtpOverride` | Enables OTP override flow on VMS kiosk. | BOOLEAN |  | .com only |
+| `enableOTPValidationSelfCheckin` | Enables OTP validation on kiosk. | BOOLEAN |  | .com only |
+| `enableOTPValidationSelfCheckinList` | Enables OTP validation in kiosk self check-in flow. | LIST |  | both |
+| `enablePrintBadgeForInviteFlow` | Enables badge printing for visitors via Invite flow. | BOOLEAN |  | both |
+| `enableScrollToConsentEnforcement` | This property controlled whether user have to scroll till end to enable the CTA's or not | BOOLEAN |  | .com only |
+| `enableSelfRegistrationOnKiosk` | Enables employee self-registration on kiosk. | BOOLEAN |  | .com only |
+| `enableSignatureForConsentSafeReach` | Requires signature-based consent in Safe Reach form. | BOOLEAN |  | .com only |
+| `enableVisitorParking` | Enables parking for visitors (currently not in use). | BOOLEAN |  | both |
+| `enableWalkInEmail` | Not in use. | BOOLEAN |  | .com only |
+| `entryApprovalFromFrontdesk` | Not in use. | BOOLEAN |  | .com only |
+| `entryTimeInLimit` | Defines buffer time for entry in the 2-step check-in/checkout process. | INTEGER |  | both |
+| `externalEmailIdsMapToTriggerOnVisitorCheckin` | Not in use. | JSON |  | .com only |
+| `externalEmailIdsToTriggerOnVisitorCheckin` | Not in use. | LIST |  | .com only |
+| `externalEmployeeList` | Stores external stakeholder email and name details. | LIST |  | both |
+| `externalNotifications` | Controls external notifications (backend property). | JSON |  | .com only |
+| `FDReportColumnsEmployee` | Defines configurable columns for Employee Front Desk report. | JSON |  | .com only |
+| `FDReportColumnsVisitor` | Defines configurable columns for Visitor Front Desk report. | JSON |  | .com only |
+| `finalScreenCTATextSelfCheckInFlow` | This property controlled what to show as the end button text in different flows | JSON |  | .com only |
+| `floorKioskAllowOfficeCheckin` | New property for controlling office check-in via Floor Kiosk. | LIST |  | .com only |
+| `floorKioskConfigs` | Defines Floor Kiosk configurations in Settings. | JSON |  | both |
+| `forms_configurations` | Controls belongings configuration for VMS self check-in flow. | JSON |  | both |
+| `formsMetaDataForHost` | Controls host-side custom fields in invited flow. | JSON |  | both |
+| `formsMetaDataForHostPWC` | Handles host-side custom fields and belongings in invited flow (PWC). | JSON |  | both |
+| `formsMetaDataForVisitor` | Controls visitor-side custom fields in invited flow. | JSON |  | both |
+| `formsMetaDataForVisitorPWC` | Handles visitor-side custom fields and belongings in invited flow (PWC). | JSON |  | both |
+| `formsMetaDataForWalkIn` | Handles custom fields and belongings for Walk-in flow. | JSON |  | both |
+| `front_desk_configurations` | Defines core functionalities visible on Front Desk. | JSON |  | both |
+| `frontDeskColumns` | Controls column dropdown configuration on Front Desk. | LIST |  | .com only |
+| `GUEST_BULK_UPLOAD` | Enables bulk upload option for visitors. | BOOLEAN |  | both |
+| `GUEST_POLICY_HEADER` | Adds a customizable guest policy header. | STRING |  | .com only |
+| `HOST_POLICY_HEADER` | Adds a customizable host policy header. | STRING |  | .com only |
+| `hostNotifications` | Controls host notifications (backend property). | JSON |  | both |
+| `identification` | Allows enablement of identification on front desk | BOOLEAN |  | both |
+| `inviteFormDefaultOfficeSelection` | Defines default office selection in Invite Visitor form. | BOOLEAN |  | both |
+| `is2StepCheckInEnabled` | Enables 2-step check-in and check-out process. | BOOLEAN |  | both |
+| `isEditEndTimeOnFrontDeskEnabled` | Enables editing of invite end time on Front Desk. | BOOLEAN |  | both |
+| `isEmployeeFlowEnabled` | Enables employee check-in flow on kiosk. | BOOLEAN |  | both |
+| `IsGuestWifiEnabled` | Enables or disables Guest Wi-Fi. | BOOLEAN |  | both |
+| `isTemporaryCheckoutEnabled` | Enables temporary checkout option on Front Desk. | BOOLEAN |  | both |
+| `isVisitorCheckinMsTeamsNotificationEnabled` | Enables visitor check-in notifications via email and MS Teams. | BOOLEAN |  | both |
+| `isVisitorCheckoutMsTeamsNotificationEnabled` | Controls visitor check-out notifications on MS Teams. | BOOLEAN |  | both |
+| `isVisitorPhotoCaptureEnabled` | Controls whether photo capture is required during self check-in. | LIST |  | .com only |
+| `kioskEmployeeRegistrationFields` | Controls fields displayed in kiosk employee self-registration form. | JSON |  | .com only |
+| `kioskInviteOptions` | Controls QR-based check-in and check-out options on kiosk. | LIST |  | both |
+| `kioskRequireOTPBeforeRegister` | Enables OTP validation before kiosk employee registration. | BOOLEAN |  | .com only |
+| `KioskSafeReachInterval` | Defines Safe Reach interval (in minutes) for VMS kiosk. | LIST |  | .com only |
+| `mandateAcceptNda` | NDA mandatory? |  |  | .in only |
+| `NDA` | Not in use. | BOOLEAN |  | .com only |
+| `ndaCheckbox` | Controls NDA checkbox visibility. | BOOLEAN |  | both |
+| `ndaCheckboxContent` | Defines content displayed below NDA checkbox. | STRING |  | both |
+| `ndaPagePosition` | Position of NDA. |  |  | .in only |
+| `ndaScreenHeader` | This property controlled nda screen header text | STRING |  | .com only |
+| `notesToAdmins` | Enables optional notes to admins via email. | BOOLEAN |  | both |
+| `noteToFrontDesk` | Enables optional notes to receptionist/security via email. | BOOLEAN |  | both |
+| `notificationConfigs` | Defines notification page configuration values. | JSON |  | both |
+| `notificationMetaData` | Defines metadata configuration for notification page. | JSON |  | both |
+| `otpApprovalFlow` | Not in use. | BOOLEAN |  | .com only |
+| `overStayAlertBuffer` | Defines buffer time (in minutes) after end time to trigger overstay alerts. | INTEGER |  | both |
+| `overStayAlertMsTeamsTemplate` | Defines MS Teams template for overstay alerts. | JSON |  | both |
+| `overStayAlertRecipients` | Defines recipient list for overstay alerts. | LIST |  | both |
+| `overstayTriggerList` | Defines channels (MS Teams/Email) for overstay alerts. | LIST |  | both |
+| `preFillVisitorPhotoForExistingVisitor` | Allows pre-filling of visitor photo for existing visitors. | BOOLEAN |  | both |
+| `Print_Visitor_Badge` | Enables Print Badge button on Front Desk dashboard. | BOOLEAN |  | both |
+| `printerConnectionModes` | Defines available printer connection modes. | LIST |  | .com only |
+| `profileFieldsMetaData` | Handles profile fields configuration for invited flow. | LIST |  | both |
+| `qrCheckInBufferTime` | Defines buffer time (in minutes) before booking start when QR check-in is allowed. | INTEGER |  | .com only |
+| `safeReachConsentContent` | Defines consent statement with checkbox in Safe Reach kiosk form. | STRING |  | .com only |
+| `safeReachFailedVerificationTrigger` | Defines trigger conditions for Safe Reach escalation email. | INTEGER |  | .com only |
+| `SafeReachInputFields` | Defines customizable fields in Safe Reach form. | LIST |  | both |
+| `safeReachManualVerificationTrigger` | Defines timeout for Safe Reach Level 2 escalation. | INTEGER |  | .com only |
+| `safeReachSecurityTeamContacts` | Defines security contacts for Safe Reach Level 1 escalation. | LIST |  | .com only |
+| `SafeReachVmsTimeInMin` | Defines Safe Reach trigger time in minutes. | INTEGER |  | both |
+| `selfCheckinSuccessMessage` | Defines success message displayed after visitor self check-in. | STRING |  | both |
+| `sendHostEmailsToDelegate` | Sends all host-triggered emails to the delegate as well. | BOOLEAN |  | both |
+| `sendHostMsTeamsNotificationToDelegate` | Controls whether MS Teams notifications are sent to delegate. | BOOLEAN |  | both |
+| `sendInviteEmail` | Defines default state of visitor, host, and creator email checkboxes. | JSON |  | both |
+| `sendVisitorInviteEmail` | DTO key for sending visitor invite emails. | BOOLEAN |  | .com only |
+| `showBelongings` | Not in use. | BOOLEAN |  | .com only |
+| `showDefaultInviteTitle` | Enables default invite title on Invite Visitor page. | BOOLEAN |  | both |
+| `showDelegateeBookForSomeoneElse` | Displays delegatees in host search for booking on behalf. | LIST |  | .com only |
+| `tempEntryTimeLimit` | Defines buffer time for entry after temporary checkout in the 2-step check-in/checkout process. | INTEGER |  | both |
+| `triggerExternalEmails` | Triggers emails to designated roles such as Global Admin. | LIST |  | .com only |
+| `triggerListForLandlords` | Defines external stakeholder email trigger list. | JSON |  | .com only |
+| `triggerSafeReachForFemaleOnly` | Triggers Safe Reach for female visitors only. | BOOLEAN |  | .com only |
+| `triggerVisitorEmailsFromRooms` | Controls visitor email triggers in Meeting Rooms workflow. | BOOLEAN |  | .com only |
+| `vendorKioskConfigs` | Contains all the configs related for Vendor Kiosk | JSON |  | .com only |
+| `visitDurationHours` | Defines dropdown options for visit duration. | INTEGER |  | both |
+| `VISITOR_DIGIPASS` | Not in use. | BOOLEAN |  | .com only |
+| `Visitor_Document_Storage` | Enables visitor document storage configuration. | BOOLEAN |  | both |
+| `Visitor_Document_Storage_Document_Type` | Defines document types applicable for visitor data storage. | LIST |  | both |
+| `Visitor_Document_Storage_Duration` | Defines retention period (in days) for visitor data storage. | INTEGER |  | both |
+| `VISITOR_PROFILE_ID` | Controls whether visitor identity proof upload is required. | BOOLEAN |  | both |
+| `Visitor_Profile_ID_Document_Upload_Field_Inputs` | Defines allowed document types for visitor upload. | LIST |  | both |
+| `visitor_wifi_name` | Stores client Wi-Fi name. | STRING |  | both |
+| `visitorApprovalMsTeamsNotification` | Controls visitor approval notification on MS Teams. | BOOLEAN |  | both |
+| `visitorBulkUploadData` | Defines headers and data rules for visitor bulk upload; must comply with profileFieldsMetaData. | JSON |  | both |
+| `visitorBulkUploadFields` | Defines headers and default values for visitor bulk upload. | JSON |  | both |
+| `visitorCheckinMsTeamsBodyTemplate` | Defines body template for MS Teams visitor check-in notification. | STRING |  | .com only |
+| `visitorCheckinMsTeamsHeaderTemplate` | Defines salutation header for MS Teams visitor check-in notification. | STRING |  | .com only |
+| `visitorCheckinMsTeamsTemplate` | Defines visitor check-in email template. | JSON |  | both |
+| `visitorCheckoutMsTeamsTemplate` | Defines MS Teams template for visitor check-out notification. | JSON |  | both |
+| `visitorFormsMetaData` | Not in use. | LIST |  | .com only |
+| `visitorFormsMetaDataPWC` | Handles profile and custom fields in VMS self check-in flow (PWC). | LIST |  | both |
+| `visitorKioskConfigs` | Handles UI formatting for VMS self check-in flow. | JSON |  | both |
+| `visitorNotifications` | Controls visitor notifications. | JSON |  | .com only |
+| `visitorProfileFields` | Controls visitor profile fields for Walk-in flow. | JSON |  | both |
+| `visitorProfilePhotoUpload` | Controls whether profile photo is mandatory in invited flow. | BOOLEAN |  | both |
+| `visitorSelfCheckOutDigiPass` | Not in use. | BOOLEAN |  | .com only |
+| `visitorWidgetEnabled` | Controls visibility of VMS widget on Employee Home. | BOOLEAN |  | both |
+| `vmsInviteTrigger` | Triggers visitor invite based on configured list. | LIST |  | both |
+| `vmsQrCodeTrigger` | Controls sending DigiPass and checkout QR via SMS or email. | LIST |  | both |
+| `walkInEnabled` | Not in use. | BOOLEAN |  | .com only |
