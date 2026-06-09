@@ -15,7 +15,6 @@ import { ConfidenceBadge } from '../../shared/confidence-badge/confidence-badge'
 import { SourceDrawer } from '../../shared/source-drawer/source-drawer';
 import { ChatSidebar } from '../../shared/chat-sidebar/chat-sidebar';
 import { FeedbackPanel } from '../ask/feedback-panel';
-import { ModeSelector } from '../../shared/mode-selector/mode-selector';
 import { AgentTranscript, AgentRequest } from './agent-transcript';
 
 const PMS_SERVICES = [
@@ -29,7 +28,7 @@ const PMS_SERVICES = [
   imports: [
     CommonModule, FormsModule, RouterLink,
     ConfidenceBadge, SourceDrawer, FeedbackPanel,
-    ModeSelector, AgentTranscript, ChatSidebar,
+    AgentTranscript, ChatSidebar,
   ],
   template: `
     <div class="ask-shell">
@@ -358,14 +357,6 @@ const PMS_SERVICES = [
               </button>
             </div>
 
-            <div class="composer-bottom">
-              <app-mode-selector
-                [currentMode]="mode()"
-                [claudeCodeAvailable]="claudeCodeAvailable()"
-                [localDev]="claudeCodeLocalDev()"
-                (modeChanged)="onModeChange($event)"
-              />
-            </div>
           </div>
         </footer>
       </div>
