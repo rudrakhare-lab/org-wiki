@@ -88,7 +88,6 @@ export class GraphPage implements AfterViewInit, OnDestroy {
   }
 
   private async initGraph(data: WikiGraphData) {
-    // force-graph exports a callable factory; cast to avoid TS2348
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fg = await import('force-graph') as any;
     const ForceGraph = fg.default ?? fg;
@@ -99,22 +98,58 @@ export class GraphPage implements AfterViewInit, OnDestroy {
       .height(container.clientHeight)
       .backgroundColor('#0d1117')
       .graphData(data)
-      .nodeLabel((node: unknown) => {
-        const n = node as WikiGraphNode;
-        return `${n.label} (${n.type})`;
+      // ── Custom node renderer — circle + always-visible label (Obsidian style) ──
+      .nodeCanvasObject((node: unknown, ctx: CanvasRenderingContext2D, globalScale: number) => {
+        const n = node as WikiGraphNode & { x: number; y: number };
+        const color = TYPE_COLORS[n.type] ?? DEFAULT_COLOR;
+
+        // Node radius — small base, grows slightly with degree
+        const r = 3 + Math.sqrt(n.val) * 0.9;
+
+        // Draw circle
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        // Draw label — always visible, scales with zoom
+        const fontSize = Math.min(Math.max(10 / globalScale, 2), 12);
+        ctx.font = `${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillStyle = 'rgba(220, 230, 240, 0.9)';
+        ctx.fillText(n.label, n.x, n.y + r + 1.5);
       })
-      .nodeColor((node: unknown) => {
-        const n = node as WikiGraphNode;
-        return TYPE_COLORS[n.type] ?? DEFAULT_COLOR;
+      // Hit-test area matches the circle
+      .nodePointerAreaPaint((node: unknown, color: string, ctx: CanvasRenderingContext2D) => {
+        const n = node as WikiGraphNode & { x: number; y: number };
+        const r = 3 + Math.sqrt(n.val) * 0.9;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, r, 0, 2 * Math.PI);
+        ctx.fillStyle = color;
+        ctx.fill();
       })
-      .nodeVal((node: unknown) => (node as WikiGraphNode).val)
-      .nodeRelSize(4)
-      .linkColor(() => 'rgba(100,120,150,0.25)')
-      .linkWidth(1)
+      // ── Links ──────────────────────────────────────────────────────────────
+      .linkColor(() => 'rgba(160, 175, 190, 0.35)')
+      .linkWidth(0.8)
+      // ── Interactions ──────────────────────────────────────────────────────
       .onNodeHover((node: unknown) => {
         container.style.cursor = node ? 'pointer' : 'default';
       })
-      .onNodeClick((node: unknown) => this.openModal(node as WikiGraphNode));
+      .onNodeClick((node: unknown) => this.openModal(node as WikiGraphNode))
+      // ── Simulation tuning — spread nodes out more like Obsidian ──────────
+      .d3AlphaDecay(0.015)
+      .d3VelocityDecay(0.25)
+      ;
+
+    // Strengthen repulsion + link distance using force-graph's bundled d3 forces
+    setTimeout(() => {
+      const charge = this.graphInstance?.d3Force('charge');
+      if (charge) charge.strength(-120);
+      const link = this.graphInstance?.d3Force('link');
+      if (link) link.distance(60).strength(0.5);
+      this.graphInstance?.d3ReheatSimulation();
+    }, 0);
 
     this.resizeObserver = new ResizeObserver(() => {
       if (this.graphInstance) {
