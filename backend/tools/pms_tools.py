@@ -303,6 +303,11 @@ def _credentials_required(server: str) -> dict:
     }
 
 
+def _is_auth_error(exc: Exception) -> bool:
+    """True when the PMS API returned HTTP 401 — credentials needed."""
+    return "401" in str(exc)
+
+
 # ── Handlers ──────────────────────────────────────────────────────────────────
 
 def _pms_default_properties_handler(inp: dict) -> dict:
@@ -310,8 +315,6 @@ def _pms_default_properties_handler(inp: dict) -> dict:
     server = str(inp.get("server", "com")).strip().lower()
 
     token, cookie = _get_tokens(server)
-    if not token:
-        return _credentials_required(server)
 
     try:
         from pms_api_client import request_json, _SERVERS as _API_SERVERS
@@ -330,6 +333,8 @@ def _pms_default_properties_handler(inp: dict) -> dict:
             cms_origin=srv["cms_origin"],
         )
     except Exception as exc:
+        if _is_auth_error(exc):
+            return _credentials_required(server)
         return {"error": str(exc), "code": "api_error"}
 
     props = []
@@ -357,8 +362,6 @@ def _pms_runtime_values_handler(inp: dict) -> dict:
         return {"error": "buid is required", "code": "missing_input"}
 
     token, cookie = _get_tokens(server)
-    if not token:
-        return _credentials_required(server)
 
     try:
         from pms_session import Session
@@ -369,6 +372,8 @@ def _pms_runtime_values_handler(inp: dict) -> dict:
     try:
         raw = session.fetch_level(criteria, value, token, cookie)
     except Exception as exc:
+        if _is_auth_error(exc):
+            return _credentials_required(server)
         return {"error": str(exc), "code": "api_error"}
 
     # Return property data only — never token/cookie values
@@ -398,8 +403,6 @@ def _pms_list_offices_handler(inp: dict) -> dict:
         return {"error": "buid is required", "code": "missing_input"}
 
     token, cookie = _get_tokens(server)
-    if not token:
-        return _credentials_required(server)
 
     try:
         from pms_session import Session
@@ -410,6 +413,8 @@ def _pms_list_offices_handler(inp: dict) -> dict:
     try:
         offices = session.fetch_offices(token, cookie) or {}
     except Exception as exc:
+        if _is_auth_error(exc):
+            return _credentials_required(server)
         return {"error": str(exc), "code": "api_error"}
 
     return {
@@ -431,8 +436,6 @@ def _pms_list_criteria_handler(inp: dict) -> dict:
         return {"error": "buid and criteria are required", "code": "missing_input"}
 
     token, cookie = _get_tokens(server)
-    if not token:
-        return _credentials_required(server)
 
     try:
         from pms_session import Session
@@ -443,6 +446,8 @@ def _pms_list_criteria_handler(inp: dict) -> dict:
     try:
         values = session.fetch_criteria_values(criteria, token, cookie) or []
     except Exception as exc:
+        if _is_auth_error(exc):
+            return _credentials_required(server)
         return {"error": str(exc), "code": "api_error"}
 
     return {
@@ -510,8 +515,6 @@ def _pms_verify_buid_handler(inp: dict) -> dict:
         return {"error": "buid is required", "code": "missing_input"}
 
     token, cookie = _get_tokens(server)
-    if not token:
-        return _credentials_required(server)
 
     try:
         from pms_session import Session
@@ -522,6 +525,8 @@ def _pms_verify_buid_handler(inp: dict) -> dict:
     try:
         roles = session.fetch_roles(token, cookie)
     except Exception as exc:
+        if _is_auth_error(exc):
+            return _credentials_required(server)
         return {"error": str(exc), "code": "api_error"}
 
     accessible = _extract_accessible_buids(roles)
@@ -596,8 +601,6 @@ def _pms_diagnose_property_handler(inp: dict) -> dict:
         return {"error": "buid and property are required", "code": "missing_input"}
 
     token, cookie = _get_tokens(server)
-    if not token:
-        return _credentials_required(server)
 
     try:
         from pms_session import Session
@@ -613,6 +616,8 @@ def _pms_diagnose_property_handler(inp: dict) -> dict:
             session.fetch_level("OFFICEID", str(officeid), token, cookie)
         report_md = session.debug_report(property_name)
     except Exception as exc:
+        if _is_auth_error(exc):
+            return _credentials_required(server)
         return {"error": str(exc), "code": "api_error"}
 
     value_found = property_name in (session._defaults or {})

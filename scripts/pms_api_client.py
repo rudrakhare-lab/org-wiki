@@ -88,14 +88,15 @@ def request_json(
     dry_run: bool = False,
     cms_origin: str = _SERVERS["com"]["cms_origin"],
 ) -> Any:
-    headers = {
+    headers: dict[str, str] = {
         "Accept": "application/json",
-        "Authorization": f"Bearer {token}",
         "Content-Type": "application/json",
         "ServiceId": service,
         "Referer": f"{cms_origin}/property-dashboard/bu-properties",
         "Origin": cms_origin,
     }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
     if cookie:
         headers["Cookie"] = cookie
 
