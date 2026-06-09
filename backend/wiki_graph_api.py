@@ -70,11 +70,11 @@ def _add_config_layer(
 
         # Add service_match edges: config node → module node
         for row in con.execute(
-            "SELECT property_name, module_id FROM module_links WHERE link_type='service_match'"
+            "SELECT property_name, module_slug FROM module_links WHERE link_type='service_match'"
         ):
-            property_name, module_id = row[0], row[1]
+            property_name, module_slug = row[0], row[1]
             source = f"configs/{property_name}"
-            target = module_id
+            target = module_slug
             if source not in nodes or target not in nodes:
                 continue
             key = (min(source, target), max(source, target))
@@ -85,9 +85,9 @@ def _add_config_layer(
 
         # Add dependency edges
         for row in con.execute(
-            "SELECT source_id, target_id, dep_type FROM dependencies WHERE confidence >= 0.7"
+            "SELECT property_a, property_b, dep_type FROM dependencies WHERE confidence >= 0.7"
         ):
-            source, target, dep_type = row[0], row[1], row[2]
+            source, target, dep_type = f"configs/{row[0]}", f"configs/{row[1]}", row[2]
             if source not in nodes or target not in nodes:
                 continue
             key = (min(source, target), max(source, target))
