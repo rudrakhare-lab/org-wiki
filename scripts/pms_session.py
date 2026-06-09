@@ -40,13 +40,13 @@ from urllib import error as urlerror, request as urlrequest
 # default domain differs from what is documented here.
 SERVERS: dict[str, dict[str, str]] = {
     "com": {
-        "base_url": "https://cmsapp.moveinsync.com/propmanagement/api",
-        "cms_origin": "https://cmsapp.moveinsync.com",
+        "base_url": "https://cms.moveinsync.com/propmanagement",
+        "cms_origin": "https://cms.moveinsync.com",
         "mis_security_url": "https://mis-security.moveinsync.com/mis-security-guard",
     },
     "in": {
-        "base_url": "https://cmsapp.moveinsync.in/propmanagement/api",
-        "cms_origin": "https://cmsapp.moveinsync.in",
+        "base_url": "https://cms.moveinsync.in/propmanagement",
+        "cms_origin": "https://cms.moveinsync.in",
         "mis_security_url": "https://mis-security.moveinsync.in/mis-security-guard",
     },
 }

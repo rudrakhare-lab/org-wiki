@@ -33,12 +33,12 @@ from urllib import request as urlrequest
 
 _SERVERS: dict[str, dict[str, str]] = {
     "com": {
-        "base_url": "https://cmsapp.moveinsync.com/propmanagement/api",
-        "cms_origin": "https://cmsapp.moveinsync.com",
+        "base_url": "https://cms.moveinsync.com/propmanagement",
+        "cms_origin": "https://cms.moveinsync.com",
     },
     "in": {
-        "base_url": "https://cmsapp.moveinsync.in/propmanagement/api",
-        "cms_origin": "https://cmsapp.moveinsync.in",
+        "base_url": "https://cms.moveinsync.in/propmanagement",
+        "cms_origin": "https://cms.moveinsync.in",
     },
 }
 DEFAULT_BASE_URL = _SERVERS["com"]["base_url"]
