@@ -47,10 +47,11 @@ def test_script_exists():
 # ---------------------------------------------------------------------------
 
 @pytest.fixture(scope="module")
-def built_db():
-    """Run the script with --reset once and return the DB path."""
+def built_db(tmp_path_factory):
+    """Run the script with --reset into a temp DB path — never touches the real DB."""
+    tmp_db = tmp_path_factory.mktemp("configs") / "configs.sqlite"
     result = subprocess.run(
-        [str(PYTHON), str(SCRIPT), "--reset"],
+        [str(PYTHON), str(SCRIPT), "--reset", "--db-path", str(tmp_db)],
         capture_output=True,
         text=True,
         timeout=120,
@@ -61,7 +62,7 @@ def built_db():
         f"stdout:\n{result.stdout}\n"
         f"stderr:\n{result.stderr}"
     )
-    return DB_PATH
+    return tmp_db
 
 
 def test_build_creates_sqlite(built_db):

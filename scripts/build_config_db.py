@@ -524,10 +524,13 @@ def generate_wiki_page(service_id: str, service_rows: list[ConfigRow]) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build PMS configs SQLite DB and wiki pages")
     parser.add_argument("--reset", action="store_true", help="Drop and recreate all tables")
+    parser.add_argument("--db-path", default=None, help="Override SQLite output path (for testing)")
     args = parser.parse_args()
 
+    db_path = Path(args.db_path) if args.db_path else DB_PATH
+
     # Ensure output directories exist
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    db_path.parent.mkdir(parents=True, exist_ok=True)
     WIKI_CONFIGS.mkdir(parents=True, exist_ok=True)
 
     print("Loading source data...")
@@ -546,8 +549,8 @@ def main() -> None:
     com_only_count = sum(1 for r in rows if r.server == "com")
     print(f"  server='both': {both_count}  server='in': {in_only_count}  server='com': {com_only_count}")
 
-    print(f"Writing SQLite to {DB_PATH} ...")
-    con = sqlite3.connect(DB_PATH)
+    print(f"Writing SQLite to {db_path} ...")
+    con = sqlite3.connect(db_path)
     try:
         if args.reset:
             print("  --reset: dropping existing tables...")
