@@ -20,8 +20,8 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `ADDRESS_CHANGE_RESTRICTED_AREA_VALIDATION` | - | STRING |  | both |
 | `ADDRESS_CHANGE_TRANSPORT_BOUNDARY_VALIDATION` | - | STRING |  | both |
 | `adminAssignmentFloorPlanUrl` | Defines Admin Seat Allocation Floor Plan URL. | STRING |  | both |
-| `adminExpUi` |  |  |  | .in only |
 | `adminexpUI` | Defines Admin Experience UI URL. | STRING |  | both |
+| `adminExpUi` |  |  |  | .in only |
 | `adminexpUi` | Defines alternate Admin UI URL. | STRING |  | both |
 | `adminFloorPlanUrl` | Defines Admin Floor Plan URL. | STRING |  | both |
 | `airtelBuid` | - | STRING |  | both |
@@ -112,8 +112,8 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `editProfileEnabled` | Controls profile editing. | BOOLEAN |  | .com only |
 | `email` | Controls whether the Email field is shown or hidden during employee profile validation. | STRING |  | both |
 | `empExp` | Defines primary Employee Experience URL. | STRING |  | both |
-| `empexpUI` | Defines Employee Experience interface URL. | STRING |  | both |
 | `empExpUi` | Defines Employee Experience UI URL. | STRING |  | both |
+| `empexpUI` | Defines Employee Experience interface URL. | STRING |  | both |
 | `empHomepageTodaysAvailabilityCard` | Displays full availability card on Employee Home based on enabled modules. | BOOLEAN |  | .com only |
 | `empHomeWidgetMeetingRoomCheckInCutOff` | Defines check-in cutoff for meeting room check-in from Employee Home widget. | INTEGER |  | .com only |
 | `empID` | Controls whether the Employee ID field is shown or hidden during employee profile validation. | STRING |  | both |
