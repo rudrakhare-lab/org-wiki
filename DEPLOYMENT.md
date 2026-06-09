@@ -1,173 +1,114 @@
 # Conwo — Production Deployment Runbook
 
-**Stack:** Python 3.11 + FastAPI (uvicorn) · Angular 17 · nginx · systemd  
-**Topology:** Single Linux VM — nginx reverse-proxies both frontend and backend  
-**Production path:** `/opt/conwo/`
+**Stack:** Python 3.11 + FastAPI · Angular 17 · Docker  
+**Deployment method:** Docker Compose (single container, port 8000)
 
 ---
 
-## VM Prerequisites
+## Prerequisites
 
-```bash
-# Python 3.11
-sudo apt-get update
-sudo apt-get install -y python3.11 python3.11-venv python3-pip
-
-# Node.js 18 (only needed once to build the Angular frontend)
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt-get install -y nodejs
-
-# nginx, git, rclone
-sudo apt-get install -y nginx git rclone
-```
+The server must have:
+- Docker + Docker Compose installed
+- Outbound internet access (see Network Requirements at the bottom)
+- A domain/URL assigned to the server
 
 ---
 
-## Step 1 — Create directories and clone the repo
+## Step 1 — Clone the repository
 
 ```bash
-sudo mkdir -p /opt/conwo /var/log/conwo
-sudo chown $USER:$USER /opt/conwo /var/log/conwo
-
-git clone <BITBUCKET_REPO_URL> /opt/conwo
-cd /opt/conwo
+git clone https://bitbucket.org/moveinsync-engineering/convo-chatbot
+cd convo-chatbot
 ```
+
+This gives you: all application code, wiki knowledge base pages, PMS config database, and all scripts. The only thing NOT included is the Jira database (too large for git — handled in Step 3).
 
 ---
 
-## Step 2 — Create and populate `.env`
-
-The `.env` file holds all secrets. It is **never committed to git**.
+## Step 2 — Create the `.env` file
 
 ```bash
-cp /opt/conwo/.env.example /opt/conwo/.env
-chmod 600 /opt/conwo/.env    # only the deploy user can read it
-nano /opt/conwo/.env
+cp .env.example .env
+chmod 600 .env
+nano .env
 ```
 
-Fill in every value. Reference table:
+Fill in all values:
 
-| Variable | Required | Where to get it |
+| Variable | Required | Value |
 |---|---|---|
-| `ANTHROPIC_API_KEY` | Yes | Anthropic console → API keys |
-| `JIRA_API_TOKEN` | Yes (for Jira sync) | Atlassian account → Security → API tokens |
-| `JIRA_EMAIL` | Yes (for Jira sync) | Your Atlassian login email |
+| `ANTHROPIC_API_KEY` | Yes | Anthropic API key |
+| `JIRA_API_TOKEN` | Yes | Atlassian account → Security → API tokens |
+| `JIRA_EMAIL` | Yes | Atlassian login email |
 | `JIRA_BASE_URL` | Yes | `https://moveinsync.atlassian.net` |
-| `PMS_TOKEN_COM` | Yes (for PMS debug) | Bearer token for `.com` server |
-| `PMS_COOKIE_COM` | Yes (for PMS debug) | Cookie string for `.com` server |
-| `PMS_TOKEN_IN` | Yes (for PMS debug) | Bearer token for `.in` server |
-| `PMS_COOKIE_IN` | Yes (for PMS debug) | Cookie string for `.in` server |
+| `PMS_TOKEN_COM` | Yes | Bearer token for `.com` PMS server |
+| `PMS_COOKIE_COM` | Yes | Cookie string for `.com` PMS server |
+| `PMS_TOKEN_IN` | Yes | Bearer token for `.in` PMS server |
+| `PMS_COOKIE_IN` | Yes | Cookie string for `.in` PMS server |
 | `GOOGLE_CLIENT_ID` | Yes | `394997129475-vptjprrehufpvhnlh3tad78uqk69u54h.apps.googleusercontent.com` |
 | `ALLOWED_ORIGINS` | Yes | `https://YOUR_PRODUCTION_DOMAIN` |
-| `TRACE_USER_HASH_SALT` | Recommended | Any random string (e.g. `openssl rand -hex 16`) |
-| `ANTHROPIC_MODEL` | No | Default: `claude-sonnet-4-6` |
-| `ANTHROPIC_COMPACTOR_MODEL` | No | Default: `claude-haiku-4-5` |
-| `MAX_TOOL_ROUNDS` | No | Default: `12` |
+| `TRACE_USER_HASH_SALT` | Recommended | Any random string: `openssl rand -hex 16` |
 
 Verify `.env` is not tracked by git:
 ```bash
 git status .env
-# Expected: nothing (gitignored)
+# Expected: nothing (it is gitignored)
 ```
 
 ---
 
-## Step 3 — Python backend setup
+## Step 3 — Transfer the Jira database (CRITICAL)
 
+The Jira knowledge base (`raw/jira/tickets.sqlite`) is not in the repository — it is 624MB and contains all 37,000+ internal Jira tickets with AI classifications. Without this file the app starts but has no Jira knowledge.
+
+Rudra will share this file. Place it at:
+```
+convo-chatbot/raw/jira/tickets.sqlite
+```
+
+Transfer options:
 ```bash
-cd /opt/conwo
+# Option A — scp from Rudra's machine directly to the server
+scp raw/jira/tickets.sqlite user@SERVER_IP:/path/to/convo-chatbot/raw/jira/
 
-python3.11 -m venv venv
-venv/bin/pip install -r requirements-backend.txt
-venv/bin/pip install -r requirements.txt
+# Option B — download from shared Google Drive link (Rudra will share)
+wget -O raw/jira/tickets.sqlite "GOOGLE_DRIVE_LINK"
+```
 
-# Initialize the traces database (idempotent — safe to re-run)
-venv/bin/python scripts/init_traces_db.py
+Verify the file is in place before continuing:
+```bash
+ls -lh raw/jira/tickets.sqlite
+# Expected: file exists, size ~600MB
 ```
 
 ---
 
-## Step 4 — Build the Angular frontend
-
-Run once after cloning, and again after any frontend code change.
+## Step 4 — Start the application
 
 ```bash
-cd /opt/conwo/frontend
-npm install
-npx ng build --configuration production
+docker compose up -d
 ```
 
-Output lands at `frontend/dist/frontend/browser/`. Confirm:
+This builds the Docker image (Angular frontend + Python backend) and starts the container. First build takes ~5 minutes.
+
+Verify it is running:
 ```bash
-ls /opt/conwo/frontend/dist/frontend/browser/index.html
-# Expected: file exists
-```
+docker compose ps
+# Expected: conwo   running   0.0.0.0:8000->8000/tcp
 
----
-
-## Step 5 — Set up admin user
-
-The `config/allowed_users.toml` file ships with an empty token. Generate and fill in the
-admin token before starting the backend:
-
-```bash
-# Generate admin token (replace email with your actual login email)
-python3.11 -c "import hashlib; print(hashlib.sha256(b'YOUR_EMAIL@moveinsync.com').hexdigest()[:32])"
-
-# Edit the file and paste the generated token
-nano /opt/conwo/config/allowed_users.toml
-# Set: token = "<generated-value>"
-# Set: email = "YOUR_EMAIL@moveinsync.com"
-```
-
----
-
-## Step 6 — systemd service
-
-Create `/etc/systemd/system/conwo.service`:
-
-```ini
-[Unit]
-Description=Conwo FastAPI Backend
-After=network.target
-
-[Service]
-Type=simple
-User=YOUR_DEPLOY_USER
-WorkingDirectory=/opt/conwo
-EnvironmentFile=/opt/conwo/.env
-ExecStart=/opt/conwo/venv/bin/uvicorn backend.api:app --host 127.0.0.1 --port 8000 --workers 1
-Restart=on-failure
-RestartSec=5
-StandardOutput=journal
-StandardError=journal
-
-[Install]
-WantedBy=multi-user.target
-```
-
-> **Important:** `--host 127.0.0.1` binds to localhost only. nginx is the only public entry point.
-> Do **not** use `--reload` in production.
-
-Enable and start:
-
-```bash
-sudo systemctl daemon-reload
-sudo systemctl enable conwo
-sudo systemctl start conwo
-
-# Verify
-sudo systemctl status conwo
-# Expected: Active: active (running)
-
-# Smoke-test the backend (localhost only — port 8000 is not public)
-curl http://127.0.0.1:8000/health
+curl http://localhost:8000/health
 # Expected: {"status":"ok","wiki_pages":<N>,"has_server_key":true}
 ```
 
 ---
 
-## Step 7 — nginx configuration
+## Step 5 — TLS + reverse proxy (nginx)
+
+The container listens on port 8000. Set up nginx as a reverse proxy with TLS:
+
+```bash
+sudo apt-get install -y nginx certbot python3-certbot-nginx
+```
 
 Create `/etc/nginx/sites-available/conwo`:
 
@@ -175,312 +116,144 @@ Create `/etc/nginx/sites-available/conwo`:
 server {
     listen 80;
     server_name YOUR_PRODUCTION_DOMAIN;
+    return 301 https://$host$request_uri;
+}
 
-    # Uncomment after TLS is set up (Step 8):
-    # return 301 https://$host$request_uri;
+server {
+    listen 443 ssl;
+    server_name YOUR_PRODUCTION_DOMAIN;
 
-    root /opt/conwo/frontend/dist/frontend/browser;
-    index index.html;
+    ssl_certificate     /etc/letsencrypt/live/YOUR_PRODUCTION_DOMAIN/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/YOUR_PRODUCTION_DOMAIN/privkey.pem;
 
     client_max_body_size 50M;
 
-    # ── Backend API routes ──────────────────────────────────────────────────
-
-    location /query {
-        proxy_pass http://127.0.0.1:8000;
+    location / {
+        proxy_pass http://localhost:8000;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        # Streaming (SSE) support
         proxy_buffering off;
         proxy_cache off;
-        chunked_transfer_encoding on;
         proxy_read_timeout 300s;
-    }
-
-    location /search {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /wiki/ {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /health {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-    }
-
-    location /trace/health {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-    }
-
-    location /status {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-    }
-
-    location /feedback {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-    }
-
-    location /conversations {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /auth/ {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /admin/ {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /agent/ {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-    }
-
-    location /api/traces/ {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /api/ingest/ {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 300s;
-        client_max_body_size 50M;
-    }
-
-    # ── Angular SPA fallback ────────────────────────────────────────────────
-    # Static assets (JS, CSS, fonts) served directly from disk.
-    # All other paths → index.html so Angular Router handles navigation.
-
-    location / {
-        try_files $uri $uri/ /index.html;
     }
 }
 ```
 
-Enable and test:
+Enable and get TLS certificate:
 ```bash
 sudo ln -s /etc/nginx/sites-available/conwo /etc/nginx/sites-enabled/conwo
-sudo nginx -t
-# Expected: syntax is ok / test is successful
-
-sudo systemctl enable nginx
-sudo systemctl start nginx
-```
-
----
-
-## Step 8 — TLS with Let's Encrypt (do once the domain is live)
-
-```bash
-sudo apt-get install -y certbot python3-certbot-nginx
 sudo certbot --nginx -d YOUR_PRODUCTION_DOMAIN
-# Accept the "redirect HTTP → HTTPS" prompt
 sudo systemctl reload nginx
 ```
 
-After TLS is active, update `.env`:
-```
-ALLOWED_ORIGINS=https://YOUR_PRODUCTION_DOMAIN
-```
-Then restart the backend:
-```bash
-sudo systemctl restart conwo
-```
-
 ---
 
-## Step 9 — Google OAuth (do after TLS is live)
+## Step 6 — Google OAuth configuration
 
 Google OAuth requires HTTPS. Once TLS is active:
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials
-2. Open the Web application credential with Client ID `394997129475-...apps.googleusercontent.com`
-3. **Authorized JavaScript origins** → add `https://YOUR_PRODUCTION_DOMAIN`
-4. **Authorized redirect URIs** → add `https://YOUR_PRODUCTION_DOMAIN`
+2. Open the credential with Client ID `394997129475-...apps.googleusercontent.com`
+3. Add `https://YOUR_PRODUCTION_DOMAIN` to **Authorized JavaScript origins**
+4. Add `https://YOUR_PRODUCTION_DOMAIN` to **Authorized redirect URIs**
 5. Save (changes propagate in ~5 minutes)
+
+Then update `.env`:
+```
+ALLOWED_ORIGINS=https://YOUR_PRODUCTION_DOMAIN
+```
+
+Restart the container to pick up the new value:
+```bash
+docker compose restart
+```
 
 ---
 
-## Step 10 — Install cron jobs
+## Step 7 — Nightly Jira sync cron job (CRITICAL)
+
+This keeps the Jira knowledge base updated automatically every night. Set up once:
 
 ```bash
 crontab -e
-# Paste the contents of deploy/crontab.example
 ```
 
-The Jira cron runs `jira_daily_sync.py` which is the **two-stage orchestrator**:
-- **Stage 1** — `jira_sync.py --incremental`: fetches delta tickets from Jira API into SQLite
-- **Stage 2** — `classify_jira.py --delta 2 --yes`: AI-classifies newly-synced tickets into `functional_area`
-
-Both stages must run together or ranked Jira search returns unclassified results. Never swap this back to `jira_sync.py --incremental` alone.
-
-Verify log directory is writable:
-```bash
-ls /var/log/conwo/
+Add this line:
+```
+0 2 * * * cd /path/to/convo-chatbot && docker compose exec -T conwo python scripts/jira_daily_sync.py >> /var/log/conwo-jira-sync.log 2>&1
 ```
 
-After first cron run, verify both stages completed:
+What this does every night at 2am:
+- **Stage 1** — pulls new/updated Jira tickets from the Jira API into SQLite
+- **Stage 2** — AI-classifies each new ticket into the correct module (visitor, meeting rooms, etc.) using Claude Haiku
+
+Verify after first run:
 ```bash
-grep "DONE\|STAGE_FAIL" /var/log/conwo/jira-sync.log | tail -5
+tail -5 /var/log/conwo-jira-sync.log
 # Expected: [timestamp] DONE total=<N>s cost=$<X> sync_ok=True classify_ok=True
 ```
 
 ---
 
-## Step 11 — First-boot verification checklist
+## Step 8 — Final verification
 
 ```bash
-# 1. Backend health (localhost)
-curl http://127.0.0.1:8000/health
+# Health check
+curl https://YOUR_PRODUCTION_DOMAIN/health
 # Expected: {"status":"ok","wiki_pages":<N>,"has_server_key":true}
 
-# 2. Public health through nginx
-curl http://YOUR_PRODUCTION_DOMAIN/health
-# Expected: same JSON
-
-# 3. Frontend SPA
-curl http://YOUR_PRODUCTION_DOMAIN/
-# Expected: HTML starting with <!DOCTYPE html>
-
-# 4. Backend startup logs (no errors)
-sudo journalctl -u conwo -n 50 --no-pager
-# Expected: uvicorn startup lines, no NameError or import errors
-
-# 5. nginx access log
-sudo tail -f /var/log/nginx/access.log
-# Browse to the app and confirm requests route correctly
+# Container logs (no errors)
+docker compose logs --tail=50
 ```
 
-In a real browser:
-- Navigate to `https://YOUR_PRODUCTION_DOMAIN/login`
-- Click **Sign in with Google** and complete the flow
-- After redirect to `/ask`, submit a test question and confirm a response
+In a browser:
+1. Navigate to `https://YOUR_PRODUCTION_DOMAIN`
+2. Sign in with Google
+3. Ask a test question — confirm a response is returned
 
 ---
 
-## Updating after code changes
+## Updating after code or knowledge base changes
+
+When Rudra pushes updates to Bitbucket:
 
 ```bash
-cd /opt/conwo
-git pull origin main          # or: git pull bitbucket main
-
-# If backend Python files changed:
-sudo systemctl restart conwo
-
-# If frontend files changed:
-cd frontend
-npm install                   # only if package.json changed
-npx ng build --configuration production
-# nginx picks up new static files immediately (no reload needed)
-
-# Verify
-curl http://127.0.0.1:8000/health
+cd /path/to/convo-chatbot
+git pull bitbucket main
+docker compose up -d --build
 ```
+
+The `--build` flag rebuilds the image with the latest code and wiki pages.
 
 ---
 
-## Rollback
-
-```bash
-cd /opt/conwo
-git log --oneline -10          # find the last good commit
-git checkout <commit-hash> -- backend/ frontend/src/
-# Rebuild frontend if frontend files were reverted
-sudo systemctl restart conwo
-```
-
----
-
-## Data backup (run daily via cron)
-
-These files hold live user data — back them up daily:
+## Data backup (recommended daily)
 
 ```bash
 # Add to crontab:
 0 1 * * * tar -czf /var/backups/conwo-$(date +\%Y\%m\%d).tar.gz \
-  /opt/conwo/raw/auth \
-  /opt/conwo/raw/conversations \
-  /opt/conwo/raw/traces \
-  /opt/conwo/wiki \
-  >> /var/log/conwo/backup.log 2>&1
+  /path/to/convo-chatbot/raw/jira \
+  /path/to/conwo-chatbot/raw/auth \
+  /path/to/conwo-chatbot/raw/conversations \
+  /path/to/convo-chatbot/raw/traces \
+  /path/to/convo-chatbot/wiki \
+  >> /var/log/conwo-backup.log 2>&1
 ```
-
-| Directory | Contents |
-|---|---|
-| `raw/auth/` | User sessions and tokens |
-| `raw/conversations/` | Chat history |
-| `raw/traces/` | Observability data |
-| `wiki/` | AI-maintained wiki pages |
-
-> `raw/jira/tickets.sqlite` is regenerable from the Jira API (cron re-syncs it nightly),
-> but backup is cheap and recommended.
-
----
-
-## Full environment variable reference
-
-| Variable | Required | Description |
-|---|---|---|
-| `ANTHROPIC_API_KEY` | Yes | Anthropic API key for AI query mode |
-| `JIRA_API_TOKEN` | Yes | Atlassian API token |
-| `JIRA_EMAIL` | Yes | Your Atlassian login email |
-| `JIRA_BASE_URL` | Yes | `https://moveinsync.atlassian.net` |
-| `PMS_TOKEN_COM` | Yes | Bearer token for `.com` PMS server |
-| `PMS_COOKIE_COM` | Yes | Cookie string for `.com` PMS server |
-| `PMS_TOKEN_IN` | Yes | Bearer token for `.in` PMS server |
-| `PMS_COOKIE_IN` | Yes | Cookie string for `.in` PMS server |
-| `GOOGLE_CLIENT_ID` | Yes | Google OAuth client ID |
-| `ALLOWED_ORIGINS` | Yes | Comma-separated CORS origins, e.g. `https://conwo.moveinsync.com` |
-| `TRACE_USER_HASH_SALT` | Recommended | Random salt for user ID hashing in traces |
-| `ANTHROPIC_MODEL` | No | Default: `claude-sonnet-4-6` |
-| `ANTHROPIC_COMPACTOR_MODEL` | No | Default: `claude-haiku-4-5` |
-| `MAX_TOOL_ROUNDS` | No | Default: `12` |
 
 ---
 
 ## Network access requirements
 
-The production VM must have outbound internet access to:
+The server must have outbound access to:
 
 | Host | Port | Purpose |
 |---|---|---|
 | `api.anthropic.com` | 443 | AI query processing |
-| `moveinsync.atlassian.net` | 443 | Jira API (ticket sync) |
-| `accounts.google.com` | 443 | Google OAuth verification |
+| `moveinsync.atlassian.net` | 443 | Jira API (nightly sync) |
+| `accounts.google.com` | 443 | Google OAuth |
 | `www.googleapis.com` | 443 | Google OAuth token exchange |
-| `cmsapp.moveinsync.com` | 443 | PMS `.com` server (config debug) |
-| `cmsapp.moveinsync.in` | 443 | PMS `.in` server (config debug) |
+| `cms.moveinsync.com` | 443 | PMS `.com` server |
+| `cms.moveinsync.in` | 443 | PMS `.in` server |
