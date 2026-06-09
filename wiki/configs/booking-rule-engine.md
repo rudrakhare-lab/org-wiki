@@ -185,8 +185,8 @@ Auto-generated on 2026-06-09. Total configs: **188**.
 | `waitlistExpiryEnabled` | Expire waitlist bookings once the start time has passed and no confirmed slot has been assigned to the parking booking. | BOOLEAN |  | .com only |
 | `wfhBookingAllowed` | - | BOOLEAN |  | both |
 | `wfhCancelCutOff` | - | INTEGER |  | .com only |
-| `wfhClockinBuffer` | - | DOUBLE |  | .com only |
 | `wfhClockInBuffer` | - | INTEGER |  | .com only |
+| `wfhClockinBuffer` | - | DOUBLE |  | .com only |
 | `wfhDisabled` | - | BOOLEAN |  | .com only |
 | `wfhEditCutOff` | - | INTEGER |  | .com only |
 | `wfhMaxDurationForBooking` | - | DOUBLE |  | .com only |

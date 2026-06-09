@@ -26,8 +26,8 @@ Auto-generated on 2026-06-09. Total configs: **35**.
 | `buidsEnabledForSeatBookingPMS` | Defines service availaibility on PMS | LIST |  | both |
 | `cancelSchedulesEnabled` | Defines whether it should allow cancellation of commute service | BOOLEAN |  | both |
 | `deskTagHeaders` | Headers for desk tag | LIST |  | both |
-| `DynamicData` | Defines dynamic field setup for seat booking | LIST |  | .com only |
 | `dynamicData` | Defines configurable dynamic fields displayed in the booking form. | LIST |  | .com only |
+| `DynamicData` | Defines dynamic field setup for seat booking | LIST |  | .com only |
 | `dynamicData / DynamicData` | Defines configurable dynamic fields displayed in the booking form (e.g., Waiter needed, Reimbursement, Allergies, Commute method). |  |  | .in only |
 | `employeeTagHeaders` | Headers for employee tag | LIST |  | both |
 | `expiredRequestNotificationEnabled` | Controls whether notifications are sent when booking approval requests expire. | BOOLEAN |  | both |

@@ -95,8 +95,8 @@ Auto-generated on 2026-06-09. Total configs: **112**.
 | `recurringBookings` | Enables recurring booking flow for meeting rooms for both integrated and native. | BOOLEAN |  | .com only |
 | `RELEASE_MEETING_ROOM` | Controls the auto-release logic for rooms, based on the other MR configs (especially MEETING_ROOM_RELEASE_IF_NO_CHECKIN). | BOOLEAN |  | both |
 | `RELEASE_ROOM_CANCEL_MEETING` | Controls whether releasing a room also cancels the meeting from users calendars. | BOOLEAN |  | both |
-| `releaseRoom` | Not used | BOOLEAN |  | .com only |
 | `ReleaseRoom` | Controls if release room functionality is enabled | BOOLEAN |  | both |
+| `releaseRoom` | Not used | BOOLEAN |  | .com only |
 | `releaseRoomEmailList` | Additional email recipients for release room notifications, other than organiser of the meeting which was released | LIST |  | both |
 | `rommEnabled` | Controls the enablement of the room for booking | BOOLEAN |  | both |
 | `Room_As_Organizer` | Controls the enablement of the room as organiser workflow for the meeting room kiosk | BOOLEAN |  | both |

@@ -20,9 +20,9 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `ADDRESS_CHANGE_RESTRICTED_AREA_VALIDATION` | - | STRING |  | both |
 | `ADDRESS_CHANGE_TRANSPORT_BOUNDARY_VALIDATION` | - | STRING |  | both |
 | `adminAssignmentFloorPlanUrl` | Defines Admin Seat Allocation Floor Plan URL. | STRING |  | both |
-| `adminexpUI` | Defines Admin Experience UI URL. | STRING |  | both |
-| `adminExpUi` |  |  |  | .in only |
 | `adminexpUi` | Defines alternate Admin UI URL. | STRING |  | both |
+| `adminExpUi` |  |  |  | .in only |
+| `adminexpUI` | Defines Admin Experience UI URL. | STRING |  | both |
 | `adminFloorPlanUrl` | Defines Admin Floor Plan URL. | STRING |  | both |
 | `airtelBuid` | - | STRING |  | both |
 | `allowBookingConversionFromWfhToWfo` | Enables direct WFH to WFO booking conversion. | BOOLEAN |  | both |
