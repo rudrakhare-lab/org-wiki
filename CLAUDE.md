@@ -587,6 +587,21 @@ When the user asks a question about the product, modules, architecture, or any c
 execute **all steps** below in order. Steps 1–4 MUST all run before answering. A complete-looking
 result from any single step does NOT let you skip the rest.
 
+### Knowledge source matrix — consult ALL applicable sources per intent
+
+| Intent | Wiki pages | Config SQLite | Jira search | PMS default | PMS live (BUID) |
+|--------|-----------|---------------|-------------|-------------|-----------------|
+| CONFIGURATION | ✅ config + module page | ✅ **Mandatory** | ✅ **Mandatory** | ✅ if service known | ✅ if BUID given |
+| DEBUGGING | ✅ module page | ✅ if config named | ✅ **Deep (limit 10)** | ⬜ | ✅ if BUID given |
+| HOW_TO | ✅ **Mandatory** | ✅ if config named | ✅ for caveats | ⬜ | ⬜ |
+| DEFINITION | ✅ **Mandatory** | ✅ if config token | ✅ for real-world context | ⬜ | ⬜ |
+| STATUS | ✅ for background | ⬜ | ✅ **Deep (limit 10)** | ⬜ | ⬜ |
+| COMPARISON | ✅ both subjects | ✅ if configs | ✅ both subjects | ⬜ | ⬜ |
+| ARCHITECTURAL | ✅ modules + cross-module | ⬜ | ✅ for design decisions | ⬜ | ⬜ |
+| GENERAL | ✅ | ✅ if config hinted | ✅ | ⬜ | ⬜ |
+
+**Golden rule: never stop after the first good hit.** If wiki gave a clear answer, still run Jira. If SQLite gave a precise definition, still run `jira_search_ranked`. Combining all applicable sources always produces a more accurate answer than any single source alone.
+
 ### Step 1 — Read the wiki
 Read `wiki/index.md` to identify relevant pages. Then read those specific wiki pages
 (NOT raw/ source files — the wiki is the authoritative documented view).
@@ -655,18 +670,31 @@ matches. Do not stop after one failed query.
 
 ### Step 2b — Config lookup (for config property questions)
 
-When the question names or describes a specific PMS config property, call
-`config_lookup` BEFORE calling `pms_runtime_values` or `pms_diagnose_property`.
-`config_lookup` returns the full static context for that property: description,
-which hierarchy levels it supports (`criteria_priority_list`), related Jira tickets,
-dependent configs, and which module pages document it.
+When the question names or describes a specific PMS config property:
 
-Use `criteria_priority_list` from `config_lookup` to decide which levels to
-diagnose: if the list includes `"OFFICEID"`, pass `officeid` to `pms_diagnose_property`.
-If it includes `"ROOMID"`, use `criteria='ROOM_ID'` in `pms_list_criteria` first.
+1. **Call `config_lookup` first** — returns description, `criteria_priority_list`,
+   pre-indexed Jira ticket pointers, dependent configs, and module page links from the
+   SQLite knowledge base (~1,800 configs across `.in` / `.com`). Falls back to wiki
+   TF-IDF when SQLite has no result.
 
-`config_lookup` queries a SQLite knowledge base covering all ~1800 PMS configs across
-`.in` and `.com` servers. When SQLite has no result, it falls back to wiki TF-IDF.
+2. **Then call `jira_search_ranked` independently — MANDATORY, even when `config_lookup`
+   returns a full hit.** The Jira tickets pre-indexed in SQLite are a static snapshot.
+   A live `jira_search_ranked` call catches recent tickets, deployment incidents, and
+   operational context that the snapshot may miss. Do NOT treat the `jira_tickets` list
+   from `config_lookup` as a substitute for a live search.
+
+3. **Read the top 3–5 Jira tickets IN FULL** via `jira_get_ticket`. Skim only if the
+   ticket is clearly unrelated (e.g., a generic deployment runbook with no mention of the
+   property).
+
+4. **Read the relevant `configs/<service>.md` wiki page** via `wiki_read_page` for the
+   full property table and surrounding context.
+
+5. Use `criteria_priority_list` from `config_lookup` to decide which levels to diagnose:
+   if the list includes `"OFFICEID"`, pass `officeid` to `pms_diagnose_property`.
+   If it includes `"ROOMID"`, use `criteria='ROOM_ID'` in `pms_list_criteria` first.
+
+**Never skip the live Jira search because SQLite already returned results.**
 
 ### Step 3 — Detect conflict and evolution
 

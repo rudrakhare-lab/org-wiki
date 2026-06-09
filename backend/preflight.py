@@ -415,6 +415,62 @@ def build_seed_message(
     )
 
 
+_INTENT_TOOL_SEQUENCES: dict[QueryIntent, str] = {
+    QueryIntent.CONFIGURATION: """\
+**REQUIRED TOOL SEQUENCE — CONFIGURATION intent (use ALL steps, do not skip):**
+1. `config_lookup` — precise definition, data_type, criteria_priority_list, pre-indexed Jira pointers
+2. `jira_search_ranked` — **MANDATORY even after config_lookup**; search property name for live operational context (recent bugs, changes, incidents). The `jira_tickets` in config_lookup are pre-indexed and may miss recent activity.
+3. `jira_get_ticket` — read the top 3–5 tickets from the Jira search IN FULL (description + resolution + comments)
+4. `wiki_read_page` on the relevant `configs/<service>.md` page — see all configs in the same service for related-config context
+5. If a BUID is mentioned: `pms_diagnose_property` using `criteria_priority_list` from config_lookup to decide which hierarchy levels to check
+**Never stop after step 1. Jira search is mandatory for every config query.**""",
+
+    QueryIntent.DEBUGGING: """\
+**REQUIRED TOOL SEQUENCE — DEBUGGING intent (use ALL steps, do not skip):**
+1. `jira_search_ranked` — deep search (jira_latest_limit=10); read LATEST bucket first, Historical second
+2. `jira_get_ticket` — read top 4–5 matching tickets IN FULL (especially resolution text)
+3. `config_lookup` — if a config property name is mentioned or implied
+4. `wiki_read_page` on the relevant module page — understand expected behavior to identify the deviation
+5. `pms_diagnose_property` — if a BUID is given; walk the hierarchy to find the culprit config value
+**Read real ticket content before synthesizing. Do not guess the fix from just the summary.**""",
+
+    QueryIntent.HOW_TO: """\
+**REQUIRED TOOL SEQUENCE — HOW_TO intent (use ALL steps):**
+1. `wiki_read_page` — the relevant module page(s) for the step-by-step process
+2. `config_lookup` — if a config property is mentioned or needed for setup/enablement
+3. `jira_search_ranked` — for gotchas, known issues, prerequisites discovered in practice
+**Answer must be step-by-step. Combine wiki process + config requirements + Jira-discovered caveats.**""",
+
+    QueryIntent.DEFINITION: """\
+**REQUIRED TOOL SEQUENCE — DEFINITION intent:**
+1. `wiki_read_page` — the relevant module or concept page for the authoritative definition
+2. `config_lookup` — if the question is about a config property name (camelCase token)
+3. `jira_search_ranked` — for operational context, real-world usage examples, known edge cases
+**Definition = wiki structure + config precision + Jira operational reality. Use all three.**""",
+
+    QueryIntent.STATUS: """\
+**REQUIRED TOOL SEQUENCE — STATUS intent:**
+1. `jira_search_ranked` — deep search (limit=10), focus on LATEST bucket; read ticket bodies in full
+2. `jira_get_ticket` — top 3–5 tickets in the LATEST bucket IN FULL
+3. `wiki_read_page` — for background context on the feature/module to frame the status
+**Recency wins. A ticket from last month outweighs a wiki page from last year.**""",
+
+    QueryIntent.COMPARISON: """\
+**REQUIRED TOOL SEQUENCE — COMPARISON intent:**
+1. `wiki_read_page` — read pages for BOTH subjects being compared
+2. `config_lookup` — for BOTH configs if comparing config properties
+3. `jira_search_ranked` — search BOTH subjects independently for operational differences
+**Both sides must be addressed explicitly. Do not compare from memory — read both sources.**""",
+
+    QueryIntent.ARCHITECTURAL: """\
+**REQUIRED TOOL SEQUENCE — ARCHITECTURAL intent:**
+1. `wiki_read_page` — the relevant module page(s) and any cross-module pages
+2. Follow `[[wikilinks]]` in those pages to related modules and read them too
+3. `jira_search_ranked` — for architectural decisions, known design changes, integration issues
+**Architecture answers must trace actual dependencies in the wiki, not infer them.**""",
+}
+
+
 def build_agent_preamble(bundle: PreflightBundle) -> str:
     """Block prepended to the user's question for Claude Code agent mode."""
     wiki_text = format_wiki_for_seed(bundle.seed_wiki)
@@ -424,21 +480,34 @@ def build_agent_preamble(bundle: PreflightBundle) -> str:
     related_module_text = format_related_module_for_seed(bundle.related_module_jira)
     module_tagged_block  = (module_tagged_text  + "\n") if module_tagged_text  else ""
     related_module_block = (related_module_text + "\n") if related_module_text else ""
+
     _intent_line = ""
+    _tool_sequence = ""
     if bundle.intent_result and bundle.intent_result.intent != QueryIntent.GENERAL:
         ir = bundle.intent_result
         _intent_line = (
             f"**Intent:** {ir.intent.value} (conf: {ir.confidence:.2f})"
             f" | query: \"{ir.rewritten_query}\"\n\n"
         )
+        seq = _INTENT_TOOL_SEQUENCES.get(ir.intent, "")
+        if seq:
+            _tool_sequence = f"{seq}\n\n"
+
     return (
         f"{_intent_line}"
+        f"{_tool_sequence}"
         "## Pre-fetched evidence from Conwo backend\n\n"
         "The Conwo backend has already searched the wiki and Jira mirror and "
         "fetched the most relevant LATEST ticket bodies. Use this as your "
         "starting context, then verify and extend with your own tools "
         "(Read, Grep, Bash on tickets.sqlite, MCP) as needed. Follow the "
         "QUERY workflow in CLAUDE.md Section 5 for the answer structure.\n\n"
+        "**IMPORTANT — Do NOT stop after the first good source.** "
+        "Every answer must draw from ALL applicable knowledge bases: "
+        "wiki pages (structure), config SQLite (precise definitions + hierarchy), "
+        "Jira tickets (operational history + recent changes), "
+        "PMS live (actual runtime values, only if BUID given). "
+        "Combining all sources produces the most accurate answer.\n\n"
         f"### Wiki — top {len(bundle.seed_wiki)} pages (~800-char excerpts)\n\n"
         f"{wiki_text}\n\n"
         f"### Jira — ranked search results (LATEST first)\n\n"
