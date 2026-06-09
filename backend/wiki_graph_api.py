@@ -16,10 +16,7 @@ router = APIRouter(prefix="/api/wiki")
 
 _WIKI_DIR = pathlib.Path(__file__).resolve().parent.parent / "wiki"
 
-_SKIP = {
-    "index.md",   # links to every page → fake mega-hub, distorts the graph
-    "log.md",     # chronological operation log, not a semantic content page
-}
+_SKIP: set[str] = set()  # show all pages
 
 
 def _page_type(text: str) -> str:
