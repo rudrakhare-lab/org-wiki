@@ -32,7 +32,7 @@ from backend.tools.registry import ToolRegistry, ToolTraceEntry
 
 # G24: model id configurable via env so we can swap without redeploy.
 _MODEL = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
-_MAX_TOKENS = 4096
+_MAX_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "8192"))
 # G10: round cap configurable via env so we can tune in production without
 # redeploy. Default 12 (bumped from 8) — complex PMS-debug queries can need
 # DEFAULT + BUID + 3 OFFICEID + wiki_read + jira_search etc. Needs eval
