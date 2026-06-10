@@ -5,12 +5,14 @@ used only for the duration of that single API call.
 """
 from __future__ import annotations
 
+import os
+
 import anthropic
 
 from backend.providers.base import ProviderResult
 
 _MODEL = "claude-sonnet-4-6"
-_MAX_TOKENS = 2048
+_MAX_TOKENS = int(os.getenv("MAX_OUTPUT_TOKENS", "8192"))
 
 
 class AnthropicAPIProvider:

@@ -111,8 +111,13 @@ class DeepQueryProvider:
                     break
 
                 if stop_reason == "max_tokens":
-                    result.error = "Response truncated (max_tokens). Try a more specific question."
-                    result.raw_answer = _extract_text(resp.content)
+                    # Return whatever was generated rather than failing.
+                    # Append a soft warning so the user knows the answer may be incomplete.
+                    result.raw_answer = (
+                        _extract_text(resp.content)
+                        + "\n\n---\n_Note: response reached the maximum output length and may be incomplete. "
+                        "Try asking about a specific section for more detail._"
+                    )
                     break
 
                 if stop_reason == "tool_use":
