@@ -187,6 +187,12 @@ app.add_middleware(
 # FIRST (trace_id minted before CORS processing) and the response LAST.
 app.add_middleware(TraceMiddleware)
 
+# Prometheus metrics: HTTP RED metrics + DB pool gauges, exposed at GET /metrics.
+# Added last → outermost middleware → measures the full request duration + final
+# status. Pure-ASGI, so it does not interfere with SSE streaming (/query/stream).
+from backend.metrics import setup_metrics  # noqa: E402
+setup_metrics(app)
+
 
 # ---------------------------------------------------------------------------
 # Auth helpers

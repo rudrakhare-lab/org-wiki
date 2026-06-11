@@ -12,3 +12,6 @@ pytest>=7.0
 google-auth>=2.29.0
 psycopg[binary]==3.2.3   # PostgreSQL driver (replaces sqlite3)
 psycopg-pool==3.2.4      # connection pool for the single-DB pool in backend/db.py
+prometheus-client==0.25.0  # /metrics endpoint (backend/metrics.py). NOTE: do NOT
+                           # use prometheus-fastapi-instrumentator — its 8.x needs
+                           # starlette>=1.0, which conflicts with FastAPI 0.115.5.
