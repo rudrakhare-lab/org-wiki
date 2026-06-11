@@ -7,27 +7,12 @@ from __future__ import annotations
 
 import importlib
 import json
-from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
-
-@pytest.fixture
-def isolated_store(tmp_path, monkeypatch):
-    """Point conversation_store at a fresh SQLite under tmp_path and reload modules."""
-    fake_root = tmp_path / "raw" / "conversations"
-    fake_root.mkdir(parents=True)
-    db = fake_root / "conversations.sqlite"
-
-    # Patch the constants the store reads at module load time, then reload it
-    from backend import config
-    monkeypatch.setattr(config, "CONVERSATIONS_DIR", fake_root, raising=False)
-    monkeypatch.setattr(config, "CONVERSATIONS_DB", db, raising=False)
-
-    from backend import conversation_store
-    importlib.reload(conversation_store)
-    yield conversation_store
+# `isolated_store` is provided by tests/conftest.py (Postgres test DB, truncated
+# per test). Test bodies are unchanged — they use the store's public API.
 
 
 def test_create_list_get_delete(isolated_store):
@@ -169,18 +154,17 @@ def test_rest_conversation_lifecycle(isolated_store):
 
 
 def test_user_email_column_added_via_migration(isolated_store):
-    """create_conversation with user_email stores the value."""
+    """create_conversation with user_email stores the value (column now part of
+    the Postgres DDL; was a hand-rolled SQLite migration)."""
     cs = isolated_store
     c = cs.create_conversation("Test", user_email="alice@example.com")
     assert c["id"]
-    # Verify the value was stored by checking the raw DB
-    import sqlite3
-    from backend import config
-    conn = sqlite3.connect(str(config.CONVERSATIONS_DB))
-    row = conn.execute(
-        "SELECT user_email FROM conversations WHERE id = ?", (c["id"],)
-    ).fetchone()
-    conn.close()
+    # Verify the value was stored by reading the raw Postgres row.
+    from backend import db
+    with db.connection() as conn:
+        row = conn.execute(
+            "SELECT user_email FROM conversations WHERE id = %s", (c["id"],)
+        ).fetchone()
     assert row[0] == "alice@example.com"
 
 
@@ -206,22 +190,24 @@ def test_list_conversations_admin_sees_all(isolated_store):
 # ── G03: compaction migration idempotency + state get/set ─────────────────────
 
 def test_init_schema_is_idempotent_for_g03_columns(isolated_store):
-    """Running init_schema() twice must not error and must add the new
-    compaction columns exactly once. Mirrors the user_email migration test."""
+    """Running init_schema() (now the migration runner) twice must not error and
+    the conversations table must carry the G03 columns exactly once."""
     cs = isolated_store
     cs.init_schema()
-    cs.init_schema()  # second call MUST be a no-op for the migrations
+    cs.init_schema()  # second call MUST be a no-op (idempotent migrations)
 
-    # Count occurrences of the new columns via PRAGMA — should be 1 each
-    import sqlite3
-    conn = sqlite3.connect(str(cs.CONVERSATIONS_DB))
-    try:
-        cols = [row[1] for row in conn.execute("PRAGMA table_info(conversations)")]
-    finally:
-        conn.close()
+    # Verify the columns exist exactly once via Postgres information_schema.
+    from backend import db
+    with db.connection() as conn:
+        cols = [
+            r[0] for r in conn.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_name = 'conversations'"
+            ).fetchall()
+        ]
     assert cols.count("compacted_summary") == 1
     assert cols.count("compaction_at_turn") == 1
-    assert cols.count("user_email") == 1  # earlier migration still intact
+    assert cols.count("user_email") == 1
 
 
 def test_compaction_state_starts_none(isolated_store):

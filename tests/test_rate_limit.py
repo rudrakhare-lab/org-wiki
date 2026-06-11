@@ -1,13 +1,15 @@
+"""
+Rate limiter tests — now backed by the Postgres `rate_limits` table.
+The `clean_db` fixture (conftest) truncates it for isolation.
+"""
 import pytest
+from datetime import datetime, timedelta, timezone
 
 
 @pytest.fixture(autouse=True)
-def reset_rate_limit():
-    """Each test starts with a clean rate-limit state."""
-    import backend.rate_limit as rl
-    rl._COUNTS.clear()
+def reset_rate_limit(clean_db):
+    """Each test starts with an empty rate_limits table (truncated by clean_db)."""
     yield
-    rl._COUNTS.clear()
 
 
 def test_viewer_allowed_up_to_limit():
@@ -40,12 +42,18 @@ def test_different_tokens_independent():
 
 
 def test_counter_resets_on_new_day():
+    """A token that exhausted its quota YESTERDAY starts fresh today — the
+    counter is keyed on the UTC day, so yesterday's row doesn't carry over."""
     import backend.rate_limit as rl
-    from datetime import date, timedelta
-    # Exhaust quota
-    for i in range(30):
-        rl.check_rate_limit("tok3", "viewer")
-    assert rl.check_rate_limit("tok3", "viewer") is False
-    # Simulate next day by patching _RESET_DATE to yesterday
-    rl._RESET_DATE = date.today() - timedelta(days=1)
-    assert rl.check_rate_limit("tok3", "viewer") is True
+    from backend import db
+
+    tok = "tok_yesterday"
+    yesterday = (datetime.now(timezone.utc).date() - timedelta(days=1)).isoformat()
+    # Simulate an exhausted quota for yesterday.
+    with db.connection() as conn:
+        conn.execute(
+            "INSERT INTO rate_limits (token, day, count) VALUES (%s, %s, %s)",
+            (tok, yesterday, rl.DAILY_LIMIT),
+        )
+    # Today's check must be allowed — today's row is separate and starts fresh.
+    assert rl.check_rate_limit(tok, "viewer") is True

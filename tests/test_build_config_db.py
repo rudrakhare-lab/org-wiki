@@ -13,6 +13,18 @@ from pathlib import Path
 
 import pytest
 
+# This is an integration test for the OLD SQLite output of build_config_db.py:
+# it asserts a .sqlite file is produced and an FTS5 virtual table exists. Both
+# were removed in the Postgres migration (Phase 4) — build_config_db.py now
+# writes to Postgres and uses a pg_trgm index instead of FTS5. The script's
+# Postgres port is verified in Phase 4; the migrated configs data is verified by
+# the ETL row-count checks. Rewriting this as a Postgres integration test
+# (assert configs-table population + wiki-page regeneration) is a follow-up.
+pytestmark = pytest.mark.skip(
+    reason="build_config_db.py now writes Postgres, not a SQLite file with FTS5 "
+    "(migrated in Phase 4). Rewrite as a PG integration test — follow-up."
+)
+
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = ROOT / "scripts" / "build_config_db.py"
 DB_PATH = ROOT / "raw" / "configs" / "configs.sqlite"

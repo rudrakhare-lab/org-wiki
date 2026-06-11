@@ -10,39 +10,33 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock, patch
 
+from backend import db
+
 
 # ── jira_get_ticket pagination ────────────────────────────────────────────────
 
-def _mock_sqlite_row(description: str, comments: str):
-    """Return a row tuple matching the SELECT column order in
-    _jira_get_ticket_handler. Lets us bypass the real SQLite DB."""
-    return (
-        "TS-12345", "Test summary", "done", "P1",
-        "2026-04-12", "2026-04-13",
-        description, comments, 5,
-        '{"links": []}', "WP-admin", "EPIC-1",
-    )
+def _seed_ticket(description: str, comments: str, key: str = "TS-12345") -> None:
+    """Insert one ticket into the test Postgres DB so _jira_get_ticket_handler
+    can read it (replaces the old SQLite-cursor mock)."""
+    with db.connection() as conn:
+        conn.execute("DELETE FROM tickets WHERE key = %s", (key,))
+        conn.execute(
+            "INSERT INTO tickets (key, project, summary, status_category, priority, "
+            "created_at, updated_at, resolved_at, description_text, comments_text, "
+            "comment_count, links_json, functional_area, epic_key, fetched_at, normalized_at) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+            (key, "TS", "Test summary", "done", "P1",
+             "2026-04-12T00:00:00+0530", "2026-04-12T00:00:00+0530", "2026-04-13T00:00:00+0530",
+             description, comments, 5, '{"links": []}', "WP-admin", "EPIC-1",
+             "2026-04-12T00:00:00.000Z", "2026-04-12T00:00:00.000Z"),
+        )
 
 
-def _patch_jira_db(monkeypatch, row):
-    """Replace JIRA_DB with a mock Path whose .exists() returns True, and
-    swap _open_ro() to return a mock cursor that yields `row`."""
-    from backend.tools import jira_tools
-    fake_db = MagicMock()
-    fake_db.exists.return_value = True
-    monkeypatch.setattr(jira_tools, "JIRA_DB", fake_db)
-    mock_cursor = MagicMock()
-    mock_cursor.fetchone.return_value = row
-    mock_conn = MagicMock()
-    mock_conn.execute.return_value = mock_cursor
-    monkeypatch.setattr(jira_tools, "_open_ro", lambda: mock_conn)
-
-
-def test_jira_get_ticket_full_read_when_under_default_chunk(monkeypatch):
+def test_jira_get_ticket_full_read_when_under_default_chunk(clean_db):
     """Backwards-compat: short description (<2000 chars) returns fully, with
     has_more=False. The 'content' fields keep their pre-G09 names."""
     from backend.tools.jira_tools import _jira_get_ticket_handler
-    _patch_jira_db(monkeypatch, _mock_sqlite_row("short desc", "short comments"))
+    _seed_ticket("short desc", "short comments")
     result = _jira_get_ticket_handler({"key": "TS-12345"})
 
     assert result["description_text"] == "short desc"
@@ -53,11 +47,11 @@ def test_jira_get_ticket_full_read_when_under_default_chunk(monkeypatch):
     assert result["comments_has_more"] is False
 
 
-def test_jira_get_ticket_first_chunk_when_over_default(monkeypatch):
+def test_jira_get_ticket_first_chunk_when_over_default(clean_db):
     """Long description: first 2000 chars returned, has_more=True, next_offset=2000."""
     from backend.tools.jira_tools import _jira_get_ticket_handler
     long_desc = "x" * 3500  # 1500 chars past the default chunk
-    _patch_jira_db(monkeypatch, _mock_sqlite_row(long_desc, ""))
+    _seed_ticket(long_desc, "")
     result = _jira_get_ticket_handler({"key": "TS-12345"})
 
     assert len(result["description_text"]) == 2000
@@ -66,11 +60,11 @@ def test_jira_get_ticket_first_chunk_when_over_default(monkeypatch):
     assert result["description_next_offset"] == 2000
 
 
-def test_jira_get_ticket_offset_midway(monkeypatch):
+def test_jira_get_ticket_offset_midway(clean_db):
     """Offset = 2000 retrieves chars 2000..4000; remaining 1500 chars is < chunk, so has_more=False."""
     from backend.tools.jira_tools import _jira_get_ticket_handler
     long_desc = "x" * 1500 + "Y" * 2000  # 3500 chars total, Y starts at index 1500
-    _patch_jira_db(monkeypatch, _mock_sqlite_row(long_desc, ""))
+    _seed_ticket(long_desc, "")
     result = _jira_get_ticket_handler({"key": "TS-12345", "description_offset": 2000})
 
     assert result["description_text"] == "Y" * 1500  # chars 2000..3500
@@ -79,10 +73,10 @@ def test_jira_get_ticket_offset_midway(monkeypatch):
     assert result["description_next_offset"] is None
 
 
-def test_jira_get_ticket_offset_past_end_returns_empty(monkeypatch):
+def test_jira_get_ticket_offset_past_end_returns_empty(clean_db):
     """An offset past the total length returns an empty chunk with has_more=False."""
     from backend.tools.jira_tools import _jira_get_ticket_handler
-    _patch_jira_db(monkeypatch, _mock_sqlite_row("only 10 ch", ""))
+    _seed_ticket("only 10 ch", "")
     result = _jira_get_ticket_handler({"key": "TS-12345", "description_offset": 100})
 
     assert result["description_text"] == ""
@@ -90,11 +84,11 @@ def test_jira_get_ticket_offset_past_end_returns_empty(monkeypatch):
     assert result["description_has_more"] is False
 
 
-def test_jira_get_ticket_backwards_compat_callers_reading_legacy_fields(monkeypatch):
+def test_jira_get_ticket_backwards_compat_callers_reading_legacy_fields(clean_db):
     """Pre-G09 callers that only read description_text/comments_text/comment_count
     must keep working without the new fields breaking them."""
     from backend.tools.jira_tools import _jira_get_ticket_handler
-    _patch_jira_db(monkeypatch, _mock_sqlite_row("desc here", "comments here"))
+    _seed_ticket("desc here", "comments here")
     result = _jira_get_ticket_handler({"key": "TS-12345"})
 
     # All legacy fields still present and populated

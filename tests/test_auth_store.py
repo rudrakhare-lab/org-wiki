@@ -1,21 +1,7 @@
 # tests/test_auth_store.py
-import importlib
+# `isolated_auth` is provided by tests/conftest.py (Postgres test DB, truncated
+# per test). Test bodies are unchanged — they use the store's public API.
 import pytest
-from pathlib import Path
-
-
-@pytest.fixture
-def isolated_auth(tmp_path, monkeypatch):
-    """Point auth_store at a fresh SQLite under tmp_path."""
-    auth_dir = tmp_path / "raw" / "auth"
-    auth_dir.mkdir(parents=True)
-    db = auth_dir / "auth.sqlite"
-
-    import backend.auth_store as auth_module
-    importlib.reload(auth_module)
-    monkeypatch.setattr(auth_module, "AUTH_DB", db, raising=False)
-    monkeypatch.setattr(auth_module, "AUTH_DIR", auth_dir, raising=False)
-    yield auth_module
 
 
 def test_create_and_get_user(isolated_auth):
