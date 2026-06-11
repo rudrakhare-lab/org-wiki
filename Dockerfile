@@ -1,5 +1,8 @@
 # ── Stage 1: Build Angular frontend ─────────────────────────────────────────
-FROM node:22-alpine AS frontend-builder
+# Node is used only to BUILD the Angular app; it is not in the runtime image.
+# Version is a build-arg so it's easy to bump (Angular 21 supports Node 20.19+/22.12+/24).
+ARG NODE_VERSION=24
+FROM node:${NODE_VERSION}-alpine AS frontend-builder
 WORKDIR /build
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm install --prefer-offline
