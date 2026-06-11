@@ -353,7 +353,7 @@ def reject_wiki_proposal(proposal_id: str, admin_note: str | None = None) -> dic
 
 def trigger_drive_sync() -> dict:
     """Run sync_drive.py as a background subprocess."""
-    drive_staging = ROOT / "raw" / "_drive_staging"
+    drive_staging = RAW_DIR / "_drive_staging"
     drive_staging.mkdir(parents=True, exist_ok=True)
     try:
         proc = subprocess.Popen(

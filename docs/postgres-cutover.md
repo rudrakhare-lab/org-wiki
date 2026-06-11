@@ -33,23 +33,32 @@ Existing non-DB env vars are unchanged (`ANTHROPIC_API_KEY`, `GOOGLE_CLIENT_ID`,
 
 ---
 
-## 2. ⚠️ Shared persistent volume requirement (raw/ + wiki/)
+## 2. Persistent volume (`CONWO_DATA_DIR`)
 
-Two directories are still file-based and MUST be on a **shared persistent volume
-(ReadWriteMany) mounted on every replica**:
+`wiki/` and `raw/` are still file-based. Set **`CONWO_DATA_DIR=/app/data`** and mount
+a persistent volume at **`/app/data`** — the app then reads/writes
+`/app/data/wiki` and `/app/data/raw` (instead of the repo root). Sizing: ~5 GB is
+plenty (real usage ~120 MB).
 
-- `wiki/` — the markdown knowledge base. All replicas read it; the ingest flow writes it.
-- `raw/feedback/` — answer log + feedback + wiki-proposal JSONL (deliberately not
-  moved to Postgres; see the migration plan). Splits/loses data without a shared mount.
+- **Seeding is automatic — no init container.** The image bakes the `wiki/`
+  baseline (~700 KB); on first boot, if the volume's `wiki/` is empty, the app
+  copies the baseline in (`api.py` `_seed_wiki_if_empty`). It never overwrites an
+  already-populated volume. `raw/` subdirs (feedback, uploads, logs) are created
+  on demand.
+- The old `.sqlite` files are **not** on this volume and are no longer needed at
+  runtime (data is in Postgres). Keep an archived copy for rollback (§7).
 
-Other `raw/` subdirs (`raw/jira`, `raw/configs`, `raw/traces`, `raw/auth`,
-`raw/conversations`) held the old SQLite files and are **no longer needed at
-runtime** — that data now lives in Postgres. Keep the old `.sqlite` files around
-until after go-live for rollback (§7), then they can be archived.
+**Volume type vs replicas:**
+- **Single replica (gp3 / ReadWriteOnce):** fine — the StatefulSet pattern (PVC at
+  `/app/data`) works as-is.
+- **Multiple replicas:** gp3/EBS is single-attach, so each pod gets its own copy →
+  `wiki/` ingests and `raw/feedback/` writes would NOT be shared across pods. For
+  >1 replica use **EFS (ReadWriteMany)** for `/app/data` instead. (The RDS is shared
+  regardless, so auth/chat/traces/tickets/configs stay consistent either way.)
 
-> Follow-up (not blocking): the in-memory wiki index is per-replica, so a wiki
-> write on one replica is stale on others until they rebuild. Acceptable for the
-> pilot; revisit with a shared-cache/rebuild trigger if ingest volume grows.
+> Follow-up (not blocking): the in-memory wiki index is per-replica, so after an
+> ingest the writing pod is fresh and others are stale until they rebuild.
+> Acceptable for the pilot.
 
 ---
 

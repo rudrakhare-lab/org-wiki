@@ -15,7 +15,10 @@ import re
 
 from backend import wiki_retriever
 
-WIKI_ROOT = str(pathlib.Path(__file__).resolve().parents[2])
+from backend.config import WIKI_DIR as _CFG_WIKI_DIR
+# Parent of the wiki/ dir; honors CONWO_DATA_DIR (the PVC) in prod. _safe_path
+# joins WIKI_ROOT/"wiki", so this resolves to the configured WIKI_DIR.
+WIKI_ROOT = str(_CFG_WIKI_DIR.parent)
 
 # Fields that are always scalars — never allow treating them as lists
 _SCALAR_FIELDS = {"type", "status", "owner", "module", "last_updated", "ingested",

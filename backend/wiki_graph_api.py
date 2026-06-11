@@ -13,10 +13,9 @@ import re
 from fastapi import APIRouter
 
 from backend import db
+from backend.config import WIKI_DIR as _WIKI_DIR  # honors CONWO_DATA_DIR (PVC)
 
 router = APIRouter(prefix="/api/wiki")
-
-_WIKI_DIR = pathlib.Path(__file__).resolve().parent.parent / "wiki"
 
 _SKIP: set[str] = set()  # show all pages
 

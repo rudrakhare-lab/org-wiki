@@ -70,6 +70,35 @@ from backend.google_auth import verify_google_credential
 # Lifespan — build the wiki index once at startup
 # ---------------------------------------------------------------------------
 
+def _seed_wiki_if_empty() -> None:
+    """Seed the wiki/ volume from the image's baked baseline on first boot.
+
+    In prod, wiki/ lives on a mounted PVC (CONWO_DATA_DIR=/app/data) that starts
+    empty. The image bakes a wiki/ baseline at config.SEED_WIKI_DIR (the repo
+    copy). If the volume has no markdown yet, copy the baseline in. Never
+    overwrites an already-populated volume (later deploys / ingested pages).
+    No-op in local dev (data dir == repo root). Fail-open — a seed problem must
+    not block startup.
+    """
+    import shutil
+    from backend.config import WIKI_DIR, SEED_WIKI_DIR
+    log = logging.getLogger("uvicorn.error")
+    try:
+        if SEED_WIKI_DIR.resolve() == WIKI_DIR.resolve():
+            return  # local dev: nothing to seed (same path)
+        if not SEED_WIKI_DIR.is_dir():
+            log.warning("wiki seed skipped: no baked baseline at %s", SEED_WIKI_DIR)
+            return
+        if WIKI_DIR.exists() and any(WIKI_DIR.rglob("*.md")):
+            return  # volume already populated — do not clobber
+        WIKI_DIR.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(SEED_WIKI_DIR, WIKI_DIR, dirs_exist_ok=True)
+        n = sum(1 for _ in WIKI_DIR.rglob("*.md"))
+        log.info("seeded wiki/ from image baseline into %s (%d pages)", WIKI_DIR, n)
+    except Exception as exc:
+        log.warning("wiki seed skipped (non-fatal): %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Open the PostgreSQL pool first — auth, conversations, traces, and all
@@ -83,6 +112,9 @@ async def lifespan(app: FastAPI):
     # Sweep stale in_progress traces from a previous run (multi-replica safe:
     # only reconciles sessions older than the threshold). Fail-open.
     trace_store.reconcile_orphans()
+    # If wiki/ lives on a mounted volume (CONWO_DATA_DIR) that's still empty,
+    # seed it from the image's baked baseline so the knowledge base is present.
+    _seed_wiki_if_empty()
     wiki_retriever.build_index()
     # Single-key deployment check — api-mode queries will return 503 until the
     # operator sets ANTHROPIC_API_KEY. Don't crash; the server must still come

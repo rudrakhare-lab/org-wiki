@@ -27,6 +27,11 @@ COPY scripts/ scripts/
 COPY migrations/ migrations/
 COPY CLAUDE.md ./
 
+# Bake the wiki/ knowledge-base baseline (~700KB) into the image. In prod, wiki/
+# lives on a mounted PVC (CONWO_DATA_DIR=/app/data) that starts empty; the app
+# seeds it from this baked copy on first boot (see api.py _seed_wiki_if_empty).
+COPY wiki/ wiki/
+
 # Copy pre-built Angular app from Stage 1.
 # Backend expects: Path(__file__).parent.parent / "frontend/dist/frontend/browser"
 # = /opt/conwo/frontend/dist/frontend/browser/

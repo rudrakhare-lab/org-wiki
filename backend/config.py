@@ -20,8 +20,17 @@ ROOT = Path(__file__).resolve().parent.parent
 # mirror is missing a recently-filed ticket. Empty string means "not configured."
 JIRA_BASE_URL = os.getenv("JIRA_BASE_URL", "").rstrip("/")
 
-WIKI_DIR = ROOT / "wiki"
-RAW_DIR = ROOT / "raw"
+# wiki/ and raw/ live under CONWO_DATA_DIR when set (e.g. /app/data, a mounted
+# PVC in k8s) so they persist across pod restarts; otherwise under the repo root
+# (local dev — unchanged). Everything derived from RAW_DIR below follows the base.
+# The image bakes a wiki/ baseline at ROOT/wiki; api.py seeds it onto an empty
+# volume at startup (see _seed_wiki_if_empty).
+SEED_WIKI_DIR = ROOT / "wiki"   # baked into the image; seed source
+_DATA_DIR = os.getenv("CONWO_DATA_DIR", "").strip()
+_BASE = Path(_DATA_DIR) if _DATA_DIR else ROOT
+
+WIKI_DIR = _BASE / "wiki"
+RAW_DIR = _BASE / "raw"
 JIRA_DB = RAW_DIR / "jira" / "tickets.sqlite"
 FEEDBACK_DIR = RAW_DIR / "feedback"
 ANSWER_LOG = FEEDBACK_DIR / "answer_log.jsonl"

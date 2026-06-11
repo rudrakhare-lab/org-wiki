@@ -29,8 +29,10 @@ _LOG = logging.getLogger("ingest")
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024  # 100 MB
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".md", ".txt", ".rtf"}
 
-# Where uploads land before being moved to raw/modules/{slug}/
-UPLOAD_DIR = str(pathlib.Path(__file__).resolve().parent.parent / "raw" / "modules" / "_uploads")
+# Where uploads land before being moved to raw/modules/{slug}/.
+# Uses RAW_DIR so it honors CONWO_DATA_DIR (the mounted PVC) in prod.
+from backend.config import RAW_DIR as _RAW_DIR
+UPLOAD_DIR = str(_RAW_DIR / "modules" / "_uploads")
 
 # ── System prompts ────────────────────────────────────────────────────────────
 

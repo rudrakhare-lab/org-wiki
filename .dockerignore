@@ -2,9 +2,12 @@
 .env
 .env.*
 
-# Runtime data — mounted as volumes at runtime, never baked into the image
+# Runtime data — mounted as volumes at runtime, never baked into the image.
+# raw/ stays excluded (it holds the big SQLite files + uploads).
+# wiki/ IS baked in (~700KB) as the seed baseline: on first boot the app copies
+# it onto the empty PVC (see backend/api.py _seed_wiki_if_empty). The *.sqlite
+# rule below still keeps any stray DB files out.
 raw/
-wiki/
 
 # Python build artefacts
 __pycache__/
