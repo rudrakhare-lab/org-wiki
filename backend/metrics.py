@@ -29,6 +29,11 @@ from prometheus_client import (
 )
 from starlette.responses import Response
 
+# Scrape endpoints — served identically; excluded from their own HTTP metrics.
+# /actuator/prometheus matches the Spring Boot Actuator convention most
+# MoveInSync services use; /metrics is the Python/Prometheus default. Both work.
+_SCRAPE_PATHS = {"/metrics", "/actuator/prometheus"}
+
 # ── Metrics ─────────────────────────────────────────────────────────────────
 _REQUESTS = Counter(
     "conwo_http_requests_total",
@@ -60,7 +65,7 @@ class PrometheusMiddleware:
         self.app = app
 
     async def __call__(self, scope, receive, send):
-        if scope["type"] != "http" or scope.get("path") == "/metrics":
+        if scope["type"] != "http" or scope.get("path") in _SCRAPE_PATHS:
             await self.app(scope, receive, send)
             return
 
@@ -101,12 +106,22 @@ def _refresh_pool_gauges() -> None:
         pass
 
 
+def _render_metrics() -> Response:
+    _refresh_pool_gauges()
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
 def setup_metrics(app) -> None:
-    """Attach the metrics middleware and expose GET /metrics (unauthenticated,
-    like /health — restrict via network policy / ServiceMonitor as needed)."""
+    """Attach the metrics middleware and expose the scrape endpoint at both
+    /actuator/prometheus (Spring Boot Actuator convention used across MoveInSync)
+    and /metrics (Python/Prometheus default). Unauthenticated, like /health —
+    restrict via network policy / ServiceMonitor as needed."""
     app.add_middleware(PrometheusMiddleware)
+
+    @app.get("/actuator/prometheus", include_in_schema=False)
+    def actuator_prometheus() -> Response:
+        return _render_metrics()
 
     @app.get("/metrics", include_in_schema=False)
     def metrics() -> Response:
-        _refresh_pool_gauges()
-        return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+        return _render_metrics()
