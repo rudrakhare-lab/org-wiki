@@ -11,13 +11,12 @@ So every /api/traces/* endpoint is admin-only. trace_api imports NOTHING from
 api.py (no cycle).
 
 Connection discipline:
-  - Read-only connection per request via trace_store._read_conn(), row_factory
-    set, PRAGMA foreign_keys=ON, explicitly closed in a finally.
-  - If tracing is disabled (DB/schema absent) every endpoint returns an empty/
+  - Pooled connection per request via the _ro() context manager (Row factory,
+    autocommit). Returned to the pool on block exit — never .close()'d.
+  - If tracing is disabled (schema absent) every endpoint returns an empty/
     zeroed shape rather than 500 (fail-soft).
 
-Percentiles: SQLite has no native percentile fn → durations are fetched for the
-range and p50/p95/p99 computed in Python.
+Percentiles: computed in Python from the durations fetched for the range.
 
 Status filtering: dashboards EXCLUDE 'orphaned' by default (noise); pass
 ?include_orphaned=true to include. error_rate is defined as
@@ -26,13 +25,13 @@ errors / (errors + successes) — rejected/client_disconnect/orphaned never coun
 from __future__ import annotations
 
 import json
-import sqlite3
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from backend import trace_store
+from backend import db, trace_store
 
 router = APIRouter(prefix="/api/traces", tags=["traces"])
 
@@ -48,14 +47,15 @@ def _cutoff_iso(time_range: str) -> str | None:
     return (datetime.now(timezone.utc) - timedelta(days=days)).isoformat(timespec="milliseconds")
 
 
+@contextmanager
 def _ro():
-    """Read-only connection (Row factory, FK on). Caller must close. None if disabled."""
+    """Yield a pooled connection (Row factory, autocommit), or None if tracing
+    is disabled. Returned to the pool on exit — callers must NOT close it."""
     if not trace_store._check_tracing_enabled():
-        return None
-    conn = trace_store._read_conn()
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys=ON")
-    return conn
+        yield None
+        return
+    with db.connection() as conn:
+        yield conn
 
 
 def _percentiles(values: list[int], ps=(50, 95, 99)) -> dict:
@@ -110,21 +110,20 @@ def list_sessions(
     search: str | None = Query(None),  # substring of question
     include_orphaned: bool = Query(False),
 ):
-    conn = _ro()
-    if conn is None:
-        return SessionListResponse(total=0, limit=limit, offset=offset, sessions=[])
-    try:
+    with _ro() as conn:
+        if conn is None:
+            return SessionListResponse(total=0, limit=limit, offset=offset, sessions=[])
         where, params = ["1=1"], []
         if mode != "all":
-            where.append("mode = ?"); params.append(mode)
+            where.append("mode = %s"); params.append(mode)
         if status != "all":
-            where.append("status = ?"); params.append(status)
+            where.append("status = %s"); params.append(status)
         elif not include_orphaned:
             where.append("status != 'orphaned'")
         if since:
-            where.append("started_at >= ?"); params.append(since)
+            where.append("started_at >= %s"); params.append(since)
         if search:
-            where.append("question LIKE ?"); params.append(f"%{search}%")
+            where.append("question ILIKE %s"); params.append(f"%{search}%")
         clause = " AND ".join(where)
 
         total = conn.execute(f"SELECT COUNT(*) FROM trace_sessions WHERE {clause}", params).fetchone()[0]
@@ -132,21 +131,19 @@ def list_sessions(
             f"SELECT trace_id, started_at, ended_at, duration_ms, mode, status, "
             f"substr(question,1,160) AS question, total_tokens_input, total_tokens_output, "
             f"total_cost_usd, tool_call_count, round_count "
-            f"FROM trace_sessions WHERE {clause} ORDER BY started_at DESC LIMIT ? OFFSET ?",
+            f"FROM trace_sessions WHERE {clause} ORDER BY started_at DESC LIMIT %s OFFSET %s",
             params + [limit, offset],
         ).fetchall()
         return SessionListResponse(
             total=total, limit=limit, offset=offset,
             sessions=[SessionSummary(**dict(r)) for r in rows],
         )
-    finally:
-        conn.close()
 
 
 # ── 2. session detail ──────────────────────────────────────────────────────────
 @router.get("/sessions/{trace_id}", response_model=SessionDetailResponse)
 def get_session(trace_id: str):
-    data = trace_store.query_session(trace_id)   # already FK-safe + ordered by sequence
+    data = trace_store.query_session(trace_id)   # already ordered by sequence
     if data is None:
         raise HTTPException(status_code=404, detail="trace not found")
     return SessionDetailResponse(**data)
@@ -155,17 +152,16 @@ def get_session(trace_id: str):
 # ── 3. dashboard overview ──────────────────────────────────────────────────────
 @router.get("/dashboard/overview")
 def dashboard_overview(time_range: str = Query("7d"), include_orphaned: bool = Query(False)):
-    conn = _ro()
     empty = {"total_queries": 0, "status_breakdown": {}, "error_rate": None,
              "latency_ms": {"avg": None, "p50": None, "p95": None, "p99": None},
              "total_cost_usd": 0.0, "cost_by_day": [], "top_tools": [], "mode_breakdown": {}}
-    if conn is None:
-        return empty
-    try:
+    with _ro() as conn:
+        if conn is None:
+            return empty
         cutoff = _cutoff_iso(time_range)
         base, params = "FROM trace_sessions WHERE 1=1", []
         if cutoff:
-            base += " AND started_at >= ?"; params.append(cutoff)
+            base += " AND started_at >= %s"; params.append(cutoff)
         if not include_orphaned:
             base += " AND status != 'orphaned'"
 
@@ -185,14 +181,16 @@ def dashboard_overview(time_range: str = Query("7d"), include_orphaned: bool = Q
             f"SELECT COALESCE(SUM(total_cost_usd),0) {base} AND status IN ('success','error')",
             params).fetchone()[0]
         cost_by_day = [dict(r) for r in conn.execute(
-            f"SELECT date(started_at) day, ROUND(SUM(COALESCE(total_cost_usd,0)),6) cost, COUNT(*) queries "
-            f"{base} AND status IN ('success','error') GROUP BY day ORDER BY day", params).fetchall()]
+            f"SELECT substr(started_at,1,10) AS \"day\", "
+            f"ROUND(SUM(COALESCE(total_cost_usd,0))::numeric,6)::double precision cost, COUNT(*) queries "
+            f"{base} AND status IN ('success','error') "
+            f"GROUP BY substr(started_at,1,10) ORDER BY substr(started_at,1,10)", params).fetchall()]
         mode_rows = conn.execute(f"SELECT mode, COUNT(*) c {base} GROUP BY mode", params).fetchall()
         mode_breakdown = {r["mode"]: r["c"] for r in mode_rows}
 
         # top tools — from events in the same window (join sessions for the time filter)
         tparams = [cutoff] if cutoff else []
-        tclause = "AND s.started_at >= ?" if cutoff else ""
+        tclause = "AND s.started_at >= %s" if cutoff else ""
         top_tools = [dict(r) for r in conn.execute(
             f"SELECT e.tool_name, COUNT(*) call_count FROM trace_events e "
             f"JOIN trace_sessions s ON s.trace_id = e.trace_id "
@@ -204,50 +202,42 @@ def dashboard_overview(time_range: str = Query("7d"), include_orphaned: bool = Q
                 "latency_ms": {"avg": avg, **pct},
                 "total_cost_usd": round(total_cost, 6), "cost_by_day": cost_by_day,
                 "top_tools": top_tools, "mode_breakdown": mode_breakdown}
-    finally:
-        conn.close()
 
 
 # ── 4. dashboard tools ──────────────────────────────────────────────────────────
 @router.get("/dashboard/tools")
 def dashboard_tools(time_range: str = Query("7d")):
-    conn = _ro()
-    if conn is None:
-        return {"tools": []}
-    try:
+    with _ro() as conn:
+        if conn is None:
+            return {"tools": []}
         cutoff = _cutoff_iso(time_range)
         clause, params = "", []
         if cutoff:
-            clause = "AND s.started_at >= ?"; params = [cutoff]
+            clause = "AND s.started_at >= %s"; params = [cutoff]
         rows = conn.execute(
             f"SELECT e.tool_name, COUNT(*) call_count, "
-            f"ROUND(AVG(e.duration_ms),1) avg_duration_ms, "
-            f"ROUND(100.0*SUM(CASE WHEN e.status='error' THEN 1 ELSE 0 END)/COUNT(*),1) error_rate_pct "
+            f"ROUND(AVG(e.duration_ms)::numeric,1)::double precision avg_duration_ms, "
+            f"ROUND((100.0*SUM(CASE WHEN e.status='error' THEN 1 ELSE 0 END)/COUNT(*))::numeric,1)"
+            f"::double precision error_rate_pct "
             f"FROM trace_events e JOIN trace_sessions s ON s.trace_id=e.trace_id "
             f"WHERE e.event_type='tool_call' AND e.tool_name IS NOT NULL {clause} "
             f"GROUP BY e.tool_name ORDER BY call_count DESC", params).fetchall()
         return {"tools": [dict(r) for r in rows]}
-    finally:
-        conn.close()
 
 
 # ── 5. dashboard errors ──────────────────────────────────────────────────────────
 @router.get("/dashboard/errors")
 def dashboard_errors(time_range: str = Query("7d"), limit: int = Query(20, ge=1, le=100)):
-    # Decision 2 (renamed for clarity — counts intentionally differ):
-    #   errors_by_component : ALL status='error' events (includes failed tool_calls)
-    #                         → "where errors happen"
-    #   exceptions_by_type  : ONLY event_type='error' events (carry exception metadata)
-    #                         → "what exceptions were thrown"
-    #   recent_exceptions   : last N event_type='error' rows
-    conn = _ro()
-    if conn is None:
-        return {"errors_by_component": {}, "exceptions_by_type": {}, "recent_exceptions": []}
-    try:
+    # errors_by_component : ALL status='error' events (includes failed tool_calls)
+    # exceptions_by_type  : ONLY event_type='error' events (carry exception metadata)
+    # recent_exceptions   : last N event_type='error' rows
+    with _ro() as conn:
+        if conn is None:
+            return {"errors_by_component": {}, "exceptions_by_type": {}, "recent_exceptions": []}
         cutoff = _cutoff_iso(time_range)
         clause, params = "", []
         if cutoff:
-            clause = "AND e.timestamp >= ?"; params = [cutoff]
+            clause = "AND e.timestamp >= %s"; params = [cutoff]
         comp_rows = conn.execute(
             f"SELECT component, COUNT(*) c FROM trace_events e "
             f"WHERE e.status='error' {clause} GROUP BY component ORDER BY c DESC", params).fetchall()
@@ -256,7 +246,7 @@ def dashboard_errors(time_range: str = Query("7d"), limit: int = Query(20, ge=1,
         # exception_type lives in metadata_json — aggregate in Python
         err_rows = conn.execute(
             f"SELECT e.trace_id, e.timestamp, e.metadata_json FROM trace_events e "
-            f"WHERE e.event_type='error' {clause} ORDER BY e.timestamp DESC LIMIT ?",
+            f"WHERE e.event_type='error' {clause} ORDER BY e.timestamp DESC LIMIT %s",
             params + [limit]).fetchall()
         exceptions_by_type: dict[str, int] = {}
         recent_exceptions = []
@@ -271,27 +261,26 @@ def dashboard_errors(time_range: str = Query("7d"), limit: int = Query(20, ge=1,
         return {"errors_by_component": errors_by_component,
                 "exceptions_by_type": exceptions_by_type,
                 "recent_exceptions": recent_exceptions}
-    finally:
-        conn.close()
 
 
 # ── 6. dashboard cost ──────────────────────────────────────────────────────────
 @router.get("/dashboard/cost")
 def dashboard_cost(time_range: str = Query("7d")):
-    conn = _ro()
     empty = {"cost_by_day": [], "cost_per_query": {"avg": None, "p50": None, "p95": None},
              "tokens": {"input": 0, "output": 0, "cached_input": 0}, "cache_hit_rate": None}
-    if conn is None:
-        return empty
-    try:
+    with _ro() as conn:
+        if conn is None:
+            return empty
         cutoff = _cutoff_iso(time_range)
         base, params = "FROM trace_sessions WHERE status != 'orphaned'", []
         if cutoff:
-            base += " AND started_at >= ?"; params.append(cutoff)
+            base += " AND started_at >= %s"; params.append(cutoff)
 
         cost_by_day = [dict(r) for r in conn.execute(
-            f"SELECT date(started_at) day, ROUND(SUM(COALESCE(total_cost_usd,0)),6) cost "
-            f"{base} AND status IN ('success','error') GROUP BY day ORDER BY day", params).fetchall()]
+            f"SELECT substr(started_at,1,10) AS \"day\", "
+            f"ROUND(SUM(COALESCE(total_cost_usd,0))::numeric,6)::double precision cost "
+            f"{base} AND status IN ('success','error') "
+            f"GROUP BY substr(started_at,1,10) ORDER BY substr(started_at,1,10)", params).fetchall()]
         costs = [r[0] for r in conn.execute(
             f"SELECT total_cost_usd {base} AND total_cost_usd IS NOT NULL "
             f"AND status IN ('success','error')", params).fetchall()]
@@ -305,7 +294,7 @@ def dashboard_cost(time_range: str = Query("7d")):
                  "WHERE s.status IN ('success','error')")
         mparams = []
         if cutoff:
-            mbase += " AND s.started_at >= ?"; mparams.append(cutoff)
+            mbase += " AND s.started_at >= %s"; mparams.append(cutoff)
         trow = conn.execute(
             f"SELECT COALESCE(SUM(tokens_input),0) ti, COALESCE(SUM(tokens_output),0) to_, "
             f"COALESCE(SUM(tokens_cached_input),0) tc {mbase}", mparams).fetchone()
@@ -316,5 +305,3 @@ def dashboard_cost(time_range: str = Query("7d")):
                 "cost_per_query": {"avg": avg, **cost_pct},
                 "tokens": {"input": ti, "output": to_, "cached_input": tc},
                 "cache_hit_rate": cache_hit}
-    finally:
-        conn.close()

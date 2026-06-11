@@ -1,8 +1,9 @@
 """
-Conversation store — SQLite-backed chat history.
+Conversation store — PostgreSQL-backed chat history.
 
-Two tables:
-  conversations(id, title, created_at, updated_at)
+Tables (created by migrations/postgres/020_conversations.sql at app startup):
+  conversations(id, title, created_at, updated_at, user_email,
+                compacted_summary, compaction_at_turn)
   messages(id, conversation_id, role, content, created_at, mode, server, buid,
            answer_id, confidence, sources_json, tool_trace_json,
            missing_context_json)
@@ -18,77 +19,11 @@ from __future__ import annotations
 
 import json
 import secrets
-import sqlite3
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Iterator
 
-from backend.config import CONVERSATIONS_DB, CONVERSATIONS_DIR
-
-_SCHEMA = """
-CREATE TABLE IF NOT EXISTS conversations (
-    id          TEXT PRIMARY KEY,
-    title       TEXT NOT NULL,
-    created_at  TEXT NOT NULL,
-    updated_at  TEXT NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS idx_conv_updated_at
-    ON conversations(updated_at DESC);
-
-CREATE TABLE IF NOT EXISTS messages (
-    id                    TEXT PRIMARY KEY,
-    conversation_id       TEXT NOT NULL,
-    role                  TEXT NOT NULL,
-    content               TEXT NOT NULL,
-    created_at            TEXT NOT NULL,
-    mode                  TEXT,
-    server                TEXT,
-    buid                  TEXT,
-    answer_id             TEXT,
-    confidence            TEXT,
-    sources_json          TEXT,
-    tool_trace_json       TEXT,
-    missing_context_json  TEXT,
-    FOREIGN KEY (conversation_id)
-        REFERENCES conversations(id)
-        ON DELETE CASCADE
-);
-
-CREATE INDEX IF NOT EXISTS idx_msg_conversation_id
-    ON messages(conversation_id, created_at ASC);
-"""
-
-_MIGRATION_ADD_USER_EMAIL = """
-ALTER TABLE conversations ADD COLUMN user_email TEXT;
-"""
-
-# G03: rolling summary of compacted older turns + the message-count snapshot
-# at which the summary was generated. Both NULL on conversations created
-# before G03 — load_conversation_summary handles that as "no summary yet".
-_MIGRATION_ADD_COMPACTED_SUMMARY = """
-ALTER TABLE conversations ADD COLUMN compacted_summary TEXT;
-"""
-_MIGRATION_ADD_COMPACTION_AT_TURN = """
-ALTER TABLE conversations ADD COLUMN compaction_at_turn INTEGER;
-"""
-
-
-def _apply_migrations(conn: sqlite3.Connection) -> None:
-    """Idempotently apply schema migrations. Safe to call on every startup."""
-    cols = {row[1] for row in conn.execute("PRAGMA table_info(conversations)")}
-    for col_name, stmt in (
-        ("user_email", _MIGRATION_ADD_USER_EMAIL),
-        ("compacted_summary", _MIGRATION_ADD_COMPACTED_SUMMARY),
-        ("compaction_at_turn", _MIGRATION_ADD_COMPACTION_AT_TURN),
-    ):
-        if col_name in cols:
-            continue
-        try:
-            conn.execute(stmt)
-        except sqlite3.OperationalError as exc:
-            if "duplicate column name" not in str(exc).lower():
-                raise
+from backend import db
 
 
 def _now() -> str:
@@ -100,36 +35,33 @@ def _new_id() -> str:
 
 
 @contextmanager
-def _connect() -> Iterator[sqlite3.Connection]:
-    CONVERSATIONS_DIR.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(CONVERSATIONS_DB), isolation_level=None)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    try:
-        with conn:
-            yield conn
-    finally:
-        conn.close()
+def _connect() -> Iterator[Any]:
+    """Acquire a pooled Postgres connection (autocommit, Row factory)."""
+    with db.connection() as conn:
+        yield conn
 
 
 def init_schema() -> None:
-    """Create tables and indexes if they don't exist. Safe to call repeatedly."""
-    with _connect() as conn:
-        conn.executescript(_SCHEMA)
-        _apply_migrations(conn)
+    """Ensure the schema exists. Delegates to the migration runner.
+
+    Kept for scripts/tests that call it directly; the app runs migrations once
+    at startup (see api.py lifespan). The schema columns user_email,
+    compacted_summary, and compaction_at_turn (formerly added by a hand-rolled
+    PRAGMA-based migration) are now part of 020_conversations.sql.
+    """
+    db.init_db()
 
 
 # ── Conversations ────────────────────────────────────────────────────────────
 
 def create_conversation(title: str | None = None, user_email: str | None = None) -> dict[str, Any]:
-    init_schema()
     cid = _new_id()
     now = _now()
     final_title = (title or "New chat").strip()[:200] or "New chat"
     with _connect() as conn:
         conn.execute(
             "INSERT INTO conversations (id, title, created_at, updated_at, user_email) "
-            "VALUES (?, ?, ?, ?, ?)",
+            "VALUES (%s, %s, %s, %s, %s)",
             (cid, final_title, now, now, user_email),
         )
     return {
@@ -143,7 +75,6 @@ def create_conversation(title: str | None = None, user_email: str | None = None)
 
 
 def list_conversations(limit: int = 200, user_email: str | None = None) -> list[dict[str, Any]]:
-    init_schema()
     with _connect() as conn:
         if user_email is not None:
             rows = conn.execute(
@@ -152,9 +83,9 @@ def list_conversations(limit: int = 200, user_email: str | None = None) -> list[
                        (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id)
                        AS message_count
                 FROM conversations c
-                WHERE c.user_email = ?
+                WHERE c.user_email = %s
                 ORDER BY c.updated_at DESC
-                LIMIT ?
+                LIMIT %s
                 """,
                 (user_email, limit),
             ).fetchall()
@@ -166,7 +97,7 @@ def list_conversations(limit: int = 200, user_email: str | None = None) -> list[
                        AS message_count
                 FROM conversations c
                 ORDER BY c.updated_at DESC
-                LIMIT ?
+                LIMIT %s
                 """,
                 (limit,),
             ).fetchall()
@@ -174,10 +105,9 @@ def list_conversations(limit: int = 200, user_email: str | None = None) -> list[
 
 
 def get_conversation(conversation_id: str) -> dict[str, Any] | None:
-    init_schema()
     with _connect() as conn:
         conv_row = conn.execute(
-            "SELECT id, title, created_at, updated_at, user_email FROM conversations WHERE id = ?",
+            "SELECT id, title, created_at, updated_at, user_email FROM conversations WHERE id = %s",
             (conversation_id,),
         ).fetchone()
         if not conv_row:
@@ -187,7 +117,7 @@ def get_conversation(conversation_id: str) -> dict[str, Any] | None:
             SELECT id, conversation_id, role, content, created_at, mode, server, buid,
                    answer_id, confidence, sources_json, tool_trace_json, missing_context_json
             FROM messages
-            WHERE conversation_id = ?
+            WHERE conversation_id = %s
             ORDER BY created_at ASC
             """,
             (conversation_id,),
@@ -199,23 +129,21 @@ def get_conversation(conversation_id: str) -> dict[str, Any] | None:
 
 
 def update_conversation_title(conversation_id: str, title: str) -> bool:
-    init_schema()
     cleaned = (title or "").strip()[:200]
     if not cleaned:
         return False
     with _connect() as conn:
         cur = conn.execute(
-            "UPDATE conversations SET title = ?, updated_at = ? WHERE id = ?",
+            "UPDATE conversations SET title = %s, updated_at = %s WHERE id = %s",
             (cleaned, _now(), conversation_id),
         )
         return cur.rowcount > 0
 
 
 def delete_conversation(conversation_id: str) -> bool:
-    init_schema()
     with _connect() as conn:
         cur = conn.execute(
-            "DELETE FROM conversations WHERE id = ?", (conversation_id,)
+            "DELETE FROM conversations WHERE id = %s", (conversation_id,)
         )
         return cur.rowcount > 0
 
@@ -223,7 +151,7 @@ def delete_conversation(conversation_id: str) -> bool:
 def touch_conversation(conversation_id: str) -> None:
     with _connect() as conn:
         conn.execute(
-            "UPDATE conversations SET updated_at = ? WHERE id = ?",
+            "UPDATE conversations SET updated_at = %s WHERE id = %s",
             (_now(), conversation_id),
         )
 
@@ -247,8 +175,11 @@ def add_message(
     """
     Append a message to a conversation. The caller is responsible for ensuring
     tool_trace has already passed through ToolRegistry sanitization.
+
+    Note: the INSERT and the conversation `updated_at` UPDATE are autocommitted
+    separately (not wrapped in one transaction) — matching the prior SQLite
+    isolation_level=None behavior exactly.
     """
-    init_schema()
     if role not in ("user", "assistant", "system"):
         raise ValueError(f"Invalid role: {role!r}")
 
@@ -256,7 +187,7 @@ def add_message(
     now = _now()
     with _connect() as conn:
         conv_exists = conn.execute(
-            "SELECT 1 FROM conversations WHERE id = ?", (conversation_id,)
+            "SELECT 1 FROM conversations WHERE id = %s", (conversation_id,)
         ).fetchone()
         if not conv_exists:
             raise LookupError(f"Conversation not found: {conversation_id!r}")
@@ -266,7 +197,7 @@ def add_message(
             INSERT INTO messages (
                 id, conversation_id, role, content, created_at, mode, server, buid,
                 answer_id, confidence, sources_json, tool_trace_json, missing_context_json
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 mid,
@@ -285,7 +216,7 @@ def add_message(
             ),
         )
         conn.execute(
-            "UPDATE conversations SET updated_at = ? WHERE id = ?",
+            "UPDATE conversations SET updated_at = %s WHERE id = %s",
             (now, conversation_id),
         )
 
@@ -319,14 +250,12 @@ def auto_title_from_question(question: str, max_len: int = 60) -> str:
 def get_compaction_state(conversation_id: str) -> tuple[str | None, int | None]:
     """Return (compacted_summary, compaction_at_turn) for a conversation.
 
-    Both are None for never-compacted conversations (or conversations
-    created before the G03 migration). Returns (None, None) when the
-    conversation does not exist — caller should treat as "no summary."
+    Both are None for never-compacted conversations. Returns (None, None) when
+    the conversation does not exist — caller should treat as "no summary."
     """
-    init_schema()
     with _connect() as conn:
         row = conn.execute(
-            "SELECT compacted_summary, compaction_at_turn FROM conversations WHERE id = ?",
+            "SELECT compacted_summary, compaction_at_turn FROM conversations WHERE id = %s",
             (conversation_id,),
         ).fetchone()
     if not row:
@@ -343,17 +272,16 @@ def set_compacted_summary(
     it was generated. at_turn is the TOTAL message count at the time of
     compaction; should_refresh() uses it to decide when the next refresh
     is due."""
-    init_schema()
     with _connect() as conn:
         conn.execute(
-            "UPDATE conversations SET compacted_summary = ?, compaction_at_turn = ? WHERE id = ?",
+            "UPDATE conversations SET compacted_summary = %s, compaction_at_turn = %s WHERE id = %s",
             (summary, at_turn, conversation_id),
         )
 
 
 # ── Internal helpers ─────────────────────────────────────────────────────────
 
-def _row_to_message(row: sqlite3.Row) -> dict[str, Any]:
+def _row_to_message(row: Any) -> dict[str, Any]:
     return {
         "id": row["id"],
         "conversation_id": row["conversation_id"],

@@ -1,14 +1,15 @@
 """
-trace_store.py — request-lifecycle tracing backed by raw/traces/traces.sqlite.
+trace_store.py — request-lifecycle tracing backed by PostgreSQL (was traces.sqlite).
 
 Design contract:
   - FAIL-OPEN: any storage failure is logged and swallowed. A tracing error
     must NEVER break a user request.
-  - Separate SQLite file + connections from conversations.sqlite.
-  - Single serialized writer (module-level conn + Lock) → free `sequence`
-    atomicity. Dashboard reads open their own read-only connections.
+  - Connections come from the shared backend.db pool (autocommit, Row factory).
+    The old single-writer-connection + threading.Lock is gone — Postgres MVCC
+    handles concurrency. `sequence` is assigned in a single INSERT...SELECT
+    statement (events for one trace are emitted serially within one request).
   - trace_id is passed EXPLICITLY through the call graph (no ContextVar).
-  - Tri-state enablement: checked once; if the DB/schema is absent tracing is
+  - Tri-state enablement: checked once; if the schema is absent tracing is
     disabled cleanly for the whole process (no per-call retry, no log spam).
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -26,22 +27,15 @@ Design contract:
 #   llm_response           : {model, input_tokens, output_tokens,
 #                             cache_read_input_tokens, cache_creation_input_tokens,
 #                             stop_reason}
-#   external_http          : DEFERRED TO v2 (not emitted; tool_call covers PMS granularity)
 #   error                  : {exception_type, exception_message, where}
 #
 # ═══════════════════════════════════════════════════════════════════════════
 # Sanitization (Tightening 3)
 # ═══════════════════════════════════════════════════════════════════════════
 #   PRIMARY source-of-truth for tool inputs/outputs is registry.ToolRegistry,
-#   which already runs _SECRET_RE over tool_input/output BEFORE handing the
-#   trace entry to callers. trace_store callers MUST pass already-sanitized
-#   tool data.
+#   which already runs _SECRET_RE BEFORE handing the trace entry to callers.
 #   DEFENSIVE final net: record_event runs _scrub() over every string field
-#   (tool_input_json, tool_output_summary, metadata_json) before INSERT, using
-#   the SAME secret pattern as registry. Bearer tokens, JWTs, and 40+ char
-#   tokens become [REDACTED]. Cookies/tokens never land in the DB.
-#   user_email is NEVER stored raw — only hash_user_email() (SHA-256 + salt,
-#   16 chars). BUID is stored intentionally (operational, not a secret).
+#   before INSERT. user_email is NEVER stored raw — only hash_user_email().
 #
 # Status enum: in_progress | success | error | client_disconnect | orphaned
 """
@@ -52,22 +46,13 @@ import json
 import logging
 import os
 import re
-import sqlite3
 import threading
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
+from backend import db
+
 _log = logging.getLogger("trace_store")
-
-# ── Paths ────────────────────────────────────────────────────────────────────
-_ROOT = Path(__file__).resolve().parent.parent          # backend/ -> repo root
-_TRACES_DIR = _ROOT / "raw" / "traces"
-_DB_PATH = _TRACES_DIR / "traces.sqlite"
-
-
-def _get_db_path() -> Path:
-    return _DB_PATH
 
 
 # ── Secret scrub (mirror of registry._SECRET_RE — defensive final net) ────────
@@ -97,9 +82,6 @@ def hash_user_email(email: str | None) -> str | None:
 
 
 # ── Pricing (Resolution 2 of Step 1) ──────────────────────────────────────────
-# Source: Anthropic prompt caching pricing (5-min TTL).
-#   cache_write = 1.25× base input ;  cache_read = 0.10× base input
-# Last verified: 2026-05-29. Update if Anthropic announces price changes.
 _PRICING = {
     "claude-sonnet-4-6": {"input": 3.00, "output": 15.00, "cache_read": 0.30, "cache_write": 3.75},
     "claude-haiku-4-5":  {"input": 0.80, "output":  4.00, "cache_read": 0.08, "cache_write": 1.00},
@@ -130,9 +112,8 @@ _ENABLE_LOCK = threading.Lock()
 
 
 def _check_tracing_enabled() -> bool:
-    """Checked once. Missing file OR missing schema → disabled cleanly for the
-    whole process lifetime. No auto-create (would leave a half-broken state).
-    No per-call retry (would spam logs)."""
+    """Checked once. Missing schema → disabled cleanly for the whole process
+    lifetime. No per-call retry (would spam logs)."""
     global _TRACING_ENABLED
     if _TRACING_ENABLED is not None:
         return _TRACING_ENABLED
@@ -140,83 +121,35 @@ def _check_tracing_enabled() -> bool:
         if _TRACING_ENABLED is not None:        # double-checked under lock
             return _TRACING_ENABLED
         try:
-            db_path = _get_db_path()
-            if not db_path.exists():
-                _log.warning("trace DB not found at %s — tracing disabled for this session. "
-                             "Run scripts/init_traces_db.py to enable.", db_path)
-                _TRACING_ENABLED = False
-                return False
-            conn = sqlite3.connect(db_path)
-            cur = conn.execute(
-                "SELECT name FROM sqlite_master WHERE type='table' AND name='trace_sessions'")
-            ok = cur.fetchone() is not None
-            conn.close()
+            with db.connection() as conn:
+                row = conn.execute("SELECT to_regclass('trace_sessions')").fetchone()
+            ok = row is not None and row[0] is not None
             if not ok:
-                _log.warning("trace DB exists but schema not initialized — tracing disabled. "
-                             "Run scripts/init_traces_db.py.")
-                _TRACING_ENABLED = False
-                return False
-            _TRACING_ENABLED = True
-            return True
+                _log.warning("trace_sessions table missing — tracing disabled. Run migrations.")
+            _TRACING_ENABLED = bool(ok)
+            return _TRACING_ENABLED
         except Exception as exc:
             _log.warning("trace enablement check failed: %s — tracing disabled", exc)
             _TRACING_ENABLED = False
             return False
 
 
-# ── Writer connection ──────────────────────────────────────────────────────────
-_WRITE_LOCK = threading.Lock()
-_conn: sqlite3.Connection | None = None
-
-
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
 
-def _get_conn() -> sqlite3.Connection | None:
-    """Lazy module-level writer connection. Assumes enablement already passed."""
-    global _conn
-    if _conn is not None:
-        return _conn
-    try:
-        _conn = sqlite3.connect(_DB_PATH, check_same_thread=False)
-        _conn.execute("PRAGMA journal_mode=WAL;")
-        _conn.execute("PRAGMA synchronous=NORMAL;")
-        _conn.execute("PRAGMA foreign_keys=ON;")
-        _conn.execute("PRAGMA busy_timeout=5000;")
-        return _conn
-    except Exception as exc:
-        _log.warning("trace_store: could not open writer DB (tracing OFF): %s", exc)
-        return None
-
-
-def _write(fn) -> None:
-    """Run a write under the lock with explicit rollback-on-failure (CONCERN 2).
-    The lock is ALWAYS released (`with`); on any error we roll back then re-raise
-    so the caller's fail-open try/except logs it. Never leaves a half-committed conn."""
-    conn = _get_conn()
-    if conn is None:
-        return
-    with _WRITE_LOCK:
-        try:
-            fn(conn)
-            conn.commit()
-        except Exception:
-            try:
-                conn.rollback()
-            except Exception:
-                pass   # rollback itself failed — nothing more we can safely do
-            raise      # propagate to the public fn's fail-open handler
+def _write(fn):
+    """Acquire a pooled connection and run a write op. Errors propagate to the
+    caller's fail-open try/except (a tracing error never breaks a request)."""
+    with db.connection() as conn:
+        return fn(conn)
 
 
 # ── Public API ──────────────────────────────────────────────────────────────
 def start_session(trace_id: str, *, mode: str, question: str | None = None,
                   conversation_id: str | None = None, message_id: str | None = None) -> None:
-    """UPSERT the session row. Called TWICE per traced request:
-      1. by the middleware FIRST (mode='unknown' hint) — creates the parent row
-         so subsequent trace_events (request_start, preflight…) satisfy the FK.
-      2. by the handler — enriches with real mode/question/conversation_id.
-    started_at and status are set on insert and never overwritten (earliest wins)."""
+    """UPSERT the session row. Called TWICE per traced request (middleware then
+    handler). started_at/status set on insert, never overwritten (earliest wins)."""
     if not trace_id or not _check_tracing_enabled():
         return
     question_val = (_scrub(question) or "")[:500] if question else None
@@ -225,7 +158,7 @@ def start_session(trace_id: str, *, mode: str, question: str | None = None,
             conn.execute(
                 "INSERT INTO trace_sessions "
                 "(trace_id, conversation_id, message_id, started_at, mode, question, status) "
-                "VALUES (?,?,?,?,?,?, 'in_progress') "
+                "VALUES (%s,%s,%s,%s,%s,%s, 'in_progress') "
                 "ON CONFLICT(trace_id) DO UPDATE SET "
                 "  mode = excluded.mode, "
                 "  question = COALESCE(excluded.question, trace_sessions.question), "
@@ -243,22 +176,22 @@ def record_event(trace_id: str, component: str, event_type: str, *,
                  tool_name: str | None = None, tool_input_json: str | None = None,
                  tool_output_summary: str | None = None, status: str | None = None,
                  metadata: dict | None = None) -> None:
-    """Append one event. sequence = MAX+1 within trace (atomic under the lock). Fail-open."""
+    """Append one event. sequence = MAX+1 within trace, assigned in a single
+    INSERT...SELECT (events for one trace are emitted serially). Fail-open."""
     if not trace_id or not _check_tracing_enabled():
         return
     try:
         meta_str = _scrub(json.dumps(metadata, default=str)) if metadata else None
         def op(conn):
-            cur = conn.cursor()
-            cur.execute("SELECT COALESCE(MAX(sequence), -1) + 1 FROM trace_events WHERE trace_id=?", (trace_id,))
-            seq = cur.fetchone()[0]
-            cur.execute(
+            conn.execute(
                 "INSERT INTO trace_events (event_id, trace_id, sequence, timestamp, component, "
                 "event_type, duration_ms, round_num, tool_name, tool_input_json, "
-                "tool_output_summary, status, metadata_json) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                (str(uuid4()), trace_id, seq, _now_iso(), component, event_type, duration_ms,
+                "tool_output_summary, status, metadata_json) "
+                "SELECT %s, %s, COALESCE(MAX(sequence), -1) + 1, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s "
+                "FROM trace_events WHERE trace_id = %s",
+                (str(uuid4()), trace_id, _now_iso(), component, event_type, duration_ms,
                  round_num, tool_name, _scrub(tool_input_json),
-                 _scrub(tool_output_summary), status, meta_str),
+                 _scrub(tool_output_summary), status, meta_str, trace_id),
             )
         _write(op)
     except Exception as exc:
@@ -268,37 +201,50 @@ def record_event(trace_id: str, component: str, event_type: str, *,
 def end_session(trace_id: str, *, status: str, error_message: str | None = None,
                 message_id: str | None = None) -> None:
     """Finalize: compute duration, roll up trace_metrics from events. Fail-open.
-    status ∈ success | error | client_disconnect (orphaned is set only by reconcile)."""
+    The UPDATE + metrics UPSERT are wrapped in one transaction (atomic, matching
+    the prior single-commit behavior)."""
     if not trace_id or not _check_tracing_enabled():
         return
     try:
         def op(conn):
-            cur = conn.cursor()
-            cur.execute("SELECT started_at FROM trace_sessions WHERE trace_id=?", (trace_id,))
-            row = cur.fetchone()
-            if row is None:
-                return  # never started
-            started = datetime.fromisoformat(row[0])
-            ended = datetime.now(timezone.utc)
-            dur_ms = int((ended - started).total_seconds() * 1000)
-            agg = _aggregate_events(cur, trace_id)
-            cur.execute(
-                "UPDATE trace_sessions SET ended_at=?, duration_ms=?, status=?, error_message=?, "
-                "message_id=COALESCE(?, message_id), total_tokens_input=?, total_tokens_output=?, "
-                "total_cost_usd=?, tool_call_count=?, round_count=? WHERE trace_id=?",
-                (ended.isoformat(timespec="milliseconds"), dur_ms, status, error_message,
-                 message_id, agg["tokens_input"], agg["tokens_output"], agg["cost_usd"],
-                 agg["tool_calls"], agg["rounds"], trace_id),
-            )
-            cur.execute(
-                "INSERT OR REPLACE INTO trace_metrics (trace_id, latency_total_ms, "
-                "latency_preflight_ms, latency_llm_ms, latency_tools_ms, tool_calls_by_name_json, "
-                "tokens_input, tokens_output, tokens_cached_input, cost_usd, errors_count) "
-                "VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-                (trace_id, dur_ms, agg["preflight_ms"], agg["llm_ms"], agg["tools_ms"],
-                 json.dumps(agg["tool_by_name"]), agg["tokens_input"], agg["tokens_output"],
-                 agg["tokens_cached"], agg["cost_usd"], agg["errors"]),
-            )
+            with conn.cursor() as cur:
+                cur.execute("SELECT started_at FROM trace_sessions WHERE trace_id=%s", (trace_id,))
+                row = cur.fetchone()
+                if row is None:
+                    return  # never started
+                started = datetime.fromisoformat(row[0])
+                ended = datetime.now(timezone.utc)
+                dur_ms = int((ended - started).total_seconds() * 1000)
+                agg = _aggregate_events(cur, trace_id)
+                with conn.transaction():
+                    cur.execute(
+                        "UPDATE trace_sessions SET ended_at=%s, duration_ms=%s, status=%s, error_message=%s, "
+                        "message_id=COALESCE(%s, message_id), total_tokens_input=%s, total_tokens_output=%s, "
+                        "total_cost_usd=%s, tool_call_count=%s, round_count=%s WHERE trace_id=%s",
+                        (ended.isoformat(timespec="milliseconds"), dur_ms, status, error_message,
+                         message_id, agg["tokens_input"], agg["tokens_output"], agg["cost_usd"],
+                         agg["tool_calls"], agg["rounds"], trace_id),
+                    )
+                    cur.execute(
+                        "INSERT INTO trace_metrics (trace_id, latency_total_ms, "
+                        "latency_preflight_ms, latency_llm_ms, latency_tools_ms, tool_calls_by_name_json, "
+                        "tokens_input, tokens_output, tokens_cached_input, cost_usd, errors_count) "
+                        "VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s) "
+                        "ON CONFLICT(trace_id) DO UPDATE SET "
+                        "  latency_total_ms=excluded.latency_total_ms, "
+                        "  latency_preflight_ms=excluded.latency_preflight_ms, "
+                        "  latency_llm_ms=excluded.latency_llm_ms, "
+                        "  latency_tools_ms=excluded.latency_tools_ms, "
+                        "  tool_calls_by_name_json=excluded.tool_calls_by_name_json, "
+                        "  tokens_input=excluded.tokens_input, "
+                        "  tokens_output=excluded.tokens_output, "
+                        "  tokens_cached_input=excluded.tokens_cached_input, "
+                        "  cost_usd=excluded.cost_usd, "
+                        "  errors_count=excluded.errors_count",
+                        (trace_id, dur_ms, agg["preflight_ms"], agg["llm_ms"], agg["tools_ms"],
+                         json.dumps(agg["tool_by_name"]), agg["tokens_input"], agg["tokens_output"],
+                         agg["tokens_cached"], agg["cost_usd"], agg["errors"]),
+                    )
         _write(op)
     except Exception as exc:
         _log.warning("trace_store.end_session failed (ignored): %s", exc)
@@ -310,7 +256,7 @@ def _aggregate_events(cur, trace_id: str) -> dict:
            "tokens_output": None, "tokens_cached": None, "cost_usd": None,
            "tool_calls": 0, "rounds": 0, "errors": 0, "tool_by_name": {}}
     cur.execute("SELECT component, event_type, duration_ms, round_num, tool_name, status, metadata_json "
-                "FROM trace_events WHERE trace_id=?", (trace_id,))
+                "FROM trace_events WHERE trace_id=%s", (trace_id,))
     tok_in = tok_out = tok_cached = 0
     cost = 0.0
     saw_usage = False
@@ -348,51 +294,53 @@ def _aggregate_events(cur, trace_id: str) -> dict:
 
 
 # ── Orphan reconciliation (Tightening 1) ──────────────────────────────────────
-def _reconcile_orphans() -> None:
-    """Mark sessions left in_progress by a previous backend crash as 'orphaned'. At import."""
+def reconcile_orphans(stale_after_minutes: int = 10) -> None:
+    """Mark sessions left in_progress by a previous crash as 'orphaned'. Called
+    at app startup (after migrations).
+
+    Multi-replica safety: only reconciles sessions older than
+    stale_after_minutes, so a replica restart does NOT orphan another replica's
+    in-flight requests. (Trade-off: a crash <stale window before restart leaves a
+    short-lived in_progress row until a later restart cleans it.)
+    """
     if not _check_tracing_enabled():
         return
     try:
-        result = {"n": 0}
+        cutoff = (datetime.now(timezone.utc) - timedelta(minutes=stale_after_minutes)
+                  ).isoformat(timespec="milliseconds")
+
         def op(conn):
-            cur = conn.cursor()
-            cur.execute(
-                "UPDATE trace_sessions SET status='orphaned', ended_at=COALESCE(ended_at, ?) "
-                "WHERE status='in_progress'", (_now_iso(),))
-            result["n"] = cur.rowcount
-        _write(op)
-        if result["n"] > 0:
-            _log.info("trace_store: marked %d orphaned session(s) from previous run", result["n"])
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE trace_sessions SET status='orphaned', ended_at=COALESCE(ended_at, %s) "
+                    "WHERE status='in_progress' AND started_at < %s",
+                    (_now_iso(), cutoff))
+                return cur.rowcount
+        n = _write(op)
+        if n and n > 0:
+            _log.info("trace_store: marked %d orphaned session(s) from previous run", n)
     except Exception as exc:
         _log.warning("trace_store: orphan reconciliation failed (ignored): %s", exc)
 
 
-# ── Read API (dashboard) — own read-only connection, never the writer ─────────
-def _read_conn() -> sqlite3.Connection:
-    return sqlite3.connect(f"file:{_DB_PATH}?mode=ro", uri=True, check_same_thread=False)
+# Backward-compat alias (older callers referenced the private name).
+_reconcile_orphans = reconcile_orphans
 
 
+# ── Read API (dashboard) ──────────────────────────────────────────────────────
 def query_session(trace_id: str) -> dict | None:
     if not _check_tracing_enabled():
         return None
     try:
-        c = _read_conn()
-        c.row_factory = sqlite3.Row
-        s = c.execute("SELECT * FROM trace_sessions WHERE trace_id=?", (trace_id,)).fetchone()
-        if s is None:
-            c.close()
-            return None
-        evs = c.execute("SELECT * FROM trace_events WHERE trace_id=? ORDER BY sequence", (trace_id,)).fetchall()
-        m = c.execute("SELECT * FROM trace_metrics WHERE trace_id=?", (trace_id,)).fetchone()
-        c.close()
+        with db.connection() as conn:
+            s = conn.execute("SELECT * FROM trace_sessions WHERE trace_id=%s", (trace_id,)).fetchone()
+            if s is None:
+                return None
+            evs = conn.execute(
+                "SELECT * FROM trace_events WHERE trace_id=%s ORDER BY sequence", (trace_id,)
+            ).fetchall()
+            m = conn.execute("SELECT * FROM trace_metrics WHERE trace_id=%s", (trace_id,)).fetchone()
         return {"session": dict(s), "events": [dict(e) for e in evs], "metrics": dict(m) if m else None}
     except Exception as exc:
         _log.warning("trace_store.query_session failed: %s", exc)
         return None
-
-
-# query_sessions(filters, limit) + aggregate_metrics(time_range, filters) for the
-# dashboard endpoints are drafted in Step 4 (trace_api_draft.py).
-
-# Reconcile on import (Tightening 1). No-op if DB/schema missing (tracing disabled).
-_reconcile_orphans()

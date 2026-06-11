@@ -80,6 +80,9 @@ async def lifespan(app: FastAPI):
     db.init_pool()
     if os.getenv("CONWO_RUN_MIGRATIONS", "true").strip().lower() in {"1", "true", "yes", "on"}:
         db.init_db()
+    # Sweep stale in_progress traces from a previous run (multi-replica safe:
+    # only reconciles sessions older than the threshold). Fail-open.
+    trace_store.reconcile_orphans()
     wiki_retriever.build_index()
     # Single-key deployment check — api-mode queries will return 503 until the
     # operator sets ANTHROPIC_API_KEY. Don't crash; the server must still come
@@ -330,8 +333,9 @@ def trace_health():
     and for ongoing ops health checks."""
     return {
         "ok": True,
-        "db": str(trace_store._DB_PATH),
-        "exists": trace_store._DB_PATH.exists(),
+        "backend": "postgres",
+        "db": os.getenv("CONWO_DB_NAME", "wis_conwo"),
+        "host": os.getenv("CONWO_DB_HOST", "localhost"),
         "enabled": trace_store._check_tracing_enabled(),
     }
 
