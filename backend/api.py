@@ -87,7 +87,8 @@ async def lifespan(app: FastAPI):
     # Single-key deployment check — api-mode queries will return 503 until the
     # operator sets ANTHROPIC_API_KEY. Don't crash; the server must still come
     # up for admin endpoints and conversation CRUD even without an LLM key.
-    import logging, os
+    # (os + logging are imported at module top; no local re-import — that would
+    #  shadow `os` as a function-local and break the CONWO_RUN_MIGRATIONS check above.)
     if not os.getenv("ANTHROPIC_API_KEY", "").strip():
         logging.getLogger("uvicorn.error").warning(
             "ANTHROPIC_API_KEY is not set. api-mode `/query` requests will fail "
@@ -110,7 +111,6 @@ async def lifespan(app: FastAPI):
         from backend import wiki_proposals
         wiki_proposals.warn_if_legacy_pending()
     except Exception as exc:
-        import logging
         logging.getLogger("uvicorn.error").warning(
             "Track A startup check failed (wiki_proposals.warn_if_legacy_pending): %s. "
             "Server is starting anyway; the proposal queue may need manual inspection.",
