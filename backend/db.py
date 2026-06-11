@@ -114,10 +114,18 @@ def _env(name: str, default: str | None = None) -> str:
 
 
 def _dsn() -> str:
-    """Build a libpq connection string from CONWO_DB_* env vars.
+    """Return the Postgres connection string.
 
-    Password is read from the environment only — never logged or defaulted.
+    If DATABASE_URL is set (DevOps' platform convention — a single
+    postgresql://user:pass@host:port/db?sslmode=require URI), use it verbatim;
+    libpq/psycopg accept it directly. Otherwise build a libpq keyword string from
+    the discrete CONWO_DB_* vars (local dev / explicit config). Secrets are read
+    from the environment only — never logged or defaulted.
     """
+    url = _env("DATABASE_URL")
+    if url:
+        return url
+
     host = _env("CONWO_DB_HOST", "localhost")
     port = _env("CONWO_DB_PORT", "5432")
     name = _env("CONWO_DB_NAME", "wis_conwo")
