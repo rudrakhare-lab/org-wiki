@@ -10,3 +10,5 @@ python-frontmatter==1.1.0  # G35 — robust YAML frontmatter parsing
 python-multipart>=0.0.12  # file upload support for /api/ingest/upload
 pytest>=7.0
 google-auth>=2.29.0
+psycopg[binary]==3.2.3   # PostgreSQL driver (replaces sqlite3)
+psycopg-pool==3.2.4      # connection pool for the single-DB pool in backend/db.py

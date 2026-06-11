@@ -1,15 +1,41 @@
 services:
+  postgres:
+    image: postgres:15
+    environment:
+      # These must match the CONWO_DB_* values in .env (local dev).
+      POSTGRES_DB: wis_conwo
+      POSTGRES_USER: wis_conwo
+      POSTGRES_PASSWORD: conwo_local_dev_pw
+    ports:
+      - "5432:5432"
+    volumes:
+      # Named volume — local Postgres data persists across container restarts.
+      - conwo_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wis_conwo -d wis_conwo"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
   conwo:
     build: .
     ports:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      # Inside the container, reach Postgres by its compose service name,
+      # NOT localhost (localhost would resolve to the conwo container itself).
+      # This overrides CONWO_DB_HOST from .env for the containerized backend.
+      CONWO_DB_HOST: postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
     volumes:
-      # ⚠️  CRITICAL — these directories contain live runtime data.
-      # raw/ holds SQLite databases (Jira tickets, conversations, traces, auth).
-      # wiki/ holds the AI-maintained markdown knowledge base.
-      # Never run this container without these mounts — data is lost on restart.
+      # ⚠️  wiki/ holds the AI-maintained markdown knowledge base.
+      # raw/ still holds non-DB runtime data (uploaded source docs, sync logs).
+      # The SQLite databases under raw/ are being migrated to Postgres.
       - ./raw:/opt/conwo/raw
       - ./wiki:/opt/conwo/wiki
     healthcheck:
@@ -18,3 +44,6 @@ services:
       timeout: 10s
       retries: 3
     restart: unless-stopped
+
+volumes:
+  conwo_pgdata:

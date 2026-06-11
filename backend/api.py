@@ -72,6 +72,14 @@ from backend.google_auth import verify_google_credential
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Open the PostgreSQL pool first — auth, conversations, traces, and all
+    # read tools depend on it. Run schema migrations (idempotent, advisory-locked
+    # so concurrent replicas are safe). CONWO_RUN_MIGRATIONS=false lets prod run
+    # migrations as a separate one-shot job and have replicas skip them.
+    from backend import db
+    db.init_pool()
+    if os.getenv("CONWO_RUN_MIGRATIONS", "true").strip().lower() in {"1", "true", "yes", "on"}:
+        db.init_db()
     wiki_retriever.build_index()
     # Single-key deployment check — api-mode queries will return 503 until the
     # operator sets ANTHROPIC_API_KEY. Don't crash; the server must still come
@@ -106,6 +114,12 @@ async def lifespan(app: FastAPI):
             exc,
         )
     yield
+    # Shutdown — release the PostgreSQL pool.
+    try:
+        from backend import db
+        db.close_pool()
+    except Exception:
+        pass
 
 
 # ---------------------------------------------------------------------------
