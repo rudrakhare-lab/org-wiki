@@ -42,8 +42,10 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
-# init_traces_db.py is idempotent — safe to run on every start.
-# It creates raw/traces/traces.sqlite if it does not exist yet.
-CMD ["sh", "-c", \
-     "python scripts/init_traces_db.py && \
-      exec uvicorn backend.api:app --host 0.0.0.0 --port 8000 --workers 1"]
+# Schema is created/updated automatically at startup by the FastAPI lifespan
+# (backend.api → db.init_db(), advisory-locked + idempotent), against the
+# PostgreSQL database configured via CONWO_DB_*. No pre-start SQLite init needed.
+# (Multi-replica: set CONWO_RUN_MIGRATIONS=false on replicas and run migrations
+#  as a one-shot job if you prefer not to migrate-on-boot; the advisory lock makes
+#  concurrent boot safe either way.)
+CMD ["uvicorn", "backend.api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
