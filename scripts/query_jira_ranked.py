@@ -22,11 +22,9 @@ Usage:
 
 import argparse
 import json
-import sqlite3
 import sys
 from pathlib import Path
 
-DB_PATH = Path(__file__).parent.parent / "raw" / "jira" / "tickets.sqlite"
 RECENCY_DAYS = 180
 SUBSTANTIVE_COMMENT_THRESHOLD = 2
 SUBSTANTIVE_CONTENT_CHARS = 500
@@ -52,23 +50,23 @@ def fetch_ranked(conn, keyword, functional_area=None, limit=25):
              -- Date prefix (timezone-safe)
              substr(updated_at, 1, 10)  AS updated_date,
              substr(resolved_at, 1, 10) AS resolved_date,
-             -- Direct hit in summary is the strongest signal
-             CASE WHEN summary LIKE :kw_like COLLATE NOCASE THEN 1 ELSE 0 END AS hit_summary,
-             CASE WHEN description_text LIKE :kw_like COLLATE NOCASE THEN 1 ELSE 0 END AS hit_desc
+             -- Direct hit in summary is the strongest signal (ILIKE = case-insensitive)
+             CASE WHEN summary ILIKE %(kw_like)s THEN 1 ELSE 0 END AS hit_summary,
+             CASE WHEN description_text ILIKE %(kw_like)s THEN 1 ELSE 0 END AS hit_desc
       FROM tickets
-      WHERE (summary          LIKE :kw_like COLLATE NOCASE
-          OR description_text LIKE :kw_like COLLATE NOCASE
-          OR comments_text    LIKE :kw_like COLLATE NOCASE)
+      WHERE (summary          ILIKE %(kw_like)s
+          OR description_text ILIKE %(kw_like)s
+          OR comments_text    ILIKE %(kw_like)s)
         {area_clause}
     )
     SELECT
       CASE
         -- LATEST = actual recent activity (updated OR resolved within window)
-        WHEN updated_date  >= :cutoff_date THEN 'LATEST'
-        WHEN resolved_date >= :cutoff_date THEN 'LATEST'
+        WHEN updated_date  >= %(cutoff_date)s THEN 'LATEST'
+        WHEN resolved_date >= %(cutoff_date)s THEN 'LATEST'
         -- STALE-OPEN = open ticket with no recent update (likely abandoned)
         WHEN status_category IN ('new', 'indeterminate')
-             AND updated_date < :cutoff_date THEN 'STALE-OPEN'
+             AND updated_date < %(cutoff_date)s THEN 'STALE-OPEN'
         -- HISTORICAL = old closed ticket (describes past behavior)
         ELSE 'HISTORICAL'
       END AS bucket,
@@ -83,10 +81,10 @@ def fetch_ranked(conn, keyword, functional_area=None, limit=25):
     ORDER BY
       -- Bucket order: Latest > Historical > Stale-open
       CASE
-        WHEN updated_date  >= :cutoff_date THEN 0
-        WHEN resolved_date >= :cutoff_date THEN 0
+        WHEN updated_date  >= %(cutoff_date)s THEN 0
+        WHEN resolved_date >= %(cutoff_date)s THEN 0
         WHEN status_category IN ('new', 'indeterminate')
-             AND updated_date < :cutoff_date THEN 2
+             AND updated_date < %(cutoff_date)s THEN 2
         ELSE 1
       END,
       -- Direct summary hit ranks above content-only hit
@@ -98,7 +96,7 @@ def fetch_ranked(conn, keyword, functional_area=None, limit=25):
       updated_date DESC,
       -- Richer ticket breaks ties
       content_size DESC
-    LIMIT :limit
+    LIMIT %(limit)s
     """
     area_clause = ""
     params = {
@@ -111,7 +109,7 @@ def fetch_ranked(conn, keyword, functional_area=None, limit=25):
     params["cutoff_date"] = cutoff
 
     if functional_area:
-        area_clause = "AND functional_area = :area"
+        area_clause = "AND functional_area = %(area)s"
         params["area"] = functional_area
     sql = sql.format(area_clause=area_clause)
 
@@ -258,15 +256,19 @@ def main():
     )
     args = parser.parse_args()
 
-    if not DB_PATH.exists():
-        print(f"ERROR: SQLite DB not found at {DB_PATH}", file=sys.stderr)
-        sys.exit(1)
+    # Query Postgres via the shared pool (tickets now live in PostgreSQL).
+    _root = Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(_root))
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=str(_root / ".env"))
+    from backend import db
 
-    conn = sqlite3.connect(DB_PATH)
+    db.init_pool()
     try:
-        rows = fetch_ranked(conn, args.keyword, args.functional_area, args.limit)
+        with db.connection() as conn:
+            rows = fetch_ranked(conn, args.keyword, args.functional_area, args.limit)
     finally:
-        conn.close()
+        db.close_pool()
 
     if not rows:
         if args.json:

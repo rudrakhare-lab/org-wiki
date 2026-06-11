@@ -99,13 +99,11 @@ TEST CASES (for Step 9 verification)
 from __future__ import annotations
 
 import logging
-import sqlite3
 from pathlib import Path
 
 import frontmatter  # same library used by wiki_propose_tools + Step-5 wiki_retriever
 
-from backend import jira_retriever
-from backend.config import JIRA_DB
+from backend import db, jira_retriever
 
 
 _LOG = logging.getLogger("jira_cross_module")
@@ -184,12 +182,6 @@ JIRA_SEARCH_CROSS_MODULE_SCHEMA: dict = {
 
 # ── DB ────────────────────────────────────────────────────────────────────────
 
-def _open_ro() -> sqlite3.Connection:
-    """Read-only SQLite handle. Same pattern as jira_count.py and jira_retriever.py."""
-    uri = f"file:{JIRA_DB}?mode=ro&immutable=1"
-    return sqlite3.connect(uri, uri=True, check_same_thread=False)
-
-
 def _fetch_buckets_for_keys(conn, keys: list[str]) -> dict[str, dict]:
     """
     Batched lookup: one SELECT, returns
@@ -200,7 +192,7 @@ def _fetch_buckets_for_keys(conn, keys: list[str]) -> dict[str, dict]:
     """
     if not keys:
         return {}
-    placeholders = ",".join("?" for _ in keys)
+    placeholders = ",".join("%s" for _ in keys)
     sql = (
         f"SELECT ticket_key, type_bucket, status_bucket, priority_bucket "
         f"FROM ticket_classifications "
@@ -310,14 +302,11 @@ def _jira_search_cross_module_handler(inp: dict) -> dict:
         if all_rows:
             buckets_map: dict[str, dict] = {}
             try:
-                conn = _open_ro()
-                try:
+                with db.connection() as conn:
                     buckets_map = _fetch_buckets_for_keys(
                         conn, [r["key"] for r in all_rows]
                     )
-                finally:
-                    conn.close()
-            except sqlite3.Error as exc:
+            except Exception as exc:
                 # Silent → visible: tag the response so the agent knows
                 # bucket-based filtering may have dropped legitimate matches.
                 _LOG.warning(

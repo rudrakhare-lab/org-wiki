@@ -79,10 +79,9 @@ TEST CASES (for Step 9 verification)
 """
 from __future__ import annotations
 
-import sqlite3
 from datetime import datetime, timedelta, timezone
 
-from backend.config import JIRA_DB
+from backend import db
 
 
 # ── Schema ────────────────────────────────────────────────────────────────────
@@ -163,14 +162,6 @@ JIRA_COUNT_SCHEMA: dict = {
 }
 
 
-# ── DB ────────────────────────────────────────────────────────────────────────
-
-def _open_ro() -> sqlite3.Connection:
-    """Open the Jira SQLite read-only. Mirrors jira_retriever._open_readonly."""
-    uri = f"file:{JIRA_DB}?mode=ro&immutable=1"
-    return sqlite3.connect(uri, uri=True, check_same_thread=False)
-
-
 # ── Handler ───────────────────────────────────────────────────────────────────
 
 def _jira_count_handler(inp: dict) -> dict:
@@ -216,9 +207,6 @@ def _jira_count_handler(inp: dict) -> dict:
     if priority_bucket and priority_bucket not in {"p0", "p1", "p3", "other"}:
         return {"error": f"invalid priority_bucket: {priority_bucket!r}", "code": "invalid_input"}
 
-    if not JIRA_DB.exists():
-        return {"error": "Jira SQLite database not found.", "code": "db_not_found"}
-
     # ── 2. Build WHERE clauses + params ───────────────────────────────────────
     where: list[str] = []
     params: dict = {}
@@ -229,34 +217,36 @@ def _jira_count_handler(inp: dict) -> dict:
         #  in production data anyway, but 0.5 leaves room for future source='manual' rows).
         where.append(
             "t.key IN (SELECT ticket_key FROM ticket_module_tags "
-            "WHERE module_slug = :module AND confidence >= 0.5)"
+            "WHERE module_slug = %(module)s AND confidence >= 0.5)"
         )
         params["module"] = module
 
     if functional_area:
-        where.append("t.functional_area = :fa")
+        where.append("t.functional_area = %(fa)s")
         params["fa"] = functional_area
 
     if type_bucket:
-        where.append("c.type_bucket = :type_bucket")
+        where.append("c.type_bucket = %(type_bucket)s")
         params["type_bucket"] = type_bucket
 
     if status_bucket:
-        where.append("c.status_bucket = :status_bucket")
+        where.append("c.status_bucket = %(status_bucket)s")
         params["status_bucket"] = status_bucket
 
     if priority_bucket:
-        where.append("c.priority_bucket = :priority_bucket")
+        where.append("c.priority_bucket = %(priority_bucket)s")
         params["priority_bucket"] = priority_bucket
 
-    # ── DATE FILTERS — substr(...,1,10) NOT datetime() — see top-of-file note ─
+    # ── DATE FILTERS — substr(...,1,10) string-prefix compare (see top-of-file
+    #    note). Cutoff dates are computed in Python (UTC); Postgres has no
+    #    SQLite date('now', '-N days').
     if updated_within is not None:
-        where.append("substr(t.updated_at, 1, 10) >= date('now', :uwd)")
-        params["uwd"] = f"-{updated_within} days"
+        where.append("substr(t.updated_at, 1, 10) >= %(uwd)s")
+        params["uwd"] = (datetime.now(timezone.utc).date() - timedelta(days=updated_within)).isoformat()
 
     if resolved_within is not None:
-        where.append("substr(t.resolved_at, 1, 10) >= date('now', :rwd)")
-        params["rwd"] = f"-{resolved_within} days"
+        where.append("substr(t.resolved_at, 1, 10) >= %(rwd)s")
+        params["rwd"] = (datetime.now(timezone.utc).date() - timedelta(days=resolved_within)).isoformat()
 
     where_sql = " AND ".join(where) if where else "1=1"
 
@@ -271,33 +261,31 @@ def _jira_count_handler(inp: dict) -> dict:
     )
 
     # ── 3. Execute the three queries ──────────────────────────────────────────
-    conn = _open_ro()
     try:
-        # Total count
-        count_sql = f"SELECT COUNT(DISTINCT t.key) {base_from} WHERE {where_sql}"
-        total = conn.execute(count_sql, params).fetchone()[0] or 0
+        with db.connection() as conn:
+            # Total count
+            count_sql = f"SELECT COUNT(DISTINCT t.key) {base_from} WHERE {where_sql}"
+            total = conn.execute(count_sql, params).fetchone()[0] or 0
 
-        # by_priority breakdown
-        priority_sql = (
-            f"SELECT COALESCE(c.priority_bucket, 'unclassified') AS bucket, "
-            f"       COUNT(DISTINCT t.key) AS cnt "
-            f"{base_from} WHERE {where_sql} "
-            f"GROUP BY bucket"
-        )
-        by_priority = {row[0]: row[1] for row in conn.execute(priority_sql, params).fetchall()}
+            # by_priority breakdown
+            priority_sql = (
+                f"SELECT COALESCE(c.priority_bucket, 'unclassified') AS bucket, "
+                f"       COUNT(DISTINCT t.key) AS cnt "
+                f"{base_from} WHERE {where_sql} "
+                f"GROUP BY COALESCE(c.priority_bucket, 'unclassified')"
+            )
+            by_priority = {row[0]: row[1] for row in conn.execute(priority_sql, params).fetchall()}
 
-        # by_status breakdown
-        status_sql = (
-            f"SELECT COALESCE(c.status_bucket, 'unclassified') AS bucket, "
-            f"       COUNT(DISTINCT t.key) AS cnt "
-            f"{base_from} WHERE {where_sql} "
-            f"GROUP BY bucket"
-        )
-        by_status = {row[0]: row[1] for row in conn.execute(status_sql, params).fetchall()}
-    except sqlite3.Error as exc:
-        return {"error": f"SQLite error: {exc}", "code": "sqlite_error"}
-    finally:
-        conn.close()
+            # by_status breakdown
+            status_sql = (
+                f"SELECT COALESCE(c.status_bucket, 'unclassified') AS bucket, "
+                f"       COUNT(DISTINCT t.key) AS cnt "
+                f"{base_from} WHERE {where_sql} "
+                f"GROUP BY COALESCE(c.status_bucket, 'unclassified')"
+            )
+            by_status = {row[0]: row[1] for row in conn.execute(status_sql, params).fetchall()}
+    except Exception as exc:
+        return {"error": f"database error: {exc}", "code": "db_error"}
 
     # ── 4. Compute query_window for transparency ──────────────────────────────
     today = datetime.now(timezone.utc).date()

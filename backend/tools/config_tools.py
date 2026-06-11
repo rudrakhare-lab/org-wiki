@@ -5,19 +5,8 @@ falling back to wiki TF-IDF when SQLite has no result or is unavailable.
 from __future__ import annotations
 
 import json
-import os
-import sqlite3
 
-from backend import wiki_retriever
-
-# Absolute path to the configs SQLite database.
-# Defined as a module-level global so tests can patch it with patch.object().
-_DB_PATH: str = os.path.join(
-    os.path.dirname(__file__),  # backend/tools/
-    "..", "..",                  # → project root
-    "raw", "configs", "configs.sqlite",
-)
-_DB_PATH = os.path.abspath(_DB_PATH)
+from backend import db, wiki_retriever
 
 
 CONFIG_LOOKUP_SCHEMA: dict = {
@@ -76,19 +65,19 @@ def _wiki_fallback(property_name: str, service: str, server: str) -> dict:
     }
 
 
-def _build_enriched(con: sqlite3.Connection, row: sqlite3.Row) -> dict:
+def _build_enriched(con, row) -> dict:
     """Build the enriched result dict from a configs row plus linked tables."""
     prop = row["property_name"]
 
     # Jira tickets (top 10 by relevance)
     jira_rows = con.execute(
-        "SELECT jira_key, relevance FROM jira_links WHERE property_name = ? ORDER BY relevance DESC LIMIT 10",
+        "SELECT jira_key, relevance FROM jira_links WHERE property_name = %s ORDER BY relevance DESC LIMIT 10",
         (prop,),
     ).fetchall()
 
     # Module pages
     module_rows = con.execute(
-        "SELECT module_slug FROM module_links WHERE property_name = ?",
+        "SELECT module_slug FROM module_links WHERE property_name = %s",
         (prop,),
     ).fetchall()
 
@@ -96,20 +85,20 @@ def _build_enriched(con: sqlite3.Connection, row: sqlite3.Row) -> dict:
     try:
         dep_rows = con.execute(
             "SELECT property_b, dep_type, direction, confidence FROM dependencies "
-            "WHERE property_a = ? ORDER BY confidence DESC",
+            "WHERE property_a = %s ORDER BY confidence DESC",
             (prop,),
         ).fetchall()
-    except sqlite3.OperationalError:
+    except Exception:
         dep_rows = []
 
     # Required_by — property_b = this property (other properties depend on this one)
     try:
         req_rows = con.execute(
             "SELECT property_a, dep_type, direction, confidence FROM dependencies "
-            "WHERE property_b = ? ORDER BY confidence DESC",
+            "WHERE property_b = %s ORDER BY confidence DESC",
             (prop,),
         ).fetchall()
-    except sqlite3.OperationalError:
+    except Exception:
         req_rows = []
 
     return {
@@ -148,62 +137,50 @@ def _config_lookup_handler(inp: dict) -> dict:
     server = inp.get("server") or ""
     fuzzy = inp.get("fuzzy", True)
 
-    # If DB doesn't exist, fall through to wiki TF-IDF immediately
-    if not os.path.exists(_DB_PATH):
+    try:
+        with db.connection() as con:
+            # Build optional WHERE clauses for service and server filters
+            filters = ["LOWER(property_name) = LOWER(%s)"]
+            params: list = [property_name]
+
+            if service:
+                filters.append("LOWER(service) = LOWER(%s)")
+                params.append(service)
+            if server:
+                filters.append("server IN (%s, 'both')")
+                params.append(server)
+
+            where_clause = " AND ".join(filters)
+            row = con.execute(
+                f"SELECT * FROM configs WHERE {where_clause} LIMIT 1",
+                params,
+            ).fetchone()
+
+            # Fuzzy fallback when exact match misses — pg_trgm similarity
+            # (replaces SQLite FTS5 MATCH; uses the trigram GIN index on
+            #  property_name). Cascades to wiki TF-IDF below if still nothing.
+            if row is None and fuzzy:
+                fz_filters = ["c.property_name ILIKE %(like)s"]
+                fz_params: dict = {"term": property_name, "like": f"%{property_name}%"}
+                if service:
+                    fz_filters.append("LOWER(c.service) = LOWER(%(service)s)")
+                    fz_params["service"] = service
+                if server:
+                    fz_filters.append("c.server IN (%(server)s, 'both')")
+                    fz_params["server"] = server
+                fz_where = " AND ".join(fz_filters)
+                row = con.execute(
+                    f"SELECT c.*, similarity(c.property_name, %(term)s) AS _sim "
+                    f"FROM configs c WHERE {fz_where} "
+                    f"ORDER BY _sim DESC LIMIT 1",
+                    fz_params,
+                ).fetchone()
+
+            if row is not None:
+                return _build_enriched(con, row)
+    except Exception:
+        # DB unavailable or schema missing → fall through to wiki TF-IDF.
         return _wiki_fallback(property_name, service, server)
 
-    con = sqlite3.connect(_DB_PATH)
-    con.row_factory = sqlite3.Row
-
-    try:
-        # Build optional WHERE clauses for service and server filters
-        filters = ["LOWER(property_name) = LOWER(?)"]
-        params: list = [property_name]
-
-        if service:
-            filters.append("LOWER(service) = LOWER(?)")
-            params.append(service)
-        if server:
-            filters.append("server IN (?, 'both')")
-            params.append(server)
-
-        where_clause = " AND ".join(filters)
-        row = con.execute(
-            f"SELECT * FROM configs WHERE {where_clause} LIMIT 1",
-            params,
-        ).fetchone()
-
-        # Fuzzy FTS5 fallback when exact match misses
-        if row is None and fuzzy:
-            try:
-                # Quote the term to avoid FTS5 syntax errors with camelCase names
-                fts_term = f'"{property_name}"'
-                fts_filters = ["configs_fts MATCH ?"]
-                fts_params: list = [fts_term]
-
-                if service:
-                    fts_filters.append("LOWER(c.service) = LOWER(?)")
-                    fts_params.append(service)
-                if server:
-                    fts_filters.append("c.server IN (?, 'both')")
-                    fts_params.append(server)
-
-                fts_where = " AND ".join(fts_filters)
-                row = con.execute(
-                    f"SELECT c.* FROM configs c "
-                    f"JOIN configs_fts f ON c.id = f.rowid "
-                    f"WHERE {fts_where} "
-                    f"ORDER BY f.rank LIMIT 1",
-                    fts_params,
-                ).fetchone()
-            except sqlite3.OperationalError:
-                row = None
-
-        if row is not None:
-            return _build_enriched(con, row)
-
-    finally:
-        con.close()
-
-    # Nothing found in SQLite — fall through to wiki TF-IDF
+    # Nothing found in Postgres — fall through to wiki TF-IDF
     return _wiki_fallback(property_name, service, server)

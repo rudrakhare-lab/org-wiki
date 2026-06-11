@@ -64,14 +64,12 @@ def get_sync_status() -> dict:
             ):
                 jira_most_recent_successful_sync = str(obj.get("ts", ""))
 
-    if JIRA_DB.exists():
-        import sqlite3
-        try:
-            conn = sqlite3.connect(f"file:{JIRA_DB}?mode=ro", uri=True)
+    try:
+        from backend import db
+        with db.connection() as conn:
             jira_ticket_count = conn.execute("SELECT COUNT(*) FROM tickets").fetchone()[0]
-            conn.close()
-        except Exception:
-            pass
+    except Exception:
+        pass
 
     result["jira"] = {
         "last_log_line": jira_last_log_line,

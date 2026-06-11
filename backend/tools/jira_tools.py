@@ -9,11 +9,10 @@ Security:
 from __future__ import annotations
 
 import re
-import sqlite3
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from backend import jira_retriever
-from backend.config import JIRA_DB
+from backend import db, jira_retriever
 
 _KEY_RE = re.compile(r"^[A-Z][A-Z0-9]+-\d+$")
 
@@ -25,7 +24,10 @@ def _tickets_by_area_params(p: dict) -> tuple:
     return (p.get("functional_area", ""), min(int(p.get("limit", 20)), 50))
 
 def _recently_resolved_params(p: dict) -> tuple:
-    return (str(int(p.get("days", 90))), min(int(p.get("limit", 20)), 50))
+    # Compute the cutoff date in Python (UTC) — Postgres has no SQLite date('now',...).
+    days = int(p.get("days", 90))
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
+    return (cutoff, min(int(p.get("limit", 20)), 50))
 
 def _open_by_priority_params(p: dict) -> tuple:
     priority = p.get("priority", "P0")
@@ -41,8 +43,8 @@ _NAMED_QUERIES: dict[str, tuple[str, Any]] = {
         "SELECT key, summary, status_category, priority, "
         "substr(updated_at,1,10) AS updated, substr(resolved_at,1,10) AS resolved, "
         "comment_count, functional_area "
-        "FROM tickets WHERE functional_area = ? "
-        "ORDER BY updated_at DESC LIMIT ?",
+        "FROM tickets WHERE functional_area = %s "
+        "ORDER BY updated_at DESC LIMIT %s",
         _tickets_by_area_params,
     ),
     "recently_resolved": (
@@ -50,21 +52,21 @@ _NAMED_QUERIES: dict[str, tuple[str, Any]] = {
         "substr(updated_at,1,10) AS updated, substr(resolved_at,1,10) AS resolved, "
         "comment_count, functional_area "
         "FROM tickets WHERE status_category = 'done' AND resolved_at IS NOT NULL "
-        "AND substr(resolved_at,1,10) >= date('now', '-' || ? || ' days') "
-        "ORDER BY resolved_at DESC LIMIT ?",
+        "AND substr(resolved_at,1,10) >= %s "
+        "ORDER BY resolved_at DESC LIMIT %s",
         _recently_resolved_params,
     ),
     "open_by_priority": (
         "SELECT key, summary, status_category, priority, "
         "substr(updated_at,1,10) AS updated, comment_count, functional_area "
-        "FROM tickets WHERE status_category != 'done' AND priority = ? "
-        "ORDER BY updated_at DESC LIMIT ?",
+        "FROM tickets WHERE status_category != 'done' AND priority = %s "
+        "ORDER BY updated_at DESC LIMIT %s",
         _open_by_priority_params,
     ),
     "tickets_linking_key": (
         "SELECT key, summary, status_category, "
         "substr(updated_at,1,10) AS updated "
-        "FROM tickets WHERE links_json LIKE ? "
+        "FROM tickets WHERE links_json ILIKE %s "
         "ORDER BY updated_at DESC LIMIT 20",
         _tickets_linking_key_params,
     ),
@@ -192,11 +194,6 @@ JIRA_NAMED_QUERY_SCHEMA: dict = {
 
 # ── Handlers ──────────────────────────────────────────────────────────────────
 
-def _open_ro() -> sqlite3.Connection:
-    uri = f"file:{JIRA_DB}?mode=ro&immutable=1"
-    return sqlite3.connect(uri, uri=True, check_same_thread=False)
-
-
 def _jira_search_ranked_handler(inp: dict) -> dict:
     query = str(inp.get("query", "")).strip()
     if not query:
@@ -269,26 +266,21 @@ def _jira_get_ticket_handler(inp: dict) -> dict:
             "error": f"Invalid Jira key format: {key!r}. Expected PROJECT-NUMBER (e.g. TS-12345).",
             "code": "invalid_key_format",
         }
-    if not JIRA_DB.exists():
-        return {"error": "Jira SQLite database not found.", "code": "db_not_found"}
 
     description_offset = int(inp.get("description_offset") or 0)
     comments_offset = int(inp.get("comments_offset") or 0)
     chunk_size = int(inp.get("field_chunk_size") or _FIELD_CHUNK_SIZE)
 
-    conn = _open_ro()
-    try:
+    with db.connection() as conn:
         cur = conn.execute(
             "SELECT key, summary, status_category, priority, "
             "substr(updated_at,1,10) AS updated, substr(resolved_at,1,10) AS resolved, "
             "description_text, comments_text, comment_count, links_json, "
             "functional_area, epic_key "
-            "FROM tickets WHERE key = ?",
+            "FROM tickets WHERE key = %s",
             (key,),
         )
         row = cur.fetchone()
-    finally:
-        conn.close()
 
     if row is None:
         return {"error": f"Ticket not found: {key}", "code": "not_found"}
@@ -326,18 +318,12 @@ def _jira_named_query_handler(inp: dict) -> dict:
             "code": "unknown_query",
         }
 
-    if not JIRA_DB.exists():
-        return {"error": "Jira SQLite database not found.", "code": "db_not_found"}
-
     sql, param_fn = _NAMED_QUERIES[query_name]
     sql_params = param_fn(params)
 
-    conn = _open_ro()
-    try:
+    with db.connection() as conn:
         cur = conn.execute(sql, sql_params)
         col_names = [d[0] for d in cur.description]
         rows = [dict(zip(col_names, row)) for row in cur.fetchall()]
-    finally:
-        conn.close()
 
     return {"query_name": query_name, "rows": rows, "total": len(rows)}

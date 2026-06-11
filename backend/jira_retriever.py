@@ -7,7 +7,6 @@ Extracts a search keyword from the user's free-text question.
 from __future__ import annotations
 
 import re
-import sqlite3
 import sys
 from pathlib import Path
 
@@ -18,7 +17,7 @@ if str(_SCRIPTS) not in sys.path:
 
 from query_jira_ranked import fetch_ranked, render_markdown  # noqa: E402
 
-from backend.config import JIRA_DB
+from backend import db
 
 # Common English stop-words to strip before keyword extraction
 _STOPWORDS = {
@@ -29,12 +28,8 @@ _STOPWORDS = {
 }
 
 
-def _open_readonly() -> sqlite3.Connection:
-    if not JIRA_DB.exists():
-        raise FileNotFoundError(f"Jira SQLite DB not found: {JIRA_DB}")
-    # mode=ro prevents accidental writes; immutable=1 skips WAL lock acquisition
-    uri = f"file:{JIRA_DB}?mode=ro&immutable=1"
-    return sqlite3.connect(uri, uri=True, check_same_thread=False)
+# Read access goes through the shared Postgres pool (backend.db.connection()).
+# The old _open_readonly() SQLite helper is gone; tickets live in Postgres now.
 
 
 def extract_keywords(question: str, max_terms: int = 3) -> list[str]:
@@ -92,8 +87,7 @@ def search(
             "buckets": {"LATEST": [], "HISTORICAL": [], "STALE-OPEN": []},
         }
 
-    conn = _open_readonly()
-    try:
+    with db.connection() as conn:
         # Search with the best keyword; merge if multiple terms
         all_rows: list[dict] = []
         seen_keys: set[str] = set()
@@ -117,8 +111,6 @@ def search(
             )
             for r in all_rows:
                 r["modules"] = modules_map.get(r["key"], [])
-    finally:
-        conn.close()
 
     # Re-sort merged rows by bucket order then recency (fetch_ranked already sorts,
     # but merging across keywords can shuffle)
@@ -150,7 +142,7 @@ def _fetch_module_tagged_keys(
     """Set of ticket keys tagged to `module_slug` at or above `confidence_floor`."""
     cur = conn.execute(
         "SELECT ticket_key FROM ticket_module_tags "
-        "WHERE module_slug = ? AND confidence >= ?",
+        "WHERE module_slug = %s AND confidence >= %s",
         (module_slug, confidence_floor),
     )
     return {row[0] for row in cur.fetchall()}
@@ -168,11 +160,11 @@ def _fetch_modules_for_keys(
     """
     if not keys:
         return {}
-    placeholders = ",".join("?" for _ in keys)
+    placeholders = ",".join("%s" for _ in keys)
     sql = (
         "SELECT ticket_key, module_slug, confidence "
         "FROM ticket_module_tags "
-        f"WHERE ticket_key IN ({placeholders}) AND confidence >= ? "
+        f"WHERE ticket_key IN ({placeholders}) AND confidence >= %s "
         "ORDER BY ticket_key, confidence DESC"
     )
     params = list(keys) + [confidence_floor]
@@ -201,8 +193,7 @@ def by_module(
     (same enrichment search() does).
     """
     keywords = extract_keywords(query) if query else []
-    conn = _open_readonly()
-    try:
+    with db.connection() as conn:
         if keywords:
             rows = _fetch_module_query_intersection(
                 conn, module_slug, keywords, limit, confidence_floor
@@ -218,8 +209,6 @@ def by_module(
             for r in rows:
                 r["modules"] = modules_map.get(r["key"], [])
         return rows
-    finally:
-        conn.close()
 
 
 def _fetch_module_query_intersection(
@@ -244,19 +233,19 @@ def _fetch_module_query_intersection(
     for i, kw in enumerate(keywords):
         kw_params[f"kw{i}"] = f"%{kw}%"
         kw_filters.append(
-            f"(t.summary LIKE :kw{i} COLLATE NOCASE "
-            f"OR t.description_text LIKE :kw{i} COLLATE NOCASE "
-            f"OR t.comments_text LIKE :kw{i} COLLATE NOCASE)"
+            f"(t.summary ILIKE %(kw{i})s "
+            f"OR t.description_text ILIKE %(kw{i})s "
+            f"OR t.comments_text ILIKE %(kw{i})s)"
         )
     kw_where = " OR ".join(kw_filters)
 
     sql = f"""
         SELECT
           CASE
-            WHEN substr(t.updated_at, 1, 10) >= :cutoff_date
-              OR substr(t.resolved_at, 1, 10) >= :cutoff_date THEN 'LATEST'
+            WHEN substr(t.updated_at, 1, 10) >= %(cutoff_date)s
+              OR substr(t.resolved_at, 1, 10) >= %(cutoff_date)s THEN 'LATEST'
             WHEN t.status_category IN ('new', 'indeterminate')
-              AND substr(t.updated_at, 1, 10) < :cutoff_date THEN 'STALE-OPEN'
+              AND substr(t.updated_at, 1, 10) < %(cutoff_date)s THEN 'STALE-OPEN'
             ELSE 'HISTORICAL'
           END AS bucket,
           t.key, t.status_category, t.priority,
@@ -265,22 +254,22 @@ def _fetch_module_query_intersection(
           t.comment_count,
           COALESCE(length(t.description_text), 0)
             + COALESCE(length(t.comments_text), 0) AS content_size,
-          CASE WHEN t.summary LIKE :kw0 COLLATE NOCASE THEN 1 ELSE 0 END AS hit_summary,
-          CASE WHEN t.description_text LIKE :kw0 COLLATE NOCASE THEN 1 ELSE 0 END AS hit_desc,
+          CASE WHEN t.summary ILIKE %(kw0)s THEN 1 ELSE 0 END AS hit_summary,
+          CASE WHEN t.description_text ILIKE %(kw0)s THEN 1 ELSE 0 END AS hit_desc,
           t.links_json,
           t.summary,
           m.confidence AS module_confidence
         FROM tickets t
         JOIN ticket_module_tags m ON t.key = m.ticket_key
-        WHERE m.module_slug = :module_slug
-          AND m.confidence  >= :conf_floor
+        WHERE m.module_slug = %(module_slug)s
+          AND m.confidence  >= %(conf_floor)s
           AND ({kw_where})
         ORDER BY
           CASE
-            WHEN substr(t.updated_at, 1, 10) >= :cutoff_date
-              OR substr(t.resolved_at, 1, 10) >= :cutoff_date THEN 0
+            WHEN substr(t.updated_at, 1, 10) >= %(cutoff_date)s
+              OR substr(t.resolved_at, 1, 10) >= %(cutoff_date)s THEN 0
             WHEN t.status_category IN ('new', 'indeterminate')
-              AND substr(t.updated_at, 1, 10) < :cutoff_date THEN 2
+              AND substr(t.updated_at, 1, 10) < %(cutoff_date)s THEN 2
             ELSE 1
           END,
           hit_summary DESC,
@@ -288,7 +277,7 @@ def _fetch_module_query_intersection(
           CASE WHEN t.status_category = 'done' AND t.resolved_at IS NOT NULL THEN 0 ELSE 1 END,
           updated DESC,
           content_size DESC
-        LIMIT :limit
+        LIMIT %(limit)s
     """
     cur = conn.execute(sql, kw_params)
     cols = [d[0] for d in cur.description]
@@ -308,10 +297,10 @@ def _fetch_module_top(
     sql = """
         SELECT
           CASE
-            WHEN substr(t.updated_at, 1, 10) >= :cutoff_date
-              OR substr(t.resolved_at, 1, 10) >= :cutoff_date THEN 'LATEST'
+            WHEN substr(t.updated_at, 1, 10) >= %(cutoff_date)s
+              OR substr(t.resolved_at, 1, 10) >= %(cutoff_date)s THEN 'LATEST'
             WHEN t.status_category IN ('new', 'indeterminate')
-              AND substr(t.updated_at, 1, 10) < :cutoff_date THEN 'STALE-OPEN'
+              AND substr(t.updated_at, 1, 10) < %(cutoff_date)s THEN 'STALE-OPEN'
             ELSE 'HISTORICAL'
           END AS bucket,
           t.key, t.status_category, t.priority,
@@ -325,18 +314,18 @@ def _fetch_module_top(
           m.confidence AS module_confidence
         FROM tickets t
         JOIN ticket_module_tags m ON t.key = m.ticket_key
-        WHERE m.module_slug = :module_slug
-          AND m.confidence  >= :conf_floor
+        WHERE m.module_slug = %(module_slug)s
+          AND m.confidence  >= %(conf_floor)s
         ORDER BY
           CASE
-            WHEN substr(t.updated_at, 1, 10) >= :cutoff_date
-              OR substr(t.resolved_at, 1, 10) >= :cutoff_date THEN 0
+            WHEN substr(t.updated_at, 1, 10) >= %(cutoff_date)s
+              OR substr(t.resolved_at, 1, 10) >= %(cutoff_date)s THEN 0
             ELSE 1
           END,
           m.confidence DESC,
           content_size DESC,
           updated DESC
-        LIMIT :limit
+        LIMIT %(limit)s
     """
     cur = conn.execute(
         sql,
