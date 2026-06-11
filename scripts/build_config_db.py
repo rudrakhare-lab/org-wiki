@@ -24,7 +24,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import sqlite3
+import sys
 from collections import defaultdict
 from datetime import date
 from pathlib import Path
@@ -37,6 +37,12 @@ import pandas as pd
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
+# Repo root on path so we can import backend.db (DSN + Row factory + migrations).
+# Importing backend also loads .env (CONWO_DB_*).
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+import psycopg  # noqa: E402
+from backend import db as _appdb  # noqa: E402
 RAW_IN_XLSX = ROOT / "raw" / "modules" / "pms-configs-in" / "All WIS CONFIGS.xlsx"
 RAW_COM_CSV_DIR = ROOT / "raw" / "modules" / "pms-configs-com" / "wis_service_configs"
 RAW_UNIQUE_XLSX = ROOT / "raw" / "modules" / "pms-configs-in" / "wis_unique_configs.xlsx"
@@ -162,47 +168,15 @@ CREATE TABLE IF NOT EXISTS dependencies (
 );
 """
 
-DDL_FTS = """
-CREATE VIRTUAL TABLE IF NOT EXISTS configs_fts
-    USING fts5(property_name, description, category,
-               content=configs, content_rowid=id);
-"""
-
-TRIGGER_INSERT = """
-CREATE TRIGGER IF NOT EXISTS configs_ai
-AFTER INSERT ON configs BEGIN
-    INSERT INTO configs_fts(rowid, property_name, description, category)
-    VALUES (new.id, new.property_name, new.description, new.category);
-END;
-"""
-
-TRIGGER_DELETE = """
-CREATE TRIGGER IF NOT EXISTS configs_ad
-AFTER DELETE ON configs BEGIN
-    INSERT INTO configs_fts(configs_fts, rowid, property_name, description, category)
-    VALUES ('delete', old.id, old.property_name, old.description, old.category);
-END;
-"""
-
-TRIGGER_UPDATE = """
-CREATE TRIGGER IF NOT EXISTS configs_au
-AFTER UPDATE ON configs BEGIN
-    INSERT INTO configs_fts(configs_fts, rowid, property_name, description, category)
-    VALUES ('delete', old.id, old.property_name, old.description, old.category);
-    INSERT INTO configs_fts(rowid, property_name, description, category)
-    VALUES (new.id, new.property_name, new.description, new.category);
-END;
-"""
+# Postgres replaces SQLite FTS5 (configs_fts + its 3 triggers) with a pg_trgm
+# GIN index on configs.property_name (created by migrations/postgres/050_configs.sql).
+# Fuzzy lookup is handled in config_tools via ILIKE + similarity().
 
 DROP_TABLES = [
-    "DROP TABLE IF EXISTS dependencies;",
-    "DROP TABLE IF EXISTS module_links;",
-    "DROP TABLE IF EXISTS jira_links;",
-    "DROP TRIGGER IF EXISTS configs_au;",
-    "DROP TRIGGER IF EXISTS configs_ad;",
-    "DROP TRIGGER IF EXISTS configs_ai;",
-    "DROP TABLE IF EXISTS configs_fts;",
-    "DROP TABLE IF EXISTS configs;",
+    "DROP TABLE IF EXISTS dependencies CASCADE;",
+    "DROP TABLE IF EXISTS module_links CASCADE;",
+    "DROP TABLE IF EXISTS jira_links CASCADE;",
+    "DROP TABLE IF EXISTS configs CASCADE;",
 ]
 
 
@@ -368,33 +342,35 @@ def merge_configs(
 # Database
 # ---------------------------------------------------------------------------
 
-def create_schema(con: sqlite3.Connection) -> None:
-    """Create all tables, FTS virtual table, and triggers."""
-    con.execute(DDL_CONFIGS)
-    con.execute(DDL_JIRA_LINKS)
-    con.execute(DDL_MODULE_LINKS)
-    con.execute(DDL_DEPENDENCIES)
-    con.execute(DDL_FTS)
-    con.execute(TRIGGER_INSERT)
-    con.execute(TRIGGER_DELETE)
-    con.execute(TRIGGER_UPDATE)
+def create_schema(con) -> None:
+    """Ensure all config tables + the pg_trgm index exist. Delegates to the
+    migration runner (idempotent); closes its pool afterward (batch script)."""
+    _appdb.init_db()
+    _appdb.close_pool()
+
+
+def drop_schema(con) -> None:
+    """Drop the config tables (for --reset mode). create_schema then recreates."""
+    with con.cursor() as cur:
+        for stmt in DROP_TABLES:
+            cur.execute(stmt)
     con.commit()
 
 
-def drop_schema(con: sqlite3.Connection) -> None:
-    """Drop all tables (for --reset mode)."""
-    for stmt in DROP_TABLES:
-        con.execute(stmt)
-    con.commit()
-
-
-def upsert_rows(con: sqlite3.Connection, rows: list[ConfigRow]) -> int:
-    """Insert or replace config rows. Returns count of rows written."""
+def upsert_rows(con, rows: list[ConfigRow]) -> int:
+    """Insert or update config rows. Returns count of rows written."""
     sql = """
-    INSERT OR REPLACE INTO configs
+    INSERT INTO configs
         (property_name, service, server, description, data_type,
          default_value, customizable, criteria_priority_list, category)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+    ON CONFLICT (property_name, service, server) DO UPDATE SET
+        description = excluded.description,
+        data_type = excluded.data_type,
+        default_value = excluded.default_value,
+        customizable = excluded.customizable,
+        criteria_priority_list = excluded.criteria_priority_list,
+        category = excluded.category
     """
     params = [
         (
@@ -408,15 +384,16 @@ def upsert_rows(con: sqlite3.Connection, rows: list[ConfigRow]) -> int:
         )
         for r in rows
     ]
-    con.executemany(sql, params)
+    with con.cursor() as cur:
+        cur.executemany(sql, params)
     con.commit()
     return len(params)
 
 
-def rebuild_fts(con: sqlite3.Connection) -> None:
-    """Rebuild FTS index from scratch (safe after bulk insert with triggers)."""
-    con.execute("INSERT INTO configs_fts(configs_fts) VALUES('rebuild')")
-    con.commit()
+def rebuild_fts(con) -> None:
+    """No-op under Postgres — the pg_trgm GIN index is maintained automatically
+    by the engine on insert/update. Kept so callers don't change."""
+    return
 
 
 # ---------------------------------------------------------------------------
@@ -549,18 +526,20 @@ def main() -> None:
     com_only_count = sum(1 for r in rows if r.server == "com")
     print(f"  server='both': {both_count}  server='in': {in_only_count}  server='com': {com_only_count}")
 
-    print(f"Writing SQLite to {db_path} ...")
-    con = sqlite3.connect(db_path)
+    print("Writing configs to PostgreSQL (wis_conwo) ...")
+    con = psycopg.connect(_appdb._dsn(), autocommit=False)
+    con.row_factory = _appdb._row_factory
     try:
+        # create_schema (migrations) must run before drop, so the tables exist;
+        # for --reset we drop the config tables first, then recreate them.
         if args.reset:
-            print("  --reset: dropping existing tables...")
+            create_schema(con)
+            print("  --reset: dropping existing config tables...")
             drop_schema(con)
         create_schema(con)
         written = upsert_rows(con, rows)
         print(f"  Wrote {written} rows")
-        # Rebuild FTS to ensure index is consistent after bulk insert
-        rebuild_fts(con)
-        print("  FTS index rebuilt")
+        rebuild_fts(con)  # no-op under Postgres (pg_trgm index auto-maintained)
         final_count = con.execute("SELECT COUNT(*) FROM configs").fetchone()[0]
         print(f"  Final configs table count: {final_count}")
     finally:

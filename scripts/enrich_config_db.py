@@ -27,7 +27,7 @@ import argparse
 import json
 import os
 import re
-import sqlite3
+import sys
 import time
 from itertools import combinations
 from pathlib import Path
@@ -37,6 +37,13 @@ from pathlib import Path
 # ---------------------------------------------------------------------------
 
 ROOT = Path(__file__).resolve().parent.parent
+# Repo root on path so we can import backend.db (DSN + Row factory + migrations).
+# Importing backend also loads .env (CONWO_DB_*).
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+import psycopg  # noqa: E402
+from backend import db as _appdb  # noqa: E402
+
 CONFIGS_DB = ROOT / "raw" / "configs" / "configs.sqlite"
 JIRA_DB = ROOT / "raw" / "jira" / "tickets.sqlite"
 WIKI_DIR = ROOT / "wiki"
@@ -74,14 +81,13 @@ def _escape_like(s: str) -> str:
 # Step A — Jira cross-references
 # ---------------------------------------------------------------------------
 
-def step_a(configs_conn: sqlite3.Connection) -> None:
-    """Cross-reference each property (len>=8) against Jira tickets."""
+def step_a(configs_conn) -> None:
+    """Cross-reference each property (len>=8) against Jira tickets.
+
+    Under Postgres, configs and tickets live in the SAME database, so the old
+    SQLite ATTACH is gone — `jira.tickets` is just `tickets`."""
     print("=== Step A: Jira cross-references ===")
     t0 = time.time()
-
-    # Attach Jira DB as read-only via URI
-    jira_uri = JIRA_DB.as_uri() + "?mode=ro"
-    configs_conn.execute(f"ATTACH DATABASE '{jira_uri}' AS jira")
 
     # Fetch qualifying properties (distinct names only — service doesn't affect search)
     rows = configs_conn.execute(
@@ -91,19 +97,20 @@ def step_a(configs_conn: sqlite3.Connection) -> None:
     total = len(properties)
     print(f"  {total} distinct properties with len>=8")
 
-    # Single combined query: one scan per property, highest relevance wins via CASE ORDER
-    # key is PK in tickets so each row is unique — ORDER BY relevance DESC, key is deterministic
+    # Single combined query: one scan per property, highest relevance wins via CASE ORDER.
+    # ILIKE = case-insensitive (matches SQLite LIKE default). ESCAPE '\' for the
+    # %/_ wildcards escaped by _escape_like().
     jira_sql = """
         SELECT key,
             CASE
-                WHEN summary LIKE :p ESCAPE '\\'          THEN 1.0
-                WHEN description_text LIKE :p ESCAPE '\\' THEN 0.7
+                WHEN summary ILIKE %(p)s ESCAPE '\\'          THEN 1.0
+                WHEN description_text ILIKE %(p)s ESCAPE '\\' THEN 0.7
                 ELSE 0.5
             END AS relevance
-        FROM jira.tickets
-        WHERE summary        LIKE :p ESCAPE '\\'
-           OR description_text LIKE :p ESCAPE '\\'
-           OR comments_text    LIKE :p ESCAPE '\\'
+        FROM tickets
+        WHERE summary        ILIKE %(p)s ESCAPE '\\'
+           OR description_text ILIKE %(p)s ESCAPE '\\'
+           OR comments_text    ILIKE %(p)s ESCAPE '\\'
         ORDER BY relevance DESC, key
         LIMIT 10
     """
@@ -114,25 +121,27 @@ def step_a(configs_conn: sqlite3.Connection) -> None:
     for idx, prop in enumerate(properties, 1):
         pattern = f"%{_escape_like(prop)}%"
 
-        if idx % BATCH_SIZE == 1:
-            configs_conn.execute("BEGIN")
-
         # Delete existing links for this property (ensures clean top-10 on re-run)
         configs_conn.execute(
-            "DELETE FROM jira_links WHERE property_name = ?", (prop,)
+            "DELETE FROM jira_links WHERE property_name = %s", (prop,)
         )
 
         matches = configs_conn.execute(jira_sql, {"p": pattern}).fetchall()
         if matches:
-            configs_conn.executemany(
-                "INSERT OR REPLACE INTO jira_links (property_name, jira_key, relevance) "
-                "VALUES (?, ?, ?)",
-                [(prop, key, rel) for key, rel in matches],
-            )
+            with configs_conn.cursor() as cur:
+                cur.executemany(
+                    "INSERT INTO jira_links (property_name, jira_key, relevance) "
+                    "VALUES (%s, %s, %s) "
+                    "ON CONFLICT (property_name, jira_key) DO UPDATE SET "
+                    "relevance = excluded.relevance",
+                    [(prop, key, rel) for key, rel in matches],
+                )
             inserted_total += len(matches)
 
+        # Commit every BATCH_SIZE properties (autocommit=False auto-starts the
+        # next transaction on the following statement).
         if idx % BATCH_SIZE == 0 or idx == total:
-            configs_conn.execute("COMMIT")
+            configs_conn.commit()
             elapsed = time.time() - batch_start
             print(
                 f"  [{idx}/{total}] batch committed — "
@@ -140,7 +149,6 @@ def step_a(configs_conn: sqlite3.Connection) -> None:
             )
             batch_start = time.time()
 
-    configs_conn.execute("DETACH DATABASE jira")
     total_time = time.time() - t0
     print(f"  Step A done: {inserted_total} jira_links in {total_time:.1f}s")
 
@@ -165,7 +173,7 @@ def step_b(configs_conn: sqlite3.Connection) -> None:
     print(f"  Step B done: {service_count} service_match, {wiki_count} wiki_mention rows")
 
 
-def _step_b_service_match(configs_conn: sqlite3.Connection) -> None:
+def _step_b_service_match(configs_conn) -> None:
     """Part 1 — map (property_name, service) → module_slug via SERVICE_TO_MODULE_SLUG."""
     print("  Part 1: service_match ...")
     rows = configs_conn.execute(
@@ -173,17 +181,18 @@ def _step_b_service_match(configs_conn: sqlite3.Connection) -> None:
     ).fetchall()
 
     inserted = 0
-    configs_conn.execute("BEGIN")
     for prop, service in rows:
         slug = SERVICE_TO_MODULE_SLUG.get(service)
         if slug:
             configs_conn.execute(
-                "INSERT OR REPLACE INTO module_links (property_name, module_slug, link_type) "
-                "VALUES (?, ?, 'service_match')",
+                "INSERT INTO module_links (property_name, module_slug, link_type) "
+                "VALUES (%s, %s, 'service_match') "
+                "ON CONFLICT (property_name, module_slug) DO UPDATE SET "
+                "link_type = excluded.link_type",
                 (prop, slug),
             )
             inserted += 1
-    configs_conn.execute("COMMIT")
+    configs_conn.commit()
     print(f"    {inserted} service_match rows inserted/replaced")
 
 
@@ -222,16 +231,16 @@ def _step_b_wiki_mentions(configs_conn: sqlite3.Connection) -> None:
 
     # Insert findings
     inserted = 0
-    configs_conn.execute("BEGIN")
     for prop, slugs in mentions.items():
         for slug in slugs:
             configs_conn.execute(
-                "INSERT OR IGNORE INTO module_links (property_name, module_slug, link_type) "
-                "VALUES (?, ?, 'wiki_mention')",
+                "INSERT INTO module_links (property_name, module_slug, link_type) "
+                "VALUES (%s, %s, 'wiki_mention') "
+                "ON CONFLICT (property_name, module_slug) DO NOTHING",
                 (prop, slug, ),
             )
             inserted += 1
-    configs_conn.execute("COMMIT")
+    configs_conn.commit()
     print(f"    {inserted} wiki_mention rows inserted")
 
 
@@ -291,18 +300,20 @@ def _step_c_cooccurrence(configs_conn: sqlite3.Connection) -> None:
 
     # Insert pairs into dependencies
     inserted = 0
-    configs_conn.execute("BEGIN")
     for prop_a, prop_b, count in pairs:
         confidence = min(0.5 + count * 0.05, 0.95)
         evidence = json.dumps({"co_occurrence_count": count})
         configs_conn.execute(
-            "INSERT OR REPLACE INTO dependencies "
+            "INSERT INTO dependencies "
             "(property_a, property_b, dep_type, direction, confidence, evidence) "
-            "VALUES (?, ?, 'co_occurrence', 'correlated', ?, ?)",
+            "VALUES (%s, %s, 'co_occurrence', 'correlated', %s, %s) "
+            "ON CONFLICT (property_a, property_b, dep_type) DO UPDATE SET "
+            "direction = excluded.direction, confidence = excluded.confidence, "
+            "evidence = excluded.evidence",
             (prop_a, prop_b, confidence, evidence),
         )
         inserted += 1
-    configs_conn.execute("COMMIT")
+    configs_conn.commit()
 
     elapsed = time.time() - t0
     print(f"    {inserted} co_occurrence rows inserted/replaced ({elapsed:.1f}s)")
@@ -340,7 +351,7 @@ def _step_c_llm(configs_conn: sqlite3.Connection) -> None:
         # Fetch all (property_name, description, data_type) for this service
         props = configs_conn.execute(
             "SELECT DISTINCT property_name, description, data_type FROM configs "
-            "WHERE service = ? ORDER BY property_name",
+            "WHERE service = %s ORDER BY property_name",
             (service,),
         ).fetchall()
 
@@ -438,7 +449,6 @@ def _run_llm_batch(
     valid_directions = {"a_requires_b", "b_requires_a", "bidirectional", "correlated"}
 
     inserted = 0
-    configs_conn.execute("BEGIN")
     for dep in dependencies:
         if not isinstance(dep, dict):
             continue
@@ -472,14 +482,15 @@ def _run_llm_batch(
         evidence_str = str(evidence) if evidence else None
 
         configs_conn.execute(
-            "INSERT OR IGNORE INTO dependencies "
+            "INSERT INTO dependencies "
             "(property_a, property_b, dep_type, direction, confidence, evidence) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
+            "VALUES (%s, %s, %s, %s, %s, %s) "
+            "ON CONFLICT (property_a, property_b, dep_type) DO NOTHING",
             (prop_a, prop_b, dep_type, direction, confidence, evidence_str),
         )
         inserted += 1
 
-    configs_conn.execute("COMMIT")
+    configs_conn.commit()
 
     print(f"    [{batch_label}] {len(batch)} props → {len(dependencies)} deps proposed → {inserted} inserted")
     return inserted
@@ -498,9 +509,11 @@ def main() -> None:
     group.add_argument("--all", action="store_true", help="Run steps a then b then c")
     args = parser.parse_args()
 
-    conn = sqlite3.connect(CONFIGS_DB)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA synchronous=NORMAL")
+    # Ensure schema exists (idempotent), then open a dedicated rw connection.
+    _appdb.init_db()
+    _appdb.close_pool()
+    conn = psycopg.connect(_appdb._dsn(), autocommit=False)
+    conn.row_factory = _appdb._row_factory
 
     try:
         if args.all:

@@ -103,7 +103,7 @@ def _build_enriched(con, row) -> dict:
 
     return {
         "found": True,
-        "source": "sqlite",
+        "source": "config_db",
         "property_name": row["property_name"],
         "service": row["service"],
         "server": row["server"],

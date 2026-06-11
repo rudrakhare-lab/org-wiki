@@ -17,111 +17,53 @@ Idempotency contract (UPSERT):
 from __future__ import annotations
 
 import json
-import sqlite3
+import sys
 import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterator
 
+# Make the repo root importable so scripts can use backend.db (the DSN builder,
+# Row factory, and migration runner). Importing backend also loads .env via
+# backend/__init__.py, so CONWO_DB_* are available.
+_ROOT = Path(__file__).resolve().parents[2]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
-SCHEMA_DDL = """
-CREATE TABLE IF NOT EXISTS tickets (
-  key                    TEXT PRIMARY KEY,
-  project                TEXT NOT NULL,
-  type                   TEXT,
-  status                 TEXT,
-  status_category        TEXT,
-  priority               TEXT,
-  resolution             TEXT,
+import psycopg  # noqa: E402
+from backend import db as _appdb  # noqa: E402
 
-  summary                TEXT,
-  description_text       TEXT,
-  description_raw_json   TEXT,
-  resolution_text        TEXT,
-
-  comment_count          INTEGER DEFAULT 0,
-  comments_text          TEXT,
-  comments_raw_json      TEXT,
-
-  functional_area        TEXT,
-  components_json        TEXT,
-  labels_json            TEXT,
-
-  reporter_account_id    TEXT,
-  reporter_display_name  TEXT,
-  assignee_account_id    TEXT,
-  assignee_display_name  TEXT,
-
-  parent_key             TEXT,
-  epic_key               TEXT,
-
-  links_json             TEXT,
-  external_urls_json     TEXT,
-  attachments_json       TEXT,
-
-  created_at             TEXT NOT NULL,
-  updated_at             TEXT NOT NULL,
-  resolved_at            TEXT,
-
-  -- Pipeline metadata (NOT from Jira)
-  fetched_at             TEXT NOT NULL,
-  normalized_at          TEXT NOT NULL,
-  source_filter          TEXT,
-  triage_tier            TEXT,
-  triage_reason          TEXT,
-  last_triaged_at        TEXT,
-  embedding_id           INTEGER
-);
-
-CREATE INDEX IF NOT EXISTS idx_functional_area ON tickets(functional_area);
-CREATE INDEX IF NOT EXISTS idx_project_status  ON tickets(project, status_category);
-CREATE INDEX IF NOT EXISTS idx_updated         ON tickets(updated_at);
-CREATE INDEX IF NOT EXISTS idx_triage          ON tickets(triage_tier);
-CREATE INDEX IF NOT EXISTS idx_resolved        ON tickets(resolved_at);
-
-CREATE TABLE IF NOT EXISTS sync_runs (
-  id               INTEGER PRIMARY KEY AUTOINCREMENT,
-  started_at       TEXT NOT NULL,
-  ended_at         TEXT,
-  filter_name      TEXT,
-  mode             TEXT,
-  tickets_fetched  INTEGER,
-  tickets_new      INTEGER,
-  tickets_updated  INTEGER,
-  errors_json      TEXT,
-  status           TEXT
-);
-
-CREATE TABLE IF NOT EXISTS custom_field_map (
-  field_name   TEXT NOT NULL,
-  project      TEXT NOT NULL,
-  field_id     TEXT NOT NULL,
-  cached_at    TEXT NOT NULL,
-  PRIMARY KEY (field_name, project)
-);
-"""
+# Postgres schema for the ticket mirror lives in migrations/postgres/040_tickets.sql.
+# bootstrap_schema() applies it (and all migrations) via the idempotent runner.
 
 
 # ---------------------------------------------------------------------------
 # Connection
 # ---------------------------------------------------------------------------
 
-def connect(db_path: Path) -> sqlite3.Connection:
-    """Open the SQLite DB with WAL + foreign keys, create dir if missing."""
-    db_path.parent.mkdir(parents=True, exist_ok=True)
-    conn = sqlite3.connect(str(db_path), timeout=30.0)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode = WAL")
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA synchronous = NORMAL")
+def connect(db_path: Path | None = None) -> Any:
+    """Open a dedicated PostgreSQL connection for batch scripts.
+
+    autocommit=False so the explicit commit()/rollback()/transaction() style in
+    this module works exactly like the old sqlite3 connection. The db_path arg is
+    ignored (kept for call-site compatibility) — the target is the wis_conwo
+    database resolved from CONWO_DB_* env vars.
+    """
+    conn = psycopg.connect(_appdb._dsn(), autocommit=False)
+    conn.row_factory = _appdb._row_factory
     return conn
 
 
-def bootstrap_schema(conn: sqlite3.Connection) -> None:
-    """Idempotent — safe to call on every script start."""
-    conn.executescript(SCHEMA_DDL)
-    conn.commit()
+def bootstrap_schema(conn: Any) -> None:
+    """Ensure the schema exists. Delegates to the migration runner (idempotent,
+    advisory-locked). Safe to call on every script start.
+
+    init_db() uses its own pooled connection; we close that pool afterward so a
+    short-lived batch script doesn't leave pool worker threads running at exit.
+    The script keeps using its own dedicated `conn` from connect()."""
+    _appdb.init_db()
+    _appdb.close_pool()
 
 
 # ---------------------------------------------------------------------------
@@ -143,7 +85,7 @@ _TICKET_COLUMNS = [
 ]
 
 
-def upsert_ticket(conn: sqlite3.Connection, row: dict[str, Any]) -> str:
+def upsert_ticket(conn: Any, row: dict[str, Any]) -> str:
     """
     Insert or update a ticket. Returns one of: 'new', 'updated', 'unchanged'.
 
@@ -155,12 +97,12 @@ def upsert_ticket(conn: sqlite3.Connection, row: dict[str, Any]) -> str:
     key = row["key"]
     existing = conn.execute(
         "SELECT updated_at, source_filter, triage_tier, triage_reason, "
-        "last_triaged_at, embedding_id FROM tickets WHERE key = ?", (key,),
+        "last_triaged_at, embedding_id FROM tickets WHERE key = %s", (key,),
     ).fetchone()
 
     if existing is None:
         cols = ", ".join(_TICKET_COLUMNS)
-        placeholders = ", ".join(["?"] * len(_TICKET_COLUMNS))
+        placeholders = ", ".join(["%s"] * len(_TICKET_COLUMNS))
         values = [row.get(c) for c in _TICKET_COLUMNS]
         conn.execute(f"INSERT INTO tickets ({cols}) VALUES ({placeholders})", values)
         return "new"
@@ -169,8 +111,8 @@ def upsert_ticket(conn: sqlite3.Connection, row: dict[str, Any]) -> str:
         # No content change — just refresh metadata + (possibly) source_filter
         merged_filter = _merge_source_filter(existing["source_filter"], row.get("source_filter"))
         conn.execute(
-            "UPDATE tickets SET fetched_at = ?, normalized_at = ?, source_filter = ? "
-            "WHERE key = ?",
+            "UPDATE tickets SET fetched_at = %s, normalized_at = %s, source_filter = %s "
+            "WHERE key = %s",
             (row["fetched_at"], row["normalized_at"], merged_filter, key),
         )
         return "unchanged"
@@ -184,9 +126,9 @@ def upsert_ticket(conn: sqlite3.Connection, row: dict[str, Any]) -> str:
     row["last_triaged_at"] = None
     row["source_filter"] = _merge_source_filter(existing["source_filter"], row.get("source_filter"))
 
-    set_clause = ", ".join([f"{c} = ?" for c in _TICKET_COLUMNS if c != "key"])
+    set_clause = ", ".join([f"{c} = %s" for c in _TICKET_COLUMNS if c != "key"])
     values = [row.get(c) for c in _TICKET_COLUMNS if c != "key"] + [key]
-    conn.execute(f"UPDATE tickets SET {set_clause} WHERE key = ?", values)
+    conn.execute(f"UPDATE tickets SET {set_clause} WHERE key = %s", values)
     return "updated"
 
 
@@ -205,18 +147,20 @@ def _merge_source_filter(existing: str | None, incoming: str | None) -> str | No
 # Sync run lifecycle
 # ---------------------------------------------------------------------------
 
-def start_sync_run(conn: sqlite3.Connection, filter_name: str, mode: str) -> int:
+def start_sync_run(conn: Any, filter_name: str, mode: str) -> int:
+    # Postgres has no cursor.lastrowid — use RETURNING to get the new id.
     cur = conn.execute(
         "INSERT INTO sync_runs (started_at, filter_name, mode, status) "
-        "VALUES (?, ?, ?, ?)",
+        "VALUES (%s, %s, %s, %s) RETURNING id",
         (utcnow_iso(), filter_name, mode, "running"),
     )
+    new_id = cur.fetchone()[0]
     conn.commit()
-    return cur.lastrowid  # type: ignore[return-value]
+    return new_id
 
 
 def end_sync_run(
-    conn: sqlite3.Connection,
+    conn: Any,
     run_id: int,
     *,
     status: str,
@@ -226,9 +170,9 @@ def end_sync_run(
     errors: list[dict] | None = None,
 ) -> None:
     conn.execute(
-        "UPDATE sync_runs SET ended_at = ?, tickets_fetched = ?, "
-        "tickets_new = ?, tickets_updated = ?, errors_json = ?, status = ? "
-        "WHERE id = ?",
+        "UPDATE sync_runs SET ended_at = %s, tickets_fetched = %s, "
+        "tickets_new = %s, tickets_updated = %s, errors_json = %s, status = %s "
+        "WHERE id = %s",
         (
             utcnow_iso(),
             fetched,
@@ -242,7 +186,7 @@ def end_sync_run(
     conn.commit()
 
 
-def last_successful_incremental(conn: sqlite3.Connection) -> str | None:
+def last_successful_incremental(conn: Any) -> str | None:
     """Returns ISO timestamp of the most recent completed sync run, or None."""
     row = conn.execute(
         "SELECT MAX(ended_at) AS t FROM sync_runs "
@@ -256,11 +200,11 @@ def last_successful_incremental(conn: sqlite3.Connection) -> str | None:
 # ---------------------------------------------------------------------------
 
 def get_field_id(
-    conn: sqlite3.Connection, field_name: str, project: str, max_age_hours: int
+    conn: Any, field_name: str, project: str, max_age_hours: int
 ) -> str | None:
     row = conn.execute(
         "SELECT field_id, cached_at FROM custom_field_map "
-        "WHERE field_name = ? AND project = ?",
+        "WHERE field_name = %s AND project = %s",
         (field_name, project),
     ).fetchone()
     if not row:
@@ -273,11 +217,13 @@ def get_field_id(
 
 
 def set_field_id(
-    conn: sqlite3.Connection, field_name: str, project: str, field_id: str
+    conn: Any, field_name: str, project: str, field_id: str
 ) -> None:
     conn.execute(
-        "INSERT OR REPLACE INTO custom_field_map "
-        "(field_name, project, field_id, cached_at) VALUES (?, ?, ?, ?)",
+        "INSERT INTO custom_field_map "
+        "(field_name, project, field_id, cached_at) VALUES (%s, %s, %s, %s) "
+        "ON CONFLICT (field_name, project) DO UPDATE SET "
+        "field_id = excluded.field_id, cached_at = excluded.cached_at",
         (field_name, project, field_id, utcnow_iso()),
     )
 
@@ -286,7 +232,7 @@ def set_field_id(
 # Distribution report (no API call)
 # ---------------------------------------------------------------------------
 
-def report(conn: sqlite3.Connection) -> dict[str, Any]:
+def report(conn: Any) -> dict[str, Any]:
     """Aggregate counts for the --report mode."""
     total = conn.execute("SELECT COUNT(*) AS n FROM tickets").fetchone()["n"]
     by_project = [
@@ -358,9 +304,9 @@ def utcnow_iso() -> str:
 
 
 @contextmanager
-def transaction(conn: sqlite3.Connection) -> Iterator[sqlite3.Connection]:
-    """Explicit BEGIN/COMMIT around a block. Rolls back on exception."""
-    conn.execute("BEGIN")
+def transaction(conn: Any) -> Iterator[Any]:
+    """Commit on success, roll back on exception. With autocommit=False a
+    transaction auto-starts on the first statement, so no explicit BEGIN."""
     try:
         yield conn
         conn.commit()

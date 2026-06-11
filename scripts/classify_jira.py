@@ -33,10 +33,9 @@ import json
 import logging
 import math
 import os
-import sqlite3
 import sys
 import time
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import anthropic
@@ -64,6 +63,13 @@ CACHE_READ_FACTOR = 0.10   # cached reads = 10% of input rate
 CACHE_WRITE_FACTOR = 1.25  # ephemeral cache writes = 125% of input rate
 
 REPO = Path(__file__).resolve().parents[1] if "scripts" in str(Path(__file__).resolve()) else Path("/Users/rudrakhare/Desktop/my-wiki/org-wiki")
+# Put repo root on the path so we can import backend.db (DSN + Row factory).
+# Importing backend also loads .env via backend/__init__.py (CONWO_DB_* + Jira creds).
+if str(REPO) not in sys.path:
+    sys.path.insert(0, str(REPO))
+import psycopg  # noqa: E402
+from backend import db as _appdb  # noqa: E402
+
 JIRA_DB = REPO / "raw" / "jira" / "tickets.sqlite"
 MODULE_CONTEXT_PATH = REPO / "config" / "module_classification_context.json"
 ERROR_LOG = Path("/tmp/classify_errors.log")
@@ -275,12 +281,11 @@ def format_ticket_batch(tickets: list[dict]) -> str:
 
 # ── DB helpers ────────────────────────────────────────────────────────────
 
-def open_db_rw() -> sqlite3.Connection:
-    """Open the SQLite DB read-write. Backend opens with mode=ro;
-    SQLite WAL handles single-writer/multi-reader concurrency."""
-    conn = sqlite3.connect(JIRA_DB, isolation_level=None)  # autocommit; we use explicit BEGIN
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = OFF")  # FK columns are documentation, not enforced
+def open_db_rw():
+    """Open a dedicated read-write PostgreSQL connection (autocommit=False so
+    the batch's explicit commit()/rollback() works)."""
+    conn = psycopg.connect(_appdb._dsn(), autocommit=False)
+    conn.row_factory = _appdb._row_factory
     return conn
 
 
@@ -290,8 +295,10 @@ def select_tickets_for_classification(conn, mode: str, delta_days: int | None, l
         where = "1=1"
         params: list = []
     elif mode == "delta":
-        where = "(substr(t.updated_at,1,10) >= date('now', ?) OR c.ticket_key IS NULL)"
-        params = [f"-{int(delta_days)} days"]
+        # Cutoff computed in Python (UTC) — Postgres has no SQLite date('now',...).
+        cutoff = (datetime.now(timezone.utc).date() - timedelta(days=int(delta_days))).isoformat()
+        where = "(substr(t.updated_at,1,10) >= %s OR c.ticket_key IS NULL)"
+        params = [cutoff]
     else:  # full
         where = "c.ticket_key IS NULL"
         params = []
@@ -333,7 +340,7 @@ def select_specific_tickets(conn, keys: list[str]) -> list[dict]:
     Does NOT filter by classified_at — re-selects even already-classified tickets."""
     if not keys:
         return []
-    placeholders = ",".join("?" for _ in keys)
+    placeholders = ",".join("%s" for _ in keys)
     sql = f"""
         SELECT key, type, status_category, priority, summary,
                description_text, components_json, labels_json,
@@ -388,7 +395,8 @@ def write_batch_results(
     rows_written = 0
     tag_rows_written = 0
     cur = conn.cursor()
-    cur.execute("BEGIN")
+    # autocommit=False → a transaction auto-starts on the first statement; we
+    # commit/rollback explicitly at the end of the batch.
     try:
         for t in tickets:
             key = t["key"]
@@ -404,7 +412,7 @@ def write_batch_results(
                 INSERT INTO ticket_classifications
                   (ticket_key, type_bucket, status_bucket, is_bug, is_resolved,
                    priority_bucket, classified_at, classifier_version)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT(ticket_key) DO UPDATE SET
                   type_bucket = excluded.type_bucket,
                   status_bucket = excluded.status_bucket,
@@ -419,7 +427,7 @@ def write_batch_results(
 
             # Wipe prior tags for this ticket (idempotent reclassify with the same version)
             cur.execute(
-                "DELETE FROM ticket_module_tags WHERE ticket_key = ?",
+                "DELETE FROM ticket_module_tags WHERE ticket_key = %s",
                 (key,),
             )
 
@@ -457,13 +465,13 @@ def write_batch_results(
                     INSERT INTO ticket_module_tags
                       (ticket_key, module_slug, confidence, reason,
                        source, classified_at, classifier_version)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                 """, (key, slug, conf, reason, "llm_batch", now_iso, CLASSIFIER_VERSION))
                 tag_rows_written += 1
 
-        cur.execute("COMMIT")
+        conn.commit()
     except Exception:
-        cur.execute("ROLLBACK")
+        conn.rollback()
         raise
 
     return rows_written, tag_rows_written
