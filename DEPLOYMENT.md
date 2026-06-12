@@ -46,7 +46,7 @@ Fill in all values:
 | `PMS_TOKEN_IN` | Yes | Bearer token for `.in` PMS server |
 | `PMS_COOKIE_IN` | Yes | Cookie string for `.in` PMS server |
 | `GOOGLE_CLIENT_ID` | Yes | `394997129475-vptjprrehufpvhnlh3tad78uqk69u54h.apps.googleusercontent.com` |
-| `ALLOWED_ORIGINS` | Yes | `https://YOUR_PRODUCTION_DOMAIN` |
+| `ALLOWED_ORIGINS` | Yes | `https://conwo.moveinsync.com` |
 | `TRACE_USER_HASH_SALT` | Recommended | Any random string: `openssl rand -hex 16` |
 
 Verify `.env` is not tracked by git:
@@ -115,16 +115,16 @@ Create `/etc/nginx/sites-available/conwo`:
 ```nginx
 server {
     listen 80;
-    server_name YOUR_PRODUCTION_DOMAIN;
+    server_name conwo.moveinsync.com;
     return 301 https://$host$request_uri;
 }
 
 server {
     listen 443 ssl;
-    server_name YOUR_PRODUCTION_DOMAIN;
+    server_name conwo.moveinsync.com;
 
-    ssl_certificate     /etc/letsencrypt/live/YOUR_PRODUCTION_DOMAIN/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/YOUR_PRODUCTION_DOMAIN/privkey.pem;
+    ssl_certificate     /etc/letsencrypt/live/conwo.moveinsync.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/conwo.moveinsync.com/privkey.pem;
 
     client_max_body_size 50M;
 
@@ -145,7 +145,7 @@ server {
 Enable and get TLS certificate:
 ```bash
 sudo ln -s /etc/nginx/sites-available/conwo /etc/nginx/sites-enabled/conwo
-sudo certbot --nginx -d YOUR_PRODUCTION_DOMAIN
+sudo certbot --nginx -d conwo.moveinsync.com
 sudo systemctl reload nginx
 ```
 
@@ -157,13 +157,13 @@ Google OAuth requires HTTPS. Once TLS is active:
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials
 2. Open the credential with Client ID `394997129475-...apps.googleusercontent.com`
-3. Add `https://YOUR_PRODUCTION_DOMAIN` to **Authorized JavaScript origins**
-4. Add `https://YOUR_PRODUCTION_DOMAIN` to **Authorized redirect URIs**
+3. Add `https://conwo.moveinsync.com` to **Authorized JavaScript origins**
+4. Add `https://conwo.moveinsync.com` to **Authorized redirect URIs**
 5. Save (changes propagate in ~5 minutes)
 
 Then update `.env`:
 ```
-ALLOWED_ORIGINS=https://YOUR_PRODUCTION_DOMAIN
+ALLOWED_ORIGINS=https://conwo.moveinsync.com
 ```
 
 Restart the container to pick up the new value:
@@ -202,7 +202,7 @@ tail -5 /var/log/conwo-jira-sync.log
 
 ```bash
 # Health check
-curl https://YOUR_PRODUCTION_DOMAIN/health
+curl https://conwo.moveinsync.com/health
 # Expected: {"status":"ok","wiki_pages":<N>,"has_server_key":true}
 
 # Container logs (no errors)
@@ -210,7 +210,7 @@ docker compose logs --tail=50
 ```
 
 In a browser:
-1. Navigate to `https://YOUR_PRODUCTION_DOMAIN`
+1. Navigate to `https://conwo.moveinsync.com`
 2. Sign in with Google
 3. Ask a test question — confirm a response is returned
 
