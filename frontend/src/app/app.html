@@ -1,28 +1,7 @@
-<header class="top-bar">
-  <a routerLink="/ask" class="brand" aria-label="Conwo — home">
-    <img src="logo.png" alt="Conwo" class="brand-logo" />
-    <span class="brand-name">Conwo</span>
-  </a>
-  <div class="top-center">
-    <span class="agent-title">WorkInSync Agent</span>
-  </div>
-  @if (showHeaderNav()) {
-    <nav class="top-nav" aria-label="Primary">
-      <a routerLink="/ask" routerLinkActive="active" class="nav-link">Ask</a>
-      <a routerLink="/search" routerLinkActive="active" class="nav-link">Search</a>
-      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">Dashboard</a>
-      <a routerLink="/traces" routerLinkActive="active" class="nav-link">Traces</a>
-      <a routerLink="/ingest" routerLinkActive="active" class="nav-link">Ingest</a>
-      <a routerLink="/graph" routerLinkActive="active" class="nav-link">Graph</a>
-      <a routerLink="/admin" routerLinkActive="active" class="nav-link">Admin</a>
-      @if (userEmail()) {
-        <span class="nav-user-email">{{ userEmail() }}</span>
-      }
-      <button type="button" class="nav-link nav-signout" (click)="signOut()">Sign out</button>
-    </nav>
-  }
-</header>
+@if (showHeaderNav()) {
+  <app-sidebar (signOut)="signOut()" />
+}
 
-<main class="app-main">
+<main class="app-main" [class.full]="!showHeaderNav()">
   <router-outlet />
 </main>

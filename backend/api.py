@@ -349,6 +349,7 @@ class GoogleLoginResponse(BaseModel):
     token: str
     email: str
     name: str
+    role: str = "viewer"
 
 
 # ---------------------------------------------------------------------------
@@ -927,8 +928,14 @@ def google_login(req: GoogleLoginRequest) -> GoogleLoginResponse:
     from backend import auth_store
     if not auth_store.get_user(email):
         auth_store.create_user(email, role="viewer")
+    user = auth_store.get_user(email)
     token = auth_store.create_token(email)
-    return GoogleLoginResponse(token=token, email=email, name=user_info["name"])
+    return GoogleLoginResponse(
+        token=token,
+        email=email,
+        name=user_info["name"],
+        role=(user or {}).get("role", "viewer"),
+    )
 
 
 # Admin endpoints (require admin Bearer token)

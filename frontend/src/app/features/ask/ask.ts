@@ -1,19 +1,18 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, effect, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
   ApiService,
   ChatMessage,
-  ConversationSummary,
   OperationalStatus,
   QueryMode,
   QueryResponse,
   SourceInfo,
 } from '../../core/api.service';
+import { ConversationStore } from '../../core/conversation.store';
 import { ConfidenceBadge } from '../../shared/confidence-badge/confidence-badge';
 import { SourceDrawer } from '../../shared/source-drawer/source-drawer';
-import { ChatSidebar } from '../../shared/chat-sidebar/chat-sidebar';
 import { FeedbackPanel } from '../ask/feedback-panel';
 import { AgentTranscript, AgentRequest } from './agent-transcript';
 
@@ -28,20 +27,10 @@ const PMS_SERVICES = [
   imports: [
     CommonModule, FormsModule, RouterLink,
     ConfidenceBadge, SourceDrawer, FeedbackPanel,
-    AgentTranscript, ChatSidebar,
+    AgentTranscript,
   ],
   template: `
     <div class="ask-shell">
-      <!-- ── Sidebar: conversations ─────────────────────────────────── -->
-      <app-chat-sidebar
-        [conversations]="conversations()"
-        [activeId]="conversationId()"
-        [loading]="sidebarLoading()"
-        (newChat)="onNewChat()"
-        (openChat)="onOpenChat($event)"
-        (deleteChat)="onDeleteChat($event)"
-      />
-
       <!-- ── Chat column ─────────────────────────────────────────────── -->
       <div class="chat-column">
         @if (visibleStatusBanners().length > 0) {
@@ -68,10 +57,8 @@ const PMS_SERVICES = [
 
             @if (showEmptyState()) {
               <div class="empty-state">
-                <h1 class="empty-title">What can I help you find?</h1>
-                <p class="empty-sub">
-                  Ask about a WorkInSync feature, PMS config, Jira history, or live debug.
-                </p>
+                <h1 class="empty-title">{{ greeting() }}</h1>
+                <p class="empty-sub">What would you like to know today?</p>
               </div>
             }
 
@@ -367,6 +354,7 @@ const PMS_SERVICES = [
 })
 export class Ask implements OnInit {
   private api = inject(ApiService);
+  private store = inject(ConversationStore);
 
   question = '';
   server: 'com' | 'in' = 'com';
@@ -389,9 +377,31 @@ export class Ask implements OnInit {
 
   messages = signal<ChatMessage[]>([]);
   conversationId = signal<string | null>(null);
-  conversations = signal<ConversationSummary[]>([]);
-  sidebarLoading = signal(false);
   agentRequest = signal<AgentRequest | null>(null);
+
+  constructor() {
+    // The unified sidebar (app-sidebar) owns the conversation list + active
+    // selection via ConversationStore. React to selection changes the sidebar
+    // makes (open a chat / new chat); skip changes the Ask page made itself
+    // (its conversationId already matches), so we never re-fetch our own thread.
+    effect(() => {
+      const id = this.store.activeId();
+      if (id === this.conversationId()) return;
+      if (id === null) {
+        this.resetThread();
+      } else {
+        this.loadConversation(id);
+      }
+    });
+  }
+
+  /** Time-of-day greeting for the empty state, e.g. "Good evening, Rudra". */
+  greeting(): string {
+    const h = new Date().getHours();
+    const part = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+    const first = (this.api.getUserName() || '').trim().split(/\s+/)[0];
+    return first ? `${part}, ${first}` : part;
+  }
 
   // Operational status banner (G04/G31 frontend half — Jira freshness +
   // admin review queue). Polled once at chat-page load; cached in the signal
@@ -420,7 +430,8 @@ export class Ask implements OnInit {
       next: h => this.hasServerKey.set(h.has_server_key ?? false),
       error: () => {},
     });
-    this.refreshConversations();
+    // The sidebar (app-sidebar) loads the conversation list on mount; the
+    // constructor effect restores the active thread if one is selected.
     this.loadStatus();
   }
 
@@ -491,47 +502,21 @@ export class Ask implements OnInit {
     this.operationalStatus.set(this.operationalStatus());
   }
 
-  // ── Sidebar ──────────────────────────────────────────────────────────
+  // ── Conversation thread (driven by ConversationStore via the constructor effect) ──
 
-  refreshConversations() {
-    this.sidebarLoading.set(true);
-    this.api.listConversations().subscribe({
-      next: r => {
-        this.conversations.set(r.conversations);
-        this.sidebarLoading.set(false);
-      },
-      error: () => this.sidebarLoading.set(false),
-    });
-  }
-
-  onNewChat() {
+  private resetThread() {
     this.conversationId.set(null);
     this.messages.set([]);
     this.error.set('');
     this.question = '';
   }
 
-  onOpenChat(id: string) {
-    if (id === this.conversationId()) return;
+  private loadConversation(id: string) {
     this.error.set('');
+    this.conversationId.set(id);
     this.api.getConversation(id).subscribe({
-      next: c => {
-        this.conversationId.set(c.id);
-        this.messages.set(c.messages);
-      },
+      next: c => this.messages.set(c.messages),
       error: () => this.error.set('Could not load conversation.'),
-    });
-  }
-
-  onDeleteChat(id: string) {
-    this.api.deleteConversation(id).subscribe({
-      next: () => {
-        if (this.conversationId() === id) {
-          this.onNewChat();
-        }
-        this.refreshConversations();
-      },
-      error: () => this.error.set('Failed to delete conversation.'),
     });
   }
 
@@ -635,9 +620,12 @@ export class Ask implements OnInit {
           this.error.set(res.error);
           return;
         }
-        if (res.conversation_id) this.conversationId.set(res.conversation_id);
+        if (res.conversation_id) {
+          this.conversationId.set(res.conversation_id);
+          this.store.setActive(res.conversation_id);
+        }
         this.appendAssistantFromResponse(res);
-        this.refreshConversations();
+        this.store.refresh();
       },
       error: err => {
         this.loading.set(false);
@@ -664,12 +652,13 @@ export class Ask implements OnInit {
     this.agentRequest.set(null);
     if (event.conversationId) {
       this.conversationId.set(event.conversationId);
+      this.store.setActive(event.conversationId);
       // Reload the conversation so the static rendering replaces the live transcript.
       this.api.getConversation(event.conversationId).subscribe({
         next: c => this.messages.set(c.messages),
       });
     }
-    this.refreshConversations();
+    this.store.refresh();
   }
 
   private appendAssistantFromResponse(res: QueryResponse) {

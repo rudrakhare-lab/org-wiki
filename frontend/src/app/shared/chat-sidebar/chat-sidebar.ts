@@ -1,153 +1,61 @@
 /**
- * ChatSidebar — collapsible left rail showing past conversations.
+ * ChatSidebar — presentational list of past conversations.
  *
- * The Ask page owns conversation state and pushes ConversationSummary[] in.
- * This component emits intent events; it does not call the API itself.
+ * Renders only the scrollable conversation list. The surrounding chrome
+ * (the "New chat" button, collapse control, mobile behaviour, sidebar frame)
+ * is owned by the parent <app-sidebar>. State is pushed in via inputs; this
+ * component emits intent events and never calls the API itself.
  */
-import { Component, OnInit, input, output, inject, signal } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApiService, ConversationSummary } from '../../core/api.service';
+import { ConversationSummary } from '../../core/api.service';
 
 @Component({
   selector: 'app-chat-sidebar',
   imports: [CommonModule],
   template: `
-    <aside class="sidebar" [class.collapsed]="collapsed()">
-      <div class="sidebar-head">
-        <button class="new-btn" type="button" (click)="newChat.emit()">
-          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-            <path d="M8 3v10 M3 8h10" fill="none" stroke="currentColor"
-                  stroke-width="1.5" stroke-linecap="round" />
-          </svg>
-          New chat
-        </button>
-        <button
-          class="collapse-btn"
-          type="button"
-          (click)="collapsed.set(!collapsed())"
-          [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-          [title]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-        >
-          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
-            @if (collapsed()) {
-              <path d="M6 4l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-            } @else {
-              <path d="M10 4l-4 4 4 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-            }
-          </svg>
-        </button>
-      </div>
-
-      @if (!collapsed()) {
-        <nav class="chat-list" aria-label="Past conversations">
-          @if (loading()) {
-            <div class="empty">Loading…</div>
-          } @else if (conversations().length === 0) {
-            <div class="empty">No chats yet. Start a new conversation.</div>
-          } @else {
-            @for (c of conversations(); track c.id) {
-              <div
-                class="chat-item"
-                [class.active]="c.id === activeId()"
-                (click)="openChat.emit(c.id)"
-              >
-                <button class="chat-title-btn" type="button" [title]="c.title">
-                  <span class="chat-title">{{ c.title }}</span>
-                  <span class="chat-sub">{{ c.message_count }} msg · {{ formatDate(c.updated_at) }}</span>
-                </button>
-                <button
-                  class="chat-del-btn"
-                  type="button"
-                  (click)="$event.stopPropagation(); confirmDelete(c)"
-                  [attr.aria-label]="'Delete ' + c.title"
-                  title="Delete chat"
-                >
-                  <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
-                    <path d="M4 4l8 8 M12 4l-8 8" fill="none" stroke="currentColor"
-                          stroke-width="1.5" stroke-linecap="round" />
-                  </svg>
-                </button>
-              </div>
-            }
-          }
-        </nav>
+    <nav class="chat-list" aria-label="Past conversations">
+      @if (loading()) {
+        <div class="empty">Loading…</div>
+      } @else if (conversations().length === 0) {
+        <div class="empty">No chats yet. Start a new conversation.</div>
+      } @else {
+        @for (c of conversations(); track c.id) {
+          <div
+            class="chat-item"
+            [class.active]="c.id === activeId()"
+            (click)="openChat.emit(c.id)"
+          >
+            <button class="chat-title-btn" type="button" [title]="c.title">
+              <span class="chat-title">{{ c.title }}</span>
+              <span class="chat-sub">{{ c.message_count }} msg · {{ formatDate(c.updated_at) }}</span>
+            </button>
+            <button
+              class="chat-del-btn"
+              type="button"
+              (click)="$event.stopPropagation(); confirmDelete(c)"
+              [attr.aria-label]="'Delete ' + c.title"
+              title="Delete chat"
+            >
+              <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+                <path d="M4 4l8 8 M12 4l-8 8" fill="none" stroke="currentColor"
+                      stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </button>
+          </div>
+        }
       }
-    </aside>
+    </nav>
   `,
   styles: [`
     :host { display: contents; }
-
-    .sidebar {
-      width: 260px;
-      flex-shrink: 0;
-      background: rgba(255, 254, 251, 0.92);
-      backdrop-filter: saturate(140%) blur(18px);
-      -webkit-backdrop-filter: saturate(140%) blur(18px);
-      border-right: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-      transition: width 0.2s;
-    }
-    .sidebar.collapsed { width: 56px; }
-
-    .sidebar-head {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .new-btn {
-      flex: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      background: var(--accent);
-      color: var(--text-on-accent);
-      border: none;
-      border-radius: var(--radius-sm);
-      padding: 7px 10px;
-      font-size: 0.82rem;
-      font-weight: 500;
-      transition: background 0.15s;
-
-      &:hover { background: var(--accent-hover); }
-    }
-
-    .sidebar.collapsed .new-btn {
-      padding: 7px;
-      span, svg { display: none; }
-      &::after {
-        content: '+';
-        font-size: 1rem;
-        font-weight: 600;
-        line-height: 1;
-      }
-    }
-
-    .collapse-btn {
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      width: 28px;
-      height: 28px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-muted);
-
-      &:hover { background: var(--surface-muted); color: var(--text); }
-    }
 
     .chat-list {
       flex: 1;
       min-height: 0;
       overflow-y: auto;
       overscroll-behavior: contain;
-      padding: 8px 6px;
+      padding: 4px 6px;
       display: flex;
       flex-direction: column;
       gap: 2px;
@@ -189,6 +97,7 @@ import { ApiService, ConversationSummary } from '../../core/api.service';
       flex-direction: column;
       gap: 2px;
       min-width: 0;
+      cursor: pointer;
     }
 
     .chat-title {
@@ -212,6 +121,7 @@ import { ApiService, ConversationSummary } from '../../core/api.service';
       border: none;
       padding: 0 8px;
       color: var(--text-subtle);
+      cursor: pointer;
       transition: opacity 0.15s, color 0.15s;
 
       &:hover { color: var(--error); }
@@ -221,45 +131,15 @@ import { ApiService, ConversationSummary } from '../../core/api.service';
         outline-offset: -2px;
       }
     }
-
-    @media (max-width: 720px) {
-      .sidebar { width: 56px; }
-      .sidebar:not(.collapsed) {
-        position: fixed;
-        top: 56px;
-        bottom: 0;
-        left: 0;
-        z-index: 50;
-        width: 260px;
-        box-shadow: var(--shadow);
-      }
-    }
   `]
 })
-export class ChatSidebar implements OnInit {
-  private api = inject(ApiService);
-
+export class ChatSidebar {
   conversations = input<ConversationSummary[]>([]);
   activeId = input<string | null>(null);
   loading = input<boolean>(false);
 
-  newChat = output<void>();
   openChat = output<string>();
   deleteChat = output<string>();
-
-  collapsed = signal(false);
-
-  ngOnInit(): void {
-    // remember collapsed state across sessions
-    const stored = localStorage.getItem('conwo_sidebar_collapsed');
-    if (stored === '1') this.collapsed.set(true);
-  }
-
-  toggleCollapse(): void {
-    const next = !this.collapsed();
-    this.collapsed.set(next);
-    localStorage.setItem('conwo_sidebar_collapsed', next ? '1' : '0');
-  }
 
   formatDate(iso: string): string {
     if (!iso) return '';

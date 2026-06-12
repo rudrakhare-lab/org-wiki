@@ -496,6 +496,7 @@ const API_BASE = '';
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 const USER_EMAIL_KEY = 'conwo_user_email';
 const USER_NAME_KEY = 'conwo_user_name';
+const USER_ROLE_KEY = 'conwo_user_role';
 const MODE_STORAGE = 'conwo_query_mode';
 
 @Injectable({ providedIn: 'root' })
@@ -512,9 +513,10 @@ export class ApiService {
     localStorage.setItem(ADMIN_TOKEN_KEY, token);
   }
 
-  setUserInfo(email: string, name: string): void {
+  setUserInfo(email: string, name: string, role = ''): void {
     localStorage.setItem(USER_EMAIL_KEY, email);
     localStorage.setItem(USER_NAME_KEY, name);
+    localStorage.setItem(USER_ROLE_KEY, role);
   }
 
   getUserEmail(): string {
@@ -525,13 +527,18 @@ export class ApiService {
     return localStorage.getItem(USER_NAME_KEY) ?? '';
   }
 
+  getUserRole(): string {
+    return localStorage.getItem(USER_ROLE_KEY) ?? '';
+  }
+
   clearUserInfo(): void {
     localStorage.removeItem(USER_EMAIL_KEY);
     localStorage.removeItem(USER_NAME_KEY);
+    localStorage.removeItem(USER_ROLE_KEY);
   }
 
   isAdmin(): boolean {
-    return !!this.getAdminToken();
+    return this.getUserRole() === 'admin';
   }
 
   getStoredMode(): QueryMode {

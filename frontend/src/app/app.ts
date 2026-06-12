@@ -1,14 +1,15 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ApiService } from './core/api.service';
+import { ConversationStore } from './core/conversation.store';
+import { AppSidebar } from './shared/app-sidebar/app-sidebar';
 
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule],
+  imports: [RouterOutlet, AppSidebar],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -16,10 +17,10 @@ export class App {
   readonly title = 'Conwo';
   private router = inject(Router);
   private api = inject(ApiService);
+  private conversations = inject(ConversationStore);
 
   currentUrl = signal<string>(this.router.url);
   signedIn = signal<boolean>(this.readToken().length > 0);
-  userEmail = signal<string>(this.api.getUserEmail());
 
   constructor() {
     this.router.events
@@ -27,7 +28,6 @@ export class App {
       .subscribe(e => {
         this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
         this.signedIn.set(this.readToken().length > 0);
-        this.userEmail.set(this.api.getUserEmail());
       });
   }
 
@@ -40,8 +40,8 @@ export class App {
       localStorage.removeItem(ADMIN_TOKEN_KEY);
     } catch { /* private mode */ }
     this.api.clearUserInfo();
+    this.conversations.reset();
     this.signedIn.set(false);
-    this.userEmail.set('');
     this.router.navigateByUrl('/login');
   }
 
