@@ -41,10 +41,10 @@ Fill in all values:
 | `JIRA_API_TOKEN` | Yes | Atlassian account → Security → API tokens |
 | `JIRA_EMAIL` | Yes | Atlassian login email |
 | `JIRA_BASE_URL` | Yes | `https://moveinsync.atlassian.net` |
-| `PMS_TOKEN_COM` | Yes | Bearer token for `.com` PMS server |
-| `PMS_COOKIE_COM` | Yes | Cookie string for `.com` PMS server |
-| `PMS_TOKEN_IN` | Yes | Bearer token for `.in` PMS server |
-| `PMS_COOKIE_IN` | Yes | Cookie string for `.in` PMS server |
+| `PMS_TOKEN_COM` | **No** | Not needed in production — PMS endpoint is network-authorised for the prod server IP |
+| `PMS_COOKIE_COM` | **No** | Not needed in production |
+| `PMS_TOKEN_IN` | **No** | Not needed in production |
+| `PMS_COOKIE_IN` | **No** | Not needed in production |
 | `GOOGLE_CLIENT_ID` | Yes | `394997129475-vptjprrehufpvhnlh3tad78uqk69u54h.apps.googleusercontent.com` |
 | `ALLOWED_ORIGINS` | Yes | `https://conwo.moveinsync.com` |
 | `TRACE_USER_HASH_SALT` | Recommended | Any random string: `openssl rand -hex 16` |
