@@ -476,6 +476,51 @@ def query(
             buid=req.buid,
         )
 
+        # Layer 1 guardrail: block destructive requests before calling the LLM.
+        # Checked after conversation + user message are persisted so the refusal
+        # appears in chat history, but before any LLM cost is incurred.
+        from backend.guardrail import REFUSAL_MESSAGE, is_destructive_input, log_blocked
+        _trigger = is_destructive_input(req.question)
+        if _trigger:
+            log_blocked(user_email=user_email, question=req.question,
+                        trigger=_trigger, where="query_input")
+            trace_store.record_event(
+                trace_id, "guardrail", "blocked",
+                metadata={"trigger": _trigger, "where": "input_filter"},
+            )
+            _refusal_id = log_answer(
+                question=req.question,
+                answer_text=REFUSAL_MESSAGE,
+                confidence="—",
+                wiki_pages=[],
+                jira_keys=[],
+                pms_configs=[],
+                retrieval_notes="guardrail_blocked",
+            )
+            conversation_store.add_message(
+                conversation_id=conversation_id,
+                role="assistant",
+                content=REFUSAL_MESSAGE,
+                mode=req.mode,
+                server=req.server,
+                buid=req.buid,
+                answer_id=_refusal_id,
+                confidence="—",
+                sources={"wiki_pages": [], "jira_keys": [], "pms_configs": []},
+                tool_trace=[],
+                missing_context=[],
+            )
+            return QueryResponse(
+                answer_id=_refusal_id,
+                answer_text=REFUSAL_MESSAGE,
+                confidence="—",
+                sources={"wiki_pages": [], "jira_keys": [], "pms_configs": []},
+                retrieval={},
+                mode=req.mode,
+                conversation_id=conversation_id,
+                intent="GENERAL",
+            )
+
         from backend.config import resolve_api_key
         try:
             resolved_key = resolve_api_key()
@@ -621,6 +666,38 @@ async def query_stream(
         server=req.server,
         buid=req.buid,
     )
+
+    # Layer 1 guardrail: same check as /query — block before the stream opens.
+    from backend.guardrail import REFUSAL_MESSAGE, is_destructive_input, log_blocked
+    _stream_trigger = is_destructive_input(req.question)
+    if _stream_trigger:
+        log_blocked(user_email=user.get("email"), question=req.question,
+                    trigger=_stream_trigger, where="stream_input")
+        from backend.feedback_service import log_answer
+        _refusal_id = log_answer(
+            question=req.question, answer_text=REFUSAL_MESSAGE,
+            confidence="—", wiki_pages=[], jira_keys=[], pms_configs=[],
+            retrieval_notes="guardrail_blocked",
+        )
+        conversation_store.add_message(
+            conversation_id=conversation_id, role="assistant",
+            content=REFUSAL_MESSAGE, mode="claude-code-agent",
+            server=req.server, buid=req.buid,
+            answer_id=_refusal_id, confidence="—",
+            sources={"wiki_pages": [], "jira_keys": [], "pms_configs": []},
+            tool_trace=[], missing_context=[],
+        )
+
+        async def _refusal_stream():
+            yield f"event: conversation\ndata: {json.dumps({'conversation_id': conversation_id})}\n\n"
+            yield f"data: {json.dumps({'type': 'text', 'text': REFUSAL_MESSAGE})}\n\n"
+            yield "event: done\ndata: {}\n\n"
+
+        return StreamingResponse(
+            _refusal_stream(),
+            media_type="text/event-stream",
+            headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+        )
 
     # Enrich the (middleware-created) trace session. This endpoint streams
     # claude-code only (G25); end_session runs in the generator's finally below.

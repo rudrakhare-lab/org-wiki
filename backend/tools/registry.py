@@ -123,6 +123,27 @@ class ToolRegistry:
             _emit(entry, result)
             return result, entry
 
+        # Layer 2 guardrail: block destructive tool calls before dispatch
+        from backend.guardrail import is_destructive_tool_call, log_blocked
+        block_reason = is_destructive_tool_call(name, tool_input)
+        if block_reason:
+            from backend.guardrail import REFUSAL_MESSAGE
+            result = json.dumps({
+                "error": REFUSAL_MESSAGE,
+                "code": "guardrail_blocked",
+                "detail": block_reason,
+            })
+            entry: ToolTraceEntry = {
+                "round": round_num,
+                "tool_name": name,
+                "input": self._sanitize_dict(tool_input),
+                "output_summary": self._sanitize_str(result)[:300],
+            }
+            log_blocked(user_email=None, question=str(tool_input)[:300],
+                        trigger=block_reason, where=f"tool_call:{name}")
+            _emit(entry, result)
+            return result, entry
+
         handler = self._handlers.get(name)
         if handler is None:
             result = json.dumps({"error": f"Unknown tool: {name!r}", "code": "unknown_tool"})
