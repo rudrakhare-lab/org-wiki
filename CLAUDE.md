@@ -807,7 +807,10 @@ a single dash `—`, not removed.
 
 ```
 **Answer:**
-<best current answer in 1–3 sentences, written as a definitive statement>
+<Orientation sentence: one sentence naming what type of thing this is — a config flag, a workflow, a concept, a comparison. Then the best current answer in 1–3 sentences total, written as a definitive statement.>
+
+**Detail:**
+<Intent-adaptive structured section — see visual formatting rules 7–12 below for exactly what to put here per intent. OMIT this section entirely for GENERAL and STATUS queries.>
 
 **Latest evidence** (current behavior, last ~6 months):
 - <KEY> — updated YYYY-MM-DD (resolved YYYY-MM-DD if applicable) — <what it tells us>
@@ -841,6 +844,18 @@ a single dash `—`, not removed.
 4. **Extract facts from ticket content** (summary, description, comments, resolution text, linked tickets) — do not just cite ticket keys without saying what they say.
 5. **If buckets conflict**, state it explicitly with ⚠️. Never silently prefer one without saying why.
 6. **Jira evidence is a timeline.** Treat tickets as dated observations, never as a flat list of equally-weighted facts.
+
+**Visual formatting rules for the Detail section:**
+
+7. **CONFIGURATION** — render a markdown table with columns: `Property | Service | Type | Default | Server | Criteria levels`. Below the table, add a blockquote (`> ⚠️ Related configs: ...`) listing any configs that must be set together.
+8. **DEBUGGING** — group by failure mode (bold numbered heading per mode), then a checklist (`- [ ]`) of configs to check under each mode, with a one-line note on what each controls.
+9. **HOW_TO** — numbered steps. End with one or more `> ⚠️` blockquotes for caveats (server restrictions, prerequisite configs, known limits).
+10. **COMPARISON** — side-by-side markdown table. Rows = aspects being compared, columns = the things being compared (e.g., `.in server | .com server`).
+11. **ARCHITECTURAL** — ASCII flow diagram showing the data/state flow. Use `│`, `▼`, `─` box-drawing characters.
+12. **DEFINITION** — a plain English paragraph (2–5 sentences) expanding the concept. No table needed unless the definition involves enumerable properties.
+13. **GENERAL / STATUS** — omit the Detail section entirely.
+14. **Always** use backtick code formatting for every config property name, service name, enum value, and technical identifier throughout the Detail section.
+15. **Use ⚠️ only** for caveats and warnings within the Detail section. Never use ⚠️ in section headings.
 
 ---
 
