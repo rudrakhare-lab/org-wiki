@@ -18,10 +18,10 @@ import secrets
 import time
 
 import anthropic
-from fastapi import APIRouter, Form, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, Form, HTTPException, Request, UploadFile
 from pydantic import BaseModel
 
-from backend import ingest_service
+from backend import agent_registry, ingest_service
 
 router = APIRouter(prefix="/api/ingest")
 _LOG = logging.getLogger("ingest")
@@ -31,13 +31,38 @@ SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".md", ".txt", ".rtf"}
 
 # Where uploads land before being moved to raw/modules/{slug}/.
 # Uses RAW_DIR so it honors CONWO_DATA_DIR (the mounted PVC) in prod.
+# UPLOAD_DIR is kept as a module-level string for test patchability (tests patch this).
 from backend.config import RAW_DIR as _RAW_DIR
 UPLOAD_DIR = str(_RAW_DIR / "modules" / "_uploads")
 
+
+def _get_agent(request: Request) -> agent_registry.AgentSpec:
+    """Resolve the active agent from middleware-set request.state.agent_id.
+
+    Replicated locally from api._get_agent to avoid a circular import
+    (ingest_api.py must not import from api.py).
+    """
+    return agent_registry.get(getattr(request.state, "agent_id", "conwo"))
+
+
+def _uploads_root(agent: agent_registry.AgentSpec) -> pathlib.Path:
+    """Return the upload staging dir for the active agent.
+
+    For conwo (or when UPLOAD_DIR has been patched in tests), uses the
+    module-level UPLOAD_DIR constant so existing tests continue to work.
+    For any other agent, resolves under that agent's raw_dir.
+    """
+    if agent.id == agent_registry.DEFAULT_AGENT_ID:
+        return pathlib.Path(UPLOAD_DIR)
+    return agent.raw_dir / "modules" / "_uploads"
+
 # ── System prompts ────────────────────────────────────────────────────────────
 
-PLAN_SYSTEM_PROMPT = """\
-You are an ingestion planner for the WorkInSync org wiki.
+def _render_plan_prompt(agent: agent_registry.AgentSpec) -> str:
+    """Return the Phase 1 system prompt, parameterized for the active agent."""
+    return f"""\
+You are an ingestion planner for the {agent.display_name} wiki.
+{agent.identity}
 A document has been uploaded. Your job: read it, classify it,
 identify cross-references with the existing wiki, and produce
 a structured JSON plan. You MUST NOT write anything — you have
@@ -72,28 +97,33 @@ MANDATORY STEPS:
 4. Output your final answer as JSON only — no prose outside the JSON
 
 OUTPUT: a single JSON object with this structure:
-{
+{{
   "summary_bullets": ["string", ...],
   "classification": "module|entity|config|source|concept|decision|cross-module",
   "target_slug": "visitor-management",
   "operations": [
-    {
+    {{
       "type": "create|edit|append|update_frontmatter",
       "path": "wiki/...",
-      "frontmatter": {},
+      "frontmatter": {{}},
       "preview": "first 200 chars of planned body",
       "change_description": "what this change does"
-    }
+    }}
   ],
   "cross_references": ["wiki/cross-module/..."],
   "warnings": ["string", ...],
   "agent_reasoning": "one paragraph explaining classification"
-}
+}}
 """
 
-EXECUTE_SYSTEM_PROMPT = """\
-You are an ingestion executor. Execute the approved plan EXACTLY
-as specified. Do not re-classify. Do not add or remove operations.
+
+def _render_execute_prompt(agent: agent_registry.AgentSpec) -> str:
+    """Return the Phase 2 system prompt, parameterized for the active agent."""
+    return f"""\
+You are an ingestion executor for the {agent.display_name} wiki.
+{agent.identity}
+Execute the approved plan EXACTLY as specified. Do not re-classify.
+Do not add or remove operations.
 
 For each operation in the plan:
 - "create"             → call wiki_create_page
@@ -114,9 +144,11 @@ MODEL = "claude-sonnet-4-6"
 
 @router.post("/upload")
 async def upload_file(
+    request: Request,
     file: UploadFile,
     notes: str = Form(""),
     target_slug: str = Form(""),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
     ext = pathlib.Path(file.filename or "").suffix.lower()
     if ext not in SUPPORTED_EXTENSIONS:
@@ -130,14 +162,14 @@ async def upload_file(
         raise HTTPException(status_code=413, detail="File exceeds 100 MB limit")
 
     upload_id = secrets.token_hex(8)
-    dest_dir = pathlib.Path(UPLOAD_DIR) / upload_id
+    dest_dir = _uploads_root(agent) / upload_id
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest_file = dest_dir / (file.filename or "upload" + ext)
     dest_file.write_bytes(content)
 
     size_kb = len(content) / 1024
-    _LOG.info("[upload] %s → upload_id=%s  size=%.1f KB  hint=%r",
-              file.filename, upload_id, size_kb, target_slug or "auto-detect")
+    _LOG.info("[upload] %s → upload_id=%s  size=%.1f KB  hint=%r  agent=%s",
+              file.filename, upload_id, size_kb, target_slug or "auto-detect", agent.id)
     return {
         "upload_id": upload_id,
         "filename": file.filename,
@@ -163,9 +195,18 @@ async def _run_plan_job(
     notes: str,
     target_slug: str,
 ) -> None:
-    """Background coroutine — runs the Phase 1 planner agent. Releases lock when done."""
-    _LOG.info("[plan_job] job=%s  file=%s", job.plan_job_id[:8], filename)
+    """Background coroutine — runs the Phase 1 planner agent. Releases lock when done.
+
+    Re-establishes the agent ContextVar at the top of the job.  asyncio.create_task
+    copies the ContextVar context at task-creation time, but the middleware resets it
+    after the request handler returns (which may be before this coroutine runs).
+    Explicitly setting it here guarantees wiki tools resolve the correct agent.
+    """
+    from backend import agent_context as _agent_ctx
+    _ctx_token = _agent_ctx.set_current_agent(job.agent_id)
+    _LOG.info("[plan_job] job=%s  file=%s  agent=%s", job.plan_job_id[:8], filename, job.agent_id)
     try:
+        agent = agent_registry.get(job.agent_id)
         hint = f"\nUser hint — target module: {target_slug}" if target_slug else ""
         context = f"\nUser context: {notes}" if notes else ""
         user_message = (
@@ -173,7 +214,7 @@ async def _run_plan_job(
             "Produce the JSON plan as your final response."
         )
 
-        registry = ingest_service.build_plan_registry()
+        registry = ingest_service.build_plan_registry(agent)
         api_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
         messages: list[dict] = [{"role": "user", "content": user_message}]
         plan_json: dict = {}
@@ -182,7 +223,7 @@ async def _run_plan_job(
             response = await api_client.messages.create(
                 model=MODEL,
                 max_tokens=4096,
-                system=PLAN_SYSTEM_PROMPT,
+                system=_render_plan_prompt(agent),
                 tools=registry.schemas,
                 messages=messages,
             )
@@ -247,6 +288,7 @@ async def _run_plan_job(
             slug=slug,
             filename=filename,
             original_path=file_path,
+            agent_id=job.agent_id,
         )
         ingest_service.store_session(session)
 
@@ -259,12 +301,17 @@ async def _run_plan_job(
         job.error_msg = str(exc)
         _LOG.exception("[plan_job] FAILED  job=%s  error=%s", job.plan_job_id[:8], exc)
     finally:
+        _agent_ctx.reset_current_agent(_ctx_token)
         ingest_service.release_lock()
         _LOG.info("[plan_job] lock released  job=%s", job.plan_job_id[:8])
 
 
 @router.post("/plan")
-async def plan_ingest(req: PlanRequest):
+async def plan_ingest(
+    req: PlanRequest,
+    request: Request,
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
     # Idempotent: reuse any running plan job for this upload_id
     existing = ingest_service.get_running_plan_job_for_upload(req.upload_id)
     if existing:
@@ -273,7 +320,7 @@ async def plan_ingest(req: PlanRequest):
         return {"plan_job_id": existing.plan_job_id, "status": "running"}
 
     # Locate upload before acquiring the lock
-    upload_dir = pathlib.Path(UPLOAD_DIR) / req.upload_id
+    upload_dir = _uploads_root(agent) / req.upload_id
     if not upload_dir.exists():
         raise HTTPException(status_code=404, detail=f"Upload {req.upload_id!r} not found")
     files = [f for f in upload_dir.iterdir() if f.is_file()]
@@ -289,15 +336,15 @@ async def plan_ingest(req: PlanRequest):
         )
 
     plan_job_id = ingest_service.new_session_id()
-    job = ingest_service.create_plan_job(plan_job_id, req.upload_id)
+    job = ingest_service.create_plan_job(plan_job_id, req.upload_id, agent_id=agent.id)
 
     task = asyncio.create_task(
         _run_plan_job(job, file_path, filename, req.notes, req.target_slug)
     )
     job._task = task
 
-    _LOG.info("[plan] job started  job=%s  file=%s  upload_id=%s",
-              plan_job_id[:8], filename, req.upload_id)
+    _LOG.info("[plan] job started  job=%s  file=%s  upload_id=%s  agent=%s",
+              plan_job_id[:8], filename, req.upload_id, agent.id)
     return {"plan_job_id": plan_job_id, "status": "running"}
 
 
@@ -321,13 +368,26 @@ class ExecuteRequest(BaseModel):
     session_id: str
 
 
-async def _run_ingest_job(session: ingest_service.IngestSession, job: ingest_service.IngestJob) -> None:
-    """Background coroutine — runs the Phase 2 agent. No HTTP connection required."""
-    _LOG.info("[execute] job=%s  file=%s  slug=%s  ops=%d",
+async def _run_ingest_job(
+    session: ingest_service.IngestSession,
+    job: ingest_service.IngestJob,
+) -> None:
+    """Background coroutine — runs the Phase 2 agent. No HTTP connection required.
+
+    Re-establishes the agent ContextVar at the top of the job so that wiki write
+    tools (_wiki_dir, _safe_path) resolve the correct agent's wiki directory.
+    The session's agent_id is canonical — use it even if the request's agent
+    differed (the plan was produced for this agent's wiki).
+    """
+    from backend import agent_context as _agent_ctx, wiki_retriever
+    aid = session.agent_id
+    _ctx_token = _agent_ctx.set_current_agent(aid)
+    _LOG.info("[execute] job=%s  file=%s  slug=%s  ops=%d  agent=%s",
               job.job_id[:8], session.filename, session.slug,
-              len(session.plan.get("operations", [])))
+              len(session.plan.get("operations", [])), aid)
     try:
-        registry = ingest_service.build_execute_registry()
+        agent = agent_registry.get(aid)
+        registry = ingest_service.build_execute_registry(agent)
         api_client = anthropic.AsyncAnthropic(api_key=os.getenv("ANTHROPIC_API_KEY", ""))
 
         plan = session.plan
@@ -345,7 +405,7 @@ async def _run_ingest_job(session: ingest_service.IngestSession, job: ingest_ser
             response = await api_client.messages.create(
                 model=MODEL,
                 max_tokens=4096,
-                system=EXECUTE_SYSTEM_PROMPT,
+                system=_render_execute_prompt(agent),
                 tools=registry.schemas,
                 messages=messages,
             )
@@ -413,35 +473,49 @@ async def _run_ingest_job(session: ingest_service.IngestSession, job: ingest_ser
             messages.append({"role": "assistant", "content": response.content})
             messages.append({"role": "user", "content": tool_results})
 
-        # Move uploaded file to proper raw/modules/{slug}/ location
+        # Move uploaded file to proper raw/{slug}/ location under agent's raw_dir
         src = pathlib.Path(session.original_path)
         if src.exists():
-            dest_dir = pathlib.Path(UPLOAD_DIR).parent / session.slug
+            dest_dir = agent.raw_dir / "modules" / session.slug
             dest_dir.mkdir(parents=True, exist_ok=True)
             dest = dest_dir / session.filename
             src.rename(dest)
-            _LOG.info("[execute]   file moved → raw/modules/%s/%s", session.slug, session.filename)
+            _LOG.info("[execute]   file moved → %s/%s/%s",
+                      agent.raw_dir, session.slug, session.filename)
             try:
                 src.parent.rmdir()
             except OSError:
                 pass
 
+        # Explicitly rebuild this agent's wiki index — more reliable than relying
+        # on the LLM to call wiki_rebuild_index at the right moment.
+        try:
+            wiki_retriever.build_index(aid)
+            _LOG.info("[execute]   index rebuilt  agent=%s", aid)
+        except Exception as idx_exc:
+            _LOG.warning("[execute]   index rebuild failed  agent=%s  error=%s", aid, idx_exc)
+
         job.links = [p.replace("wiki/", "").replace(".md", "") for p in job.files_created]
         job.status = "complete"
-        _LOG.info("[execute] DONE  job=%s  created=%d  modified=%d",
-                  job.job_id[:8], len(job.files_created), len(job.files_modified))
+        _LOG.info("[execute] DONE  job=%s  created=%d  modified=%d  agent=%s",
+                  job.job_id[:8], len(job.files_created), len(job.files_modified), aid)
 
     except Exception as exc:
         job.status = "error"
         job.error_msg = str(exc)
         _LOG.exception("[execute] FAILED  job=%s  error=%s", job.job_id[:8], exc)
     finally:
+        _agent_ctx.reset_current_agent(_ctx_token)
         ingest_service.release_lock()
         _LOG.info("[execute] lock released  job=%s", job.job_id[:8])
 
 
 @router.post("/execute")
-async def execute_ingest(req: ExecuteRequest):
+async def execute_ingest(
+    req: ExecuteRequest,
+    request: Request,
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
     session = ingest_service.get_session(req.session_id)
     if session is None:
         raise HTTPException(
@@ -455,15 +529,18 @@ async def execute_ingest(req: ExecuteRequest):
             detail="Another ingestion is in progress. Try again in a moment.",
         )
 
+    # Use the session's agent_id for the job — the plan was produced for that
+    # agent's wiki, so we stay consistent even if the request came from a
+    # different agent context.
     job_id = ingest_service.new_session_id()
-    job = ingest_service.create_job(job_id)
+    job = ingest_service.create_job(job_id, agent_id=session.agent_id)
 
     # Store task reference to prevent GC killing it mid-run
     task = asyncio.create_task(_run_ingest_job(session, job))
     job._task = task
 
-    _LOG.info("[execute] job started  job=%s  file=%s  slug=%s",
-              job_id[:8], session.filename, session.slug)
+    _LOG.info("[execute] job started  job=%s  file=%s  slug=%s  agent=%s",
+              job_id[:8], session.filename, session.slug, session.agent_id)
     return {"job_id": job_id, "status": "running"}
 
 

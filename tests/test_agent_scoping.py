@@ -368,3 +368,128 @@ def test_conversation_endpoints_scoped_by_agent_header(monkeypatch, clean_db):
         assert client.get(f"/conversations/{conwo_id}", headers={"X-Agent-Id": "conwo"}).status_code == 200
     finally:
         app.dependency_overrides.clear()
+
+
+# ── Ingest registry agent-scoping tests ──────────────────────────────────────
+
+
+def test_ingest_plan_registry_conwo_has_all_tools():
+    """conwo (tools=["*"]) gets all plan tools including extract_* and wiki tools."""
+    from backend.ingest_service import build_plan_registry
+    from backend import agent_registry
+
+    registry = build_plan_registry(agent=agent_registry.get("conwo"))
+    names = {s["name"] for s in registry.schemas}
+    # Extraction tools must be present for conwo
+    assert "extract_pdf" in names
+    assert "extract_docx" in names
+    assert "extract_xlsx" in names
+    assert "extract_text_file" in names
+    # Wiki read tools must be present
+    assert "wiki_search" in names
+    assert "wiki_read_page" in names
+    assert "wiki_list_pages" in names
+    assert "wiki_check_duplicate" in names
+
+
+def test_ingest_execute_registry_conwo_has_write_tools():
+    """conwo (tools=["*"]) gets all execute tools including wiki_create_page."""
+    from backend.ingest_service import build_execute_registry
+    from backend import agent_registry
+
+    registry = build_execute_registry(agent=agent_registry.get("conwo"))
+    names = {s["name"] for s in registry.schemas}
+    assert "wiki_create_page" in names
+    assert "wiki_edit_page" in names
+    assert "wiki_append_section" in names
+    assert "wiki_update_frontmatter" in names
+    assert "wiki_rebuild_index" in names
+    assert "wiki_read_page" in names
+    # No jira/pms tools in execute registry
+    assert "jira_search_ranked" not in names
+    assert not any(n.startswith("pms_") for n in names)
+
+
+def test_ingest_plan_registry_infosec_has_wiki_tools_no_jira_pms():
+    """infosec allowlist excludes extract_* and jira/pms tools from plan registry."""
+    from backend.ingest_service import build_plan_registry
+    from backend import agent_registry
+
+    registry = build_plan_registry(agent=agent_registry.get("infosec"))
+    names = {s["name"] for s in registry.schemas}
+    # infosec has wiki_search + wiki_read_page in its allowlist
+    assert "wiki_search" in names
+    assert "wiki_read_page" in names
+    # extract_* tools are NOT in infosec allowlist
+    assert "extract_pdf" not in names
+    assert "extract_docx" not in names
+    # No jira or pms tools
+    assert "jira_search_ranked" not in names
+    assert not any(n.startswith("pms_") for n in names)
+
+
+def test_ingest_execute_registry_infosec_has_no_direct_write_tools():
+    """infosec allowlist has wiki_propose_* but NOT wiki_create_page/edit/append."""
+    from backend.ingest_service import build_execute_registry
+    from backend import agent_registry
+
+    registry = build_execute_registry(agent=agent_registry.get("infosec"))
+    names = {s["name"] for s in registry.schemas}
+    # Direct write tools are NOT in infosec allowlist
+    assert "wiki_create_page" not in names
+    assert "wiki_edit_page" not in names
+    assert "wiki_append_section" not in names
+    assert "wiki_rebuild_index" not in names
+    # wiki_read_page IS in infosec allowlist
+    assert "wiki_read_page" in names
+
+
+def test_ingest_upload_dir_conwo_uses_module_constant(tmp_path):
+    """For conwo, _uploads_root uses the module-level UPLOAD_DIR constant."""
+    import backend.ingest_api as api_module
+    from backend import agent_registry
+
+    original_upload_dir = api_module.UPLOAD_DIR
+    patched = str(tmp_path / "custom_uploads")
+    # Simulate test patching UPLOAD_DIR as existing tests do
+    api_module.UPLOAD_DIR = patched
+    try:
+        conwo = agent_registry.get("conwo")
+        result = api_module._uploads_root(conwo)
+        assert str(result) == patched
+    finally:
+        api_module.UPLOAD_DIR = original_upload_dir
+
+
+def test_ingest_upload_dir_infosec_uses_agent_raw_dir():
+    """For infosec, _uploads_root resolves under agent.raw_dir — not the global UPLOAD_DIR."""
+    import backend.ingest_api as api_module
+    from backend import agent_registry
+
+    infosec = agent_registry.get("infosec")
+    result = api_module._uploads_root(infosec)
+    expected = infosec.raw_dir / "modules" / "_uploads"
+    assert result == expected
+    # Must NOT be the same as the conwo path
+    conwo_path = api_module._uploads_root(agent_registry.get("conwo"))
+    assert result != conwo_path
+
+
+def test_ingest_plan_registry_no_agent_defaults_to_conwo():
+    """build_plan_registry() with no agent defaults to conwo — all tools registered."""
+    from backend.ingest_service import build_plan_registry
+
+    registry = build_plan_registry()
+    names = {s["name"] for s in registry.schemas}
+    assert "extract_pdf" in names
+    assert "wiki_search" in names
+
+
+def test_ingest_execute_registry_no_agent_defaults_to_conwo():
+    """build_execute_registry() with no agent defaults to conwo — all tools registered."""
+    from backend.ingest_service import build_execute_registry
+
+    registry = build_execute_registry()
+    names = {s["name"] for s in registry.schemas}
+    assert "wiki_create_page" in names
+    assert "wiki_rebuild_index" in names

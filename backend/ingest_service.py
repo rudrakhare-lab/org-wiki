@@ -48,6 +48,7 @@ class IngestSession:
     slug: str
     filename: str
     original_path: str
+    agent_id: str = "conwo"
 
     @property
     def expired(self) -> bool:
@@ -77,8 +78,16 @@ def new_session_id() -> str:
 
 # ── tool registries ───────────────────────────────────────────────────────────
 
-def build_plan_registry():
-    """Phase 1: read-only tools for extraction and wiki lookup. NO write tools."""
+def build_plan_registry(agent=None):
+    """Phase 1: read-only tools for extraction and wiki lookup. NO write tools.
+
+    Tools are filtered to the agent's allowlist. agent=None defaults to conwo
+    (tools=["*"]) which registers all tools — behaviour identical to pre-agent version.
+    """
+    if agent is None:
+        from backend import agent_registry
+        agent = agent_registry.default()
+
     from backend.tools.registry import ToolRegistry
     from backend.tools.wiki_tools import (
         WIKI_SEARCH_SCHEMA, _wiki_search_handler,
@@ -94,8 +103,12 @@ def build_plan_registry():
 
     r = ToolRegistry(user_role="contributor")
 
+    def reg(schema, fn):
+        if agent.tool_allowed(schema["name"]):
+            r.register(schema, fn)
+
     # Extraction tools
-    r.register(
+    reg(
         {
             "name": "extract_pdf",
             "description": "Extract text from a PDF file at the given path. Returns {text, page_count, char_count, truncated}.",
@@ -107,7 +120,7 @@ def build_plan_registry():
         },
         lambda inp: extract_pdf(inp["file_path"]),
     )
-    r.register(
+    reg(
         {
             "name": "extract_docx",
             "description": "Extract text from a DOCX file. Returns {text, char_count, has_tables, truncated}.",
@@ -119,7 +132,7 @@ def build_plan_registry():
         },
         lambda inp: extract_docx(inp["file_path"]),
     )
-    r.register(
+    reg(
         {
             "name": "extract_xlsx",
             "description": "Extract sheets and text from an XLSX file. Returns {sheets, text_repr, char_count, truncated}.",
@@ -131,7 +144,7 @@ def build_plan_registry():
         },
         lambda inp: extract_xlsx(inp["file_path"]),
     )
-    r.register(
+    reg(
         {
             "name": "extract_text_file",
             "description": "Extract text from a plain-text file (MD, TXT, RTF). Returns {text, char_count, truncated}.",
@@ -145,10 +158,10 @@ def build_plan_registry():
     )
 
     # Wiki read tools
-    r.register(WIKI_SEARCH_SCHEMA, _wiki_search_handler)
-    r.register(WIKI_READ_PAGE_SCHEMA, _wiki_read_page_handler)
-    r.register(WIKI_LIST_PAGES_SCHEMA, _wiki_list_pages_handler)
-    r.register(WIKI_CHECK_DUPLICATE_SCHEMA, _wiki_check_duplicate_handler)
+    reg(WIKI_SEARCH_SCHEMA, _wiki_search_handler)
+    reg(WIKI_READ_PAGE_SCHEMA, _wiki_read_page_handler)
+    reg(WIKI_LIST_PAGES_SCHEMA, _wiki_list_pages_handler)
+    reg(WIKI_CHECK_DUPLICATE_SCHEMA, _wiki_check_duplicate_handler)
 
     return r
 
@@ -169,13 +182,14 @@ class IngestJob:
     links: list
     error_msg: str
     created_at: float
+    agent_id: str = "conwo"
     _task: object = None  # asyncio.Task — kept to prevent GC
 
 
 _jobs: dict[str, "IngestJob"] = {}
 
 
-def create_job(job_id: str) -> "IngestJob":
+def create_job(job_id: str, agent_id: str = "conwo") -> "IngestJob":
     job = IngestJob(
         job_id=job_id,
         status="running",
@@ -185,6 +199,7 @@ def create_job(job_id: str) -> "IngestJob":
         links=[],
         error_msg="",
         created_at=time.time(),
+        agent_id=agent_id,
     )
     _jobs[job_id] = job
     return job
@@ -211,13 +226,14 @@ class IngestPlanJob:
     plan: dict           # set when done
     error_msg: str
     created_at: float
+    agent_id: str = "conwo"
     _task: object = None  # asyncio.Task — prevents GC
 
 
 _plan_jobs: dict[str, "IngestPlanJob"] = {}
 
 
-def create_plan_job(plan_job_id: str, upload_id: str) -> "IngestPlanJob":
+def create_plan_job(plan_job_id: str, upload_id: str, agent_id: str = "conwo") -> "IngestPlanJob":
     job = IngestPlanJob(
         plan_job_id=plan_job_id,
         upload_id=upload_id,
@@ -226,6 +242,7 @@ def create_plan_job(plan_job_id: str, upload_id: str) -> "IngestPlanJob":
         plan={},
         error_msg="",
         created_at=time.time(),
+        agent_id=agent_id,
     )
     _plan_jobs[plan_job_id] = job
     return job
@@ -251,8 +268,16 @@ def get_running_plan_job_for_upload(upload_id: str) -> "IngestPlanJob | None":
 
 # ── tool registries ───────────────────────────────────────────────────────────
 
-def build_execute_registry():
-    """Phase 2: write tools plus read access for self-verification. No extraction tools."""
+def build_execute_registry(agent=None):
+    """Phase 2: write tools plus read access for self-verification. No extraction tools.
+
+    Tools are filtered to the agent's allowlist. agent=None defaults to conwo
+    (tools=["*"]) which registers all tools — behaviour identical to pre-agent version.
+    """
+    if agent is None:
+        from backend import agent_registry
+        agent = agent_registry.default()
+
     from backend.tools.registry import ToolRegistry
     from backend.tools.wiki_write_tools import (
         WIKI_CREATE_PAGE_SCHEMA, _wiki_create_page_handler,
@@ -266,11 +291,16 @@ def build_execute_registry():
     )
 
     r = ToolRegistry(user_role="contributor")
-    r.register(WIKI_CREATE_PAGE_SCHEMA, _wiki_create_page_handler)
-    r.register(WIKI_EDIT_PAGE_SCHEMA, _wiki_edit_page_handler)
-    r.register(WIKI_APPEND_SECTION_SCHEMA, _wiki_append_section_handler)
-    r.register(WIKI_UPDATE_FRONTMATTER_SCHEMA, _wiki_update_frontmatter_handler)
-    r.register(WIKI_REBUILD_INDEX_SCHEMA, _wiki_rebuild_index_handler)
+
+    def reg(schema, fn):
+        if agent.tool_allowed(schema["name"]):
+            r.register(schema, fn)
+
+    reg(WIKI_CREATE_PAGE_SCHEMA, _wiki_create_page_handler)
+    reg(WIKI_EDIT_PAGE_SCHEMA, _wiki_edit_page_handler)
+    reg(WIKI_APPEND_SECTION_SCHEMA, _wiki_append_section_handler)
+    reg(WIKI_UPDATE_FRONTMATTER_SCHEMA, _wiki_update_frontmatter_handler)
+    reg(WIKI_REBUILD_INDEX_SCHEMA, _wiki_rebuild_index_handler)
     # Allow reading pages so the agent can verify its own writes
-    r.register(WIKI_READ_PAGE_SCHEMA, _wiki_read_page_handler)
+    reg(WIKI_READ_PAGE_SCHEMA, _wiki_read_page_handler)
     return r
