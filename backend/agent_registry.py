@@ -9,6 +9,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
+from types import MappingProxyType
+from typing import Mapping
 
 try:
     import tomllib
@@ -17,6 +19,9 @@ except ModuleNotFoundError:  # py<3.11
 
 from backend.config import ROOT, _BASE  # _BASE honors CONWO_DATA_DIR
 
+# The TOML is a repo artifact (config/), NOT customer data — pin it to ROOT, not
+# _BASE. Agent path fields (wiki/raw/claude_md) DO resolve under _BASE so they
+# follow CONWO_DATA_DIR; that asymmetry is deliberate.
 _AGENTS_TOML = ROOT / "config" / "agents.toml"
 DEFAULT_AGENT_ID = "conwo"
 
@@ -49,7 +54,9 @@ def _resolve(p: str) -> Path:
 
 
 @lru_cache(maxsize=1)
-def _load() -> dict[str, AgentSpec]:
+def _load() -> Mapping[str, AgentSpec]:
+    """Parse agents.toml once. Returns a read-only view so the cached mapping
+    can never be mutated/poisoned by a careless caller."""
     with _AGENTS_TOML.open("rb") as f:
         data = tomllib.load(f)
     out: dict[str, AgentSpec] = {}
@@ -70,7 +77,7 @@ def _load() -> dict[str, AgentSpec]:
         )
     if DEFAULT_AGENT_ID not in out:
         raise RuntimeError(f"agents.toml must define [agents.{DEFAULT_AGENT_ID}]")
-    return out
+    return MappingProxyType(out)
 
 
 def all() -> list[AgentSpec]:

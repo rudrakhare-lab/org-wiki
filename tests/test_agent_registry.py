@@ -30,3 +30,21 @@ def test_unknown_agent_falls_back_to_conwo():
     assert agent_registry.get("does-not-exist").id == "conwo"
     assert agent_registry.get(None).id == "conwo"
     assert agent_registry.default().id == "conwo"
+
+
+def test_mode_allowed():
+    conwo = agent_registry.get("conwo")
+    info = agent_registry.get("infosec")
+    assert conwo.mode_allowed("api") is True
+    assert conwo.mode_allowed("agent") is True
+    assert info.mode_allowed("api") is True
+    assert info.mode_allowed("agent") is False
+
+
+def test_invalidate_cache_resets_load():
+    first = agent_registry.get("conwo")
+    agent_registry.invalidate_cache()
+    second = agent_registry.get("conwo")
+    # Fresh objects after cache reset, same logical content.
+    assert first is not second
+    assert first == second
