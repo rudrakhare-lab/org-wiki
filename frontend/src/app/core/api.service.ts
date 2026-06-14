@@ -126,6 +126,20 @@ export interface OperationalStatus {
   pending_admin_review_count: number;
 }
 
+export interface AdminUser {
+  email: string;
+  role: string;
+  approved: boolean;
+  created_at: string;
+  created_by: string | null;
+}
+
+export interface CurrentUser {
+  email: string;
+  role: string;
+  approved: boolean;
+}
+
 export type ProposalType = 'new' | 'edit' | 'append' | 'multi_edit' | 'legacy_text';
 export type ProposalStatus = 'pending' | 'applied' | 'rejected';
 
@@ -314,6 +328,7 @@ export interface TraceSessionSummary {
   mode: string;            // api | claude-code
   status: string;          // success | error | rejected | client_disconnect | orphaned
   question: string | null;
+  user_email: string | null;
   total_tokens_input: number | null;
   total_tokens_output: number | null;
   total_cost_usd: number | null;
@@ -497,6 +512,7 @@ const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 const USER_EMAIL_KEY = 'conwo_user_email';
 const USER_NAME_KEY = 'conwo_user_name';
 const USER_ROLE_KEY = 'conwo_user_role';
+const USER_APPROVED_KEY = 'conwo_user_approved';
 const MODE_STORAGE = 'conwo_query_mode';
 
 @Injectable({ providedIn: 'root' })
@@ -513,10 +529,11 @@ export class ApiService {
     localStorage.setItem(ADMIN_TOKEN_KEY, token);
   }
 
-  setUserInfo(email: string, name: string, role = ''): void {
+  setUserInfo(email: string, name: string, role = '', approved = true): void {
     localStorage.setItem(USER_EMAIL_KEY, email);
     localStorage.setItem(USER_NAME_KEY, name);
     localStorage.setItem(USER_ROLE_KEY, role);
+    localStorage.setItem(USER_APPROVED_KEY, approved ? 'true' : 'false');
   }
 
   getUserEmail(): string {
@@ -531,14 +548,58 @@ export class ApiService {
     return localStorage.getItem(USER_ROLE_KEY) ?? '';
   }
 
+  /**
+   * Optimistic: an unknown/missing flag → approved=true. The backend is the real
+   * gate (so an optimistic client cannot leak access), and genuinely-new users
+   * get an explicit `approved:false` from the login response. This keeps
+   * pre-feature sessions from being bounced to /pending before bootstrap
+   * hydration (getMe) resolves their real status.
+   */
+  getUserApproved(): boolean {
+    return localStorage.getItem(USER_APPROVED_KEY) !== 'false';
+  }
+
+  setUserApproved(approved: boolean): void {
+    localStorage.setItem(USER_APPROVED_KEY, approved ? 'true' : 'false');
+  }
+
+  setUserRole(role: string): void {
+    localStorage.setItem(USER_ROLE_KEY, role);
+  }
+
   clearUserInfo(): void {
     localStorage.removeItem(USER_EMAIL_KEY);
     localStorage.removeItem(USER_NAME_KEY);
     localStorage.removeItem(USER_ROLE_KEY);
+    localStorage.removeItem(USER_APPROVED_KEY);
   }
 
   isAdmin(): boolean {
     return this.getUserRole() === 'admin';
+  }
+
+  isDeveloper(): boolean {
+    return this.getUserRole() === 'developer';
+  }
+
+  /** True when admin or developer (the roles that may ingest / view the graph). */
+  isDeveloperOrAdmin(): boolean {
+    const r = this.getUserRole();
+    return r === 'admin' || r === 'developer';
+  }
+
+  isApproved(): boolean {
+    return this.getUserApproved();
+  }
+
+  /** Current user identity/role/approval from the server (bootstrap hydration
+   *  + the pending-approval screen). Uses the standard Bearer header. */
+  getMe(): Observable<CurrentUser> {
+    const token = this.getAdminToken();
+    const headers = token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+      : new HttpHeaders();
+    return this.http.get<CurrentUser>(`${API_BASE}/auth/me`, { headers });
   }
 
   getStoredMode(): QueryMode {
@@ -796,6 +857,33 @@ export class ApiService {
 
   getIngestQueue(): Observable<IngestItem[]> {
     return this.http.get<IngestItem[]>(`${API_BASE}/admin/ingest-queue`, { headers: this.adminHeaders() });
+  }
+
+  // ── Admin: user management (approval + roles) ──────────────────────────
+  adminListUsers(): Observable<{ users: AdminUser[] }> {
+    return this.http.get<{ users: AdminUser[] }>(`${API_BASE}/admin/users`, { headers: this.adminHeaders() });
+  }
+
+  approveUser(email: string, role?: string): Observable<{ email: string; approved: boolean; role: string }> {
+    return this.http.post<{ email: string; approved: boolean; role: string }>(
+      `${API_BASE}/admin/users/${encodeURIComponent(email)}/approve`,
+      role ? { role } : {},
+      { headers: this.adminHeaders() });
+  }
+
+  getAuthConfig(): Observable<{ dev_login: boolean }> {
+    return this.http.get<{ dev_login: boolean }>(`${API_BASE}/auth/config`);
+  }
+
+  devLogin(email: string): Observable<{ token: string; email: string; name: string; role: string; approved: boolean }> {
+    return this.http.post<{ token: string; email: string; name: string; role: string; approved: boolean }>(
+      `${API_BASE}/auth/dev-login`, { email });
+  }
+
+  updateUserRole(email: string, role: string): Observable<{ email: string; role: string }> {
+    return this.http.patch<{ email: string; role: string }>(
+      `${API_BASE}/admin/users/${encodeURIComponent(email)}/role`, { role },
+      { headers: this.adminHeaders() });
   }
 
   getFeedbackList(status = 'pending'): Observable<FeedbackRecord[]> {

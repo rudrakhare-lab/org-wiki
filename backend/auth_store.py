@@ -43,22 +43,25 @@ def init_schema() -> None:
 
 def create_user(
     email: str,
-    role: str = "viewer",
+    role: str = "general",
     created_by: str | None = None,
+    approved: bool = False,
 ) -> dict[str, Any]:
     now = _now()
     with _connect() as conn:
         conn.execute(
-            "INSERT INTO users (email, role, created_at, created_by) VALUES (%s, %s, %s, %s)",
-            (email, role, now, created_by),
+            "INSERT INTO users (email, role, created_at, created_by, approved) "
+            "VALUES (%s, %s, %s, %s, %s)",
+            (email, role, now, created_by, approved),
         )
-    return {"email": email, "role": role, "created_at": now, "created_by": created_by}
+    return {"email": email, "role": role, "created_at": now,
+            "created_by": created_by, "approved": approved}
 
 
 def get_user(email: str) -> dict[str, Any] | None:
     with _connect() as conn:
         row = conn.execute(
-            "SELECT email, role, created_at, created_by FROM users WHERE email = %s",
+            "SELECT email, role, created_at, created_by, approved FROM users WHERE email = %s",
             (email,),
         ).fetchone()
     return dict(row) if row else None
@@ -67,7 +70,8 @@ def get_user(email: str) -> dict[str, Any] | None:
 def list_users() -> list[dict[str, Any]]:
     with _connect() as conn:
         rows = conn.execute(
-            "SELECT email, role, created_at, created_by FROM users ORDER BY created_at DESC"
+            "SELECT email, role, created_at, created_by, approved "
+            "FROM users ORDER BY created_at DESC"
         ).fetchall()
     return [dict(r) for r in rows]
 
@@ -75,6 +79,24 @@ def list_users() -> list[dict[str, Any]]:
 def delete_user(email: str) -> bool:
     with _connect() as conn:
         cur = conn.execute("DELETE FROM users WHERE email = %s", (email,))
+        return cur.rowcount > 0
+
+
+def set_user_approved(email: str, approved: bool) -> bool:
+    """Set a user's approval flag. Returns True if a row was updated."""
+    with _connect() as conn:
+        cur = conn.execute(
+            "UPDATE users SET approved = %s WHERE email = %s", (approved, email)
+        )
+        return cur.rowcount > 0
+
+
+def set_user_role(email: str, role: str) -> bool:
+    """Change a user's role. Returns True if a row was updated."""
+    with _connect() as conn:
+        cur = conn.execute(
+            "UPDATE users SET role = %s WHERE email = %s", (role, email)
+        )
         return cur.rowcount > 0
 
 
@@ -98,7 +120,7 @@ def lookup_token(token: str) -> dict[str, Any] | None:
     with _connect() as conn:
         row = conn.execute(
             """
-            SELECT u.email, u.role, t.expires_at
+            SELECT u.email, u.role, u.approved, t.expires_at
             FROM tokens t
             JOIN users u ON t.user_email = u.email
             WHERE t.token = %s AND t.revoked = 0
@@ -115,7 +137,8 @@ def lookup_token(token: str) -> dict[str, Any] | None:
                 return None
         except ValueError:
             return None  # fail closed on unparseable expiry
-    return {"email": row["email"], "role": row["role"], "token": token}
+    return {"email": row["email"], "role": row["role"],
+            "approved": bool(row["approved"]), "token": token}
 
 
 def revoke_token(token: str) -> bool:

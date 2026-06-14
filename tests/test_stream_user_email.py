@@ -21,7 +21,7 @@ def stream_client(tmp_path, monkeypatch):
     monkeypatch.setattr(cs, "CONVERSATIONS_DB", tmp_path / "c.sqlite", raising=False)
     monkeypatch.setattr(cs, "CONVERSATIONS_DIR", tmp_path, raising=False)
     monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-id")
-    auth_module.create_user("stream@moveinsync.com", role="admin")
+    auth_module.create_user("stream@moveinsync.com", role="admin", approved=True)
     token = auth_module.create_token("stream@moveinsync.com")
     return tmp_path, monkeypatch, auth_module, cs, token
 

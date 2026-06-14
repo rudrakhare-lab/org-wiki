@@ -25,6 +25,7 @@ The backend (and the cron/ingest scripts) connect to PostgreSQL via these:
 | `CONWO_DB_POOL_MIN` | `1` | |
 | `CONWO_DB_POOL_MAX` | `10` | per replica — see §5 |
 | `CONWO_RUN_MIGRATIONS` | `true` (default) | see §3 |
+| `CONWO_DEV_LOGIN` | **never set in prod** | ⚠️ DEV-ONLY: enables email/password bypass (`POST /auth/dev-login` + login-page box). MUST NOT be set in production — Google OAuth is the only permitted login path in prod. |
 
 Existing non-DB env vars are unchanged (`ANTHROPIC_API_KEY`, `GOOGLE_CLIENT_ID`,
 `ALLOWED_ORIGINS`, `JIRA_*`, `PMS_*`, `TRACE_USER_HASH_SALT`). Full list in `.env.example`.

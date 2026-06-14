@@ -111,3 +111,18 @@
 }
 .empty-state { color: #9ca3af; font-size: 0.875rem; padding: 8px 0; }
 .loading-text { color: #9ca3af; font-size: 0.875rem; }
+
+/* Users panel */
+.role-select {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 3px 6px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+.status-ok { color: #15803d; font-size: 0.8rem; font-weight: 600; }
+.status-pending { color: #b45309; font-size: 0.8rem; font-weight: 600; }
+tr.pending-row { background: #fffbeb; }

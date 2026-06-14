@@ -103,6 +103,7 @@ const PAGE_SIZE = 25;
                 <thead>
                   <tr>
                     <th>Started (UTC)</th>
+                    <th>User</th>
                     <th>Question</th>
                     <th>Mode</th>
                     <th>Status</th>
@@ -116,6 +117,7 @@ const PAGE_SIZE = 25;
                   @for (trace of traces(); track trace.trace_id) {
                     <tr class="trace-row" (click)="onRowClick(trace.trace_id)">
                       <td class="col-date">{{ formatDate(trace.started_at) }}</td>
+                      <td class="col-user" [title]="trace.user_email || ''">{{ formatUser(trace.user_email) }}</td>
                       <td class="col-question">{{ truncate(trace.question) }}</td>
                       <td class="col-mode"><code>{{ trace.mode }}</code></td>
                       <td class="col-status">
@@ -298,6 +300,14 @@ export class TraceList implements OnInit, OnDestroy {
   truncate(s: string | null, len = 70): string {
     if (!s) return '—';
     return s.length > len ? s.slice(0, len) + '…' : s;
+  }
+
+  /** Show the local-part of the email (before @) to keep the column compact;
+   *  full address is the title on hover. */
+  formatUser(email: string | null): string {
+    if (!email) return '—';
+    const at = email.indexOf('@');
+    return at > 0 ? email.slice(0, at) : email;
   }
 
   get hasPrev(): boolean {

@@ -245,6 +245,17 @@ def _require_admin(user: dict | None = Depends(_get_user)) -> dict:
     return user
 
 
+def _require_developer_or_admin(user: dict | None = Depends(_get_user)) -> dict:
+    """Developer OR admin role. Gates the ingest and wiki-graph endpoints —
+    general users may ask/search but not ingest or browse the graph."""
+    if not user or user.get("role") not in ("admin", "developer"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Developer or admin access required",
+        )
+    return user
+
+
 # ---------------------------------------------------------------------------
 # Request / Response models
 # ---------------------------------------------------------------------------
@@ -333,7 +344,7 @@ class FeedbackRequest(BaseModel):
 
 class CreateUserRequest(BaseModel):
     email: str = Field(..., min_length=3, max_length=200)
-    role: Literal["viewer", "contributor", "admin"] = "viewer"
+    role: Literal["general", "developer", "admin"] = "general"
     expires_at: str | None = Field(default=None)
 
 
@@ -349,7 +360,12 @@ class GoogleLoginResponse(BaseModel):
     token: str
     email: str
     name: str
-    role: str = "viewer"
+    role: str = "general"
+    approved: bool = False
+
+
+class DevLoginRequest(BaseModel):
+    email: str
 
 
 # ---------------------------------------------------------------------------
@@ -437,7 +453,18 @@ def query(
             )
 
         user_email = (user or {}).get("email")
-        user_role = (user or {}).get("role", "viewer")
+        user_role = (user or {}).get("role", "general")
+
+        # Approval gate: a signed-in but unapproved user cannot run queries. New
+        # Google sign-ups are provisioned unapproved until an admin approves them.
+        if user and not user.get("approved", False):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "Your account is pending admin approval. "
+                    "Please wait for an administrator to approve your access."
+                ),
+            )
 
         # Rate limit check before any DB writes (skip for unauthenticated users).
         if user:
@@ -465,7 +492,7 @@ def query(
 
         # Enrich the (middleware-created) trace session with real mode/question/conv.
         trace_store.start_session(trace_id, mode=req.mode, question=req.question,
-                                  conversation_id=conversation_id)
+                                  conversation_id=conversation_id, user_email=user_email)
 
         conversation_store.add_message(
             conversation_id=conversation_id,
@@ -646,6 +673,16 @@ async def query_stream(
             detail="Claude Code CLI not installed on this server.",
         )
 
+    # Approval gate (defense-in-depth; this endpoint is already admin-only).
+    if not user.get("approved", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Your account is pending admin approval. "
+                "Please wait for an administrator to approve your access."
+            ),
+        )
+
     # Resolve / create conversation, save the user message before the stream
     # so it appears in history even if the stream is cancelled.
     conversation_id = req.conversation_id
@@ -703,7 +740,7 @@ async def query_stream(
     # claude-code only (G25); end_session runs in the generator's finally below.
     trace_id = getattr(request.state, "trace_id", None)
     trace_store.start_session(trace_id, mode="claude-code", question=req.question,
-                              conversation_id=conversation_id)
+                              conversation_id=conversation_id, user_email=user.get("email"))
 
     # Deterministic preflight: run the SAME wiki+Jira+ticket retrieval we do
     # for Deep Search, then prepend the result to the question we hand to
@@ -986,7 +1023,7 @@ def google_login(req: GoogleLoginRequest) -> GoogleLoginResponse:
     """Exchange a Google ID token for a Conwo session token.
 
     Verifies the Google credential, enforces @moveinsync.com domain,
-    auto-provisions the user on first login (role: viewer), and returns
+    auto-provisions the user on first login (role: general), and returns
     a random session token stored in auth_store.
     """
     import os
@@ -1004,15 +1041,67 @@ def google_login(req: GoogleLoginRequest) -> GoogleLoginResponse:
     email = user_info["email"]
     from backend import auth_store
     if not auth_store.get_user(email):
-        auth_store.create_user(email, role="viewer")
+        # First login auto-provisions an unapproved 'general' user. An admin must
+        # approve the account before the user can run any query.
+        auth_store.create_user(email, role="general", approved=False)
     user = auth_store.get_user(email)
     token = auth_store.create_token(email)
     return GoogleLoginResponse(
         token=token,
         email=email,
         name=user_info["name"],
-        role=(user or {}).get("role", "viewer"),
+        role=(user or {}).get("role", "general"),
+        approved=bool((user or {}).get("approved", False)),
     )
+
+
+@app.get("/auth/config")
+def auth_config():
+    """Public, unauthenticated. Tells the frontend whether the dev email-login box
+    should render. False on prod (CONWO_DEV_LOGIN unset) — Google is the only path."""
+    from backend import config
+    return {"dev_login": config.dev_login_enabled()}
+
+
+@app.post("/auth/dev-login", response_model=GoogleLoginResponse)
+def dev_login(req: DevLoginRequest):
+    """Dev-only email login, gated by CONWO_DEV_LOGIN. Mirrors google_login's
+    provisioning exactly: a new email is created as general + unapproved, then must be
+    approved by an admin. Returns 403 (inert) when the flag is off, so this route is
+    a no-op in production."""
+    from backend import config, auth_store
+    if not config.dev_login_enabled():
+        raise HTTPException(status_code=403, detail="Dev login is disabled.")
+    email = req.email.strip().lower()
+    if not email.endswith("@moveinsync.com"):
+        raise HTTPException(
+            status_code=403,
+            detail="Only @moveinsync.com accounts can sign in.",
+        )
+    if not auth_store.get_user(email):
+        auth_store.create_user(email, role="general", approved=False)
+    user = auth_store.get_user(email)
+    token = auth_store.create_token(email)
+    return GoogleLoginResponse(
+        token=token,
+        email=email,
+        name=email.split("@")[0],
+        role=(user or {}).get("role", "general"),
+        approved=bool((user or {}).get("approved", False)),
+    )
+
+
+@app.get("/auth/me")
+def auth_me(user: dict = Depends(_require_user)):
+    """Current user's identity, role, and approval status. The frontend calls this
+    on bootstrap to hydrate role/approval (so admin approvals and role changes take
+    effect without a re-login) and from the pending-approval screen. Uses
+    _require_user, NOT the approval gate — a pending user must read their own status."""
+    return {
+        "email": user.get("email"),
+        "role": user.get("role", "general"),
+        "approved": bool(user.get("approved", False)),
+    }
 
 
 # Admin endpoints (require admin Bearer token)
@@ -1068,6 +1157,7 @@ def admin_create_user(
             req.email,
             role=req.role,
             created_by=_admin.get("email"),
+            approved=True,  # an admin explicitly creating a user implies approval
         )
     token = auth_store.create_token(req.email, expires_at=req.expires_at)
     return {
@@ -1092,6 +1182,45 @@ def admin_delete_user(email: str, _admin: dict = Depends(_require_admin)):
     if not deleted:
         raise HTTPException(status_code=404, detail=f"User not found: {email}")
     return {"deleted": True, "email": email}
+
+
+class UpdateRoleRequest(BaseModel):
+    role: Literal["general", "developer", "admin"]
+
+
+class ApproveUserRequest(BaseModel):
+    role: Literal["general", "developer", "admin"] | None = None
+
+
+@app.post("/admin/users/{email:path}/approve")
+def admin_approve_user(
+    email: str,
+    req: ApproveUserRequest | None = None,
+    _admin: dict = Depends(_require_admin),
+):
+    """Approve a pending user so they can run queries. If a role is supplied, set it
+    in the same action (used by the Approvals tab's role-picker)."""
+    from backend import auth_store
+    if req is not None and req.role is not None:
+        if not auth_store.set_user_role(email, req.role):
+            raise HTTPException(status_code=404, detail=f"User not found: {email}")
+    if not auth_store.set_user_approved(email, True):
+        raise HTTPException(status_code=404, detail=f"User not found: {email}")
+    return {"email": email, "approved": True,
+            "role": (auth_store.get_user(email) or {}).get("role")}
+
+
+@app.patch("/admin/users/{email:path}/role")
+def admin_update_user_role(
+    email: str,
+    req: UpdateRoleRequest,
+    _admin: dict = Depends(_require_admin),
+):
+    """Change a user's role (general / developer / admin)."""
+    from backend import auth_store
+    if not auth_store.set_user_role(email, req.role):
+        raise HTTPException(status_code=404, detail=f"User not found: {email}")
+    return {"email": email, "role": req.role}
 
 
 @app.delete("/admin/tokens/{token}")
@@ -1193,10 +1322,10 @@ app.include_router(trace_api.router, dependencies=[Depends(_require_admin)])
 # defined. Any authenticated user — auth applied here at include time so
 # ingest_api.py needs no import from api.py (avoids a circular import).
 from backend import ingest_api  # noqa: E402
-app.include_router(ingest_api.router, dependencies=[Depends(_require_user)])
+app.include_router(ingest_api.router, dependencies=[Depends(_require_developer_or_admin)])
 
 from backend import wiki_graph_api  # noqa: E402
-app.include_router(wiki_graph_api.router, dependencies=[Depends(_require_user)])
+app.include_router(wiki_graph_api.router, dependencies=[Depends(_require_developer_or_admin)])
 
 
 # ---------------------------------------------------------------------------

@@ -14,14 +14,15 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture
 def authed_client(tmp_path):
-    """TestClient with a patched lookup so Bearer fake passes as a viewer user."""
+    """TestClient with a patched lookup so Bearer fake passes as a developer user
+    (ingest endpoints require developer-or-admin)."""
     from backend import api as api_module
     importlib.reload(api_module)
     client = TestClient(api_module.app)
-    viewer = {"email": "t@t.com", "role": "viewer", "token": "fake"}
+    dev_user = {"email": "t@t.com", "role": "developer", "token": "fake", "approved": True}
     with patch(
         "backend.config.lookup_user_by_token",
-        side_effect=lambda t: viewer if t == "fake" else None,
+        side_effect=lambda t: dev_user if t == "fake" else None,
     ):
         yield client
 

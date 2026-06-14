@@ -107,7 +107,11 @@ def lookup_user_by_token(token: str) -> dict | None:
                     return None
             except ValueError:
                 pass
-        return user
+        # TOML users predate the approval flow and the role-column default. Treat
+        # them as approved operators so the /query approval gate never 403s them;
+        # default a missing role to 'general' (least privilege).
+        return {**user, "approved": user.get("approved", True),
+                "role": user.get("role", "general")}
     return None
 
 
@@ -127,5 +131,20 @@ def local_claude_code_enabled() -> bool:
     be able to drive the server's Claude Code session.
     """
     return os.getenv("CONWO_LOCAL_CLAUDE_CODE", "").strip().lower() in {
+        "1", "true", "yes", "on"
+    }
+
+
+def dev_login_enabled() -> bool:
+    """
+    True when the operator has explicitly enabled the dev-only email-login path
+    via the CONWO_DEV_LOGIN env var.
+
+    Lets test users sign in by typing an @moveinsync.com email (no Google), so the
+    three roles and the approval flow can be exercised in dev. Must NOT be set on
+    production — anyone who can reach the backend could mint a session for any
+    @moveinsync.com email. Google OAuth remains the only prod login path.
+    """
+    return os.getenv("CONWO_DEV_LOGIN", "").strip().lower() in {
         "1", "true", "yes", "on"
     }

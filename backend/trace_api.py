@@ -79,6 +79,7 @@ class SessionSummary(BaseModel):
     mode: str
     status: str
     question: str | None = None
+    user_email: str | None = None
     total_tokens_input: int | None = None
     total_tokens_output: int | None = None
     total_cost_usd: float | None = None
@@ -129,7 +130,8 @@ def list_sessions(
         total = conn.execute(f"SELECT COUNT(*) FROM trace_sessions WHERE {clause}", params).fetchone()[0]
         rows = conn.execute(
             f"SELECT trace_id, started_at, ended_at, duration_ms, mode, status, "
-            f"substr(question,1,160) AS question, total_tokens_input, total_tokens_output, "
+            f"substr(question,1,160) AS question, user_email, "
+            f"total_tokens_input, total_tokens_output, "
             f"total_cost_usd, tool_call_count, round_count "
             f"FROM trace_sessions WHERE {clause} ORDER BY started_at DESC LIMIT %s OFFSET %s",
             params + [limit, offset],

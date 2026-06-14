@@ -29,10 +29,37 @@ export class App {
         this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
         this.signedIn.set(this.readToken().length > 0);
       });
+    this.hydrateUser();
+  }
+
+  /**
+   * On bootstrap, refresh the signed-in user's role + approval from the server.
+   * This (a) gives pre-feature sessions their role/approved flags, (b) picks up
+   * an admin approval without a re-login, and (c) propagates role changes. A 401
+   * means the stored token is invalid → sign out. (Deep-linking before this
+   * resolves falls back to the optimistic localStorage flags — acceptable for the
+   * pilot; the backend is the real gate.)
+   */
+  private hydrateUser() {
+    if (!this.signedIn()) return;
+    this.api.getMe().subscribe({
+      next: (me) => {
+        this.api.setUserRole(me.role);
+        this.api.setUserApproved(me.approved);
+        const url = this.currentUrl();
+        if (!me.approved && !url.startsWith('/pending') && !url.startsWith('/login')) {
+          this.router.navigateByUrl('/pending');
+        }
+      },
+      error: (err) => {
+        if (err?.status === 401) this.signOut();
+      },
+    });
   }
 
   showHeaderNav(): boolean {
-    return !this.currentUrl().startsWith('/login') && this.signedIn();
+    const url = this.currentUrl();
+    return !url.startsWith('/login') && !url.startsWith('/pending') && this.signedIn();
   }
 
   signOut() {
