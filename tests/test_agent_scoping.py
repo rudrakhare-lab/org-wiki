@@ -261,3 +261,13 @@ def test_system_prompt_uses_agent_identity():
     assert "Conwo" in p
     # The query-workflow sections (5/9/12) should be present for conwo.
     assert "QUERY" in p or "Jira" in p
+
+
+def test_deep_prompt_omits_jira_for_wiki_only_agent():
+    from backend.deep_system_prompt import load_deep_system_prompt
+    from backend import agent_registry
+    info = load_deep_system_prompt(agent_registry.get("infosec"))
+    assert "Infosec" in info
+    assert "Jira" not in info and "PMS" not in info
+    conwo = load_deep_system_prompt(agent_registry.get("conwo"))
+    assert "Jira" in conwo
