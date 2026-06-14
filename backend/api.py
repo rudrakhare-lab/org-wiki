@@ -1023,7 +1023,7 @@ def google_login(req: GoogleLoginRequest) -> GoogleLoginResponse:
     """Exchange a Google ID token for a Conwo session token.
 
     Verifies the Google credential, enforces @moveinsync.com domain,
-    auto-provisions the user on first login (role: viewer), and returns
+    auto-provisions the user on first login (role: general), and returns
     a random session token stored in auth_store.
     """
     import os

@@ -61,6 +61,16 @@ def test_dev_login_rejects_non_domain_email(dev_client):
     assert r.status_code == 403
 
 
+def test_dev_login_idempotent_second_call(dev_client):
+    client, auth = dev_client
+    r1 = client.post("/auth/dev-login", json={"email": "dup-test@moveinsync.com"})
+    assert r1.status_code == 200
+    r2 = client.post("/auth/dev-login", json={"email": "dup-test@moveinsync.com"})
+    assert r2.status_code == 200
+    users = [u for u in auth.list_users() if u["email"] == "dup-test@moveinsync.com"]
+    assert len(users) == 1
+
+
 def test_dev_login_disabled_returns_403(clean_db, monkeypatch):
     monkeypatch.delenv("CONWO_DEV_LOGIN", raising=False)
     from backend import api as api_module
