@@ -410,14 +410,14 @@ export class AppSidebar implements OnInit {
   // Tab visibility per role (mirrors the backend route guards):
   //   admin     → all
   //   developer → Ask, Search, Ingest, Graph
-  //   general   → Ask, Search  (+ the Recent history panel below)
+  //   general   → Ask, Search, Graph  (+ the Recent history panel below)
   private navItems: NavItem[] = [
     { label: 'Ask', route: '/ask', icon: 'ask', roles: ['admin', 'developer', 'general'] },
     { label: 'Search', route: '/search', icon: 'search', roles: ['admin', 'developer', 'general'] },
     { label: 'Dashboard', route: '/dashboard', icon: 'dashboard', roles: ['admin'] },
     { label: 'Traces', route: '/traces', icon: 'traces', roles: ['admin'] },
     { label: 'Ingest', route: '/ingest', icon: 'ingest', roles: ['admin', 'developer'] },
-    { label: 'Graph', route: '/graph', icon: 'graph', roles: ['admin', 'developer'] },
+    { label: 'Graph', route: '/graph', icon: 'graph', roles: ['admin', 'developer', 'general'] },
     { label: 'Admin', route: '/admin', icon: 'admin', roles: ['admin'] },
   ];
 

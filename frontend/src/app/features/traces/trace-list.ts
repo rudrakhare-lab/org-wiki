@@ -103,6 +103,7 @@ const PAGE_SIZE = 25;
                 <thead>
                   <tr>
                     <th>Started (UTC)</th>
+                    <th>Name</th>
                     <th>User</th>
                     <th>Question</th>
                     <th>Mode</th>
@@ -117,6 +118,7 @@ const PAGE_SIZE = 25;
                   @for (trace of traces(); track trace.trace_id) {
                     <tr class="trace-row" (click)="onRowClick(trace.trace_id)">
                       <td class="col-date">{{ formatDate(trace.started_at) }}</td>
+                      <td class="col-name" [title]="trace.user_email || ''">{{ formatName(trace.user_email) }}</td>
                       <td class="col-user" [title]="trace.user_email || ''">{{ formatUser(trace.user_email) }}</td>
                       <td class="col-question">{{ truncate(trace.question) }}</td>
                       <td class="col-mode"><code>{{ trace.mode }}</code></td>
@@ -308,6 +310,20 @@ export class TraceList implements OnInit, OnDestroy {
     if (!email) return '—';
     const at = email.indexOf('@');
     return at > 0 ? email.slice(0, at) : email;
+  }
+
+  /** Derive a display name from the email local-part, e.g.
+   *  "rudra.khare@moveinsync.com" → "Rudra Khare". We don't persist the Google
+   *  display name in traces, so this is the best-available human-readable name. */
+  formatName(email: string | null): string {
+    if (!email) return '—';
+    const at = email.indexOf('@');
+    const local = at > 0 ? email.slice(0, at) : email;
+    return local
+      .split(/[._-]+/)
+      .filter(Boolean)
+      .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+      .join(' ');
   }
 
   get hasPrev(): boolean {

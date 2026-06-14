@@ -50,7 +50,7 @@ export const routes: Routes = [
   },
   {
     path: 'graph',
-    canActivate: [authGuard, roleGuard(['admin', 'developer'])],
+    canActivate: [authGuard, roleGuard(['admin', 'developer', 'general'])],
     loadComponent: () => import('./features/graph/graph-page').then(m => m.GraphPage),
   },
   { path: '**', redirectTo: 'ask' },

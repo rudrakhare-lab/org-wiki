@@ -246,8 +246,9 @@ def _require_admin(user: dict | None = Depends(_get_user)) -> dict:
 
 
 def _require_developer_or_admin(user: dict | None = Depends(_get_user)) -> dict:
-    """Developer OR admin role. Gates the ingest and wiki-graph endpoints —
-    general users may ask/search but not ingest or browse the graph."""
+    """Developer OR admin role. Gates the ingest endpoints — general users may
+    ask/search/browse the graph but not ingest. (The wiki-graph endpoints are
+    open to all approved users via _require_user.)"""
     if not user or user.get("role") not in ("admin", "developer"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -1325,7 +1326,8 @@ from backend import ingest_api  # noqa: E402
 app.include_router(ingest_api.router, dependencies=[Depends(_require_developer_or_admin)])
 
 from backend import wiki_graph_api  # noqa: E402
-app.include_router(wiki_graph_api.router, dependencies=[Depends(_require_developer_or_admin)])
+# Graph is open to all approved users (admin/developer/general) — read-only browse.
+app.include_router(wiki_graph_api.router, dependencies=[Depends(_require_user)])
 
 
 # ---------------------------------------------------------------------------
