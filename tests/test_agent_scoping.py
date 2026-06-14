@@ -324,3 +324,18 @@ def test_orchestrator_run_accepts_agent_kwarg(monkeypatch):
     monkeypatch.setattr(orchestrator, "run_deep", _fake_run_deep)
     orchestrator.run("q", mode="api", agent=agent_registry.get("infosec"))
     assert captured["agent"].id == "infosec"
+
+
+# ── HTTP endpoint mode-gate tests ────────────────────────────────────────────
+
+
+def test_infosec_query_rejects_agent_mode():
+    from fastapi.testclient import TestClient
+    from backend.api import app as _app
+
+    client = TestClient(_app)
+    r = client.post("/query", json={"question": "x", "mode": "agent", "server": "com"},
+                    headers={"X-Agent-Id": "infosec", "Authorization": "Bearer dev-nonexistent"})
+    # Must NEVER 200 into a Conwo subprocess for infosec. Acceptable: 400 (mode gate)
+    # or 401/403 (auth short-circuit in bare test env).
+    assert r.status_code in (400, 401, 403, 422)

@@ -472,6 +472,7 @@ def query(
     req: QueryRequest,
     request: Request,
     user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
     trace_id = getattr(request.state, "trace_id", None)
     trace_status = "success"   # NOT named `status` — that's the fastapi module used below
@@ -511,6 +512,13 @@ def query(
                 ),
             )
 
+        # Mode gate: reject requests for modes this agent doesn't support.
+        if not agent.mode_allowed(req.mode):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Agent '{agent.id}' does not support mode '{req.mode}'.",
+            )
+
         # Rate limit check before any DB writes (skip for unauthenticated users).
         if user:
             from backend.rate_limit import check_rate_limit
@@ -532,6 +540,7 @@ def query(
             conv = conversation_store.create_conversation(
                 title=conversation_store.auto_title_from_question(req.question),
                 user_email=user_email,
+                agent_id=agent.id,
             )
             conversation_id = conv["id"]
 
@@ -549,6 +558,7 @@ def query(
             mode=req.mode,
             server=req.server,
             buid=req.buid,
+            agent_id=agent.id,
         )
 
         # Layer 1 guardrail: block destructive requests before calling the LLM.
@@ -584,6 +594,7 @@ def query(
                 sources={"wiki_pages": [], "jira_keys": [], "pms_configs": []},
                 tool_trace=[],
                 missing_context=[],
+                agent_id=agent.id,
             )
             return QueryResponse(
                 answer_id=_refusal_id,
@@ -621,6 +632,7 @@ def query(
             user_role=user_role,
             conversation_id=conversation_id,
             trace_id=trace_id,
+            agent=agent,
         )
 
         # Persist the assistant message — even on error we save something so the
@@ -642,6 +654,7 @@ def query(
             },
             tool_trace=result.tool_trace,
             missing_context=result.missing_context,
+            agent_id=agent.id,
         )
 
         return QueryResponse(
@@ -687,6 +700,7 @@ async def query_stream(
     req: AgentStreamRequest,
     request: Request,
     user: dict = Depends(_require_admin),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
     """
     Stream a Claude Code agent session over SSE.
@@ -731,6 +745,13 @@ async def query_stream(
             ),
         )
 
+    # Mode gate: this endpoint streams Claude Code (agent mode) only.
+    if not agent.mode_allowed("agent"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Agent '{agent.id}' does not support Claude Code (agent) mode.",
+        )
+
     # Resolve / create conversation, save the user message before the stream
     # so it appears in history even if the stream is cancelled.
     conversation_id = req.conversation_id
@@ -740,6 +761,7 @@ async def query_stream(
         conv = conversation_store.create_conversation(
             title=conversation_store.auto_title_from_question(req.question),
             user_email=user.get("email"),
+            agent_id=agent.id,
         )
         conversation_id = conv["id"]
 
@@ -750,6 +772,7 @@ async def query_stream(
         mode="claude-code-agent",
         server=req.server,
         buid=req.buid,
+        agent_id=agent.id,
     )
 
     # Layer 1 guardrail: same check as /query — block before the stream opens.
@@ -803,7 +826,7 @@ async def query_stream(
         "0", "false", "no", "off"
     }
     if preflight_enabled:
-        bundle = run_preflight(req.question, trace_id=trace_id)
+        bundle = run_preflight(req.question, trace_id=trace_id, agent=agent)
         augmented_question = build_agent_preamble(bundle) + f"**User question:** {req.question}"
         preflight_keys = [t.get("key") for t in bundle.preflight_tickets if t.get("key")]
     else:
@@ -933,8 +956,12 @@ def log_agent_answer(req: AgentLogRequest, user: dict = Depends(_require_admin))
 
 
 @app.post("/search")
-def search(req: SearchRequest):
-    return orchestrator.search_only(req.question, server=req.server)
+def search(
+    req: SearchRequest,
+    request: Request,
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
+    return orchestrator.search_only(req.question, server=req.server, agent=agent)
 
 
 @app.get("/wiki/{path:path}")
