@@ -300,3 +300,27 @@ def test_preflight_runs_jira_for_conwo(monkeypatch):
     monkeypatch.setattr(jira_retriever, "search", _spy)
     pf.run_preflight("desk booking", agent=agent_registry.get("conwo"))
     assert called["jira"] is True
+
+
+# ── Orchestrator agent-threading tests ───────────────────────────────────────
+
+
+def test_orchestrator_rejects_disallowed_mode():
+    from backend import orchestrator, agent_registry
+    with pytest.raises(ValueError):
+        orchestrator.run("q", mode="agent", agent=agent_registry.get("infosec"))
+
+
+def test_orchestrator_run_accepts_agent_kwarg(monkeypatch):
+    # run(mode="api") must accept agent= and not raise on signature.
+    from backend import orchestrator, agent_registry
+    # Stub run_deep so we don't make a real LLM call — just assert it's invoked with the agent.
+    captured = {}
+    def _fake_run_deep(*args, **kwargs):
+        captured["agent"] = kwargs.get("agent")
+        from backend.orchestrator import OrchestratorResult, SourceInfo
+        return OrchestratorResult(answer_id="x", answer_text="", confidence="Low",
+                                  sources=SourceInfo(), retrieval={}, mode="api")
+    monkeypatch.setattr(orchestrator, "run_deep", _fake_run_deep)
+    orchestrator.run("q", mode="api", agent=agent_registry.get("infosec"))
+    assert captured["agent"].id == "infosec"
