@@ -38,10 +38,10 @@ def isolated_propose(tmp_path, monkeypatch):
     monkeypatch.setattr(wp, "PROPOSALS_FILE", fake_fb / "wiki_proposals.jsonl", raising=False)
     monkeypatch.setattr(wp, "FEEDBACK_DIR", fake_fb, raising=False)
 
-    # 3) Reload the propose tools module so its WIKI_DIR / wiki_proposals refs are fresh
+    # 3) Reload the propose tools module so its _wiki_dir / wiki_proposals refs are fresh
     import backend.tools.wiki_propose_tools as wpt
     importlib.reload(wpt)
-    monkeypatch.setattr(wpt, "WIKI_DIR", fake_wiki, raising=False)
+    monkeypatch.setattr(wpt, "_wiki_dir", lambda: fake_wiki, raising=False)
     monkeypatch.setattr(wpt, "wiki_proposals", wp, raising=False)
 
     # 4) Mock the in-memory retriever to be controllable per-test

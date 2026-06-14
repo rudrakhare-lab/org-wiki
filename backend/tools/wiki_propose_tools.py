@@ -35,9 +35,14 @@ import frontmatter  # type: ignore[import-not-found]
 import yaml  # type: ignore[import-not-found]
 
 from backend import wiki_retriever, wiki_proposals
-from backend.config import WIKI_DIR
 
 _log = logging.getLogger(__name__)
+
+
+def _wiki_dir():
+    """Return the active agent's wiki directory (resolved at call time)."""
+    from backend import agent_context
+    return agent_context.get_current_agent().wiki_dir
 
 # Decision A: paths the agent is allowed to PROPOSE creating.
 # Structural subtrees (modules/, entities/, configs/) stay admin-only.
@@ -83,8 +88,9 @@ def _validate_path(path: str) -> tuple[Path | None, dict | None]:
     if ".." in p or p.startswith("/"):
         return None, {"error": "Path traversal not allowed.", "code": "path_traversal"}
     try:
-        resolved = (WIKI_DIR / p).resolve()
-        wiki_root = WIKI_DIR.resolve()
+        _wd = _wiki_dir()
+        resolved = (_wd / p).resolve()
+        wiki_root = _wd.resolve()
         if resolved != wiki_root and wiki_root not in resolved.parents:
             return None, {"error": "Path outside wiki directory.", "code": "path_traversal"}
     except Exception:
