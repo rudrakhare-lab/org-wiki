@@ -339,3 +339,32 @@ def test_infosec_query_rejects_agent_mode():
     # Must NEVER 200 into a Conwo subprocess for infosec. Acceptable: 400 (mode gate)
     # or 401/403 (auth short-circuit in bare test env).
     assert r.status_code in (400, 401, 403, 422)
+
+
+# ── Conversation endpoints agent-scoping tests ────────────────────────────────
+
+
+def test_conversation_endpoints_scoped_by_agent_header(monkeypatch, clean_db):
+    from fastapi.testclient import TestClient
+    from backend.api import app, _get_user
+    # Stub auth so we have an approved user without real tokens.
+    app.dependency_overrides[_get_user] = lambda: {"email": "u@x.com", "role": "general", "approved": True}
+    try:
+        client = TestClient(app)
+        # Create one conversation under each agent via the header.
+        rc = client.post("/conversations", json={}, headers={"X-Agent-Id": "conwo"})
+        ri = client.post("/conversations", json={}, headers={"X-Agent-Id": "infosec"})
+        assert rc.status_code == 200 and ri.status_code == 200
+        conwo_id = rc.json()["id"]; infosec_id = ri.json()["id"]
+
+        # List under infosec → only the infosec conversation.
+        lst = client.get("/conversations", headers={"X-Agent-Id": "infosec"}).json()
+        ids = {c["id"] for c in lst["conversations"]}
+        assert infosec_id in ids and conwo_id not in ids
+
+        # Cross-agent GET is forbidden: fetching the conwo conv under infosec header → 404.
+        assert client.get(f"/conversations/{conwo_id}", headers={"X-Agent-Id": "infosec"}).status_code == 404
+        # Same-agent GET works.
+        assert client.get(f"/conversations/{conwo_id}", headers={"X-Agent-Id": "conwo"}).status_code == 200
+    finally:
+        app.dependency_overrides.clear()

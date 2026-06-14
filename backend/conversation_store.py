@@ -103,7 +103,7 @@ def list_conversations(limit: int = 200, user_email: str | None = None,
 def get_conversation(conversation_id: str) -> dict[str, Any] | None:
     with _connect() as conn:
         conv_row = conn.execute(
-            "SELECT id, title, created_at, updated_at, user_email FROM conversations WHERE id = %s",
+            "SELECT id, title, created_at, updated_at, user_email, agent_id FROM conversations WHERE id = %s",
             (conversation_id,),
         ).fetchone()
         if not conv_row:

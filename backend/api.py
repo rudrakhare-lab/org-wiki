@@ -976,40 +976,66 @@ def get_wiki_page(path: str):
 # Conversations — chat history CRUD
 # ---------------------------------------------------------------------------
 
-def _check_conversation_access(conversation_id: str, user: dict) -> dict:
-    """Load conversation and verify the user can access it. Returns the conversation.
+def _check_conversation_access(
+    conversation_id: str,
+    user: dict,
+    agent: "agent_registry.AgentSpec | None" = None,
+) -> dict:
+    """Load conversation and verify the user (and agent) can access it. Returns the conversation.
 
     Non-admin users can only see their own conversations; returns 404 (not 403)
     for both missing and unauthorized IDs to avoid leaking existence to third parties.
+    When an agent is supplied the conversation's agent_id must also match — one agent
+    cannot read, rename, or delete another agent's thread.
     """
     conv = conversation_store.get_conversation(conversation_id)
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
     if user.get("role") != "admin" and conv.get("user_email") != user.get("email"):
         raise HTTPException(status_code=404, detail="Conversation not found")
+    if agent is not None and conv.get("agent_id") != agent.id:
+        raise HTTPException(status_code=404, detail="Conversation not found")
     return conv
 
 
 @app.post("/conversations")
-def create_conversation(req: ConversationCreateRequest, user: dict | None = Depends(_get_user)):
+def create_conversation(
+    req: ConversationCreateRequest,
+    user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
     user_email = (user or {}).get("email")
-    return conversation_store.create_conversation(title=req.title, user_email=user_email)
+    return conversation_store.create_conversation(
+        title=req.title, user_email=user_email, agent_id=agent.id
+    )
 
 
 @app.get("/conversations")
-def list_conversations(limit: int = 200, user: dict = Depends(_require_user)):
+def list_conversations(
+    limit: int = 200,
+    user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
     if limit < 1:
         limit = 1
     if limit > 500:
         limit = 500
     # Admins see all conversations; everyone else sees only their own
     user_email = None if user.get("role") == "admin" else user.get("email")
-    return {"conversations": conversation_store.list_conversations(limit=limit, user_email=user_email)}
+    return {
+        "conversations": conversation_store.list_conversations(
+            limit=limit, user_email=user_email, agent_id=agent.id
+        )
+    }
 
 
 @app.get("/conversations/{conversation_id}")
-def get_conversation(conversation_id: str, user: dict = Depends(_require_user)):
-    conv = _check_conversation_access(conversation_id, user)
+def get_conversation(
+    conversation_id: str,
+    user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
+    conv = _check_conversation_access(conversation_id, user, agent)
     return conv
 
 
@@ -1018,8 +1044,9 @@ def patch_conversation(
     conversation_id: str,
     req: ConversationPatchRequest,
     user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
-    _check_conversation_access(conversation_id, user)
+    _check_conversation_access(conversation_id, user, agent)
     ok = conversation_store.update_conversation_title(conversation_id, req.title)
     if not ok:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -1028,8 +1055,12 @@ def patch_conversation(
 
 
 @app.delete("/conversations/{conversation_id}")
-def delete_conversation(conversation_id: str, user: dict = Depends(_require_user)):
-    _check_conversation_access(conversation_id, user)
+def delete_conversation(
+    conversation_id: str,
+    user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
+    _check_conversation_access(conversation_id, user, agent)
     ok = conversation_store.delete_conversation(conversation_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Conversation not found")
