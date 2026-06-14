@@ -534,8 +534,11 @@ def query(
             conversation_id = conv["id"]
 
         # Enrich the (middleware-created) trace session with real mode/question/conv.
+        # Pass agent_id so the enriching UPSERT keeps the row agent-scoped (the
+        # UPSERT's COALESCE is last-writer-wins for the never-null agent_id).
         trace_store.start_session(trace_id, mode=req.mode, question=req.question,
-                                  conversation_id=conversation_id, user_email=user_email)
+                                  conversation_id=conversation_id, user_email=user_email,
+                                  agent_id=agent_context.get_current_agent_id())
 
         conversation_store.add_message(
             conversation_id=conversation_id,
@@ -783,7 +786,8 @@ async def query_stream(
     # claude-code only (G25); end_session runs in the generator's finally below.
     trace_id = getattr(request.state, "trace_id", None)
     trace_store.start_session(trace_id, mode="claude-code", question=req.question,
-                              conversation_id=conversation_id, user_email=user.get("email"))
+                              conversation_id=conversation_id, user_email=user.get("email"),
+                              agent_id=agent_context.get_current_agent_id())
 
     # Deterministic preflight: run the SAME wiki+Jira+ticket retrieval we do
     # for Deep Search, then prepend the result to the question we hand to
