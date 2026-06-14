@@ -183,6 +183,24 @@ def test_log_answer_default_agent_id_is_conwo(isolated_feedback):
     assert rec.get("agent_id") == "conwo"
 
 
+# ── Tool registry scoping tests ───────────────────────────────────────────────
+
+
+def test_registry_filters_tools_for_infosec():
+    from backend.tools import build_registry
+    from backend import agent_registry
+
+    info = build_registry(user_role="admin", agent=agent_registry.get("infosec"))
+    names = {s["name"] for s in info.schemas}
+    assert "wiki_search" in names
+    assert "jira_search_ranked" not in names
+    assert not any(n.startswith("pms_") for n in names)
+
+    conwo = build_registry(user_role="admin", agent=agent_registry.get("conwo"))
+    cnames = {s["name"] for s in conwo.schemas}
+    assert "jira_search_ranked" in cnames and "wiki_search" in cnames
+
+
 # ── DB-backed tests (existing) ────────────────────────────────────────────────
 
 

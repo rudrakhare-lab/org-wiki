@@ -56,35 +56,48 @@ from backend.tools.wiki_read_tools import (
 )
 
 
-def build_registry(user_role: str = "viewer") -> ToolRegistry:
-    """Build a new ToolRegistry with all 21 tools registered."""
+def build_registry(user_role: str = "viewer", agent=None) -> ToolRegistry:
+    """Build a new ToolRegistry with tools filtered to the agent's allowlist.
+
+    If ``agent`` is None the default agent (conwo, tools=["*"]) is used, which
+    registers all tools — behaviour is identical to the pre-agent version.
+    """
+    if agent is None:
+        from backend import agent_registry
+        agent = agent_registry.default()
+
     r = ToolRegistry(user_role=user_role)
-    r.register(WIKI_SEARCH_SCHEMA, _wiki_search_handler)
-    r.register(WIKI_READ_PAGE_SCHEMA, _wiki_read_page_handler)
-    r.register(WIKI_GREP_SCHEMA, _wiki_grep_handler)
-    r.register(JIRA_SEARCH_RANKED_SCHEMA, _jira_search_ranked_handler)
-    r.register(JIRA_GET_TICKET_SCHEMA, _jira_get_ticket_handler)
-    r.register(JIRA_NAMED_QUERY_SCHEMA, _jira_named_query_handler)
-    r.register(JIRA_LIVE_GET_TICKET_SCHEMA, _jira_live_get_ticket_handler)
-    r.register(JIRA_COUNT_SCHEMA, _jira_count_handler)
-    r.register(JIRA_SEARCH_CROSS_MODULE_SCHEMA, _jira_search_cross_module_handler)
-    r.register(TRIGGER_JIRA_SYNC_SCHEMA, _trigger_jira_sync_handler)
-    r.register(PMS_DEFAULT_PROPERTIES_SCHEMA, _pms_default_properties_handler)
-    r.register(PMS_RUNTIME_VALUES_SCHEMA, _pms_runtime_values_handler)
-    r.register(PMS_LIST_OFFICES_SCHEMA, _pms_list_offices_handler)
-    r.register(PMS_LIST_CRITERIA_SCHEMA, _pms_list_criteria_handler)
-    r.register(PMS_VERIFY_BUID_SCHEMA, _pms_verify_buid_handler)
-    r.register(PMS_DIAGNOSE_PROPERTY_SCHEMA, _pms_diagnose_property_handler)
-    r.register(CONFIG_LOOKUP_SCHEMA, _config_lookup_handler)
-    r.register(FEEDBACK_RECORD_SCHEMA, _feedback_record_handler)
+
+    def reg(schema, fn):
+        if agent.tool_allowed(schema["name"]):
+            r.register(schema, fn)
+
+    reg(WIKI_SEARCH_SCHEMA, _wiki_search_handler)
+    reg(WIKI_READ_PAGE_SCHEMA, _wiki_read_page_handler)
+    reg(WIKI_GREP_SCHEMA, _wiki_grep_handler)
+    reg(JIRA_SEARCH_RANKED_SCHEMA, _jira_search_ranked_handler)
+    reg(JIRA_GET_TICKET_SCHEMA, _jira_get_ticket_handler)
+    reg(JIRA_NAMED_QUERY_SCHEMA, _jira_named_query_handler)
+    reg(JIRA_LIVE_GET_TICKET_SCHEMA, _jira_live_get_ticket_handler)
+    reg(JIRA_COUNT_SCHEMA, _jira_count_handler)
+    reg(JIRA_SEARCH_CROSS_MODULE_SCHEMA, _jira_search_cross_module_handler)
+    reg(TRIGGER_JIRA_SYNC_SCHEMA, _trigger_jira_sync_handler)
+    reg(PMS_DEFAULT_PROPERTIES_SCHEMA, _pms_default_properties_handler)
+    reg(PMS_RUNTIME_VALUES_SCHEMA, _pms_runtime_values_handler)
+    reg(PMS_LIST_OFFICES_SCHEMA, _pms_list_offices_handler)
+    reg(PMS_LIST_CRITERIA_SCHEMA, _pms_list_criteria_handler)
+    reg(PMS_VERIFY_BUID_SCHEMA, _pms_verify_buid_handler)
+    reg(PMS_DIAGNOSE_PROPERTY_SCHEMA, _pms_diagnose_property_handler)
+    reg(CONFIG_LOOKUP_SCHEMA, _config_lookup_handler)
+    reg(FEEDBACK_RECORD_SCHEMA, _feedback_record_handler)
     # Track A: structured propose tools (replaces the old free-text wiki_propose_edit)
-    r.register(WIKI_PROPOSE_NEW_SCHEMA, _wiki_propose_new_handler)
-    r.register(WIKI_PROPOSE_EDIT_SCHEMA, _wiki_propose_edit_handler)
-    r.register(WIKI_PROPOSE_APPEND_SCHEMA, _wiki_propose_append_handler)
-    r.register(WIKI_PROPOSE_MULTI_EDIT_SCHEMA, _wiki_propose_multi_edit_handler)
+    reg(WIKI_PROPOSE_NEW_SCHEMA, _wiki_propose_new_handler)
+    reg(WIKI_PROPOSE_EDIT_SCHEMA, _wiki_propose_edit_handler)
+    reg(WIKI_PROPOSE_APPEND_SCHEMA, _wiki_propose_append_handler)
+    reg(WIKI_PROPOSE_MULTI_EDIT_SCHEMA, _wiki_propose_multi_edit_handler)
     # Phase 1 ingestion read tools
-    r.register(WIKI_LIST_PAGES_SCHEMA, _wiki_list_pages_handler)
-    r.register(WIKI_CHECK_DUPLICATE_SCHEMA, _wiki_check_duplicate_handler)
+    reg(WIKI_LIST_PAGES_SCHEMA, _wiki_list_pages_handler)
+    reg(WIKI_CHECK_DUPLICATE_SCHEMA, _wiki_check_duplicate_handler)
     return r
 
 
