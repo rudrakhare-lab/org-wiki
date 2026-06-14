@@ -116,7 +116,9 @@ async def lifespan(app: FastAPI):
     # If wiki/ lives on a mounted volume (CONWO_DATA_DIR) that's still empty,
     # seed it from the image's baked baseline so the knowledge base is present.
     _seed_wiki_if_empty()
-    wiki_retriever.build_index()
+    from backend import agent_registry as _agent_registry
+    for _a in _agent_registry.all():
+        wiki_retriever.build_index(_a.id)
     # Single-key deployment check — api-mode queries will return 503 until the
     # operator sets ANTHROPIC_API_KEY. Don't crash; the server must still come
     # up for admin endpoints and conversation CRUD even without an LLM key.

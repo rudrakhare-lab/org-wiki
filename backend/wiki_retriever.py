@@ -228,29 +228,60 @@ def _mentioned_services(question: str) -> list[str]:
     return found
 
 
-# Module-level singleton, built once at import time when build() is called
-_INDEX = WikiIndex()
+# Per-agent index registry — replaces the module-level singleton.
+# Keys are agent IDs (e.g. "conwo", "infosec"). The old `_INDEX` name is kept
+# as an alias to the conwo entry so any hypothetical direct reference to it
+# still works, though no known caller uses it directly.
+_INDICES: dict[str, WikiIndex] = {}
+_indices_lock = threading.RLock()
 
 
-def build_index() -> None:
-    _INDEX.build()
+def build_index(agent_id: str | None = None, wiki_dir: Path | None = None) -> WikiIndex:
+    """Build (or rebuild) one agent's index.
+
+    agent_id=None  → defaults to the active agent from the ContextVar (or "conwo").
+    wiki_dir=None  → resolved from agent_registry; pass explicitly to override
+                     (useful in tests where an AgentSpec may not exist).
+    """
+    from backend import agent_context, agent_registry
+    aid = agent_id or agent_context.get_current_agent_id()
+    if wiki_dir is None:
+        spec = agent_registry.get(aid)
+        wiki_dir = spec.wiki_dir
+    idx = WikiIndex()
+    idx.build(wiki_dir)
+    with _indices_lock:
+        _INDICES[aid] = idx
+    return idx
 
 
-def rebuild_index() -> None:
-    _INDEX.build()
+def get_index(agent_id: str | None = None) -> WikiIndex:
+    """Return the index for the given (or active) agent, building it on demand."""
+    from backend import agent_context
+    aid = agent_id or agent_context.get_current_agent_id()
+    with _indices_lock:
+        idx = _INDICES.get(aid)
+    if idx is None:
+        idx = build_index(aid)
+    return idx
+
+
+def rebuild_index(agent_id: str | None = None) -> WikiIndex:
+    """Alias for build_index — forces a full re-scan for the active/named agent."""
+    return build_index(agent_id)
 
 
 def search(question: str, top_n: int = 5) -> list[WikiPage]:
-    return _INDEX.search(question, top_n)
+    return get_index().search(question, top_n)
 
 
 def get_page(rel_path: str) -> WikiPage | None:
-    return _INDEX.get_page(rel_path)
+    return get_index().get_page(rel_path)
 
 
 def all_paths() -> list[str]:
-    return _INDEX.all_paths()
+    return get_index().all_paths()
 
 
 def page_count() -> int:
-    return _INDEX.page_count
+    return get_index().page_count

@@ -4,6 +4,28 @@ import pytest
 from pathlib import Path
 
 
+# ── Wiki index per-agent scoping tests ───────────────────────────────────────
+
+
+def test_wiki_index_is_per_agent(tmp_path):
+    import backend.wiki_retriever as wr
+    from backend import agent_context
+
+    # Build a tiny infosec wiki on disk and index it via the explicit wiki_dir
+    # arg (AgentSpec is frozen, so we pass the dir directly rather than patching).
+    info_wiki = tmp_path / "infosec_wiki"
+    info_wiki.mkdir()
+    (info_wiki / "phishing.md").write_text("---\ntype: concept\n---\n# Phishing\nEmail attacks.")
+
+    wr.build_index("infosec", wiki_dir=info_wiki)   # build that agent's index
+    token = agent_context.set_current_agent("infosec")
+    try:
+        paths = [p.path for p in wr.search("phishing", top_n=5)]
+    finally:
+        agent_context.reset_current_agent(token)
+    assert any("phishing" in p for p in paths)
+
+
 # ── Proposals agent-scoping tests ────────────────────────────────────────────
 
 
