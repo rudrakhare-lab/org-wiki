@@ -195,10 +195,14 @@ from backend.metrics import setup_metrics  # noqa: E402
 setup_metrics(app)
 
 
-# Agent-resolution middleware — registered AFTER TraceMiddleware so it runs
-# inside it (FastAPI executes @app.middleware decorators in reverse order of
-# registration; the last-registered runs outermost). Reads X-Agent-Id header
-# and sets request.state.agent_id + the per-request ContextVar.
+# Agent-resolution middleware. Starlette runs middleware in REVERSE order of
+# registration, so this last-registered one is OUTERMOST — it runs BEFORE
+# TraceMiddleware. That ordering is deliberate: it makes request.state.agent_id
+# (and the ContextVar) available by the time TraceMiddleware mints the trace
+# session, so per-agent trace scoping (Task 6) can stamp agent_id from the start.
+# Reads the X-Agent-Id header (default "conwo") and sets request.state.agent_id
+# plus the per-request current_agent ContextVar; the ContextVar is always reset
+# in the finally block so agent identity never leaks across requests.
 @app.middleware("http")
 async def _agent_resolution_middleware(request, call_next):
     agent_id = request.headers.get("x-agent-id") or "conwo"
