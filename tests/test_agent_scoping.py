@@ -493,3 +493,30 @@ def test_ingest_execute_registry_no_agent_defaults_to_conwo():
     names = {s["name"] for s in registry.schemas}
     assert "wiki_create_page" in names
     assert "wiki_rebuild_index" in names
+
+
+# ── Wiki graph agent-scoping tests ───────────────────────────────────────────
+
+
+def test_wiki_graph_uses_active_agent_dir(tmp_path, monkeypatch):
+    # Build a tiny infosec wiki and confirm the graph endpoint walks it (not conwo's).
+    import asyncio
+    from backend import agent_context, agent_registry
+    import backend.wiki_graph_api as wg
+
+    info = agent_registry.get("infosec")
+    info_wiki = info.wiki_dir
+    info_wiki.mkdir(parents=True, exist_ok=True)
+    test_file = info_wiki / "ztest_phish.md"
+    test_file.write_text("---\ntype: concept\n---\n# ZtestPhish\nx")
+
+    token = agent_context.set_current_agent("infosec")
+    try:
+        result = asyncio.get_event_loop().run_until_complete(wg.wiki_graph(include_configs=False))
+    finally:
+        agent_context.reset_current_agent(token)
+        # Clean up the test file we created in the repo's agents/infosec/wiki
+        test_file.unlink(missing_ok=True)
+
+    labels = {n["label"] for n in result["nodes"]}
+    assert any("Ztestphish" in l or "Ztest" in l for l in labels)

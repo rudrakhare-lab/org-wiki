@@ -7,13 +7,11 @@ Links:  {source, target}                deduped, undirected
 """
 from __future__ import annotations
 
-import pathlib
 import re
 
 from fastapi import APIRouter
 
-from backend import db
-from backend.config import WIKI_DIR as _WIKI_DIR  # honors CONWO_DATA_DIR (PVC)
+from backend import agent_context, db
 
 router = APIRouter(prefix="/api/wiki")
 
@@ -98,10 +96,13 @@ def _add_config_layer(
 
 @router.get("/graph")
 async def wiki_graph(include_configs: bool = False) -> dict:
+    agent = agent_context.get_current_agent()
+    wiki_dir = agent.wiki_dir
+
     nodes: dict[str, dict] = {}
     texts: dict[str, str] = {}
 
-    for path in sorted(_WIKI_DIR.rglob("*.md")):
+    for path in sorted(wiki_dir.rglob("*.md")):
         if path.name in _SKIP:
             continue
         try:
@@ -109,7 +110,7 @@ async def wiki_graph(include_configs: bool = False) -> dict:
         except OSError:
             continue
 
-        node_id = str(path.relative_to(_WIKI_DIR)).replace("\\", "/").removesuffix(".md")
+        node_id = str(path.relative_to(wiki_dir)).replace("\\", "/").removesuffix(".md")
         label = path.stem.replace("-", " ").replace("_", " ").title()
         nodes[node_id] = {
             "id": node_id,
@@ -141,7 +142,7 @@ async def wiki_graph(include_configs: bool = False) -> dict:
     for nid, d in degree.items():
         nodes[nid]["val"] = max(1, d)
 
-    if include_configs:
+    if include_configs and agent.has_pms:
         _add_config_layer(nodes, links, seen)
 
     return {"nodes": list(nodes.values()), "links": links}
