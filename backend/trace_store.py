@@ -148,11 +148,12 @@ def _write(fn):
 # ── Public API ──────────────────────────────────────────────────────────────
 def start_session(trace_id: str, *, mode: str, question: str | None = None,
                   conversation_id: str | None = None, message_id: str | None = None,
-                  user_email: str | None = None) -> None:
+                  user_email: str | None = None, agent_id: str = "conwo") -> None:
     """UPSERT the session row. Called TWICE per traced request (middleware then
     handler). started_at/status set on insert, never overwritten (earliest wins).
     user_email is set by the HANDLER (the middleware passes None); COALESCE keeps
-    the handler's value when the middleware's earlier NULL call upserts again."""
+    the handler's value when the middleware's earlier NULL call upserts again.
+    agent_id defaults to 'conwo'; earliest non-null value wins via COALESCE."""
     if not trace_id or not _check_tracing_enabled():
         return
     question_val = (_scrub(question) or "")[:500] if question else None
@@ -160,15 +161,16 @@ def start_session(trace_id: str, *, mode: str, question: str | None = None,
         def op(conn):
             conn.execute(
                 "INSERT INTO trace_sessions "
-                "(trace_id, conversation_id, message_id, started_at, mode, question, status, user_email) "
-                "VALUES (%s,%s,%s,%s,%s,%s, 'in_progress', %s) "
+                "(trace_id, conversation_id, message_id, started_at, mode, question, status, user_email, agent_id) "
+                "VALUES (%s,%s,%s,%s,%s,%s, 'in_progress', %s, %s) "
                 "ON CONFLICT(trace_id) DO UPDATE SET "
                 "  mode = excluded.mode, "
                 "  question = COALESCE(excluded.question, trace_sessions.question), "
                 "  conversation_id = COALESCE(excluded.conversation_id, trace_sessions.conversation_id), "
                 "  message_id = COALESCE(excluded.message_id, trace_sessions.message_id), "
-                "  user_email = COALESCE(excluded.user_email, trace_sessions.user_email)",
-                (trace_id, conversation_id, message_id, _now_iso(), mode, question_val, user_email),
+                "  user_email = COALESCE(excluded.user_email, trace_sessions.user_email), "
+                "  agent_id = COALESCE(excluded.agent_id, trace_sessions.agent_id)",
+                (trace_id, conversation_id, message_id, _now_iso(), mode, question_val, user_email, agent_id),
             )
         _write(op)
     except Exception as exc:
