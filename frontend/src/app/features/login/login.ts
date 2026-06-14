@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { ApiService } from '../../core/api.service';
@@ -13,7 +14,7 @@ const GOOGLE_CLIENT_ID = '394997129475-vptjprrehufpvhnlh3tad78uqk69u54h.apps.goo
 
 @Component({
   selector: 'app-login',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="login-page">
       <div class="login-brand" aria-label="Conwo">
@@ -29,6 +30,22 @@ const GOOGLE_CLIENT_ID = '394997129475-vptjprrehufpvhnlh3tad78uqk69u54h.apps.goo
           <div class="signin-btn-wrap">
             <div id="google-signin-btn"></div>
           </div>
+
+          @if (devLoginEnabled()) {
+            <div class="dev-login">
+              <div class="dev-login-divider">dev only</div>
+              <input
+                class="dev-login-input"
+                type="email"
+                placeholder="you@moveinsync.com"
+                [(ngModel)]="devEmail"
+                [disabled]="busy()"
+              />
+              <button class="dev-login-btn" (click)="devSignIn()" [disabled]="busy() || !devEmail">
+                Dev sign in
+              </button>
+            </div>
+          }
 
           @if (error()) {
             <div class="login-error" role="alert">{{ error() }}</div>
@@ -126,6 +143,54 @@ const GOOGLE_CLIENT_ID = '394997129475-vptjprrehufpvhnlh3tad78uqk69u54h.apps.goo
       color: var(--text-muted);
       font-size: 0.9rem;
     }
+
+    .dev-login {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .dev-login-divider {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+    .dev-login-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      background: var(--surface);
+      color: var(--text);
+      outline: none;
+    }
+    .dev-login-input:focus {
+      border-color: var(--primary, #5c5c5a);
+    }
+    .dev-login-btn {
+      width: 100%;
+      padding: 9px 0;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .dev-login-btn:hover:not(:disabled) {
+      background: var(--surface-hover, #f5f5f3);
+    }
+    .dev-login-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
   `]
 })
 export class Login implements AfterViewInit {
@@ -135,6 +200,8 @@ export class Login implements AfterViewInit {
 
   busy = signal(false);
   error = signal('');
+  devLoginEnabled = signal(false);
+  devEmail = '';
 
   ngAfterViewInit() {
     if (!GOOGLE_CLIENT_ID) {
@@ -149,22 +216,47 @@ export class Login implements AfterViewInit {
       document.getElementById('google-signin-btn')!,
       { theme: 'outline', size: 'large', width: 320 }
     );
+    this.api.getAuthConfig().subscribe({
+      next: (c) => this.devLoginEnabled.set(!!c.dev_login),
+      error: () => this.devLoginEnabled.set(false),
+    });
+  }
+
+  devSignIn() {
+    const email = this.devEmail.trim();
+    if (!email) return;
+    this.busy.set(true);
+    this.error.set('');
+    this.api.devLogin(email).subscribe({
+      next: (res) => {
+        this.api.setAdminToken(res.token);
+        this.api.setUserInfo(res.email, res.name, res.role, res.approved);
+        this.busy.set(false);
+        this.router.navigateByUrl(res.approved ? '/ask' : '/pending');
+      },
+      error: (err) => {
+        this.busy.set(false);
+        this.error.set(err?.status === 403
+          ? 'Only @moveinsync.com accounts can sign in.'
+          : `Dev login failed (${err?.status ?? 'network error'}).`);
+      },
+    });
   }
 
   private handleCredential(response: any) {
     this.busy.set(true);
     this.error.set('');
     const headers = new HttpHeaders({ 'Content-Type': 'application/json' });
-    this.http.post<{ token: string; email: string; name: string; role: string }>(
+    this.http.post<{ token: string; email: string; name: string; role: string; approved: boolean }>(
       `${API_BASE}/auth/google`,
       { credential: response.credential },
       { headers }
     ).subscribe({
       next: (res) => {
         this.api.setAdminToken(res.token);
-        this.api.setUserInfo(res.email, res.name, res.role);
+        this.api.setUserInfo(res.email, res.name, res.role, res.approved);
         this.busy.set(false);
-        this.router.navigateByUrl('/ask');
+        this.router.navigateByUrl(res.approved ? '/ask' : '/pending');
       },
       error: (err) => {
         this.busy.set(false);
