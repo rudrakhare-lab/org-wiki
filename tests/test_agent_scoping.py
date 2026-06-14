@@ -271,3 +271,32 @@ def test_deep_prompt_omits_jira_for_wiki_only_agent():
     assert "Jira" not in info and "PMS" not in info
     conwo = load_deep_system_prompt(agent_registry.get("conwo"))
     assert "Jira" in conwo
+
+
+def test_preflight_skips_jira_for_wiki_only_agent(monkeypatch):
+    import backend.preflight as pf
+    from backend import agent_registry, jira_retriever
+
+    called = {"jira": False}
+    def _fake_search(*a, **k):
+        called["jira"] = True
+        return {"buckets": {}}
+    monkeypatch.setattr(jira_retriever, "search", _fake_search)
+
+    bundle = pf.run_preflight("any security question", agent=agent_registry.get("infosec"))
+    assert called["jira"] is False
+    # seed_jira must be empty-ish (no buckets populated)
+    assert not bundle.seed_jira.get("buckets")
+
+
+def test_preflight_runs_jira_for_conwo(monkeypatch):
+    import backend.preflight as pf
+    from backend import agent_registry, jira_retriever
+    called = {"jira": False}
+    real = jira_retriever.search
+    def _spy(*a, **k):
+        called["jira"] = True
+        return real(*a, **k)
+    monkeypatch.setattr(jira_retriever, "search", _spy)
+    pf.run_preflight("desk booking", agent=agent_registry.get("conwo"))
+    assert called["jira"] is True
