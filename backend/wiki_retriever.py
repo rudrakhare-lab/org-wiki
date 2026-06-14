@@ -229,9 +229,9 @@ def _mentioned_services(question: str) -> list[str]:
 
 
 # Per-agent index registry — replaces the module-level singleton.
-# Keys are agent IDs (e.g. "conwo", "infosec"). The old `_INDEX` name is kept
-# as an alias to the conwo entry so any hypothetical direct reference to it
-# still works, though no known caller uses it directly.
+# Keys are agent IDs (e.g. "conwo", "infosec"). Callers never touch this dict
+# directly; they go through search()/get_page()/all_paths()/page_count(), which
+# resolve the active agent from the current_agent ContextVar via get_index().
 _INDICES: dict[str, WikiIndex] = {}
 _indices_lock = threading.RLock()
 
