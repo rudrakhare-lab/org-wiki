@@ -1188,13 +1188,26 @@ class UpdateRoleRequest(BaseModel):
     role: Literal["general", "developer", "admin"]
 
 
+class ApproveUserRequest(BaseModel):
+    role: Literal["general", "developer", "admin"] | None = None
+
+
 @app.post("/admin/users/{email:path}/approve")
-def admin_approve_user(email: str, _admin: dict = Depends(_require_admin)):
-    """Approve a pending user so they can run queries."""
+def admin_approve_user(
+    email: str,
+    req: ApproveUserRequest | None = None,
+    _admin: dict = Depends(_require_admin),
+):
+    """Approve a pending user so they can run queries. If a role is supplied, set it
+    in the same action (used by the Approvals tab's role-picker)."""
     from backend import auth_store
+    if req is not None and req.role is not None:
+        if not auth_store.set_user_role(email, req.role):
+            raise HTTPException(status_code=404, detail=f"User not found: {email}")
     if not auth_store.set_user_approved(email, True):
         raise HTTPException(status_code=404, detail=f"User not found: {email}")
-    return {"email": email, "approved": True}
+    return {"email": email, "approved": True,
+            "role": (auth_store.get_user(email) or {}).get("role")}
 
 
 @app.patch("/admin/users/{email:path}/role")
