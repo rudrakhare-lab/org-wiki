@@ -250,3 +250,14 @@ def test_trace_sessions_scoped_by_agent(clean_db):
             "SELECT COUNT(*) FROM trace_sessions WHERE agent_id = %s", ("conwo",)
         ).fetchone()[0]
     assert n_info == 1 and n_conwo == 1
+
+
+# ── System prompt agent-scoping tests ────────────────────────────────────────
+
+
+def test_system_prompt_uses_agent_identity():
+    from backend import system_prompt
+    p = system_prompt.load_system_prompt("conwo")
+    assert "Conwo" in p
+    # The query-workflow sections (5/9/12) should be present for conwo.
+    assert "QUERY" in p or "Jira" in p
