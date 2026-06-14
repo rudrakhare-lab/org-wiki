@@ -4,7 +4,7 @@ RBAC + user-approval flow tests.
 Covers the three-role model (admin / developer / general) and the approval gate:
   (a) an unapproved user is blocked from querying (/query → 403, gate before LLM)
   (b) a developer can reach the ingest endpoints but NOT the admin endpoints
-  (c) a general user can ask/search but NOT ingest or browse the graph
+  (c) a general user can ask/search/browse the graph but NOT ingest
 
 Plus auth_store defaults (general + unapproved) and the admin approve / role-change
 endpoints.
@@ -113,7 +113,7 @@ def test_developer_can_access_graph(rbac):
     assert r.status_code != 403
 
 
-# ── (c) general: ask/search yes, ingest/graph no ──────────────────────────────
+# ── (c) general: ask/search/graph yes, ingest no ──────────────────────────────
 def test_general_cannot_access_ingest(rbac):
     client, auth = rbac
     auth.create_user("gen@moveinsync.com", role="general", approved=True)
@@ -122,12 +122,12 @@ def test_general_cannot_access_ingest(rbac):
     assert r.status_code == 403
 
 
-def test_general_cannot_access_graph(rbac):
+def test_general_can_access_graph(rbac):
     client, auth = rbac
     auth.create_user("gen2@moveinsync.com", role="general", approved=True)
     tok = auth.create_token("gen2@moveinsync.com")
     r = client.get("/api/wiki/graph", headers=_bearer(tok))
-    assert r.status_code == 403
+    assert r.status_code != 403
 
 
 def test_general_can_access_search(rbac):
