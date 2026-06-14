@@ -57,6 +57,7 @@ from pydantic import BaseModel, Field
 
 from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
 from backend import trace_store
+from backend import agent_registry, agent_context
 from backend.trace_middleware import TraceMiddleware
 from backend import config as _config
 from backend.config import local_claude_code_enabled
@@ -194,6 +195,22 @@ from backend.metrics import setup_metrics  # noqa: E402
 setup_metrics(app)
 
 
+# Agent-resolution middleware — registered AFTER TraceMiddleware so it runs
+# inside it (FastAPI executes @app.middleware decorators in reverse order of
+# registration; the last-registered runs outermost). Reads X-Agent-Id header
+# and sets request.state.agent_id + the per-request ContextVar.
+@app.middleware("http")
+async def _agent_resolution_middleware(request, call_next):
+    agent_id = request.headers.get("x-agent-id") or "conwo"
+    spec = agent_registry.get(agent_id)
+    request.state.agent_id = spec.id
+    token = agent_context.set_current_agent(spec.id)
+    try:
+        return await call_next(request)
+    finally:
+        agent_context.reset_current_agent(token)
+
+
 # ---------------------------------------------------------------------------
 # Auth helpers
 # ---------------------------------------------------------------------------
@@ -203,6 +220,11 @@ def _get_user(authorization: str | None = Header(default=None)) -> dict | None:
         return None
     token = authorization[7:].strip()
     return _config.lookup_user_by_token(token)
+
+
+def _get_agent(request: Request) -> agent_registry.AgentSpec:
+    """Resolve the active agent for this request (set by middleware)."""
+    return agent_registry.get(getattr(request.state, "agent_id", "conwo"))
 
 
 def _require_user(user: dict | None = Depends(_get_user)) -> dict:
@@ -421,6 +443,22 @@ def health_claude_code():
         "local_dev_unauthenticated": available and local_dev,
         "note": note,
     }
+
+
+@app.get("/agents")
+def list_agents():
+    """Return public metadata for all registered agents. No auth required."""
+    return [
+        {
+            "id": a.id,
+            "display_name": a.display_name,
+            "description": a.description,
+            "modes": list(a.modes),
+            "has_jira": a.has_jira,
+            "has_pms": a.has_pms,
+        }
+        for a in agent_registry.all()
+    ]
 
 
 @app.post("/query", response_model=QueryResponse)
