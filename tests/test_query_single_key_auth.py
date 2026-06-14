@@ -42,7 +42,7 @@ def test_query_rejects_claude_api_key_in_body(client, monkeypatch):
     """Pydantic `extra: forbid` must reject the field at the schema layer —
     no path exists for a request-supplied key to influence the backend."""
     monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-server-key")
-    user = {"email": "u@example.com", "role": "viewer", "token": "user-tok"}
+    user = {"email": "u@example.com", "role": "general", "token": "user-tok", "approved": True}
     with patch("backend.config.lookup_user_by_token",
                side_effect=lambda t: user if t == "user-tok" else None):
         r = client.post(
@@ -64,7 +64,7 @@ def test_query_returns_503_when_server_key_unset(client, monkeypatch):
     """When the server has no key, a logged-in user gets a clear 503 with the
     user-facing message — not a stack trace, not a generic 500."""
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
-    user = {"email": "u@example.com", "role": "viewer", "token": "user-tok"}
+    user = {"email": "u@example.com", "role": "general", "token": "user-tok", "approved": True}
     with patch("backend.config.lookup_user_by_token",
                side_effect=lambda t: user if t == "user-tok" else None):
         r = client.post(

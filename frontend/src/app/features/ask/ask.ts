@@ -58,7 +58,7 @@ const PMS_SERVICES = [
             @if (showEmptyState()) {
               <div class="empty-state">
                 <h1 class="empty-title">{{ greeting() }}</h1>
-                <p class="empty-sub">What would you like to know today?</p>
+                <p class="empty-sub">What would you like to know about WorkInSync today?</p>
               </div>
             }
 

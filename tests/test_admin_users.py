@@ -31,7 +31,7 @@ def test_create_user_and_token(admin_client):
     client, _ = admin_client
     r = client.post(
         "/admin/users",
-        json={"email": "newuser@example.com", "role": "contributor"},
+        json={"email": "newuser@example.com", "role": "developer"},
         headers={"Authorization": "Bearer admin-token"},
     )
     assert r.status_code == 200

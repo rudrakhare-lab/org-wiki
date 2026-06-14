@@ -34,7 +34,8 @@ def test_google_login_provisions_new_user_and_returns_token(client):
     assert len(body["token"]) == 32
     user = auth_module.get_user("rudra.khare@moveinsync.com")
     assert user is not None
-    assert user["role"] == "viewer"
+    assert user["role"] == "general"
+    assert user["approved"] is False  # new sign-ups await admin approval
 
 
 def test_google_login_returns_token_for_existing_user(client):

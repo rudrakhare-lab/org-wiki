@@ -23,8 +23,10 @@ interface NavItem {
   label: string;
   route: string;
   icon: string;
-  adminOnly?: boolean;
+  roles: string[];   // roles allowed to see this item
 }
+
+const KNOWN_ROLES = ['admin', 'developer', 'general'];
 
 @Component({
   selector: 'app-sidebar',
@@ -405,14 +407,18 @@ export class AppSidebar implements OnInit {
   userName = signal<string>(this.api.getUserName());
   userEmail = signal<string>(this.api.getUserEmail());
 
+  // Tab visibility per role (mirrors the backend route guards):
+  //   admin     → all
+  //   developer → Ask, Search, Ingest, Graph
+  //   general   → Ask, Search  (+ the Recent history panel below)
   private navItems: NavItem[] = [
-    { label: 'Ask', route: '/ask', icon: 'ask' },
-    { label: 'Search', route: '/search', icon: 'search' },
-    { label: 'Dashboard', route: '/dashboard', icon: 'dashboard' },
-    { label: 'Traces', route: '/traces', icon: 'traces' },
-    { label: 'Ingest', route: '/ingest', icon: 'ingest' },
-    { label: 'Graph', route: '/graph', icon: 'graph' },
-    { label: 'Admin', route: '/admin', icon: 'admin', adminOnly: true },
+    { label: 'Ask', route: '/ask', icon: 'ask', roles: ['admin', 'developer', 'general'] },
+    { label: 'Search', route: '/search', icon: 'search', roles: ['admin', 'developer', 'general'] },
+    { label: 'Dashboard', route: '/dashboard', icon: 'dashboard', roles: ['admin'] },
+    { label: 'Traces', route: '/traces', icon: 'traces', roles: ['admin'] },
+    { label: 'Ingest', route: '/ingest', icon: 'ingest', roles: ['admin', 'developer'] },
+    { label: 'Graph', route: '/graph', icon: 'graph', roles: ['admin', 'developer'] },
+    { label: 'Admin', route: '/admin', icon: 'admin', roles: ['admin'] },
   ];
 
   ngOnInit(): void {
@@ -422,8 +428,11 @@ export class AppSidebar implements OnInit {
   }
 
   visibleNav(): NavItem[] {
-    const admin = this.api.isAdmin();
-    return this.navItems.filter((i) => !i.adminOnly || admin);
+    // Unknown / stale role (e.g. a pre-feature session before bootstrap
+    // hydration) is treated as 'general' so Ask + Search still show.
+    const role = this.api.getUserRole();
+    const effective = KNOWN_ROLES.includes(role) ? role : 'general';
+    return this.navItems.filter((i) => i.roles.includes(effective));
   }
 
   toggleCollapse(): void {
