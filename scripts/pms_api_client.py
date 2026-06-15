@@ -143,7 +143,7 @@ def build_request(args: argparse.Namespace) -> tuple[str, str, str, dict[str, An
             if not args.criteria or args.value is None:
                 raise SystemExit("--criteria and --value must be provided together")
             body[args.criteria] = args.value
-        return "POST", f"{base}/{args.service}/properties/v2", args.service, body
+        return "POST", f"{base}/{args.service}/properties", args.service, body
     raise SystemExit(f"Unknown command: {args.command}")
 
 

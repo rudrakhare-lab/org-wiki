@@ -343,7 +343,7 @@ class Session:
         else:
             level_key = "BUID"
 
-        url = f"{self.base_url}/{self.service}/properties/v2"
+        url = f"{self.base_url}/{self.service}/properties"
         raw: list[dict] = _http(method="POST", url=url, service=self.service, token=token, cookie=cookie, body=body, cms_origin=self.cms_origin)
 
         self._levels[level_key] = {
