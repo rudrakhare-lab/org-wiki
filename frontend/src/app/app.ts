@@ -1,16 +1,17 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ApiService } from './core/api.service';
 import { AgentService } from './core/agent.service';
 import { ConversationStore } from './core/conversation.store';
 import { AppSidebar } from './shared/app-sidebar/app-sidebar';
+import { ModeToggle } from './shared/mode-toggle/mode-toggle';
 
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AppSidebar],
+  imports: [RouterOutlet, AppSidebar, ModeToggle],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
@@ -35,6 +36,12 @@ export class App {
     if (this.signedIn()) {
       this.agentSvc.loadAgents();
     }
+    effect(() => {
+      const infosec = this.agentSvc.activeId() === 'infosec';
+      if (typeof document !== 'undefined') {
+        document.body.classList.toggle('theme-infosec', infosec);
+      }
+    });
   }
 
   /**

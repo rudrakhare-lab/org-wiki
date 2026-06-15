@@ -442,17 +442,26 @@
 // ── Composer — anchored footer (not sticky; sits at the bottom of chat-column)
 
 .composer-wrap {
+  position: relative;
   flex-shrink: 0;
   padding: 14px 16px 20px;
-  background: linear-gradient(
-    to top,
-    rgba(255, 254, 251, 0.95) 0%,
-    rgba(255, 254, 251, 0.78) 60%,
-    rgba(255, 254, 251, 0) 100%
-  );
-  backdrop-filter: saturate(140%) blur(14px);
-  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  background: transparent;
 }
+/* Frosted-glass layer: blurs the chat content scrolling beneath the composer and
+   is mask-faded in at the top, so messages dissolve under it with no hard band.
+   The controls sit crisp on top (z-index 1). Tinted with --page-bg per theme. */
+.composer-wrap::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--page-bg) 35%, transparent);
+  backdrop-filter: saturate(150%) blur(16px);
+  -webkit-backdrop-filter: saturate(150%) blur(16px);
+  -webkit-mask-image: linear-gradient(to top, #000 58%, transparent 100%);
+  mask-image: linear-gradient(to top, #000 58%, transparent 100%);
+  pointer-events: none;
+}
+.composer-wrap > * { position: relative; z-index: 1; }
 
 .composer {
   max-width: 760px;
@@ -710,7 +719,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px 16px 0;
+  /* extra right padding reserves space for the fixed top-right mode toggle */
+  padding: 10px 210px 0 16px;
 }
 
 .status-banner {
