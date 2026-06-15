@@ -534,8 +534,16 @@ def query(
         # even if the orchestrator fails downstream.
         conversation_id = req.conversation_id
         if conversation_id:
-            if not conversation_store.get_conversation(conversation_id):
-                conversation_id = None  # treat missing id as "start fresh"
+            _conv = conversation_store.get_conversation(conversation_id)
+            if (
+                not _conv
+                or _conv.get("agent_id") != agent.id
+                or _conv.get("user_email") != user_email
+            ):
+                # Mismatch: wrong agent, wrong user, or missing — start fresh.
+                # Do NOT raise; silently degrade to a new conversation so the
+                # caller's UX is not broken by a cross-agent or cross-user id.
+                conversation_id = None
         if not conversation_id:
             conv = conversation_store.create_conversation(
                 title=conversation_store.auto_title_from_question(req.question),
@@ -755,8 +763,15 @@ async def query_stream(
     # Resolve / create conversation, save the user message before the stream
     # so it appears in history even if the stream is cancelled.
     conversation_id = req.conversation_id
-    if conversation_id and not conversation_store.get_conversation(conversation_id):
-        conversation_id = None
+    if conversation_id:
+        _conv = conversation_store.get_conversation(conversation_id)
+        if (
+            not _conv
+            or _conv.get("agent_id") != agent.id
+            or _conv.get("user_email") != user.get("email")
+        ):
+            # Wrong agent/user or missing — start fresh rather than raising.
+            conversation_id = None
     if not conversation_id:
         conv = conversation_store.create_conversation(
             title=conversation_store.auto_title_from_question(req.question),

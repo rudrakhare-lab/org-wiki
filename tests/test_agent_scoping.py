@@ -731,6 +731,116 @@ def test_ingest_execute_registry_no_agent_defaults_to_conwo():
 # ── Wiki graph agent-scoping tests ───────────────────────────────────────────
 
 
+# ── /query conversation_id ownership check ───────────────────────────────────
+
+
+def test_query_ignores_cross_agent_conversation_id(monkeypatch, clean_db):
+    """An infosec /query request that supplies a conwo conversation_id must NOT
+    append to that thread — it must start a fresh conversation instead."""
+    from fastapi.testclient import TestClient
+    from backend.api import app, _get_user
+    from backend import conversation_store as cs
+
+    # Seed a conwo conversation owned by the test user.
+    conv = cs.create_conversation("conwo thread", user_email="u@x.com", agent_id="conwo")
+
+    app.dependency_overrides[_get_user] = lambda: {
+        "email": "u@x.com", "role": "general", "approved": True
+    }
+    # Stub the orchestrator so /query doesn't make a real LLM call.
+    import backend.orchestrator as orch
+    from backend.orchestrator import OrchestratorResult, SourceInfo
+    monkeypatch.setattr(
+        orch, "run",
+        lambda *a, **k: OrchestratorResult(
+            answer_id="x", answer_text="ok", confidence="Low",
+            sources=SourceInfo(), retrieval={}, mode="api",
+        ),
+    )
+    try:
+        client = TestClient(app)
+        # Infosec request reusing the CONWO conversation id must NOT append to it.
+        r = client.post(
+            "/query",
+            json={
+                "question": "security question",
+                "mode": "api",
+                "server": "com",
+                "conversation_id": conv["id"],
+            },
+            headers={"X-Agent-Id": "infosec", "Authorization": "Bearer x"},
+        )
+        assert r.status_code == 200, f"Expected 200, got {r.status_code}: {r.text}"
+
+        # The conwo thread must NOT have gained any infosec-tagged messages.
+        reloaded = cs.get_conversation(conv["id"])
+        assert all(
+            m.get("agent_id") != "infosec"
+            for m in reloaded.get("messages", [])
+        ), "Cross-agent leak: infosec messages appeared in conwo thread"
+
+        # The response's conversation_id (if any) must differ from the conwo one.
+        body = r.json()
+        assert body.get("conversation_id") != conv["id"], (
+            "Cross-agent leak: /query returned the conwo conversation_id for an infosec request"
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_query_same_agent_conversation_id_is_reused(monkeypatch, clean_db):
+    """A conwo /query request that supplies its OWN conversation_id must reuse it
+    — the fix must not over-restrict same-agent+same-user continuation."""
+    from fastapi.testclient import TestClient
+    from backend.api import app, _get_user
+    from backend import conversation_store as cs
+
+    # Seed a conwo conversation owned by the test user.
+    conv = cs.create_conversation("conwo thread", user_email="u@x.com", agent_id="conwo")
+
+    app.dependency_overrides[_get_user] = lambda: {
+        "email": "u@x.com", "role": "general", "approved": True
+    }
+    import backend.orchestrator as orch
+    from backend.orchestrator import OrchestratorResult, SourceInfo
+    monkeypatch.setattr(
+        orch, "run",
+        lambda *a, **k: OrchestratorResult(
+            answer_id="y", answer_text="ok", confidence="Low",
+            sources=SourceInfo(), retrieval={}, mode="api",
+        ),
+    )
+    try:
+        client = TestClient(app)
+        r = client.post(
+            "/query",
+            json={
+                "question": "follow-up question",
+                "mode": "api",
+                "server": "com",
+                "conversation_id": conv["id"],
+            },
+            headers={"X-Agent-Id": "conwo", "Authorization": "Bearer x"},
+        )
+        assert r.status_code == 200, f"Expected 200, got {r.status_code}: {r.text}"
+
+        body = r.json()
+        # Same-agent same-user continuation must reuse the supplied conversation_id.
+        assert body.get("conversation_id") == conv["id"], (
+            f"Same-agent continuation broken: expected {conv['id']!r}, "
+            f"got {body.get('conversation_id')!r}"
+        )
+
+        # The conwo thread must have a new message from this query.
+        reloaded = cs.get_conversation(conv["id"])
+        msgs = reloaded.get("messages", [])
+        assert any(m.get("content") == "follow-up question" for m in msgs), (
+            "Same-agent continuation broken: query message not appended to thread"
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+
 def test_wiki_graph_uses_active_agent_dir(tmp_path, monkeypatch):
     # Build a tiny infosec wiki and confirm the graph endpoint walks it (not conwo's).
     import asyncio
