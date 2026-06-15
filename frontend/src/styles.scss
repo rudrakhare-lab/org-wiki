@@ -215,3 +215,59 @@ input, select, textarea {
   border: 2px solid var(--bg);
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+/* ── Infosec theme (electric violet) ───────────────────────────────────────
+   Overrides ONLY the token VALUES. Conwo (:root) is untouched. Applied when
+   <body class="theme-infosec">. */
+body.theme-infosec {
+  /* surfaces */
+  --bg: #0b0a12;
+  --surface: #15101f;
+  --surface-muted: #1b1530;
+  --surface-hover: #221a3a;
+  --surface-inset: #120e1c;
+
+  /* borders */
+  --border: rgba(167, 139, 250, 0.22);
+  --border-strong: rgba(167, 139, 250, 0.38);
+  --border-focus: #a78bfa;
+
+  /* text */
+  --text: #f0ecff;
+  --text-muted: #9b95b3;
+  --text-subtle: #6f6986;
+  --text-on-accent: #0b0a12;
+
+  /* accent — electric violet */
+  --accent: #a78bfa;
+  --accent-hover: #c4b5fd;
+  --accent-soft: #1b1530;
+  --accent-ring: rgba(167, 139, 250, 0.45);
+
+  /* status — brightened for dark bg */
+  --success: #4ade80; --success-soft: #0e1f14; --success-border: #1f5132;
+  --warning: #fbbf24; --warning-soft: #241c08; --warning-border: #5a4711;
+  --error:   #f87171; --error-soft:   #2a1212; --error-border:   #5e2020;
+  --info:    #818cf8; --info-soft:    #14152b; --info-border:    #2b2f5e;
+
+  /* shadows — violet glow */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5), 0 0 0 1px rgba(167,139,250,0.06);
+  --shadow: 0 1px 3px rgba(0,0,0,0.5), 0 8px 28px -8px rgba(167,139,250,0.35);
+
+  /* faint grid + glow background overlay */
+  background-color: #0b0a12;
+  background-image:
+    radial-gradient(120% 80% at 85% -10%, rgba(167,139,250,0.16), transparent 55%),
+    linear-gradient(rgba(167,139,250,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(167,139,250,0.05) 1px, transparent 1px);
+  background-size: auto, 26px 26px, 26px 26px;
+  background-attachment: fixed;
+
+  /* electric edge: glow focus ring on interactive elements */
+  & a:focus-visible, & button:focus-visible, & input:focus-visible,
+  & textarea:focus-visible, & select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 4px var(--accent-ring);
+  }
+}
