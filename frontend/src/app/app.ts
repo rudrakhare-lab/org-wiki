@@ -15,7 +15,7 @@ const ADMIN_TOKEN_KEY = 'conwo_admin_token';
   styleUrl: './app.scss'
 })
 export class App {
-  readonly title = 'Conwo';
+  get title(): string { return this.agentSvc.activeName(); }
   private router = inject(Router);
   private api = inject(ApiService);
   private conversations = inject(ConversationStore);
