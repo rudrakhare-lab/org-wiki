@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ApiService } from './core/api.service';
+import { AgentService } from './core/agent.service';
 import { ConversationStore } from './core/conversation.store';
 import { AppSidebar } from './shared/app-sidebar/app-sidebar';
 
@@ -18,6 +19,7 @@ export class App {
   private router = inject(Router);
   private api = inject(ApiService);
   private conversations = inject(ConversationStore);
+  private agentSvc = inject(AgentService);
 
   currentUrl = signal<string>(this.router.url);
   signedIn = signal<boolean>(this.readToken().length > 0);
@@ -30,6 +32,9 @@ export class App {
         this.signedIn.set(this.readToken().length > 0);
       });
     this.hydrateUser();
+    if (this.signedIn()) {
+      this.agentSvc.loadAgents();
+    }
   }
 
   /**
@@ -46,6 +51,7 @@ export class App {
       next: (me) => {
         this.api.setUserRole(me.role);
         this.api.setUserApproved(me.approved);
+        this.agentSvc.loadAgents();
         const url = this.currentUrl();
         if (!me.approved && !url.startsWith('/pending') && !url.startsWith('/login')) {
           this.router.navigateByUrl('/pending');
