@@ -32,9 +32,9 @@ def test_stream_conversation_is_owned_by_user(stream_client):
     captured_email = {}
     original_create = cs.create_conversation
 
-    def spy_create(title=None, user_email=None):
+    def spy_create(title=None, user_email=None, **kwargs):
         captured_email["value"] = user_email
-        return original_create(title=title, user_email=user_email)
+        return original_create(title=title, user_email=user_email, **kwargs)
 
     # Disable preflight so we don't need to patch the locally-imported
     # run_preflight / build_agent_preamble inside query_stream.

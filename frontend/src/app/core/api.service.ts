@@ -47,6 +47,17 @@ export interface QueryResponse {
   intent_confidence?: number;
 }
 
+// ── Agents ─────────────────────────────────────────────────────────────────
+
+export interface Agent {
+  id: string;
+  display_name: string;
+  description: string;
+  modes: string[];
+  has_jira: boolean;
+  has_pms: boolean;
+}
+
 // ── Conversations / chat history ───────────────────────────────────────────
 
 export interface ConversationSummary {
@@ -759,6 +770,12 @@ export class ApiService {
     const token = this.getAdminToken();
     const headers = token ? new HttpHeaders({ Authorization: `Bearer ${token}` }) : new HttpHeaders();
     return this.http.get<WikiGraphData>(`${API_BASE}/api/wiki/graph`, { headers });
+  }
+
+  // ── Agents ────────────────────────────────────────────────────────────
+
+  getAgents(): Observable<Agent[]> {
+    return this.http.get<Agent[]>(`${API_BASE}/agents`);
   }
 
   // ── Conversations ──────────────────────────────────────────────────────

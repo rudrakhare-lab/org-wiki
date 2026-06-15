@@ -57,6 +57,7 @@ from pydantic import BaseModel, Field
 
 from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
 from backend import trace_store
+from backend import agent_registry, agent_context
 from backend.trace_middleware import TraceMiddleware
 from backend import config as _config
 from backend.config import local_claude_code_enabled
@@ -115,7 +116,9 @@ async def lifespan(app: FastAPI):
     # If wiki/ lives on a mounted volume (CONWO_DATA_DIR) that's still empty,
     # seed it from the image's baked baseline so the knowledge base is present.
     _seed_wiki_if_empty()
-    wiki_retriever.build_index()
+    from backend import agent_registry as _agent_registry
+    for _a in _agent_registry.all():
+        wiki_retriever.build_index(_a.id)
     # Single-key deployment check — api-mode queries will return 503 until the
     # operator sets ANTHROPIC_API_KEY. Don't crash; the server must still come
     # up for admin endpoints and conversation CRUD even without an LLM key.
@@ -194,6 +197,26 @@ from backend.metrics import setup_metrics  # noqa: E402
 setup_metrics(app)
 
 
+# Agent-resolution middleware. Starlette runs middleware in REVERSE order of
+# registration, so this last-registered one is OUTERMOST — it runs BEFORE
+# TraceMiddleware. That ordering is deliberate: it makes request.state.agent_id
+# (and the ContextVar) available by the time TraceMiddleware mints the trace
+# session, so per-agent trace scoping (Task 6) can stamp agent_id from the start.
+# Reads the X-Agent-Id header (default "conwo") and sets request.state.agent_id
+# plus the per-request current_agent ContextVar; the ContextVar is always reset
+# in the finally block so agent identity never leaks across requests.
+@app.middleware("http")
+async def _agent_resolution_middleware(request, call_next):
+    agent_id = request.headers.get("x-agent-id") or "conwo"
+    spec = agent_registry.get(agent_id)
+    request.state.agent_id = spec.id
+    token = agent_context.set_current_agent(spec.id)
+    try:
+        return await call_next(request)
+    finally:
+        agent_context.reset_current_agent(token)
+
+
 # ---------------------------------------------------------------------------
 # Auth helpers
 # ---------------------------------------------------------------------------
@@ -203,6 +226,11 @@ def _get_user(authorization: str | None = Header(default=None)) -> dict | None:
         return None
     token = authorization[7:].strip()
     return _config.lookup_user_by_token(token)
+
+
+def _get_agent(request: Request) -> agent_registry.AgentSpec:
+    """Resolve the active agent for this request (set by middleware)."""
+    return agent_registry.get(getattr(request.state, "agent_id", "conwo"))
 
 
 def _require_user(user: dict | None = Depends(_get_user)) -> dict:
@@ -423,11 +451,28 @@ def health_claude_code():
     }
 
 
+@app.get("/agents")
+def list_agents():
+    """Return public metadata for all registered agents. No auth required."""
+    return [
+        {
+            "id": a.id,
+            "display_name": a.display_name,
+            "description": a.description,
+            "modes": list(a.modes),
+            "has_jira": a.has_jira,
+            "has_pms": a.has_pms,
+        }
+        for a in agent_registry.all()
+    ]
+
+
 @app.post("/query", response_model=QueryResponse)
 def query(
     req: QueryRequest,
     request: Request,
     user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
     trace_id = getattr(request.state, "trace_id", None)
     trace_status = "success"   # NOT named `status` — that's the fastapi module used below
@@ -467,6 +512,13 @@ def query(
                 ),
             )
 
+        # Mode gate: reject requests for modes this agent doesn't support.
+        if not agent.mode_allowed(req.mode):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Agent '{agent.id}' does not support mode '{req.mode}'.",
+            )
+
         # Rate limit check before any DB writes (skip for unauthenticated users).
         if user:
             from backend.rate_limit import check_rate_limit
@@ -482,18 +534,30 @@ def query(
         # even if the orchestrator fails downstream.
         conversation_id = req.conversation_id
         if conversation_id:
-            if not conversation_store.get_conversation(conversation_id):
-                conversation_id = None  # treat missing id as "start fresh"
+            _conv = conversation_store.get_conversation(conversation_id)
+            if (
+                not _conv
+                or _conv.get("agent_id") != agent.id
+                or _conv.get("user_email") != user_email
+            ):
+                # Mismatch: wrong agent, wrong user, or missing — start fresh.
+                # Do NOT raise; silently degrade to a new conversation so the
+                # caller's UX is not broken by a cross-agent or cross-user id.
+                conversation_id = None
         if not conversation_id:
             conv = conversation_store.create_conversation(
                 title=conversation_store.auto_title_from_question(req.question),
                 user_email=user_email,
+                agent_id=agent.id,
             )
             conversation_id = conv["id"]
 
         # Enrich the (middleware-created) trace session with real mode/question/conv.
+        # Pass agent_id so the enriching UPSERT keeps the row agent-scoped (the
+        # UPSERT's COALESCE is last-writer-wins for the never-null agent_id).
         trace_store.start_session(trace_id, mode=req.mode, question=req.question,
-                                  conversation_id=conversation_id, user_email=user_email)
+                                  conversation_id=conversation_id, user_email=user_email,
+                                  agent_id=agent_context.get_current_agent_id())
 
         conversation_store.add_message(
             conversation_id=conversation_id,
@@ -502,6 +566,7 @@ def query(
             mode=req.mode,
             server=req.server,
             buid=req.buid,
+            agent_id=agent.id,
         )
 
         # Layer 1 guardrail: block destructive requests before calling the LLM.
@@ -537,6 +602,7 @@ def query(
                 sources={"wiki_pages": [], "jira_keys": [], "pms_configs": []},
                 tool_trace=[],
                 missing_context=[],
+                agent_id=agent.id,
             )
             return QueryResponse(
                 answer_id=_refusal_id,
@@ -574,6 +640,7 @@ def query(
             user_role=user_role,
             conversation_id=conversation_id,
             trace_id=trace_id,
+            agent=agent,
         )
 
         # Persist the assistant message — even on error we save something so the
@@ -595,6 +662,7 @@ def query(
             },
             tool_trace=result.tool_trace,
             missing_context=result.missing_context,
+            agent_id=agent.id,
         )
 
         return QueryResponse(
@@ -640,6 +708,7 @@ async def query_stream(
     req: AgentStreamRequest,
     request: Request,
     user: dict = Depends(_require_admin),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
     """
     Stream a Claude Code agent session over SSE.
@@ -684,15 +753,30 @@ async def query_stream(
             ),
         )
 
+    # Mode gate: this endpoint streams Claude Code (agent mode) only.
+    if not agent.mode_allowed("agent"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Agent '{agent.id}' does not support Claude Code (agent) mode.",
+        )
+
     # Resolve / create conversation, save the user message before the stream
     # so it appears in history even if the stream is cancelled.
     conversation_id = req.conversation_id
-    if conversation_id and not conversation_store.get_conversation(conversation_id):
-        conversation_id = None
+    if conversation_id:
+        _conv = conversation_store.get_conversation(conversation_id)
+        if (
+            not _conv
+            or _conv.get("agent_id") != agent.id
+            or _conv.get("user_email") != user.get("email")
+        ):
+            # Wrong agent/user or missing — start fresh rather than raising.
+            conversation_id = None
     if not conversation_id:
         conv = conversation_store.create_conversation(
             title=conversation_store.auto_title_from_question(req.question),
             user_email=user.get("email"),
+            agent_id=agent.id,
         )
         conversation_id = conv["id"]
 
@@ -703,6 +787,7 @@ async def query_stream(
         mode="claude-code-agent",
         server=req.server,
         buid=req.buid,
+        agent_id=agent.id,
     )
 
     # Layer 1 guardrail: same check as /query — block before the stream opens.
@@ -741,7 +826,8 @@ async def query_stream(
     # claude-code only (G25); end_session runs in the generator's finally below.
     trace_id = getattr(request.state, "trace_id", None)
     trace_store.start_session(trace_id, mode="claude-code", question=req.question,
-                              conversation_id=conversation_id, user_email=user.get("email"))
+                              conversation_id=conversation_id, user_email=user.get("email"),
+                              agent_id=agent_context.get_current_agent_id())
 
     # Deterministic preflight: run the SAME wiki+Jira+ticket retrieval we do
     # for Deep Search, then prepend the result to the question we hand to
@@ -755,7 +841,7 @@ async def query_stream(
         "0", "false", "no", "off"
     }
     if preflight_enabled:
-        bundle = run_preflight(req.question, trace_id=trace_id)
+        bundle = run_preflight(req.question, trace_id=trace_id, agent=agent)
         augmented_question = build_agent_preamble(bundle) + f"**User question:** {req.question}"
         preflight_keys = [t.get("key") for t in bundle.preflight_tickets if t.get("key")]
     else:
@@ -885,8 +971,12 @@ def log_agent_answer(req: AgentLogRequest, user: dict = Depends(_require_admin))
 
 
 @app.post("/search")
-def search(req: SearchRequest):
-    return orchestrator.search_only(req.question, server=req.server)
+def search(
+    req: SearchRequest,
+    request: Request,
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
+    return orchestrator.search_only(req.question, server=req.server, agent=agent)
 
 
 @app.get("/wiki/{path:path}")
@@ -901,40 +991,66 @@ def get_wiki_page(path: str):
 # Conversations — chat history CRUD
 # ---------------------------------------------------------------------------
 
-def _check_conversation_access(conversation_id: str, user: dict) -> dict:
-    """Load conversation and verify the user can access it. Returns the conversation.
+def _check_conversation_access(
+    conversation_id: str,
+    user: dict,
+    agent: "agent_registry.AgentSpec | None" = None,
+) -> dict:
+    """Load conversation and verify the user (and agent) can access it. Returns the conversation.
 
     Non-admin users can only see their own conversations; returns 404 (not 403)
     for both missing and unauthorized IDs to avoid leaking existence to third parties.
+    When an agent is supplied the conversation's agent_id must also match — one agent
+    cannot read, rename, or delete another agent's thread.
     """
     conv = conversation_store.get_conversation(conversation_id)
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
     if user.get("role") != "admin" and conv.get("user_email") != user.get("email"):
         raise HTTPException(status_code=404, detail="Conversation not found")
+    if agent is not None and conv.get("agent_id") != agent.id:
+        raise HTTPException(status_code=404, detail="Conversation not found")
     return conv
 
 
 @app.post("/conversations")
-def create_conversation(req: ConversationCreateRequest, user: dict | None = Depends(_get_user)):
+def create_conversation(
+    req: ConversationCreateRequest,
+    user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
     user_email = (user or {}).get("email")
-    return conversation_store.create_conversation(title=req.title, user_email=user_email)
+    return conversation_store.create_conversation(
+        title=req.title, user_email=user_email, agent_id=agent.id
+    )
 
 
 @app.get("/conversations")
-def list_conversations(limit: int = 200, user: dict = Depends(_require_user)):
+def list_conversations(
+    limit: int = 200,
+    user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
     if limit < 1:
         limit = 1
     if limit > 500:
         limit = 500
     # Admins see all conversations; everyone else sees only their own
     user_email = None if user.get("role") == "admin" else user.get("email")
-    return {"conversations": conversation_store.list_conversations(limit=limit, user_email=user_email)}
+    return {
+        "conversations": conversation_store.list_conversations(
+            limit=limit, user_email=user_email, agent_id=agent.id
+        )
+    }
 
 
 @app.get("/conversations/{conversation_id}")
-def get_conversation(conversation_id: str, user: dict = Depends(_require_user)):
-    conv = _check_conversation_access(conversation_id, user)
+def get_conversation(
+    conversation_id: str,
+    user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
+    conv = _check_conversation_access(conversation_id, user, agent)
     return conv
 
 
@@ -943,8 +1059,9 @@ def patch_conversation(
     conversation_id: str,
     req: ConversationPatchRequest,
     user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
-    _check_conversation_access(conversation_id, user)
+    _check_conversation_access(conversation_id, user, agent)
     ok = conversation_store.update_conversation_title(conversation_id, req.title)
     if not ok:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -953,8 +1070,12 @@ def patch_conversation(
 
 
 @app.delete("/conversations/{conversation_id}")
-def delete_conversation(conversation_id: str, user: dict = Depends(_require_user)):
-    _check_conversation_access(conversation_id, user)
+def delete_conversation(
+    conversation_id: str,
+    user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
+    _check_conversation_access(conversation_id, user, agent)
     ok = conversation_store.delete_conversation(conversation_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Conversation not found")

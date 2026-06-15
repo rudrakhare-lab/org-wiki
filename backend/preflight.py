@@ -105,8 +105,22 @@ def run_preflight(
     registry: ToolRegistry | None = None,
     latest_limit: int = _PREFLIGHT_LATEST_LIMIT,
     trace_id: str | None = None,
+    agent=None,
 ) -> PreflightBundle:
-    """Run the deterministic preflight retrieval. Always runs for every query."""
+    """Run the deterministic preflight retrieval. Always runs for every query.
+
+    Parameters
+    ----------
+    agent:
+        An ``AgentSpec`` instance (from ``backend.agent_registry``).
+        When ``None``, defaults to the conwo agent (``has_jira=True``).
+        Pass an agent with ``has_jira=False`` (e.g. Infosec) to skip all
+        Jira retrieval — wiki search always runs regardless.
+    """
+    if agent is None:
+        from backend import agent_registry
+        agent = agent_registry.default()
+
     bundle = PreflightBundle()
 
     # classify intent and apply retrieval hints
@@ -117,6 +131,7 @@ def run_preflight(
     _wiki_top_n_eff = _hints.get("wiki_top_n", _PREFLIGHT_WIKI_TOP_N)
     _latest_limit_eff = _hints.get("jira_latest_limit", latest_limit)
 
+    # Wiki search always runs — it is universal to all agents.
     _t = time.perf_counter()
     bundle.seed_wiki = wiki_retriever.search(_search_query, top_n=_wiki_top_n_eff)
     trace_store.record_event(
@@ -125,106 +140,111 @@ def run_preflight(
         metadata={"results_count": len(bundle.seed_wiki),
                   "top_paths": [p.path for p in bundle.seed_wiki[:3]]})
 
-    _t = time.perf_counter()
-    bundle.seed_jira = jira_retriever.search(_search_query, functional_area=functional_area)
-    _buckets = bundle.seed_jira.get("buckets", {})          # buckets are NESTED under "buckets"
-    trace_store.record_event(
-        trace_id, "preflight", "preflight_jira",
-        duration_ms=int((time.perf_counter() - _t) * 1000), round_num=0,
-        metadata={"bucket_counts": {
-            "LATEST": len(_buckets.get("LATEST", [])),
-            "HISTORICAL": len(_buckets.get("HISTORICAL", [])),
-            "STALE-OPEN": len(_buckets.get("STALE-OPEN", []))}})
+    if agent.has_jira:
+        _t = time.perf_counter()
+        bundle.seed_jira = jira_retriever.search(_search_query, functional_area=functional_area)
+        _buckets = bundle.seed_jira.get("buckets", {})          # buckets are NESTED under "buckets"
+        trace_store.record_event(
+            trace_id, "preflight", "preflight_jira",
+            duration_ms=int((time.perf_counter() - _t) * 1000), round_num=0,
+            metadata={"bucket_counts": {
+                "LATEST": len(_buckets.get("LATEST", [])),
+                "HISTORICAL": len(_buckets.get("HISTORICAL", [])),
+                "STALE-OPEN": len(_buckets.get("STALE-OPEN", []))}})
+    else:
+        # Wiki-only agent — no Jira retrieval at all.
+        bundle.seed_jira = {"buckets": {}}
 
     if registry is None:
         registry = build_registry()
 
-    # Step 5 — module-tagged + related-module pre-fetch.
-    # For each module page in seed_wiki, fetch (a) direct module-tagged tickets
-    # query-filtered, and (b) related-module tickets via depends_on + used_by
-    # (one hop). Dedup: direct wins over related. Total capped at 25.
-    seen_modules: set[str] = set()
-    for page in bundle.seed_wiki:
-        if not page.path.startswith("modules/"):
-            continue
-        module_slug = extract_slug_from_path(page.path)
-        if module_slug in seen_modules:
-            continue
-        seen_modules.add(module_slug)
-
-        direct = jira_retriever.by_module(
-            module_slug, query=question, limit=_PREFLIGHT_DIRECT_LIMIT
-        )
-        for t in direct:
-            t["_preflight_source"] = "direct"
-            t["_preflight_module"] = module_slug
-        bundle.module_tagged_jira.extend(direct)
-
-        deps = extract_module_dependencies(page)
-        for related_slug in deps["depends_on"] + deps["used_by"]:
-            if related_slug in seen_modules:
+    if agent.has_jira:
+        # Step 5 — module-tagged + related-module pre-fetch.
+        # For each module page in seed_wiki, fetch (a) direct module-tagged tickets
+        # query-filtered, and (b) related-module tickets via depends_on + used_by
+        # (one hop). Dedup: direct wins over related. Total capped at 25.
+        seen_modules: set[str] = set()
+        for page in bundle.seed_wiki:
+            if not page.path.startswith("modules/"):
                 continue
-            if len(bundle.related_module_jira) >= _PREFLIGHT_RELATED_TOTAL_CAP:
-                break
-            seen_modules.add(related_slug)
+            module_slug = extract_slug_from_path(page.path)
+            if module_slug in seen_modules:
+                continue
+            seen_modules.add(module_slug)
 
-            related = jira_retriever.by_module(
-                related_slug, query=question, limit=_PREFLIGHT_RELATED_LIMIT
+            direct = jira_retriever.by_module(
+                module_slug, query=question, limit=_PREFLIGHT_DIRECT_LIMIT
             )
-            for t in related:
-                t["_preflight_source"]      = "related"
-                t["_preflight_module"]      = related_slug
-                t["_preflight_relation_to"] = module_slug
-            bundle.related_module_jira.extend(related)
+            for t in direct:
+                t["_preflight_source"] = "direct"
+                t["_preflight_module"] = module_slug
+            bundle.module_tagged_jira.extend(direct)
 
-    # Dedup: drop related-tickets whose key already appears in direct.
-    direct_keys = {t["key"] for t in bundle.module_tagged_jira}
-    bundle.related_module_jira = [
-        t for t in bundle.related_module_jira if t["key"] not in direct_keys
-    ]
+            deps = extract_module_dependencies(page)
+            for related_slug in deps["depends_on"] + deps["used_by"]:
+                if related_slug in seen_modules:
+                    continue
+                if len(bundle.related_module_jira) >= _PREFLIGHT_RELATED_TOTAL_CAP:
+                    break
+                seen_modules.add(related_slug)
 
-    # Total cap — trim related (preserve direct).
-    if len(bundle.module_tagged_jira) + len(bundle.related_module_jira) > _PREFLIGHT_MODULE_TOTAL_CAP:
-        keep_related = max(0, _PREFLIGHT_MODULE_TOTAL_CAP - len(bundle.module_tagged_jira))
-        bundle.related_module_jira = bundle.related_module_jira[:keep_related]
+                related = jira_retriever.by_module(
+                    related_slug, query=question, limit=_PREFLIGHT_RELATED_LIMIT
+                )
+                for t in related:
+                    t["_preflight_source"]      = "related"
+                    t["_preflight_module"]      = related_slug
+                    t["_preflight_relation_to"] = module_slug
+                bundle.related_module_jira.extend(related)
 
-    if bundle.module_tagged_jira:
-        trace_store.record_event(
-            trace_id, "preflight", "preflight_module_tagged", round_num=0,
-            metadata={
-                "module_count": len({t.get("_preflight_module")
-                                     for t in bundle.module_tagged_jira if t.get("_preflight_module")}),
-                "ticket_count": len(bundle.module_tagged_jira),
-                "modules": sorted({t.get("_preflight_module")
-                                   for t in bundle.module_tagged_jira if t.get("_preflight_module")})})
-    if bundle.related_module_jira:
-        trace_store.record_event(
-            trace_id, "preflight", "preflight_related_module", round_num=0,
-            metadata={
-                "module_count": len({t.get("_preflight_module")
-                                     for t in bundle.related_module_jira if t.get("_preflight_module")}),
-                "ticket_count": len(bundle.related_module_jira),
-                "via_module": sorted({t.get("_preflight_relation_to")
-                                      for t in bundle.related_module_jira if t.get("_preflight_relation_to")})})
+        # Dedup: drop related-tickets whose key already appears in direct.
+        direct_keys = {t["key"] for t in bundle.module_tagged_jira}
+        bundle.related_module_jira = [
+            t for t in bundle.related_module_jira if t["key"] not in direct_keys
+        ]
 
-    # Auto-fetch top LATEST tickets so the model NEVER has to guess based on
-    # the summary alone. Goes through the registry so the trace is sanitized
-    # and consistent with model-initiated tool calls.
-    keys_to_fetch = bundle.latest_keys()[:_latest_limit_eff]
-    for key in keys_to_fetch:
-        json_output, entry = registry.execute(
-            name="jira_get_ticket",
-            tool_input={"key": key},
-            round_num=0,   # 0 = preflight (model rounds start at 1)
-            trace_id=trace_id,
-        )
-        bundle.preflight_trace.append(entry)
-        try:
-            ticket = json.loads(json_output)
-            if not ticket.get("error"):
-                bundle.preflight_tickets.append(ticket)
-        except (ValueError, TypeError):
-            pass  # registry already produced a sanitized trace entry
+        # Total cap — trim related (preserve direct).
+        if len(bundle.module_tagged_jira) + len(bundle.related_module_jira) > _PREFLIGHT_MODULE_TOTAL_CAP:
+            keep_related = max(0, _PREFLIGHT_MODULE_TOTAL_CAP - len(bundle.module_tagged_jira))
+            bundle.related_module_jira = bundle.related_module_jira[:keep_related]
+
+        if bundle.module_tagged_jira:
+            trace_store.record_event(
+                trace_id, "preflight", "preflight_module_tagged", round_num=0,
+                metadata={
+                    "module_count": len({t.get("_preflight_module")
+                                         for t in bundle.module_tagged_jira if t.get("_preflight_module")}),
+                    "ticket_count": len(bundle.module_tagged_jira),
+                    "modules": sorted({t.get("_preflight_module")
+                                       for t in bundle.module_tagged_jira if t.get("_preflight_module")})})
+        if bundle.related_module_jira:
+            trace_store.record_event(
+                trace_id, "preflight", "preflight_related_module", round_num=0,
+                metadata={
+                    "module_count": len({t.get("_preflight_module")
+                                         for t in bundle.related_module_jira if t.get("_preflight_module")}),
+                    "ticket_count": len(bundle.related_module_jira),
+                    "via_module": sorted({t.get("_preflight_relation_to")
+                                          for t in bundle.related_module_jira if t.get("_preflight_relation_to")})})
+
+        # Auto-fetch top LATEST tickets so the model NEVER has to guess based on
+        # the summary alone. Goes through the registry so the trace is sanitized
+        # and consistent with model-initiated tool calls.
+        keys_to_fetch = bundle.latest_keys()[:_latest_limit_eff]
+        for key in keys_to_fetch:
+            json_output, entry = registry.execute(
+                name="jira_get_ticket",
+                tool_input={"key": key},
+                round_num=0,   # 0 = preflight (model rounds start at 1)
+                trace_id=trace_id,
+            )
+            bundle.preflight_trace.append(entry)
+            try:
+                ticket = json.loads(json_output)
+                if not ticket.get("error"):
+                    bundle.preflight_tickets.append(ticket)
+            except (ValueError, TypeError):
+                pass  # registry already produced a sanitized trace entry
 
     return bundle
 
@@ -355,15 +375,27 @@ def build_seed_message(
     scope_line: str,
     bundle: PreflightBundle,
     summary: str = "",
+    agent=None,
 ) -> str:
     """User message for the Deep Search tool-use loop.
 
-    The optional `summary` parameter (G03) is a compacted rolling summary of
+    The optional ``summary`` parameter (G03) is a compacted rolling summary of
     older turns in the same conversation. When non-empty, it's prepended
-    after the Question/Scope as a dedicated `**Prior conversation summary**`
+    after the Question/Scope as a dedicated ``**Prior conversation summary**``
     section so the model sees pre-window context without polluting the
     prior_messages role alternation.
+
+    The optional ``agent`` parameter (``AgentSpec``) controls whether Jira
+    evidence sections are included. When ``None``, defaults to conwo
+    (``has_jira=True``).  For wiki-only agents (``has_jira=False``) the Jira
+    ranked search, module-tagged, related-module, and preflight-ticket sections
+    are omitted entirely — only wiki evidence and the closing tool-call
+    instruction (adjusted for no-Jira) are emitted.
     """
+    if agent is None:
+        from backend import agent_registry
+        agent = agent_registry.default()
+
     from backend.operational_context import get_context_block
     op_block = get_context_block()
     summary_block = ""
@@ -374,13 +406,6 @@ def build_seed_message(
             f"{summary.strip()}\n\n"
         )
     wiki_text = format_wiki_for_seed(bundle.seed_wiki)
-    jira_text = format_jira_buckets_for_seed(bundle.seed_jira)
-    tickets_text = format_preflight_tickets(bundle.preflight_tickets)
-    module_tagged_text  = format_module_tagged_for_seed(bundle.module_tagged_jira)
-    related_module_text = format_related_module_for_seed(bundle.related_module_jira)
-    module_tagged_block  = (module_tagged_text  + "\n---\n\n") if module_tagged_text  else ""
-    related_module_block = (related_module_text + "\n---\n\n") if related_module_text else ""
-    latest_count = len(bundle.seed_jira.get("buckets", {}).get("LATEST", []))
     _intent_line = ""
     if bundle.intent_result and bundle.intent_result.intent != QueryIntent.GENERAL:
         ir = bundle.intent_result
@@ -388,7 +413,8 @@ def build_seed_message(
             f"**Intent:** {ir.intent.value} (conf: {ir.confidence:.2f})"
             f" | query: \"{ir.rewritten_query}\"\n"
         )
-    return (
+
+    header = (
         f"{op_block}"
         f"**Question:** {question}\n"
         f"**Scope:** {scope_line}\n"
@@ -398,7 +424,29 @@ def build_seed_message(
         f"## Pre-fetched wiki evidence (top {len(bundle.seed_wiki)} pages, ~800-char excerpts)\n\n"
         f"{wiki_text}\n\n"
         f"---\n\n"
-        f"## Pre-fetched Jira ranked search ({latest_count} LATEST shown)\n\n"
+    )
+
+    if not agent.has_jira:
+        # Wiki-only agent — omit all Jira sections.
+        return (
+            header
+            + "This pre-fetched evidence is your starting context. The wiki search "
+            "already ran; call additional tools (wiki_read_page, wiki_search) "
+            "ONLY if the pre-fetched evidence is insufficient."
+        )
+
+    # Conwo (and any has_jira agent) — include full Jira evidence.
+    jira_text = format_jira_buckets_for_seed(bundle.seed_jira)
+    tickets_text = format_preflight_tickets(bundle.preflight_tickets)
+    module_tagged_text  = format_module_tagged_for_seed(bundle.module_tagged_jira)
+    related_module_text = format_related_module_for_seed(bundle.related_module_jira)
+    module_tagged_block  = (module_tagged_text  + "\n---\n\n") if module_tagged_text  else ""
+    related_module_block = (related_module_text + "\n---\n\n") if related_module_text else ""
+    latest_count = len(bundle.seed_jira.get("buckets", {}).get("LATEST", []))
+
+    return (
+        header
+        + f"## Pre-fetched Jira ranked search ({latest_count} LATEST shown)\n\n"
         f"{jira_text}\n\n"
         f"---\n\n"
         f"{module_tagged_block}"

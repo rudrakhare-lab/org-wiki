@@ -28,7 +28,7 @@ import json
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from backend import db, trace_store
@@ -36,6 +36,12 @@ from backend import db, trace_store
 router = APIRouter(prefix="/api/traces", tags=["traces"])
 
 _TIME_RANGES = {"24h": 1, "7d": 7, "30d": 30}   # → days; "all" → None
+
+
+def _agent_id(request: Request) -> str:
+    """Resolve the active agent_id from request state (set by middleware).
+    Defaults to 'conwo' so existing Conwo dashboards are unchanged."""
+    return getattr(request.state, "agent_id", "conwo")
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
@@ -110,11 +116,12 @@ def list_sessions(
     since: str | None = Query(None),  # ISO timestamp
     search: str | None = Query(None),  # substring of question
     include_orphaned: bool = Query(False),
+    agent_id: str = Depends(_agent_id),
 ):
     with _ro() as conn:
         if conn is None:
             return SessionListResponse(total=0, limit=limit, offset=offset, sessions=[])
-        where, params = ["1=1"], []
+        where, params = ["agent_id = %s"], [agent_id]
         if mode != "all":
             where.append("mode = %s"); params.append(mode)
         if status != "all":
@@ -153,7 +160,11 @@ def get_session(trace_id: str):
 
 # ── 3. dashboard overview ──────────────────────────────────────────────────────
 @router.get("/dashboard/overview")
-def dashboard_overview(time_range: str = Query("7d"), include_orphaned: bool = Query(False)):
+def dashboard_overview(
+    time_range: str = Query("7d"),
+    include_orphaned: bool = Query(False),
+    agent_id: str = Depends(_agent_id),
+):
     empty = {"total_queries": 0, "status_breakdown": {}, "error_rate": None,
              "latency_ms": {"avg": None, "p50": None, "p95": None, "p99": None},
              "total_cost_usd": 0.0, "cost_by_day": [], "top_tools": [], "mode_breakdown": {}}
@@ -161,7 +172,7 @@ def dashboard_overview(time_range: str = Query("7d"), include_orphaned: bool = Q
         if conn is None:
             return empty
         cutoff = _cutoff_iso(time_range)
-        base, params = "FROM trace_sessions WHERE 1=1", []
+        base, params = "FROM trace_sessions WHERE agent_id = %s", [agent_id]
         if cutoff:
             base += " AND started_at >= %s"; params.append(cutoff)
         if not include_orphaned:
@@ -190,9 +201,11 @@ def dashboard_overview(time_range: str = Query("7d"), include_orphaned: bool = Q
         mode_rows = conn.execute(f"SELECT mode, COUNT(*) c {base} GROUP BY mode", params).fetchall()
         mode_breakdown = {r["mode"]: r["c"] for r in mode_rows}
 
-        # top tools — from events in the same window (join sessions for the time filter)
-        tparams = [cutoff] if cutoff else []
-        tclause = "AND s.started_at >= %s" if cutoff else ""
+        # top tools — from events in the same window (join sessions for the time filter + agent)
+        tparams = [agent_id]
+        tclause = "AND s.agent_id = %s"
+        if cutoff:
+            tclause += " AND s.started_at >= %s"; tparams.append(cutoff)
         top_tools = [dict(r) for r in conn.execute(
             f"SELECT e.tool_name, COUNT(*) call_count FROM trace_events e "
             f"JOIN trace_sessions s ON s.trace_id = e.trace_id "
@@ -208,14 +221,17 @@ def dashboard_overview(time_range: str = Query("7d"), include_orphaned: bool = Q
 
 # ── 4. dashboard tools ──────────────────────────────────────────────────────────
 @router.get("/dashboard/tools")
-def dashboard_tools(time_range: str = Query("7d")):
+def dashboard_tools(
+    time_range: str = Query("7d"),
+    agent_id: str = Depends(_agent_id),
+):
     with _ro() as conn:
         if conn is None:
             return {"tools": []}
         cutoff = _cutoff_iso(time_range)
-        clause, params = "", []
+        clause, params = "AND s.agent_id = %s", [agent_id]
         if cutoff:
-            clause = "AND s.started_at >= %s"; params = [cutoff]
+            clause += " AND s.started_at >= %s"; params.append(cutoff)
         rows = conn.execute(
             f"SELECT e.tool_name, COUNT(*) call_count, "
             f"ROUND(AVG(e.duration_ms)::numeric,1)::double precision avg_duration_ms, "
@@ -229,7 +245,11 @@ def dashboard_tools(time_range: str = Query("7d")):
 
 # ── 5. dashboard errors ──────────────────────────────────────────────────────────
 @router.get("/dashboard/errors")
-def dashboard_errors(time_range: str = Query("7d"), limit: int = Query(20, ge=1, le=100)):
+def dashboard_errors(
+    time_range: str = Query("7d"),
+    limit: int = Query(20, ge=1, le=100),
+    agent_id: str = Depends(_agent_id),
+):
     # errors_by_component : ALL status='error' events (includes failed tool_calls)
     # exceptions_by_type  : ONLY event_type='error' events (carry exception metadata)
     # recent_exceptions   : last N event_type='error' rows
@@ -237,17 +257,19 @@ def dashboard_errors(time_range: str = Query("7d"), limit: int = Query(20, ge=1,
         if conn is None:
             return {"errors_by_component": {}, "exceptions_by_type": {}, "recent_exceptions": []}
         cutoff = _cutoff_iso(time_range)
-        clause, params = "", []
+        clause, params = "AND s.agent_id = %s", [agent_id]
         if cutoff:
-            clause = "AND e.timestamp >= %s"; params = [cutoff]
+            clause += " AND e.timestamp >= %s"; params.append(cutoff)
         comp_rows = conn.execute(
-            f"SELECT component, COUNT(*) c FROM trace_events e "
-            f"WHERE e.status='error' {clause} GROUP BY component ORDER BY c DESC", params).fetchall()
+            f"SELECT e.component, COUNT(*) c FROM trace_events e "
+            f"JOIN trace_sessions s ON s.trace_id = e.trace_id "
+            f"WHERE e.status='error' {clause} GROUP BY e.component ORDER BY c DESC", params).fetchall()
         errors_by_component = {r["component"]: r["c"] for r in comp_rows}
 
         # exception_type lives in metadata_json — aggregate in Python
         err_rows = conn.execute(
             f"SELECT e.trace_id, e.timestamp, e.metadata_json FROM trace_events e "
+            f"JOIN trace_sessions s ON s.trace_id = e.trace_id "
             f"WHERE e.event_type='error' {clause} ORDER BY e.timestamp DESC LIMIT %s",
             params + [limit]).fetchall()
         exceptions_by_type: dict[str, int] = {}
@@ -267,14 +289,17 @@ def dashboard_errors(time_range: str = Query("7d"), limit: int = Query(20, ge=1,
 
 # ── 6. dashboard cost ──────────────────────────────────────────────────────────
 @router.get("/dashboard/cost")
-def dashboard_cost(time_range: str = Query("7d")):
+def dashboard_cost(
+    time_range: str = Query("7d"),
+    agent_id: str = Depends(_agent_id),
+):
     empty = {"cost_by_day": [], "cost_per_query": {"avg": None, "p50": None, "p95": None},
              "tokens": {"input": 0, "output": 0, "cached_input": 0}, "cache_hit_rate": None}
     with _ro() as conn:
         if conn is None:
             return empty
         cutoff = _cutoff_iso(time_range)
-        base, params = "FROM trace_sessions WHERE status != 'orphaned'", []
+        base, params = "FROM trace_sessions WHERE status != 'orphaned' AND agent_id = %s", [agent_id]
         if cutoff:
             base += " AND started_at >= %s"; params.append(cutoff)
 
@@ -293,8 +318,8 @@ def dashboard_cost(time_range: str = Query("7d")):
 
         # token + cache totals from trace_metrics (api-mode rows; claude-code NULLs ignored)
         mbase = ("FROM trace_metrics m JOIN trace_sessions s ON s.trace_id=m.trace_id "
-                 "WHERE s.status IN ('success','error')")
-        mparams = []
+                 "WHERE s.status IN ('success','error') AND s.agent_id = %s")
+        mparams = [agent_id]
         if cutoff:
             mbase += " AND s.started_at >= %s"; mparams.append(cutoff)
         trow = conn.execute(

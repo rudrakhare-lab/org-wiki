@@ -1,0 +1,28 @@
+# Agent registry. Each [agents.<id>] defines one selectable AI agent.
+# Paths resolve relative to CONWO_DATA_DIR (PVC) or repo root, like config.py.
+
+[agents.conwo]
+display_name    = "Conwo"
+description     = "WorkInSync product, config & debugging assistant"
+wiki_dir        = "wiki"
+raw_dir         = "raw"
+claude_md       = "CLAUDE.md"
+prompt_sections = [5, 9, 12]
+tools           = ["*"]
+modes           = ["api", "agent"]
+has_jira        = true
+has_pms         = true
+identity        = "You are Conwo, an AI assistant that answers product, config, and debugging questions about WorkInSync."
+
+[agents.infosec]
+display_name    = "Infosec"
+description     = "Information-security knowledge assistant"
+wiki_dir        = "agents/infosec/wiki"
+raw_dir         = "agents/infosec/raw"
+claude_md       = "agents/infosec/CLAUDE.md"
+prompt_sections = []
+tools           = ["wiki_search", "wiki_read_page", "wiki_grep", "wiki_list_pages", "wiki_check_duplicate", "wiki_propose_new", "wiki_propose_edit", "wiki_propose_append", "wiki_propose_multi_edit", "feedback_record"]
+modes           = ["api"]
+has_jira        = false
+has_pms         = false
+identity        = "You are the Infosec assistant, answering information-security questions from the organization's security knowledge base."

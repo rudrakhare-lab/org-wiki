@@ -96,6 +96,7 @@ def _base_proposal(
     reason: str,
     validation_log: list[str] | None,
     suggested_companion_edit: dict | None,
+    agent_id: str = "conwo",
 ) -> dict[str, Any]:
     return {
         "id": _new_id(),
@@ -110,6 +111,7 @@ def _base_proposal(
         "resolved_at": None,
         "applied_at": None,
         "applied_by": None,
+        "agent_id": agent_id,
     }
 
 
@@ -122,8 +124,9 @@ def create_new_proposal(
     reason: str = "",
     answer_id: str | None = None,
     validation_log: list[str] | None = None,
+    agent_id: str = "conwo",
 ) -> str:
-    proposal = _base_proposal(submitter_email, answer_id, reason, validation_log, None)
+    proposal = _base_proposal(submitter_email, answer_id, reason, validation_log, None, agent_id)
     proposal.update({
         "proposal_type": "new",
         "page_path": page_path,
@@ -142,9 +145,10 @@ def create_edit_proposal(
     answer_id: str | None = None,
     suggested_companion_edit: dict | None = None,
     validation_log: list[str] | None = None,
+    agent_id: str = "conwo",
 ) -> str:
     proposal = _base_proposal(
-        submitter_email, answer_id, reason, validation_log, suggested_companion_edit,
+        submitter_email, answer_id, reason, validation_log, suggested_companion_edit, agent_id,
     )
     proposal.update({
         "proposal_type": "edit",
@@ -163,8 +167,9 @@ def create_append_proposal(
     reason: str = "",
     answer_id: str | None = None,
     validation_log: list[str] | None = None,
+    agent_id: str = "conwo",
 ) -> str:
-    proposal = _base_proposal(submitter_email, answer_id, reason, validation_log, None)
+    proposal = _base_proposal(submitter_email, answer_id, reason, validation_log, None, agent_id)
     proposal.update({
         "proposal_type": "append",
         "page_path": page_path,
@@ -181,9 +186,10 @@ def create_multi_edit_proposal(
     answer_id: str | None = None,
     suggested_companion_edit: dict | None = None,
     validation_log: list[str] | None = None,
+    agent_id: str = "conwo",
 ) -> str:
     proposal = _base_proposal(
-        submitter_email, answer_id, reason, validation_log, suggested_companion_edit,
+        submitter_email, answer_id, reason, validation_log, suggested_companion_edit, agent_id,
     )
     proposal.update({
         "proposal_type": "multi_edit",
@@ -200,12 +206,13 @@ def create_proposal(
     proposed_change: str,
     submitter_email: str,
     answer_id: str | None = None,
+    agent_id: str = "conwo",
 ) -> str:
     """LEGACY free-text proposal (pre-Track-A shape). Kept for any caller that
     hasn't migrated. New code should use create_edit_proposal() instead with
     structured old_string/new_string fields. Tagged as 'legacy_text' so the
     new apply handler in Sub-pass C can refuse to apply automatically."""
-    proposal = _base_proposal(submitter_email, answer_id, "", None, None)
+    proposal = _base_proposal(submitter_email, answer_id, "", None, None, agent_id)
     proposal.update({
         "proposal_type": "legacy_text",
         "page_path": page_path,
@@ -217,10 +224,16 @@ def create_proposal(
 
 # ── Read / update ─────────────────────────────────────────────────────────────
 
-def list_proposals(status: str | None = None) -> list[dict[str, Any]]:
+def list_proposals(
+    status: str | None = None,
+    agent_id: str | None = "conwo",
+) -> list[dict[str, Any]]:
     proposals = _load_all()
     if status is not None:
         proposals = [p for p in proposals if p.get("status") == status]
+    if agent_id is not None:
+        # Records missing agent_id are treated as belonging to "conwo" (backward-compat).
+        proposals = [p for p in proposals if p.get("agent_id", "conwo") == agent_id]
     return sorted(proposals, key=lambda p: p.get("created_at", ""), reverse=True)
 
 

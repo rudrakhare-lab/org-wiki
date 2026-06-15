@@ -205,7 +205,9 @@ def apply_patch(feedback_id: str) -> dict:
 
 def get_wiki_proposals(status: str | None = None) -> list[dict]:
     from backend.wiki_proposals import list_proposals
-    return list_proposals(status=status)
+    # agent_id=None → return proposals from ALL agents so the admin queue shows
+    # complete provenance across conwo, infosec, and any future agents.
+    return list_proposals(status=status, agent_id=None)
 
 
 def apply_wiki_proposal(proposal_id: str, applied_by: str = "admin") -> dict:
@@ -221,12 +223,19 @@ def apply_wiki_proposal(proposal_id: str, applied_by: str = "admin") -> dict:
     Idempotency: if the proposal is already "applied", returns success without
     re-writing.
 
+    Agent isolation (sub-fixes B + D):
+      The proposal record carries agent_id (stamped at propose time). Before
+      dispatching to the writer, we set the agent ContextVar to the proposal's
+      agent so wiki_apply._wiki_dir() resolves the correct per-agent wiki dir.
+      rebuild_index() is called with the proposal's agent_id so only that
+      agent's index is rebuilt.
+
     After a successful write:
-      - rebuild_index() so subsequent searches see the new content
+      - rebuild_index(agent_id) so subsequent searches see the new content
       - mark proposal "applied" with applied_at and applied_by stamps
     """
     from backend.wiki_proposals import get_proposal, update_status
-    from backend import wiki_apply, wiki_retriever
+    from backend import agent_context, wiki_apply, wiki_retriever
 
     proposal = get_proposal(proposal_id)
     if not proposal:
@@ -248,23 +257,30 @@ def apply_wiki_proposal(proposal_id: str, applied_by: str = "admin") -> dict:
             "files_written": [],
         }
 
-    pt = proposal.get("proposal_type", "legacy_text")
-    if pt == "new":
-        result = wiki_apply.apply_new(proposal)
-    elif pt == "edit":
-        result = wiki_apply.apply_edit(proposal)
-    elif pt == "append":
-        result = wiki_apply.apply_append(proposal)
-    elif pt == "multi_edit":
-        result = wiki_apply.apply_multi_edit(proposal)
-    elif pt == "legacy_text":
-        result = wiki_apply.refuse_legacy_text(proposal)
-    else:
-        result = {
-            "success": False,
-            "code": "unknown_proposal_type",
-            "message": f"Unknown proposal_type: {pt!r}",
-        }
+    # (B) Set the agent ContextVar to the proposal's agent so wiki_apply path
+    # resolution uses the correct per-agent wiki dir.
+    proposal_agent_id = proposal.get("agent_id") or "conwo"
+    _tok = agent_context.set_current_agent(proposal_agent_id)
+    try:
+        pt = proposal.get("proposal_type", "legacy_text")
+        if pt == "new":
+            result = wiki_apply.apply_new(proposal)
+        elif pt == "edit":
+            result = wiki_apply.apply_edit(proposal)
+        elif pt == "append":
+            result = wiki_apply.apply_append(proposal)
+        elif pt == "multi_edit":
+            result = wiki_apply.apply_multi_edit(proposal)
+        elif pt == "legacy_text":
+            result = wiki_apply.refuse_legacy_text(proposal)
+        else:
+            result = {
+                "success": False,
+                "code": "unknown_proposal_type",
+                "message": f"Unknown proposal_type: {pt!r}",
+            }
+    finally:
+        agent_context.reset_current_agent(_tok)
 
     result["proposal_id"] = proposal_id
     result["proposal_type"] = pt
@@ -276,9 +292,9 @@ def apply_wiki_proposal(proposal_id: str, applied_by: str = "admin") -> dict:
             result["suggested_companion_edit"] = proposal.get("suggested_companion_edit")
         return result
 
-    # Rebuild index — failure here does NOT undo the write, but is logged on the result.
+    # (D) Rebuild index for the proposal's agent — failure does NOT undo the write.
     try:
-        wiki_retriever.rebuild_index()
+        wiki_retriever.rebuild_index(proposal_agent_id)
         result["index_rebuilt"] = True
     except Exception as exc:
         result["index_rebuilt"] = False
