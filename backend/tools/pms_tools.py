@@ -308,6 +308,35 @@ def _is_auth_error(exc: Exception) -> bool:
     return "401" in str(exc)
 
 
+def _is_route_unavailable(exc: Exception) -> bool:
+    """True when the PMS API has no such route server-side.
+
+    The token-free server-side scheme (cms…/propmanagement/{service}/…) only
+    exposes property-data routes (default-properties, properties, offices).
+    The BUID-roles and criteria-value-list endpoints exist ONLY under the
+    auth-gated /api scheme, so calling them server-side returns a Spring
+    NoResourceFoundException ("No static resource …"). Detect that so we can
+    report it clearly instead of as a generic API error or a false "outage".
+    """
+    s = str(exc)
+    return "NoResourceFoundException" in s or "No static resource" in s
+
+
+def _route_unavailable(tool: str) -> dict:
+    """Clear, honest response for a PMS endpoint with no token-free server-side route."""
+    return {
+        "status": "unavailable_server_side",
+        "code": "route_unavailable",
+        "message": (
+            f"'{tool}' is not available from the server: this PMS endpoint exists "
+            "only on the auth-gated /api scheme, and Conwo calls PMS token-free "
+            "(server-side) in production. Live config values still work via "
+            "pms_runtime_values / pms_diagnose_property; office names via "
+            "pms_list_offices. This helper requires an authenticated PMS session."
+        ),
+    }
+
+
 # ── Handlers ──────────────────────────────────────────────────────────────────
 
 def _pms_default_properties_handler(inp: dict) -> dict:
@@ -448,6 +477,8 @@ def _pms_list_criteria_handler(inp: dict) -> dict:
     except Exception as exc:
         if _is_auth_error(exc):
             return _credentials_required(server)
+        if _is_route_unavailable(exc):
+            return _route_unavailable("pms_list_criteria")
         return {"error": str(exc), "code": "api_error"}
 
     return {
@@ -527,6 +558,8 @@ def _pms_verify_buid_handler(inp: dict) -> dict:
     except Exception as exc:
         if _is_auth_error(exc):
             return _credentials_required(server)
+        if _is_route_unavailable(exc):
+            return _route_unavailable("pms_verify_buid")
         return {"error": str(exc), "code": "api_error"}
 
     accessible = _extract_accessible_buids(roles)
