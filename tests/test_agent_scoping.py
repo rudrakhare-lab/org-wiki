@@ -1,7 +1,240 @@
+"""
+Tests for cross-agent data-isolation in the wiki proposal pipeline.
+
+Covers:
+  (A) Propose handlers stamp agent_id from the active agent context.
+  (B) Apply resolves paths against the PROPOSAL's agent wiki dir, not global WIKI_DIR.
+  (C) Admin list surfaces proposals from ALL agents (agent_id=None); per-agent filter works.
+  (D) Apply rebuilds the PROPOSAL's agent index, not the global one.
+"""
+from __future__ import annotations
+
 import importlib
 import json
-import pytest
+import types
 from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
+
+
+# ---------------------------------------------------------------------------
+# Minimal fixture: isolated proposal store + fake agent registry
+# ---------------------------------------------------------------------------
+
+@pytest.fixture
+def agent_scope_env(tmp_path, monkeypatch):
+    """Wire the proposal pipeline to tmp dirs and a lightweight fake registry
+    so tests run without the real wiki/, Postgres, or a full agent registry."""
+
+    # 1) Build fake per-agent wiki dirs
+    conwo_wiki = tmp_path / "conwo_wiki"
+    infosec_wiki = tmp_path / "infosec_wiki"
+    conwo_wiki.mkdir()
+    infosec_wiki.mkdir()
+
+    # 2) Make the concepts/ subdir in each (the propose handler checks allowlist)
+    (conwo_wiki / "concepts").mkdir()
+    (infosec_wiki / "concepts").mkdir()
+
+    # 3) Isolated proposal store
+    feedback_dir = tmp_path / "feedback"
+    feedback_dir.mkdir()
+    import backend.wiki_proposals as wp
+    importlib.reload(wp)
+    monkeypatch.setattr(wp, "PROPOSALS_FILE", feedback_dir / "wiki_proposals.jsonl", raising=False)
+    monkeypatch.setattr(wp, "FEEDBACK_DIR", feedback_dir, raising=False)
+
+    # 4) Fake AgentSpecs — use SimpleNamespace so we don't need a live agents.toml
+    conwo_spec = types.SimpleNamespace(id="conwo", wiki_dir=conwo_wiki)
+    infosec_spec = types.SimpleNamespace(id="infosec", wiki_dir=infosec_wiki)
+    fake_specs = {"conwo": conwo_spec, "infosec": infosec_spec}
+
+    from backend import agent_registry, agent_context
+    monkeypatch.setattr(agent_registry, "get", lambda aid: fake_specs.get(aid or "conwo", conwo_spec), raising=False)
+
+    # 5) Reload wiki_propose_tools so its _wiki_dir() re-binds via agent_context
+    import backend.tools.wiki_propose_tools as wpt
+    importlib.reload(wpt)
+    monkeypatch.setattr(wpt, "wiki_proposals", wp, raising=False)
+
+    # 6) Mock the in-memory retriever (no live index needed)
+    fake_retriever = MagicMock()
+    fake_retriever.get_page = MagicMock(return_value=None)
+    fake_retriever.rebuild_index = MagicMock()
+    monkeypatch.setattr(wpt, "wiki_retriever", fake_retriever, raising=False)
+
+    # 7) Reload wiki_apply so its _wiki_dir() re-binds via agent_context
+    import backend.wiki_apply as wa
+    importlib.reload(wa)
+
+    # 8) Reload admin_api so it picks up the reloaded modules
+    import backend.admin_api as adm
+    importlib.reload(adm)
+
+    # 9) Patch wiki_retriever.rebuild_index in the backend module so admin_api
+    #    (which imports wiki_retriever directly) hits our mock
+    from backend import wiki_retriever
+    monkeypatch.setattr(wiki_retriever, "rebuild_index", fake_retriever.rebuild_index, raising=False)
+
+    return {
+        "conwo_wiki": conwo_wiki,
+        "infosec_wiki": infosec_wiki,
+        "wp": wp,
+        "wpt": wpt,
+        "wa": wa,
+        "adm": adm,
+        "retriever": fake_retriever,
+        "agent_context": agent_context,
+    }
+
+
+# ---------------------------------------------------------------------------
+# (A) + (C): Propose handler stamps agent_id; list filters correctly
+# ---------------------------------------------------------------------------
+
+def test_infosec_proposal_is_agent_scoped(agent_scope_env):
+    """A proposal created under the infosec agent context must be tagged
+    agent_id='infosec', appear in the all-agents list, and NOT appear when
+    filtering for conwo.  Covers sub-fixes (A) and (C)."""
+    env = agent_scope_env
+    wp = env["wp"]
+    wpt = env["wpt"]
+    agent_context = env["agent_context"]
+
+    # Create a proposal under the infosec agent context
+    tok = agent_context.set_current_agent("infosec")
+    try:
+        res = wpt._wiki_propose_new_handler({
+            "page_path": "concepts/ztest-iso.md",
+            "content": "---\ntype: concept\n---\n# Ztest\nx",
+            "reason": "test",
+        })
+    finally:
+        agent_context.reset_current_agent(tok)
+
+    assert res.get("status") == "pending", f"handler returned error: {res}"
+
+    # (A): The stored proposal is tagged infosec
+    all_props = wp.list_proposals(agent_id=None)   # all agents — (C)
+    mine = [p for p in all_props if p.get("page_path") == "concepts/ztest-iso.md"]
+    assert mine, "proposal not found in all-agents list"
+    assert mine[0]["agent_id"] == "infosec", (
+        f"expected agent_id='infosec', got {mine[0].get('agent_id')!r}"
+    )
+
+    # (C): Not visible when filtering for conwo
+    conwo_props = wp.list_proposals(agent_id="conwo")
+    conwo_paths = [p.get("page_path") for p in conwo_props]
+    assert "concepts/ztest-iso.md" not in conwo_paths, (
+        "infosec proposal leaked into conwo list"
+    )
+
+
+def test_conwo_proposal_still_tagged_conwo(agent_scope_env):
+    """Default (conwo) behavior is unchanged after the fix."""
+    env = agent_scope_env
+    wp = env["wp"]
+    wpt = env["wpt"]
+    agent_context = env["agent_context"]
+
+    tok = agent_context.set_current_agent("conwo")
+    try:
+        res = wpt._wiki_propose_new_handler({
+            "page_path": "concepts/conwo-page.md",
+            "content": "---\ntype: concept\n---\n# Conwo\nbody",
+            "reason": "conwo test",
+        })
+    finally:
+        agent_context.reset_current_agent(tok)
+
+    assert res.get("status") == "pending", f"handler returned error: {res}"
+    all_props = wp.list_proposals(agent_id=None)
+    mine = [p for p in all_props if p.get("page_path") == "concepts/conwo-page.md"]
+    assert mine and mine[0]["agent_id"] == "conwo"
+
+
+# ---------------------------------------------------------------------------
+# (B): Apply resolves against the PROPOSAL's agent wiki dir
+# ---------------------------------------------------------------------------
+
+def test_apply_writes_to_infosec_wiki_not_conwo(agent_scope_env):
+    """When an infosec proposal is applied, the file must land in
+    infosec_wiki, not in conwo_wiki.  Covers sub-fix (B)."""
+    env = agent_scope_env
+    wp = env["wp"]
+    wpt = env["wpt"]
+    adm = env["adm"]
+    agent_context = env["agent_context"]
+    infosec_wiki = env["infosec_wiki"]
+    conwo_wiki = env["conwo_wiki"]
+
+    # Create the proposal under infosec context
+    tok = agent_context.set_current_agent("infosec")
+    try:
+        res = wpt._wiki_propose_new_handler({
+            "page_path": "concepts/infosec-isolation.md",
+            "content": "---\ntype: concept\n---\n# Isolation\nbody",
+            "reason": "isolation test",
+        })
+    finally:
+        agent_context.reset_current_agent(tok)
+
+    assert res.get("status") == "pending", f"handler error: {res}"
+    pid = res["proposal_id"]
+
+    # Apply (no active agent context — must use the proposal's stored agent_id)
+    apply_result = adm.apply_wiki_proposal(pid, applied_by="admin@example.com")
+    assert apply_result.get("success") is True, f"apply failed: {apply_result}"
+
+    # File MUST be in infosec wiki
+    assert (infosec_wiki / "concepts" / "infosec-isolation.md").is_file(), (
+        "file was not written to infosec wiki"
+    )
+    # File MUST NOT be in conwo wiki
+    assert not (conwo_wiki / "concepts" / "infosec-isolation.md").exists(), (
+        "file leaked into conwo wiki — cross-agent write detected"
+    )
+
+
+# ---------------------------------------------------------------------------
+# (D): Apply calls rebuild_index with the proposal's agent_id
+# ---------------------------------------------------------------------------
+
+def test_apply_rebuilds_correct_agent_index(agent_scope_env):
+    """rebuild_index must be called with 'infosec', not None or 'conwo'.
+    Covers sub-fix (D)."""
+    env = agent_scope_env
+    wp = env["wp"]
+    wpt = env["wpt"]
+    adm = env["adm"]
+    agent_context = env["agent_context"]
+    retriever = env["retriever"]
+    retriever.rebuild_index.reset_mock()
+
+    # Create + apply an infosec proposal
+    tok = agent_context.set_current_agent("infosec")
+    try:
+        res = wpt._wiki_propose_new_handler({
+            "page_path": "concepts/reindex-test.md",
+            "content": "---\ntype: concept\n---\n# Reindex\nbody",
+            "reason": "reindex test",
+        })
+    finally:
+        agent_context.reset_current_agent(tok)
+
+    pid = res["proposal_id"]
+    adm.apply_wiki_proposal(pid, applied_by="admin@example.com")
+
+    # rebuild_index should have been called with "infosec"
+    retriever.rebuild_index.assert_called_once()
+    call_args = retriever.rebuild_index.call_args
+    # Accept either positional or keyword form
+    actual_agent = (call_args.args[0] if call_args.args
+                    else call_args.kwargs.get("agent_id"))
+    assert actual_agent == "infosec", (
+        f"expected rebuild_index called with 'infosec', got {call_args}"
+    )
 
 
 # ── Wiki index per-agent scoping tests ───────────────────────────────────────

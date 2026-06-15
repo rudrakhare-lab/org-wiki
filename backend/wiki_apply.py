@@ -29,10 +29,18 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from backend.config import WIKI_DIR
 from backend.file_locks import locked_write, locked_read_write
 
 _log = logging.getLogger(__name__)
+
+
+def _wiki_dir() -> Path:
+    """Return the active agent's wiki directory (resolved at call time).
+    During apply_wiki_proposal the caller sets the agent ContextVar to the
+    proposal's agent_id before calling into this module, so every writer
+    resolves paths against the correct per-agent wiki directory."""
+    from backend import agent_context
+    return agent_context.get_current_agent().wiki_dir
 
 
 # ── Path validation (shared with propose tools, duplicated here for safety) ──
@@ -40,15 +48,17 @@ _log = logging.getLogger(__name__)
 def _validate_path(path: str) -> tuple[Path | None, dict | None]:
     """Same guards as backend/tools/wiki_propose_tools._validate_path.
     Duplicated rather than imported so the apply layer doesn't depend on
-    a tool-layer module."""
+    a tool-layer module.  Resolves against the ACTIVE agent's wiki dir
+    (set by apply_wiki_proposal via agent_context before calling writers)."""
     p = (path or "").strip()
     if not p:
         return None, {"success": False, "code": "missing_input", "message": "path is required"}
     if ".." in p or p.startswith("/"):
         return None, {"success": False, "code": "path_traversal", "message": "Path traversal not allowed."}
     try:
-        resolved = (WIKI_DIR / p).resolve()
-        wiki_root = WIKI_DIR.resolve()
+        wd = _wiki_dir()
+        resolved = (wd / p).resolve()
+        wiki_root = wd.resolve()
         if resolved != wiki_root and wiki_root not in resolved.parents:
             return None, {"success": False, "code": "path_traversal", "message": "Path outside wiki directory."}
     except Exception:

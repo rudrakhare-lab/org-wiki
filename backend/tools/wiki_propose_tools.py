@@ -34,7 +34,7 @@ from typing import Any
 import frontmatter  # type: ignore[import-not-found]
 import yaml  # type: ignore[import-not-found]
 
-from backend import wiki_retriever, wiki_proposals
+from backend import wiki_retriever, wiki_proposals, agent_context
 
 _log = logging.getLogger(__name__)
 
@@ -467,6 +467,7 @@ def _wiki_propose_new_handler(inp: dict) -> dict:
         reason=reason,
         answer_id=answer_id,
         validation_log=validation_log,
+        agent_id=agent_context.get_current_agent_id(),
     )
     return {
         "status": "pending",
@@ -545,6 +546,7 @@ def _wiki_propose_edit_handler(inp: dict) -> dict:
         answer_id=answer_id,
         suggested_companion_edit=companion,
         validation_log=validation_log,
+        agent_id=agent_context.get_current_agent_id(),
     )
     return {
         "status": "pending",
@@ -602,6 +604,7 @@ def _wiki_propose_append_handler(inp: dict) -> dict:
         reason=reason,
         answer_id=answer_id,
         validation_log=validation_log,
+        agent_id=agent_context.get_current_agent_id(),
     )
     return {
         "status": "pending",
@@ -667,6 +670,7 @@ def _wiki_propose_multi_edit_handler(inp: dict) -> dict:
         answer_id=answer_id,
         suggested_companion_edit=None,
         validation_log=validation_log,
+        agent_id=agent_context.get_current_agent_id(),
     )
     return {
         "status": "pending",
