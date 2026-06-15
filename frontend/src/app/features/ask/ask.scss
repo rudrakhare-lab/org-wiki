@@ -444,11 +444,13 @@
 .composer-wrap {
   flex-shrink: 0;
   padding: 14px 16px 20px;
+  /* Fade to --page-bg (matches the liquid-chrome behind the chat in each theme)
+     so the composer dissolves into the conversation with no hard seam. */
   background: linear-gradient(
     to top,
-    rgba(255, 254, 251, 0.95) 0%,
-    rgba(255, 254, 251, 0.78) 60%,
-    rgba(255, 254, 251, 0) 100%
+    var(--page-bg) 0%,
+    color-mix(in srgb, var(--page-bg) 85%, transparent) 55%,
+    color-mix(in srgb, var(--page-bg) 0%, transparent) 100%
   );
   backdrop-filter: saturate(140%) blur(14px);
   -webkit-backdrop-filter: saturate(140%) blur(14px);

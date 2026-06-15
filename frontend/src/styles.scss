@@ -7,6 +7,9 @@
 :root {
   /* surfaces */
   --bg: #fafaf9;
+  /* page backdrop tone (matches the .liquid-chrome wash) — used to dissolve the
+     composer into the chat seamlessly. */
+  --page-bg: #f0e8d8;
   --surface: #ffffff;
   --surface-muted: #f5f5f4;
   --surface-hover: #efeeec;
@@ -222,6 +225,7 @@ input, select, textarea {
 body.theme-infosec {
   /* surfaces */
   --bg: #0b0a12;
+  --page-bg: #0c0a16;
   --surface: #15101f;
   --surface-muted: #1b1530;
   --surface-hover: #221a3a;
@@ -343,15 +347,8 @@ body.theme-infosec .sb-name {
   color: var(--text) !important;
 }
 
-/* Ask: composer bottom fade was a cream gradient. */
-body.theme-infosec .composer-wrap {
-  background: linear-gradient(
-    to top,
-    var(--bg) 0%,
-    color-mix(in srgb, var(--bg) 80%, transparent) 60%,
-    transparent 100%
-  ) !important;
-}
+/* (Composer fade is now tokenized via --page-bg in ask.scss — works in both
+   themes, so no Infosec-specific override is needed here.) */
 
 /* Form controls everywhere (search/admin/ingest/filters) → dark. */
 body.theme-infosec input,
