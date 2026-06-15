@@ -408,3 +408,18 @@ body.theme-infosec .admin-page th,
 body.theme-infosec .path-cell {
   color: var(--text-muted) !important;
 }
+
+/* Admin state-color cards/rows that hardcode light tints (pending rows, alert
+   cards, low/mid feedback) → dark surface, keep the semantic accent on the border. */
+body.theme-infosec tr.pending-row {
+  background: rgba(167, 139, 250, 0.07) !important;
+}
+body.theme-infosec .status-card.alert,
+body.theme-infosec .feedback-card.score-low {
+  background: var(--surface) !important;
+  border-color: var(--error) !important;
+}
+body.theme-infosec .feedback-card.score-mid {
+  background: var(--surface) !important;
+  border-color: var(--warning) !important;
+}
