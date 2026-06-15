@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ApiService } from './core/api.service';
@@ -35,6 +35,12 @@ export class App {
     if (this.signedIn()) {
       this.agentSvc.loadAgents();
     }
+    effect(() => {
+      const infosec = this.agentSvc.activeId() === 'infosec';
+      if (typeof document !== 'undefined') {
+        document.body.classList.toggle('theme-infosec', infosec);
+      }
+    });
   }
 
   /**
