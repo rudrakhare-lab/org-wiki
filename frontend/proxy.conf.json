@@ -1,5 +1,6 @@
 {
   "/auth": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
+  "/agents": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
   "/query": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
   "/search": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
   "/wiki": { "target": "http://localhost:8000", "secure": false, "changeOrigin": true },
