@@ -710,7 +710,8 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 10px 16px 0;
+  /* extra right padding reserves space for the fixed top-right mode toggle */
+  padding: 10px 210px 0 16px;
 }
 
 .status-banner {
