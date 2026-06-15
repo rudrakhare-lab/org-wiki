@@ -330,3 +330,81 @@ body.theme-infosec .warnings-box {
   border-color: var(--border-strong);
   color: var(--text);
 }
+
+/* ── Infosec theme — round 2: remaining light surfaces + dark-on-dark text ──
+   Angular view-encapsulation inflates component-rule specificity (each compound
+   gains an [_ngcontent] attribute), so nested/text overrides need !important to
+   win. Scoped to body.theme-infosec → Conwo is unaffected. */
+
+/* Sidebar wordmark: gradient-clip text fades to grey on dark → solid light. */
+body.theme-infosec .sb-name {
+  background: none !important;
+  -webkit-text-fill-color: var(--text) !important;
+  color: var(--text) !important;
+}
+
+/* Ask: composer bottom fade was a cream gradient. */
+body.theme-infosec .composer-wrap {
+  background: linear-gradient(
+    to top,
+    var(--bg) 0%,
+    color-mix(in srgb, var(--bg) 80%, transparent) 60%,
+    transparent 100%
+  ) !important;
+}
+
+/* Form controls everywhere (search/admin/ingest/filters) → dark. */
+body.theme-infosec input,
+body.theme-infosec select,
+body.theme-infosec textarea {
+  background: var(--surface-muted) !important;
+  color: var(--text) !important;
+  border-color: var(--border) !important;
+}
+
+/* Search button (incl. the pale-lavender disabled state). */
+body.theme-infosec .search-btn {
+  background: var(--accent) !important;
+  color: var(--text-on-accent) !important;
+}
+body.theme-infosec .search-btn:disabled {
+  background: var(--surface-hover) !important;
+  color: var(--text-subtle) !important;
+}
+
+/* Ingest: dropzone + result boxes. */
+body.theme-infosec .drop-zone {
+  background: var(--surface-muted) !important;
+  border-color: var(--border-strong) !important;
+}
+body.theme-infosec .drop-zone:hover,
+body.theme-infosec .drop-zone.drag-over {
+  background: var(--surface-hover) !important;
+  border-color: var(--accent) !important;
+}
+body.theme-infosec .drop-zone.has-file {
+  background: var(--surface-muted) !important;
+  border-color: var(--success) !important;
+}
+body.theme-infosec .summary-box,
+body.theme-infosec .success-box,
+body.theme-infosec .ops-list,
+body.theme-infosec .badge {
+  background: var(--surface-muted) !important;
+  color: var(--text) !important;
+}
+
+/* Admin: dark-on-dark headings/values + muted labels → legible. */
+body.theme-infosec .admin-page h1,
+body.theme-infosec .admin-page h2,
+body.theme-infosec .admin-page h3,
+body.theme-infosec .status-value {
+  color: var(--text) !important;
+}
+body.theme-infosec .admin-header p,
+body.theme-infosec .status-label,
+body.theme-infosec .status-meta,
+body.theme-infosec .admin-page th,
+body.theme-infosec .path-cell {
+  color: var(--text-muted) !important;
+}
