@@ -16,6 +16,7 @@ import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { ApiService } from '../../core/api.service';
 import { ConversationStore } from '../../core/conversation.store';
 import { ChatSidebar } from '../chat-sidebar/chat-sidebar';
+import { AgentService } from '../../core/agent.service';
 
 const COLLAPSE_KEY = 'conwo_sidebar_collapsed';
 
@@ -47,10 +48,31 @@ const KNOWN_ROLES = ['admin', 'developer', 'general'];
     <aside class="sidebar" [class.collapsed]="collapsed()" [class.mobile-open]="mobileOpen()">
       <!-- Brand + collapse -->
       <div class="sb-head">
-        <a routerLink="/ask" class="sb-brand" (click)="closeMobile()" aria-label="Conwo — home">
-          <img src="logo.png" alt="" class="sb-logo" />
-          <span class="sb-name sb-label">Conwo</span>
-        </a>
+        <div class="sb-agent">
+          <a routerLink="/ask" class="sb-brand" (click)="closeMobile()" [attr.aria-label]="agentSvc.activeName() + ' — home'">
+            <img src="logo.png" alt="" class="sb-logo" />
+            <span class="sb-name sb-label">{{ agentSvc.activeName() }}</span>
+          </a>
+          @if (agentSvc.agents().length > 1) {
+            <button class="sb-agent-toggle sb-label" type="button"
+                    (click)="agentMenuOpen.set(!agentMenuOpen())"
+                    [attr.aria-expanded]="agentMenuOpen()" aria-label="Switch agent" title="Switch agent">
+              <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6l4 4 4-4"/></svg>
+            </button>
+          }
+          @if (agentMenuOpen()) {
+            <div class="sb-agent-menu">
+              @for (a of agentSvc.agents(); track a.id) {
+                <button type="button" class="sb-agent-item"
+                        [class.active]="a.id === agentSvc.activeId()"
+                        (click)="onSelectAgent(a.id)">
+                  <span class="sb-agent-item-name">{{ a.display_name }}</span>
+                  <span class="sb-agent-item-desc">{{ a.description }}</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
         <button
           class="sb-collapse"
           type="button"
@@ -242,6 +264,28 @@ const KNOWN_ROLES = ['admin', 'developer', 'general'];
       &:hover { background: var(--surface-muted); color: var(--text); }
     }
 
+    .sb-agent { position: relative; flex: 1; display: flex; align-items: center; gap: 4px; min-width: 0; }
+    .sb-agent .sb-brand { flex: 1; }
+    .sb-agent-toggle {
+      background: none; border: none; color: var(--text-muted); cursor: pointer;
+      padding: 2px; display: inline-flex; align-items: center; border-radius: 4px;
+      &:hover { color: var(--text); background: var(--surface-muted); }
+    }
+    .sb-agent-menu {
+      position: absolute; top: 100%; left: 0; z-index: 30; margin-top: 4px;
+      min-width: 220px; background: var(--surface, #fff); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      padding: 4px; display: flex; flex-direction: column; gap: 2px;
+    }
+    .sb-agent-item {
+      text-align: left; background: none; border: none; cursor: pointer;
+      padding: 8px 10px; border-radius: var(--radius-sm); display: flex; flex-direction: column; gap: 2px;
+      &:hover { background: var(--surface-muted); }
+      &.active { background: var(--surface-muted); }
+    }
+    .sb-agent-item-name { font-weight: 600; font-size: 0.88rem; color: var(--text); }
+    .sb-agent-item-desc { font-size: 0.75rem; color: var(--text-muted); }
+
     /* ── New chat ─────────────────────────────────────────────── */
     .sb-new {
       margin: 0 12px 8px;
@@ -397,6 +441,13 @@ export class AppSidebar implements OnInit {
   private api = inject(ApiService);
   private router = inject(Router);
   store = inject(ConversationStore);
+  agentSvc = inject(AgentService);
+  agentMenuOpen = signal(false);
+
+  onSelectAgent(id: string): void {
+    this.agentMenuOpen.set(false);
+    this.agentSvc.setActive(id);   // persists + reloads to /ask as the new agent
+  }
 
   /** Delegated to the shell, which owns the session/auth signals. */
   signOut = output<void>();
