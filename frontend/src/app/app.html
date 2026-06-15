@@ -3,5 +3,6 @@
 }
 
 <main class="app-main" [class.full]="!showHeaderNav()">
+  @if (showHeaderNav()) { <app-mode-toggle /> }
   <router-outlet />
 </main>

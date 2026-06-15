@@ -5,12 +5,13 @@ import { ApiService } from './core/api.service';
 import { AgentService } from './core/agent.service';
 import { ConversationStore } from './core/conversation.store';
 import { AppSidebar } from './shared/app-sidebar/app-sidebar';
+import { ModeToggle } from './shared/mode-toggle/mode-toggle';
 
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AppSidebar],
+  imports: [RouterOutlet, AppSidebar, ModeToggle],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
