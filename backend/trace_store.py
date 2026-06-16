@@ -299,6 +299,21 @@ def _aggregate_events(cur, trace_id: str) -> dict:
     return out
 
 
+def cost_for_trace(trace_id: str | None) -> dict | None:
+    """Fail-open snapshot of the rolled-up metrics for a trace (cost_usd may be None
+    for claude-code mode, which has no token usage). Safe to call inline mid-request —
+    the llm_response events are already recorded by then. Returns None on any failure
+    so a cost lookup can never break a query."""
+    if not trace_id or not _check_tracing_enabled():
+        return None
+    try:
+        with db.connection() as conn, conn.cursor() as cur:
+            return _aggregate_events(cur, trace_id)
+    except Exception as exc:
+        _log.warning("trace_store.cost_for_trace failed (ignored): %s", exc)
+        return None
+
+
 # ── Orphan reconciliation (Tightening 1) ──────────────────────────────────────
 def reconcile_orphans(stale_after_minutes: int = 10) -> None:
     """Mark sessions left in_progress by a previous crash as 'orphaned'. Called
