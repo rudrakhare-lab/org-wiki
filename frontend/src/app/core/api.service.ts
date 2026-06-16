@@ -45,6 +45,8 @@ export interface QueryResponse {
   intent?: string;
   rewritten_query?: string;
   intent_confidence?: number;
+  cost_usd?: number;
+  cost_inr?: number;
 }
 
 // ── Agents ─────────────────────────────────────────────────────────────────
@@ -85,6 +87,7 @@ export interface ChatMessage {
   intent?: string | null;
   rewritten_query?: string | null;
   intent_confidence?: number | null;
+  cost_inr?: number | null;
 }
 
 export interface Conversation {

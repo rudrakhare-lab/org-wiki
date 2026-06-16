@@ -322,6 +322,8 @@ class QueryResponse(BaseModel):
     intent: str = "GENERAL"
     rewritten_query: str = ""
     intent_confidence: float = 0.0
+    cost_usd: float = 0.0
+    cost_inr: float = 0.0
 
 
 class AgentStreamRequest(BaseModel):
@@ -643,6 +645,19 @@ def query(
             agent=agent,
         )
 
+        # Per-query cost (₹) for the chat footer. The LLM usage events are already
+        # recorded by now, so aggregating the trace yields a fresh cost inline.
+        # Fail-open: any problem leaves cost at 0 (the UI hides a 0/None footer) and
+        # never affects the response. cost_usd is None for claude-code/agent mode.
+        cost_usd = 0.0
+        cost_inr = 0.0
+        try:
+            agg = trace_store.cost_for_trace(trace_id)
+            cost_usd = float((agg or {}).get("cost_usd") or 0.0)
+            cost_inr = round(cost_usd * _config.CONWO_USD_INR, 2)
+        except Exception:
+            pass
+
         # Persist the assistant message — even on error we save something so the
         # conversation reflects the attempt.
         assistant_content = result.answer_text or (f"[error] {result.error}" if result.error else "")
@@ -663,6 +678,7 @@ def query(
             tool_trace=result.tool_trace,
             missing_context=result.missing_context,
             agent_id=agent.id,
+            cost_inr=cost_inr or None,
         )
 
         return QueryResponse(
@@ -684,6 +700,8 @@ def query(
             intent=result.intent,
             rewritten_query=result.rewritten_query,
             intent_confidence=result.intent_confidence,
+            cost_usd=cost_usd,
+            cost_inr=cost_inr,
         )
     except HTTPException:
         # Expected gateway rejection (401 auth / 429 rate-limit / 503 missing-key).

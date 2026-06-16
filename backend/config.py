@@ -20,6 +20,18 @@ ROOT = Path(__file__).resolve().parent.parent
 # mirror is missing a recently-filed ticket. Empty string means "not configured."
 JIRA_BASE_URL = os.getenv("JIRA_BASE_URL", "").rstrip("/")
 
+
+def _usd_inr_rate() -> float:
+    """USD→INR rate used to show per-query cost in the chat UI. Override via
+    CONWO_USD_INR; a malformed value falls back to the default rather than crashing."""
+    try:
+        return float(os.getenv("CONWO_USD_INR", "88"))
+    except (TypeError, ValueError):
+        return 88.0
+
+
+CONWO_USD_INR: float = _usd_inr_rate()
+
 # wiki/ and raw/ live under CONWO_DATA_DIR when set (e.g. /app/data, a mounted
 # PVC in k8s) so they persist across pod restarts; otherwise under the repo root
 # (local dev — unchanged). Everything derived from RAW_DIR below follows the base.

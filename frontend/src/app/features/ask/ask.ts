@@ -109,6 +109,10 @@ const PMS_SERVICES = [
 
                     <div class="answer-body" [innerHTML]="renderMarkdown(m.content)"></div>
 
+                    @if (m.cost_inr && m.cost_inr > 0) {
+                      <div class="query-cost">This query cost ₹{{ m.cost_inr | number:'1.2-2' }}</div>
+                    }
+
                     @if (m.sources && hasSources(m.sources)) {
                       <app-source-drawer
                         [wikiPages]="m.sources.wiki_pages"
@@ -687,6 +691,7 @@ export class Ask implements OnInit {
       intent: res.intent,
       rewritten_query: res.rewritten_query,
       intent_confidence: res.intent_confidence,
+      cost_inr: res.cost_inr,
     };
     this.messages.update(arr => [...arr, msg]);
   }
