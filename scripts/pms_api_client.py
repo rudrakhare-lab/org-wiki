@@ -66,12 +66,12 @@ def parse_args() -> argparse.Namespace:
 
     criteria = sub.add_parser("criteria-values", help="Get allowed values for a criterion")
     criteria.add_argument("--service", required=True)
-    criteria.add_argument("--criteria", required=True, help="Example: OFFICEID, ROOMID, ROLE")
+    criteria.add_argument("--criteria", required=True, help="Example: OFFICEID, ROOM_ID, ROLE")
 
     props = sub.add_parser("properties", help="Get current properties for BUID/criterion")
     props.add_argument("--service", required=True)
     props.add_argument("--buid", required=True)
-    props.add_argument("--criteria", help="Example: OFFICEID, ROOMID, ROLE")
+    props.add_argument("--criteria", help="Example: OFFICEID, ROOM_ID, ROLE")
     props.add_argument("--value", help="Criterion value, e.g. office id, room id, role")
 
     return parser.parse_args()
