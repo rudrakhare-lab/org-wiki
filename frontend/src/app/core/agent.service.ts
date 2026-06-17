@@ -77,6 +77,7 @@ export class AgentService {
     if (id === this.activeId() && reload) return;
     try { localStorage.setItem(ACTIVE_AGENT_KEY, id); } catch { /* private mode */ }
     this.activeId.set(id);
+    this.persistThemeHints(); // sync — the reload below would otherwise pre-empt the effect
     if (reload && typeof window !== 'undefined') {
       window.location.assign('/ask');
     }

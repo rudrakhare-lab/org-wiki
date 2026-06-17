@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
 import { AgentService } from '../../core/agent.service';
 
 /**
@@ -68,6 +68,14 @@ import { AgentService } from '../../core/agent.service';
 export class ModeToggle {
   protected agentSvc = inject(AgentService);
   protected open = signal(false);
+  private host = inject(ElementRef<HTMLElement>);
+
+  @HostListener('document:click', ['$event'])
+  onDocClick(ev: MouseEvent): void {
+    if (this.open() && !this.host.nativeElement.contains(ev.target as Node)) {
+      this.open.set(false);
+    }
+  }
 
   protected agents = this.agentSvc.agents;       // signal<Agent[]>
   protected activeId = this.agentSvc.activeId;    // signal<string>

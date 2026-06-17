@@ -292,17 +292,17 @@ body.theme-dark .liquid-chrome {
 }
 body.theme-dark .liquid-chrome::before {
   background:
-    radial-gradient(closest-side at 22% 26%, rgba(139, 109, 214, 0.30) 0%, transparent 55%),
-    radial-gradient(closest-side at 80% 20%, rgba(99, 102, 241, 0.22) 0%, transparent 55%),
-    radial-gradient(closest-side at 82% 74%, rgba(167, 139, 250, 0.22) 0%, transparent 55%),
-    radial-gradient(closest-side at 30% 82%, rgba(76, 61, 138, 0.28) 0%, transparent 58%);
+    radial-gradient(closest-side at 22% 26%, color-mix(in srgb, var(--accent) 30%, transparent) 0%, transparent 55%),
+    radial-gradient(closest-side at 80% 20%, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 55%),
+    radial-gradient(closest-side at 82% 74%, color-mix(in srgb, var(--accent) 22%, transparent) 0%, transparent 55%),
+    radial-gradient(closest-side at 30% 82%, color-mix(in srgb, var(--accent) 28%, transparent) 0%, transparent 58%);
   filter: blur(80px) saturate(120%);
   opacity: 0.55;
 }
 body.theme-dark .liquid-chrome::after {
   background:
-    radial-gradient(closest-side at 45% 60%, rgba(124, 99, 196, 0.20) 0%, transparent 55%),
-    radial-gradient(closest-side at 88% 48%, rgba(99, 102, 241, 0.16) 0%, transparent 55%);
+    radial-gradient(closest-side at 45% 60%, color-mix(in srgb, var(--accent) 20%, transparent) 0%, transparent 55%),
+    radial-gradient(closest-side at 88% 48%, color-mix(in srgb, var(--accent) 16%, transparent) 0%, transparent 55%);
   filter: blur(95px) saturate(115%);
   mix-blend-mode: normal;
   opacity: 0.5;

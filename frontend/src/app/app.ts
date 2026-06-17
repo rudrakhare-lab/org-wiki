@@ -44,8 +44,9 @@ export class App {
       const base = this.agentSvc.activeBase();
       document.body.classList.toggle('theme-dark', base === 'dark');
       const accent = this.agentSvc.active()?.accent;
-      if (base === 'dark' && accent) {
-        document.body.style.setProperty('--accent', accent);
+      if (base === 'dark') {
+        // Keep the pre-booted inline accent until /agents resolves; only set when known.
+        if (accent) document.body.style.setProperty('--accent', accent);
       } else {
         document.body.style.removeProperty('--accent'); // light/Conwo → :root token
       }
