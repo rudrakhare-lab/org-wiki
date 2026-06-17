@@ -663,20 +663,25 @@ def test_ingest_plan_registry_infosec_has_wiki_and_extract_tools_no_jira_pms():
     assert not any(n.startswith("pms_") for n in names)
 
 
-def test_ingest_execute_registry_infosec_has_no_direct_write_tools():
-    """infosec allowlist has wiki_propose_* but NOT wiki_create_page/edit/append."""
+def test_ingest_execute_registry_infosec_has_write_tools_no_jira_pms():
+    """infosec (a generic agent) gets direct-write tools so its ingest EXECUTE phase
+    can create pages the same way Conwo does. Without them the executor has only
+    wiki_read_page and ingest produces zero pages. Still never gets jira/pms tools."""
     from backend.ingest_service import build_execute_registry
     from backend import agent_registry
 
     registry = build_execute_registry(agent=agent_registry.get("infosec"))
     names = {s["name"] for s in registry.schemas}
-    # Direct write tools are NOT in infosec allowlist
-    assert "wiki_create_page" not in names
-    assert "wiki_edit_page" not in names
-    assert "wiki_append_section" not in names
-    assert "wiki_rebuild_index" not in names
-    # wiki_read_page IS in infosec allowlist
+    # Direct write tools ARE present — required to write ingested pages
+    assert "wiki_create_page" in names
+    assert "wiki_edit_page" in names
+    assert "wiki_append_section" in names
+    assert "wiki_rebuild_index" in names
+    # wiki_read_page (self-verification) is present
     assert "wiki_read_page" in names
+    # Never jira/pms
+    assert "jira_search_ranked" not in names
+    assert not any(n.startswith("pms_") for n in names)
 
 
 def test_ingest_upload_dir_conwo_uses_module_constant(tmp_path):

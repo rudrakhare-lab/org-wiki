@@ -54,12 +54,19 @@ class AgentError(Exception): ...
 class AgentExists(AgentError): ...
 class InvalidAgentName(AgentError): ...
 
-# Ingest extraction is tool-driven: the planner is handed a file path and MUST
-# call an extract_* tool to read the document. Generic agents therefore need the
-# extract tools or they cannot ingest anything — which is the whole point of a
-# created agent ("knowledge comes only from ingested docs"). These mirror the
-# tools granted to the infosec reference agent (see migration 101).
+# Generic agents need three tool families to run the full ingest pipeline the same
+# way Conwo does:
+#   - extract_* : the plan phase is tool-driven (planner is handed a file path and
+#     MUST call an extract_* tool to read the doc) — see migration 101.
+#   - wiki_create_page/edit/append/update_frontmatter/rebuild_index : the EXECUTE
+#     phase writes pages directly (build_execute_registry only registers these
+#     direct-write tools). Without them the executor has nothing to write with and
+#     ingest produces zero pages — see migration 102.
+#   - wiki_propose_* : the CHAT path (agent suggesting wiki edits → admin approval).
+# These mirror the tools granted to the infosec reference agent.
 _GENERIC_TOOLS = ["extract_pdf", "extract_docx", "extract_xlsx", "extract_text_file",
+                  "wiki_create_page", "wiki_edit_page", "wiki_append_section",
+                  "wiki_update_frontmatter", "wiki_rebuild_index",
                   "wiki_search", "wiki_read_page", "wiki_grep", "wiki_list_pages",
                   "wiki_check_duplicate", "wiki_propose_new", "wiki_propose_edit",
                   "wiki_propose_append", "wiki_propose_multi_edit", "feedback_record"]
