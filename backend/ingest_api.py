@@ -279,7 +279,7 @@ async def _run_plan_job(
         for _ in range(20):
             response = await api_client.messages.create(
                 model=MODEL,
-                max_tokens=4096,
+                max_tokens=8192,
                 system=_render_plan_prompt(agent),
                 tools=registry.schemas,
                 messages=messages,
@@ -322,7 +322,15 @@ async def _run_plan_job(
                 break
 
             messages.append({"role": "assistant", "content": response.content})
-            messages.append({"role": "user", "content": tool_results})
+            if tool_results:
+                messages.append({"role": "user", "content": tool_results})
+            else:
+                # No tool calls and not end_turn (e.g. max_tokens truncation mid-output).
+                # Sending an empty user message would 400 ("non-empty content"); nudge the
+                # model to finish instead.
+                messages.append({"role": "user", "content": (
+                    "Continue. When finished, output ONLY the final JSON plan as a single "
+                    "```json code block.")})
 
         if not plan_json:
             _LOG.error("[plan_job] agent returned no parseable JSON  file=%s  job=%s",
@@ -461,7 +469,7 @@ async def _run_ingest_job(
         for _ in range(30):  # max 30 rounds
             response = await api_client.messages.create(
                 model=MODEL,
-                max_tokens=4096,
+                max_tokens=8192,
                 system=_render_execute_prompt(agent),
                 tools=registry.schemas,
                 messages=messages,
@@ -528,7 +536,14 @@ async def _run_ingest_job(
                 break
 
             messages.append({"role": "assistant", "content": response.content})
-            messages.append({"role": "user", "content": tool_results})
+            if tool_results:
+                messages.append({"role": "user", "content": tool_results})
+            else:
+                # No tool calls and not end_turn (e.g. max_tokens truncation). Avoid an
+                # empty user message (→ 400); nudge the model to continue executing.
+                messages.append({"role": "user", "content": (
+                    "Continue executing the remaining operations with the wiki tools. "
+                    "When every operation is done, stop.")})
 
         # Move uploaded file to proper raw/{slug}/ location under agent's raw_dir
         src = pathlib.Path(session.original_path)
