@@ -32,3 +32,54 @@ def test_create_agent_endpoint(clean_db, tmp_path, monkeypatch):
         with db.connection() as conn:
             conn.execute("DELETE FROM agents WHERE id NOT IN ('conwo', 'infosec')")
         agent_registry.invalidate_cache()
+
+
+def test_created_agent_is_fully_provisioned_and_isolated(clean_db, tmp_path, monkeypatch):
+    """E2E milestone check: an agent created through the admin endpoint gets its
+    own accent, a generic wiki-only spec, and an isolated, near-empty wiki graph
+    — all inherited from shared code, with no Conwo content leaking in."""
+    import asyncio
+    from backend import config, agent_registry, agent_context, db
+    import backend.wiki_graph_api as wg
+
+    monkeypatch.setattr(config, "_BASE", tmp_path, raising=False)
+    monkeypatch.setattr(agent_registry, "_BASE", tmp_path, raising=False)
+    with db.connection() as c:
+        c.execute("DELETE FROM agents WHERE id NOT IN ('conwo', 'infosec')")
+    agent_registry.invalidate_cache()
+
+    app.dependency_overrides[_get_user] = _admin
+    try:
+        client = TestClient(app)
+        r = client.post("/admin/agents", json={"name": "Legal"})
+        assert r.status_code == 200, r.text
+
+        # /agents exposes accent + theme_base so the frontend can theme.
+        legal = {a["id"]: a for a in client.get("/agents").json()}["legal"]
+        assert legal["accent"].startswith("#") and legal["theme_base"] == "dark"
+
+        # The provisioned spec is generic + wiki-only (no Jira/PMS) — Conwo's brain
+        # methodology, no WorkInSync domain skin.
+        spec = agent_registry.get("legal")
+        assert spec.schema_kind == "generic" and spec.has_jira is False and spec.has_pms is False
+        assert (spec.wiki_dir / "index.md").is_file()
+
+        # Its wiki graph is isolated + near-empty (only the seeded index page),
+        # and contains none of Conwo's module pages.
+        token = agent_context.set_current_agent("legal")
+        try:
+            graph = asyncio.new_event_loop().run_until_complete(wg.wiki_graph(include_configs=False))
+        finally:
+            agent_context.reset_current_agent(token)
+        assert isinstance(graph.get("nodes"), list) and len(graph["nodes"]) <= 3
+        labels = " ".join(n.get("label", "") for n in graph["nodes"]).lower()
+        assert "visitor" not in labels and "desk" not in labels  # no Conwo leakage
+
+        # Conwo's own spec is untouched by the new agent.
+        conwo = agent_registry.get("conwo")
+        assert conwo.schema_kind == "workinsync" and conwo.has_jira is True
+    finally:
+        app.dependency_overrides.clear()
+        with db.connection() as conn:
+            conn.execute("DELETE FROM agents WHERE id NOT IN ('conwo', 'infosec')")
+        agent_registry.invalidate_cache()
