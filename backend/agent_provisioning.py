@@ -54,7 +54,13 @@ class AgentError(Exception): ...
 class AgentExists(AgentError): ...
 class InvalidAgentName(AgentError): ...
 
-_GENERIC_TOOLS = ["wiki_search", "wiki_read_page", "wiki_grep", "wiki_list_pages",
+# Ingest extraction is tool-driven: the planner is handed a file path and MUST
+# call an extract_* tool to read the document. Generic agents therefore need the
+# extract tools or they cannot ingest anything — which is the whole point of a
+# created agent ("knowledge comes only from ingested docs"). These mirror the
+# tools granted to the infosec reference agent (see migration 101).
+_GENERIC_TOOLS = ["extract_pdf", "extract_docx", "extract_xlsx", "extract_text_file",
+                  "wiki_search", "wiki_read_page", "wiki_grep", "wiki_list_pages",
                   "wiki_check_duplicate", "wiki_propose_new", "wiki_propose_edit",
                   "wiki_propose_append", "wiki_propose_multi_edit", "feedback_record"]
 

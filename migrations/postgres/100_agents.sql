@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS agents (
     theme_base   TEXT NOT NULL DEFAULT 'dark',
     schema_kind  TEXT NOT NULL DEFAULT 'generic',
     modes        TEXT[] NOT NULL DEFAULT '{api}',
-    tools        TEXT[] NOT NULL DEFAULT '{wiki_search,wiki_read_page,wiki_grep,wiki_list_pages,wiki_check_duplicate,wiki_propose_new,wiki_propose_edit,wiki_propose_append,wiki_propose_multi_edit,feedback_record}',
+    tools        TEXT[] NOT NULL DEFAULT '{extract_pdf,extract_docx,extract_xlsx,extract_text_file,wiki_search,wiki_read_page,wiki_grep,wiki_list_pages,wiki_check_duplicate,wiki_propose_new,wiki_propose_edit,wiki_propose_append,wiki_propose_multi_edit,feedback_record}',
     has_jira     BOOLEAN NOT NULL DEFAULT false,
     has_pms      BOOLEAN NOT NULL DEFAULT false,
     wiki_dir     TEXT NOT NULL,
@@ -29,6 +29,6 @@ VALUES
   ('infosec', 'Infosec',
    'You are the Infosec assistant, answering information-security questions from the organization''s security knowledge base.',
    '#a78bfa', 'dark', 'generic', '{api}',
-   '{wiki_search,wiki_read_page,wiki_grep,wiki_list_pages,wiki_check_duplicate,wiki_propose_new,wiki_propose_edit,wiki_propose_append,wiki_propose_multi_edit,feedback_record}',
+   '{extract_pdf,extract_docx,extract_xlsx,extract_text_file,wiki_search,wiki_read_page,wiki_grep,wiki_list_pages,wiki_check_duplicate,wiki_propose_new,wiki_propose_edit,wiki_propose_append,wiki_propose_multi_edit,feedback_record}',
    false, false, 'agents/infosec/wiki', 'agents/infosec/raw', 'agents/infosec/CLAUDE.md', '{}', 'system')
 ON CONFLICT (id) DO NOTHING;

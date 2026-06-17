@@ -643,8 +643,10 @@ def test_ingest_execute_registry_conwo_has_write_tools():
     assert not any(n.startswith("pms_") for n in names)
 
 
-def test_ingest_plan_registry_infosec_has_wiki_tools_no_jira_pms():
-    """infosec allowlist excludes extract_* and jira/pms tools from plan registry."""
+def test_ingest_plan_registry_infosec_has_wiki_and_extract_tools_no_jira_pms():
+    """infosec (a generic agent) gets wiki + extract tools so it can ingest docs,
+    but never jira/pms tools. Extraction is tool-driven, so a generic agent that
+    lacked extract_* could not read any uploaded document."""
     from backend.ingest_service import build_plan_registry
     from backend import agent_registry
 
@@ -653,9 +655,9 @@ def test_ingest_plan_registry_infosec_has_wiki_tools_no_jira_pms():
     # infosec has wiki_search + wiki_read_page in its allowlist
     assert "wiki_search" in names
     assert "wiki_read_page" in names
-    # extract_* tools are NOT in infosec allowlist
-    assert "extract_pdf" not in names
-    assert "extract_docx" not in names
+    # extract_* tools ARE present — required to read uploaded documents
+    assert "extract_pdf" in names
+    assert "extract_docx" in names
     # No jira or pms tools
     assert "jira_search_ranked" not in names
     assert not any(n.startswith("pms_") for n in names)

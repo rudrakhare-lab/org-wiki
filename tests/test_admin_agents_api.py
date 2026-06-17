@@ -64,6 +64,14 @@ def test_created_agent_is_fully_provisioned_and_isolated(clean_db, tmp_path, mon
         assert spec.schema_kind == "generic" and spec.has_jira is False and spec.has_pms is False
         assert (spec.wiki_dir / "index.md").is_file()
 
+        # It can actually ingest: the plan registry must include the extract tools
+        # (extraction is tool-driven) plus wiki tools, but never jira/pms.
+        from backend.ingest_service import build_plan_registry
+        plan_tools = {s["name"] for s in build_plan_registry(agent=spec).schemas}
+        assert {"extract_pdf", "extract_docx", "wiki_search"} <= plan_tools
+        assert "jira_search_ranked" not in plan_tools
+        assert not any(n.startswith("pms_") for n in plan_tools)
+
         # Its wiki graph is isolated + near-empty (only the seeded index page),
         # and contains none of Conwo's module pages.
         token = agent_context.set_current_agent("legal")
