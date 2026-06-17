@@ -1,36 +1,30 @@
-"""Agent registry — loads config/agents.toml into immutable AgentSpec objects.
+"""Agent registry — loads AgentSpec objects from the `agents` Postgres table.
 
-One AgentSpec per selectable AI agent. Paths resolve under CONWO_DATA_DIR (PVC)
-or repo root, exactly like backend.config, so an agent's wiki/raw/CLAUDE.md live
-wherever Conwo's data lives.
+Replaces the static config/agents.toml. A short-TTL cache makes a create on one
+replica visible on all replicas within the window. Paths resolve under
+CONWO_DATA_DIR (PVC) via backend.config._BASE, exactly as before.
 """
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass
-from functools import lru_cache
 from pathlib import Path
-from types import MappingProxyType
-from typing import Mapping
+from threading import RLock
 
-try:
-    import tomllib
-except ModuleNotFoundError:  # py<3.11
-    import tomli as tomllib  # type: ignore
+from backend.config import _BASE  # honors CONWO_DATA_DIR
 
-from backend.config import ROOT, _BASE  # _BASE honors CONWO_DATA_DIR
-
-# The TOML is a repo artifact (config/), NOT customer data — pin it to ROOT, not
-# _BASE. Agent path fields (wiki/raw/claude_md) DO resolve under _BASE so they
-# follow CONWO_DATA_DIR; that asymmetry is deliberate.
-_AGENTS_TOML = ROOT / "config" / "agents.toml"
 DEFAULT_AGENT_ID = "conwo"
+_CACHE_TTL_SECONDS = 30
 
 
 @dataclass(frozen=True)
 class AgentSpec:
     id: str
     display_name: str
-    description: str
+    identity: str
+    accent: str
+    theme_base: str          # 'light' | 'dark'
+    schema_kind: str         # 'generic' | 'workinsync'
     wiki_dir: Path
     raw_dir: Path
     claude_md: Path
@@ -39,7 +33,8 @@ class AgentSpec:
     modes: tuple[str, ...]
     has_jira: bool
     has_pms: bool
-    identity: str
+    status: str = "active"
+    description: str = ""    # back-compat alias for any caller; mirrors identity
 
     def tool_allowed(self, name: str) -> bool:
         return "*" in self.tools or name in self.tools
@@ -53,31 +48,54 @@ def _resolve(p: str) -> Path:
     return path if path.is_absolute() else (_BASE / path)
 
 
-@lru_cache(maxsize=1)
-def _load() -> Mapping[str, AgentSpec]:
-    """Parse agents.toml once. Returns a read-only view so the cached mapping
-    can never be mutated/poisoned by a careless caller."""
-    with _AGENTS_TOML.open("rb") as f:
-        data = tomllib.load(f)
-    out: dict[str, AgentSpec] = {}
-    for agent_id, cfg in data.get("agents", {}).items():
-        out[agent_id] = AgentSpec(
-            id=agent_id,
-            display_name=cfg["display_name"],
-            description=cfg.get("description", ""),
-            wiki_dir=_resolve(cfg["wiki_dir"]),
-            raw_dir=_resolve(cfg["raw_dir"]),
-            claude_md=_resolve(cfg["claude_md"]),
-            prompt_sections=tuple(cfg.get("prompt_sections", [])),
-            tools=tuple(cfg.get("tools", ["*"])),
-            modes=tuple(cfg.get("modes", ["api"])),
-            has_jira=bool(cfg.get("has_jira", False)),
-            has_pms=bool(cfg.get("has_pms", False)),
-            identity=cfg.get("identity", ""),
-        )
-    if DEFAULT_AGENT_ID not in out:
-        raise RuntimeError(f"agents.toml must define [agents.{DEFAULT_AGENT_ID}]")
-    return MappingProxyType(out)
+_CONWO_FALLBACK = AgentSpec(
+    id="conwo", display_name="Conwo",
+    identity="You are Conwo, an AI assistant that answers product, config, and debugging questions about WorkInSync.",
+    accent="#1e293b", theme_base="light", schema_kind="workinsync",
+    wiki_dir=_resolve("wiki"), raw_dir=_resolve("raw"), claude_md=_resolve("CLAUDE.md"),
+    prompt_sections=(5, 9, 12), tools=("*",), modes=("api", "agent"),
+    has_jira=True, has_pms=True, description="",
+)
+
+_lock = RLock()
+_cache: dict[str, AgentSpec] | None = None
+_cache_at: float = 0.0
+
+
+def _row_to_spec(r) -> AgentSpec:
+    return AgentSpec(
+        id=r["id"], display_name=r["display_name"], identity=r["identity"],
+        accent=r["accent"], theme_base=r["theme_base"], schema_kind=r["schema_kind"],
+        wiki_dir=_resolve(r["wiki_dir"]), raw_dir=_resolve(r["raw_dir"]),
+        claude_md=_resolve(r["claude_md"]),
+        prompt_sections=tuple(r["prompt_sections"] or ()),
+        tools=tuple(r["tools"] or ()), modes=tuple(r["modes"] or ("api",)),
+        has_jira=bool(r["has_jira"]), has_pms=bool(r["has_pms"]),
+        status=r["status"], description=r["identity"],
+    )
+
+
+def _load() -> dict[str, AgentSpec]:
+    global _cache, _cache_at
+    with _lock:
+        if _cache is not None and (time.monotonic() - _cache_at) < _CACHE_TTL_SECONDS:
+            return _cache
+        try:
+            from backend import db
+            with db.connection() as c:
+                rows = c.execute("SELECT * FROM agents WHERE status = 'active'").fetchall()
+            specs = {r["id"]: _row_to_spec(r) for r in rows}
+            if DEFAULT_AGENT_ID not in specs:
+                specs[DEFAULT_AGENT_ID] = _CONWO_FALLBACK
+            _cache = specs
+            _cache_at = time.monotonic()
+        except Exception:
+            # DB unavailable — return last good cache (or fallback); do NOT
+            # update _cache_at so the next call retries immediately.
+            if _cache is None:
+                _cache = {DEFAULT_AGENT_ID: _CONWO_FALLBACK}
+                # _cache_at stays 0 — will retry on next call
+        return _cache
 
 
 def all() -> list[AgentSpec]:
@@ -85,7 +103,6 @@ def all() -> list[AgentSpec]:
 
 
 def get(agent_id: str | None) -> AgentSpec:
-    """Return the AgentSpec for agent_id, falling back to conwo on unknown/None."""
     agents = _load()
     return agents.get(agent_id or "", agents[DEFAULT_AGENT_ID])
 
@@ -95,4 +112,7 @@ def default() -> AgentSpec:
 
 
 def invalidate_cache() -> None:
-    _load.cache_clear()
+    global _cache, _cache_at
+    with _lock:
+        _cache = None
+        _cache_at = 0.0
