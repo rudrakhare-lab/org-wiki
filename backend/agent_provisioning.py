@@ -122,3 +122,28 @@ def create_agent(name: str, created_by: str):
     except Exception:
         pass  # index builds lazily on first use anyway
     return agent_registry.get(slug)
+
+
+PROTECTED = {"conwo", "infosec"}
+
+
+def update_agent(agent_id: str, *, display_name: str | None = None, identity: str | None = None):
+    from backend import db, agent_registry
+    sets, params = [], []
+    if display_name is not None: sets.append("display_name=%s"); params.append(display_name)
+    if identity is not None:     sets.append("identity=%s");     params.append(identity)
+    if not sets:
+        return
+    params.append(agent_id)
+    with db.connection() as c:
+        c.execute(f"UPDATE agents SET {', '.join(sets)} WHERE id=%s", tuple(params))
+    agent_registry.invalidate_cache()
+
+
+def archive_agent(agent_id: str):
+    if agent_id in PROTECTED:
+        raise AgentError(f"'{agent_id}' is a built-in agent and cannot be removed")
+    from backend import db, agent_registry
+    with db.connection() as c:
+        c.execute("UPDATE agents SET status='archived' WHERE id=%s", (agent_id,))
+    agent_registry.invalidate_cache()
