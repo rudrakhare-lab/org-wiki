@@ -151,8 +151,17 @@ async def lifespan(app: FastAPI):
             "Server is starting anyway; the proposal queue may need manual inspection.",
             exc,
         )
+    # In-app nightly Jira sync (alternative to a k8s CronJob). No-ops unless
+    # CONWO_ENABLE_JIRA_CRON is set AND this is the StatefulSet leader pod (-0).
+    from backend import jira_scheduler
+    _jira_cron_task = asyncio.create_task(jira_scheduler.run_forever())
     yield
-    # Shutdown — release the PostgreSQL pool.
+    # Shutdown — stop the scheduler, then release the PostgreSQL pool.
+    _jira_cron_task.cancel()
+    try:
+        await _jira_cron_task
+    except (asyncio.CancelledError, Exception):
+        pass
     try:
         from backend import db
         db.close_pool()
