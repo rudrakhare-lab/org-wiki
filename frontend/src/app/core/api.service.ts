@@ -831,6 +831,17 @@ export class ApiService {
     return new HttpHeaders({ Authorization: `Bearer ${this.getAdminToken()}` });
   }
 
+  // ── Agents (admin) ──────────────────────────────────────────────────────
+  createAgent(name: string): Observable<Agent> {
+    return this.http.post<Agent>(`${API_BASE}/admin/agents`, { name }, { headers: this.adminHeaders() });
+  }
+  updateAgent(id: string, patch: { display_name?: string; identity?: string }): Observable<Agent> {
+    return this.http.patch<Agent>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}`, patch, { headers: this.adminHeaders() });
+  }
+  archiveAgent(id: string): Observable<{ status: string; id: string }> {
+    return this.http.delete<{ status: string; id: string }>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}`, { headers: this.adminHeaders() });
+  }
+
   // ── Traces / observability (admin-only) ────────────────────────────────
   listTraces(params: TraceListParams = {}): Observable<TraceSessionList> {
     const qs = new URLSearchParams();
