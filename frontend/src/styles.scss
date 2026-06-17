@@ -219,10 +219,10 @@ input, select, textarea {
 }
 ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
 
-/* ── Infosec theme (electric violet) ───────────────────────────────────────
+/* ── Dark theme (per-agent accent; violet fallback) ─────────────────────────
    Overrides ONLY the token VALUES. Conwo (:root) is untouched. Applied when
-   <body class="theme-infosec">. */
-body.theme-infosec {
+   <body class="theme-dark">. */
+body.theme-dark {
   /* surfaces */
   --bg: #0b0a12;
   --page-bg: #0c0a16;
@@ -231,10 +231,10 @@ body.theme-infosec {
   --surface-hover: #221a3a;
   --surface-inset: #120e1c;
 
-  /* borders */
-  --border: rgba(167, 139, 250, 0.22);
-  --border-strong: rgba(167, 139, 250, 0.38);
-  --border-focus: #a78bfa;
+  /* borders — tinted by the active accent */
+  --border: color-mix(in srgb, var(--accent) 22%, transparent);
+  --border-strong: color-mix(in srgb, var(--accent) 38%, transparent);
+  --border-focus: var(--accent);
 
   /* text */
   --text: #f0ecff;
@@ -242,11 +242,13 @@ body.theme-infosec {
   --text-subtle: #6f6986;
   --text-on-accent: #0b0a12;
 
-  /* accent — electric violet */
+  /* accent — per-agent. Runtime injects --accent inline on <body>; everything below
+     derives from it so each agent glows in its own color (zero per-agent CSS). The
+     violet fallback keeps Infosec identical if no accent is injected. */
   --accent: #a78bfa;
-  --accent-hover: #c4b5fd;
-  --accent-soft: #1b1530;
-  --accent-ring: rgba(167, 139, 250, 0.45);
+  --accent-hover: color-mix(in srgb, var(--accent) 72%, white);
+  --accent-soft:  color-mix(in srgb, var(--accent) 16%, #0b0a12);
+  --accent-ring:  color-mix(in srgb, var(--accent) 45%, transparent);
 
   /* status — brightened for dark bg */
   --success: #4ade80; --success-soft: #0e1f14; --success-border: #1f5132;
@@ -254,16 +256,16 @@ body.theme-infosec {
   --error:   #f87171; --error-soft:   #2a1212; --error-border:   #5e2020;
   --info:    #818cf8; --info-soft:    #14152b; --info-border:    #2b2f5e;
 
-  /* shadows — violet glow */
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5), 0 0 0 1px rgba(167,139,250,0.06);
-  --shadow: 0 1px 3px rgba(0,0,0,0.5), 0 8px 28px -8px rgba(167,139,250,0.35);
+  /* shadows — accent glow */
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.5), 0 0 0 1px color-mix(in srgb, var(--accent) 6%, transparent);
+  --shadow: 0 1px 3px rgba(0,0,0,0.5), 0 8px 28px -8px color-mix(in srgb, var(--accent) 35%, transparent);
 
   /* faint grid + glow background overlay */
   background-color: #0b0a12;
   background-image:
-    radial-gradient(120% 80% at 85% -10%, rgba(167,139,250,0.16), transparent 55%),
-    linear-gradient(rgba(167,139,250,0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(167,139,250,0.05) 1px, transparent 1px);
+    radial-gradient(120% 80% at 85% -10%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 55%),
+    linear-gradient(color-mix(in srgb, var(--accent) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 5%, transparent) 1px, transparent 1px);
   background-size: auto, 26px 26px, 26px 26px;
   background-attachment: fixed;
 
@@ -280,15 +282,15 @@ body.theme-infosec {
    The app has a decorative .liquid-chrome background layer + several components
    that hardcode light backgrounds, bypassing the design tokens. These global,
    theme-scoped rules darken them so Infosec is cohesive. They apply ONLY under
-   body.theme-infosec, so Conwo is byte-for-byte unchanged. (Component styles are
-   view-encapsulated, but `body.theme-infosec .x` outranks `.x[_ngcontent]` on
+   body.theme-dark, so Conwo is byte-for-byte unchanged. (Component styles are
+   view-encapsulated, but `body.theme-dark .x` outranks `.x[_ngcontent]` on
    specificity, so these win.) */
 
 /* Decorative full-viewport background: cream wash + blobs → dark violet glow. */
-body.theme-infosec .liquid-chrome {
+body.theme-dark .liquid-chrome {
   background: linear-gradient(180deg, #0b0a12 0%, #0c0a16 100%);
 }
-body.theme-infosec .liquid-chrome::before {
+body.theme-dark .liquid-chrome::before {
   background:
     radial-gradient(closest-side at 22% 26%, rgba(139, 109, 214, 0.30) 0%, transparent 55%),
     radial-gradient(closest-side at 80% 20%, rgba(99, 102, 241, 0.22) 0%, transparent 55%),
@@ -297,7 +299,7 @@ body.theme-infosec .liquid-chrome::before {
   filter: blur(80px) saturate(120%);
   opacity: 0.55;
 }
-body.theme-infosec .liquid-chrome::after {
+body.theme-dark .liquid-chrome::after {
   background:
     radial-gradient(closest-side at 45% 60%, rgba(124, 99, 196, 0.20) 0%, transparent 55%),
     radial-gradient(closest-side at 88% 48%, rgba(99, 102, 241, 0.16) 0%, transparent 55%);
@@ -307,30 +309,30 @@ body.theme-infosec .liquid-chrome::after {
 }
 
 /* Shell + page surfaces with hardcoded light backgrounds → dark tokens. */
-body.theme-infosec .sidebar { background: rgba(20, 16, 33, 0.92); }
+body.theme-dark .sidebar { background: rgba(20, 16, 33, 0.92); }
 
-body.theme-infosec .admin-section,
-body.theme-infosec .token-setup,
-body.theme-infosec .status-card,
-body.theme-infosec .feedback-card {
+body.theme-dark .admin-section,
+body.theme-dark .token-setup,
+body.theme-dark .status-card,
+body.theme-dark .feedback-card {
   background: var(--surface);
   border-color: var(--border);
   color: var(--text);
 }
 
-body.theme-infosec .result-item,
-body.theme-infosec .server-select {
+body.theme-dark .result-item,
+body.theme-dark .server-select {
   background: var(--surface);
   color: var(--text);
 }
 
-body.theme-infosec .message-user .message-bubble {
+body.theme-dark .message-user .message-bubble {
   background: var(--surface-muted);
   color: var(--text);
 }
 
-body.theme-infosec .warnings-box {
-  background: rgba(167, 139, 250, 0.08);
+body.theme-dark .warnings-box {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   border-color: var(--border-strong);
   color: var(--text);
 }
@@ -338,10 +340,10 @@ body.theme-infosec .warnings-box {
 /* ── Infosec theme — round 2: remaining light surfaces + dark-on-dark text ──
    Angular view-encapsulation inflates component-rule specificity (each compound
    gains an [_ngcontent] attribute), so nested/text overrides need !important to
-   win. Scoped to body.theme-infosec → Conwo is unaffected. */
+   win. Scoped to body.theme-dark → Conwo is unaffected. */
 
 /* Sidebar wordmark: gradient-clip text fades to grey on dark → solid light. */
-body.theme-infosec .sb-name {
+body.theme-dark .sb-name {
   background: none !important;
   -webkit-text-fill-color: var(--text) !important;
   color: var(--text) !important;
@@ -351,72 +353,72 @@ body.theme-infosec .sb-name {
    themes, so no Infosec-specific override is needed here.) */
 
 /* Form controls everywhere (search/admin/ingest/filters) → dark. */
-body.theme-infosec input,
-body.theme-infosec select,
-body.theme-infosec textarea {
+body.theme-dark input,
+body.theme-dark select,
+body.theme-dark textarea {
   background: var(--surface-muted) !important;
   color: var(--text) !important;
   border-color: var(--border) !important;
 }
 
 /* Search button (incl. the pale-lavender disabled state). */
-body.theme-infosec .search-btn {
+body.theme-dark .search-btn {
   background: var(--accent) !important;
   color: var(--text-on-accent) !important;
 }
-body.theme-infosec .search-btn:disabled {
+body.theme-dark .search-btn:disabled {
   background: var(--surface-hover) !important;
   color: var(--text-subtle) !important;
 }
 
 /* Ingest: dropzone + result boxes. */
-body.theme-infosec .drop-zone {
+body.theme-dark .drop-zone {
   background: var(--surface-muted) !important;
   border-color: var(--border-strong) !important;
 }
-body.theme-infosec .drop-zone:hover,
-body.theme-infosec .drop-zone.drag-over {
+body.theme-dark .drop-zone:hover,
+body.theme-dark .drop-zone.drag-over {
   background: var(--surface-hover) !important;
   border-color: var(--accent) !important;
 }
-body.theme-infosec .drop-zone.has-file {
+body.theme-dark .drop-zone.has-file {
   background: var(--surface-muted) !important;
   border-color: var(--success) !important;
 }
-body.theme-infosec .summary-box,
-body.theme-infosec .success-box,
-body.theme-infosec .ops-list,
-body.theme-infosec .badge {
+body.theme-dark .summary-box,
+body.theme-dark .success-box,
+body.theme-dark .ops-list,
+body.theme-dark .badge {
   background: var(--surface-muted) !important;
   color: var(--text) !important;
 }
 
 /* Admin: dark-on-dark headings/values + muted labels → legible. */
-body.theme-infosec .admin-page h1,
-body.theme-infosec .admin-page h2,
-body.theme-infosec .admin-page h3,
-body.theme-infosec .status-value {
+body.theme-dark .admin-page h1,
+body.theme-dark .admin-page h2,
+body.theme-dark .admin-page h3,
+body.theme-dark .status-value {
   color: var(--text) !important;
 }
-body.theme-infosec .admin-header p,
-body.theme-infosec .status-label,
-body.theme-infosec .status-meta,
-body.theme-infosec .admin-page th,
-body.theme-infosec .path-cell {
+body.theme-dark .admin-header p,
+body.theme-dark .status-label,
+body.theme-dark .status-meta,
+body.theme-dark .admin-page th,
+body.theme-dark .path-cell {
   color: var(--text-muted) !important;
 }
 
 /* Admin state-color cards/rows that hardcode light tints (pending rows, alert
    cards, low/mid feedback) → dark surface, keep the semantic accent on the border. */
-body.theme-infosec tr.pending-row {
-  background: rgba(167, 139, 250, 0.07) !important;
+body.theme-dark tr.pending-row {
+  background: color-mix(in srgb, var(--accent) 7%, transparent) !important;
 }
-body.theme-infosec .status-card.alert,
-body.theme-infosec .feedback-card.score-low {
+body.theme-dark .status-card.alert,
+body.theme-dark .feedback-card.score-low {
   background: var(--surface) !important;
   border-color: var(--error) !important;
 }
-body.theme-infosec .feedback-card.score-mid {
+body.theme-dark .feedback-card.score-mid {
   background: var(--surface) !important;
   border-color: var(--warning) !important;
 }

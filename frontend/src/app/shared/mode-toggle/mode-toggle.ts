@@ -23,11 +23,11 @@ import { AgentService } from '../../core/agent.service';
       --mt-fill: #2563eb;
       --mt-glow: rgba(59, 130, 246, 0.55);
     }
-    :host-context(body.theme-infosec) {
-      /* Infosec: violet, matching the dark theme */
-      --mt-color: #a78bfa;
-      --mt-fill: #8b5cf6;
-      --mt-glow: rgba(167, 139, 250, 0.6);
+    :host-context(body.theme-dark) {
+      /* Dark agents: glow in the active accent */
+      --mt-color: var(--accent);
+      --mt-fill: color-mix(in srgb, var(--accent) 80%, black);
+      --mt-glow: color-mix(in srgb, var(--accent) 60%, transparent);
     }
 
     .mode-toggle {
