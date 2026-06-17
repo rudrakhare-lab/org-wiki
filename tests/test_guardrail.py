@@ -227,6 +227,30 @@ class TestToolCallFilter:
 
 
 # ---------------------------------------------------------------------------
+# Layer 2 — allow_writes (ingest EXECUTE registry only)
+# ---------------------------------------------------------------------------
+
+class TestAllowWrites:
+
+    def test_write_tool_blocked_by_default(self):
+        # Default (chat/query, ingest plan) — write tools stay blocked.
+        assert is_destructive_tool_call("wiki_create_page", {}) is not None
+        assert is_destructive_tool_call("wiki_edit_page", {"path": "x"}) is not None
+
+    def test_write_tool_allowed_when_allow_writes(self):
+        # The ingest EXECUTE registry passes allow_writes=True so its write tools run.
+        assert is_destructive_tool_call("wiki_create_page", {"path": "x"}, allow_writes=True) is None
+        assert is_destructive_tool_call("wiki_edit_page", {}, allow_writes=True) is None
+        assert is_destructive_tool_call("wiki_rebuild_index", {}, allow_writes=True) is None
+
+    def test_write_sql_still_blocked_even_when_allow_writes(self):
+        # allow_writes only un-gates the wiki write TOOLS — write SQL is never allowed.
+        assert is_destructive_tool_call(
+            "wiki_create_page", {"content": "DROP TABLE tickets"}, allow_writes=True
+        ) is not None
+
+
+# ---------------------------------------------------------------------------
 # Refusal message
 # ---------------------------------------------------------------------------
 

@@ -290,7 +290,11 @@ def build_execute_registry(agent=None):
         WIKI_READ_PAGE_SCHEMA, _wiki_read_page_handler,
     )
 
-    r = ToolRegistry(user_role="contributor")
+    # allow_writes=True: this is the admin-gated ingest EXECUTE registry — wiki write
+    # tools are its whole purpose. The Layer 2 guardrail otherwise blocks them (it
+    # exists to keep the chat/query loop read-only). Writes are scoped to the active
+    # agent's wiki dir via agent_context, so an ingest never touches another agent.
+    r = ToolRegistry(user_role="contributor", allow_writes=True)
 
     def reg(schema, fn):
         if agent.tool_allowed(schema["name"]):

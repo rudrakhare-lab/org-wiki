@@ -65,8 +65,12 @@ def _status_from_result(result: str) -> str:
 
 
 class ToolRegistry:
-    def __init__(self, user_role: str = "viewer") -> None:
+    def __init__(self, user_role: str = "viewer", allow_writes: bool = False) -> None:
         self._user_role = user_role
+        # Only the admin-gated ingest EXECUTE registry sets this True, so wiki write
+        # tools are permitted there. Every other registry (chat/query, ingest plan)
+        # leaves it False → the Layer 2 guardrail keeps those loops read-only.
+        self._allow_writes = allow_writes
         self._handlers: dict[str, Callable] = {}
         self._schemas: list[dict] = []
 
@@ -125,7 +129,7 @@ class ToolRegistry:
 
         # Layer 2 guardrail: block destructive tool calls before dispatch
         from backend.guardrail import is_destructive_tool_call, log_blocked
-        block_reason = is_destructive_tool_call(name, tool_input)
+        block_reason = is_destructive_tool_call(name, tool_input, allow_writes=self._allow_writes)
         if block_reason:
             from backend.guardrail import REFUSAL_MESSAGE
             result = json.dumps({
