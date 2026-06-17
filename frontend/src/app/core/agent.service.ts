@@ -11,6 +11,8 @@ import { Injectable, inject, signal } from '@angular/core';
 import { ApiService, Agent } from './api.service';
 
 export const ACTIVE_AGENT_KEY = 'conwo_active_agent';
+export const ACTIVE_BASE_KEY = 'conwo_active_base';     // 'light' | 'dark'
+export const ACTIVE_ACCENT_KEY = 'conwo_active_accent'; // hex string
 export const DEFAULT_AGENT_ID = 'conwo';
 
 @Injectable({ providedIn: 'root' })
@@ -44,6 +46,23 @@ export class AgentService {
   /** The active agent's full record, if the list is loaded. */
   active(): Agent | undefined {
     return this.agents().find((a) => a.id === this.activeId());
+  }
+
+  /** Base theme of the active agent, with a safe fallback before the list loads. */
+  activeBase(): 'light' | 'dark' {
+    const a = this.active();
+    if (a?.theme_base === 'light' || a?.theme_base === 'dark') return a.theme_base;
+    return this.activeId() === DEFAULT_AGENT_ID ? 'light' : 'dark';
+  }
+
+  /** Persist base+accent so index.html can pre-apply them on next load (anti-flash). */
+  persistThemeHints(): void {
+    try {
+      localStorage.setItem(ACTIVE_BASE_KEY, this.activeBase());
+      const accent = this.active()?.accent;
+      if (accent) localStorage.setItem(ACTIVE_ACCENT_KEY, accent);
+      else localStorage.removeItem(ACTIVE_ACCENT_KEY);
+    } catch { /* private mode */ }
   }
 
   activeName(): string {

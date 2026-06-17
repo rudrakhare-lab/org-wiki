@@ -53,6 +53,9 @@ export interface Agent {
   id: string;
   display_name: string;
   description: string;
+  identity?: string;     // editable identity line (backend _agent_public sends it)
+  accent?: string;       // hex, e.g. "#a78bfa"
+  theme_base?: string;   // 'light' | 'dark'
   modes: string[];
   has_jira: boolean;
   has_pms: boolean;
