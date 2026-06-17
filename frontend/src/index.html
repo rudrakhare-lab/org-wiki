@@ -9,18 +9,24 @@
   <link rel="apple-touch-icon" href="favicon.png">
   <script src="https://accounts.google.com/gsi/client"></script>
   <script>
-    /* Pre-boot theme: avoid a flash of the wrong theme on reload. */
+    /* Pre-boot theme: avoid a flash of the wrong theme/accent on reload. */
     try {
-      if ((localStorage.getItem('conwo_active_agent') || 'conwo') === 'infosec') {
-        document.documentElement.dataset.bootTheme = 'infosec';
+      var agent = localStorage.getItem('conwo_active_agent') || 'conwo';
+      var base = localStorage.getItem('conwo_active_base') || (agent === 'conwo' ? 'light' : 'dark');
+      if (base === 'dark') {
+        document.documentElement.dataset.bootDark = '1';
+        var ac = localStorage.getItem('conwo_active_accent') || '';
+        if (ac) document.documentElement.dataset.bootAccent = ac;
       }
     } catch (e) {}
   </script>
 </head>
 <body>
   <script>
-    if (document.documentElement.dataset.bootTheme === 'infosec') {
-      document.body.classList.add('theme-infosec');
+    if (document.documentElement.dataset.bootDark === '1') {
+      document.body.classList.add('theme-dark');
+      var bootAc = document.documentElement.dataset.bootAccent;
+      if (bootAc) document.body.style.setProperty('--accent', bootAc);
     }
   </script>
   <div class="liquid-chrome" aria-hidden="true"></div>
