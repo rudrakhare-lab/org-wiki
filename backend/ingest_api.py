@@ -58,6 +58,75 @@ def _uploads_root(agent: agent_registry.AgentSpec) -> pathlib.Path:
 
 # ── System prompts ────────────────────────────────────────────────────────────
 
+_WIKI_STRUCTURE_WORKINSYNC = """\
+WIKI STRUCTURE:
+- wiki/sources/<slug>.md       — every ingested doc gets one
+- wiki/modules/<slug>.md       — product modules
+- wiki/entities/<slug>.md      — data models / domain objects
+- wiki/cross-module/<a>-<b>.md — when two modules connect
+- wiki/decisions/<date>-<title>.md — architecture decisions
+- wiki/configs/<slug>.md       — PMS config tables"""
+
+_WIKI_STRUCTURE_GENERIC = """\
+WIKI STRUCTURE:
+- wiki/sources/<slug>.md        — every ingested doc gets one
+- wiki/concepts/<slug>.md       — a concept, term, or topic
+- wiki/entities/<slug>.md       — data models / domain objects
+- wiki/relationships/<a>-<b>.md — when two topics connect
+- wiki/decisions/<date>-<title>.md — decisions/rationale
+- wiki/topics/<slug>.md         — a subject area that groups concepts"""
+
+_CLASSIFICATION_ORDER_WORKINSYNC = """\
+CLASSIFICATION ORDER:
+1. Folder context — raw/modules/<slug>/ tells you the module
+2. Doc type from content (PRD, SOP, spec, config sheet)
+3. Entity definitions (fields + types → entity pages)
+4. Dependency language ("calls X API") → cross-module pages
+5. Decision language ("we chose X because") → decision pages
+6. Config tables (property + description columns) → config pages"""
+
+_CLASSIFICATION_ORDER_GENERIC = """\
+CLASSIFICATION ORDER:
+1. Doc type from content (report, spec, guide, reference)
+2. Core concepts, terms, or topics introduced → concept pages
+3. Entity definitions (fields + types → entity pages)
+4. Relationship language ("X relates to / depends on Y") → relationship pages
+5. Decision language ("we chose X because") → decision pages
+6. Broad subject areas that group several concepts → topic pages"""
+
+
+def _wiki_structure(agent: agent_registry.AgentSpec) -> str:
+    return (
+        _WIKI_STRUCTURE_WORKINSYNC
+        if agent.schema_kind == "workinsync"
+        else _WIKI_STRUCTURE_GENERIC
+    )
+
+
+def _classification_order(agent: agent_registry.AgentSpec) -> str:
+    return (
+        _CLASSIFICATION_ORDER_WORKINSYNC
+        if agent.schema_kind == "workinsync"
+        else _CLASSIFICATION_ORDER_GENERIC
+    )
+
+
+def _classification_kinds(agent: agent_registry.AgentSpec) -> str:
+    return (
+        "module|entity|config|source|concept|decision|cross-module"
+        if agent.schema_kind == "workinsync"
+        else "concept|entity|topic|source|decision|relationship"
+    )
+
+
+def _cross_ref_example(agent: agent_registry.AgentSpec) -> str:
+    return (
+        "wiki/cross-module/..."
+        if agent.schema_kind == "workinsync"
+        else "wiki/relationships/..."
+    )
+
+
 def _render_plan_prompt(agent: agent_registry.AgentSpec) -> str:
     """Return the Phase 1 system prompt, parameterized for the active agent."""
     return f"""\
@@ -68,13 +137,7 @@ identify cross-references with the existing wiki, and produce
 a structured JSON plan. You MUST NOT write anything — you have
 no write tools.
 
-WIKI STRUCTURE:
-- wiki/sources/<slug>.md       — every ingested doc gets one
-- wiki/modules/<slug>.md       — product modules
-- wiki/entities/<slug>.md      — data models / domain objects
-- wiki/cross-module/<a>-<b>.md — when two modules connect
-- wiki/decisions/<date>-<title>.md — architecture decisions
-- wiki/configs/<slug>.md       — PMS config tables
+{_wiki_structure(agent)}
 
 SLUG RULES: lowercase-hyphenated, match the module folder name.
 Always call wiki_check_duplicate before proposing a new slug.
@@ -82,13 +145,7 @@ Always call wiki_check_duplicate before proposing a new slug.
 BIDIRECTIONALITY: if module A depends_on B, then B must have
 used_by A. Flag any asymmetry as a warning in your plan.
 
-CLASSIFICATION ORDER:
-1. Folder context — raw/modules/<slug>/ tells you the module
-2. Doc type from content (PRD, SOP, spec, config sheet)
-3. Entity definitions (fields + types → entity pages)
-4. Dependency language ("calls X API") → cross-module pages
-5. Decision language ("we chose X because") → decision pages
-6. Config tables (property + description columns) → config pages
+{_classification_order(agent)}
 
 MANDATORY STEPS:
 1. Extract the document using extract_pdf / extract_docx / extract_xlsx / extract_text_file
@@ -99,7 +156,7 @@ MANDATORY STEPS:
 OUTPUT: a single JSON object with this structure:
 {{
   "summary_bullets": ["string", ...],
-  "classification": "module|entity|config|source|concept|decision|cross-module",
+  "classification": "{_classification_kinds(agent)}",
   "target_slug": "visitor-management",
   "operations": [
     {{
@@ -110,7 +167,7 @@ OUTPUT: a single JSON object with this structure:
       "change_description": "what this change does"
     }}
   ],
-  "cross_references": ["wiki/cross-module/..."],
+  "cross_references": ["{_cross_ref_example(agent)}"],
   "warnings": ["string", ...],
   "agent_reasoning": "one paragraph explaining classification"
 }}
