@@ -65,3 +65,13 @@ def test_check_duplicate_is_agent_scoped_and_knows_generic_categories(tmp_path, 
     assert hit.get("exists") is True
     miss = rt._wiki_check_duplicate_handler({"slug": "nope", "category": "topics"})
     assert miss.get("exists") is False and "code" not in miss
+
+
+def test_propose_new_allows_generic_paths(monkeypatch):
+    import types
+    from backend import agent_context
+    import backend.tools.wiki_propose_tools as pt
+    fake = types.SimpleNamespace(id="legal", schema_kind="generic", wiki_dir=None)
+    monkeypatch.setattr(agent_context, "get_current_agent", lambda: fake, raising=False)
+    al = pt._allowed_new_prefixes()
+    assert "relationships/" in al and "topics/" in al
