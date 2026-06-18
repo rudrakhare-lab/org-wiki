@@ -55,6 +55,9 @@ export interface Agent {
   id: string;
   display_name: string;
   description: string;
+  identity?: string;     // editable identity line (backend _agent_public sends it)
+  accent?: string;       // hex, e.g. "#a78bfa"
+  theme_base?: string;   // 'light' | 'dark'
   modes: string[];
   has_jira: boolean;
   has_pms: boolean;
@@ -829,6 +832,20 @@ export class ApiService {
 
   private adminHeaders(): HttpHeaders {
     return new HttpHeaders({ Authorization: `Bearer ${this.getAdminToken()}` });
+  }
+
+  // ── Agents (admin) ──────────────────────────────────────────────────────
+  createAgent(name: string, description = ''): Observable<Agent> {
+    return this.http.post<Agent>(`${API_BASE}/admin/agents`, { name, description }, { headers: this.adminHeaders() });
+  }
+  updateAgent(id: string, patch: { display_name?: string; identity?: string; description?: string }): Observable<Agent> {
+    return this.http.patch<Agent>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}`, patch, { headers: this.adminHeaders() });
+  }
+  archiveAgent(id: string): Observable<{ status: string; id: string }> {
+    return this.http.delete<{ status: string; id: string }>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}`, { headers: this.adminHeaders() });
+  }
+  deleteAgent(id: string): Observable<{ status: string; id: string }> {
+    return this.http.delete<{ status: string; id: string }>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}?hard=true`, { headers: this.adminHeaders() });
   }
 
   // ── Traces / observability (admin-only) ────────────────────────────────

@@ -643,8 +643,10 @@ def test_ingest_execute_registry_conwo_has_write_tools():
     assert not any(n.startswith("pms_") for n in names)
 
 
-def test_ingest_plan_registry_infosec_has_wiki_tools_no_jira_pms():
-    """infosec allowlist excludes extract_* and jira/pms tools from plan registry."""
+def test_ingest_plan_registry_infosec_has_wiki_and_extract_tools_no_jira_pms():
+    """infosec (a generic agent) gets wiki + extract tools so it can ingest docs,
+    but never jira/pms tools. Extraction is tool-driven, so a generic agent that
+    lacked extract_* could not read any uploaded document."""
     from backend.ingest_service import build_plan_registry
     from backend import agent_registry
 
@@ -653,28 +655,33 @@ def test_ingest_plan_registry_infosec_has_wiki_tools_no_jira_pms():
     # infosec has wiki_search + wiki_read_page in its allowlist
     assert "wiki_search" in names
     assert "wiki_read_page" in names
-    # extract_* tools are NOT in infosec allowlist
-    assert "extract_pdf" not in names
-    assert "extract_docx" not in names
+    # extract_* tools ARE present — required to read uploaded documents
+    assert "extract_pdf" in names
+    assert "extract_docx" in names
     # No jira or pms tools
     assert "jira_search_ranked" not in names
     assert not any(n.startswith("pms_") for n in names)
 
 
-def test_ingest_execute_registry_infosec_has_no_direct_write_tools():
-    """infosec allowlist has wiki_propose_* but NOT wiki_create_page/edit/append."""
+def test_ingest_execute_registry_infosec_has_write_tools_no_jira_pms():
+    """infosec (a generic agent) gets direct-write tools so its ingest EXECUTE phase
+    can create pages the same way Conwo does. Without them the executor has only
+    wiki_read_page and ingest produces zero pages. Still never gets jira/pms tools."""
     from backend.ingest_service import build_execute_registry
     from backend import agent_registry
 
     registry = build_execute_registry(agent=agent_registry.get("infosec"))
     names = {s["name"] for s in registry.schemas}
-    # Direct write tools are NOT in infosec allowlist
-    assert "wiki_create_page" not in names
-    assert "wiki_edit_page" not in names
-    assert "wiki_append_section" not in names
-    assert "wiki_rebuild_index" not in names
-    # wiki_read_page IS in infosec allowlist
+    # Direct write tools ARE present — required to write ingested pages
+    assert "wiki_create_page" in names
+    assert "wiki_edit_page" in names
+    assert "wiki_append_section" in names
+    assert "wiki_rebuild_index" in names
+    # wiki_read_page (self-verification) is present
     assert "wiki_read_page" in names
+    # Never jira/pms
+    assert "jira_search_ranked" not in names
+    assert not any(n.startswith("pms_") for n in names)
 
 
 def test_ingest_upload_dir_conwo_uses_module_constant(tmp_path):
@@ -839,6 +846,32 @@ def test_query_same_agent_conversation_id_is_reused(monkeypatch, clean_db):
         )
     finally:
         app.dependency_overrides.clear()
+
+
+def test_wiki_graph_edges_from_frontmatter_refs():
+    """Generic-schema pages express relationships via frontmatter page-paths (party_a/
+    party_b, sourced_from, related_concepts), not [[wikilinks]]. The graph must turn
+    those into edges so created agents' graphs aren't edgeless."""
+    import backend.wiki_graph_api as wg
+
+    rel_page = (
+        "---\n"
+        "category: relationships\n"
+        "party_a: wiki/concepts/due-diligence.md\n"
+        "party_b: wiki/concepts/corporate-compliance.md\n"
+        "sourced_from:\n"
+        "- wiki/sources/profectus.md\n"
+        "title: 'Relationship: DD <-> CC'\n"
+        "tags:\n- due-diligence\n"
+        "---\n"
+        "# Body, no wikilinks here\n"
+    )
+    refs = {r.removeprefix("wiki/").removesuffix(".md") for r in wg._frontmatter_refs(rel_page)}
+    assert "concepts/due-diligence" in refs
+    assert "concepts/corporate-compliance" in refs
+    assert "sources/profectus" in refs
+    # Scalar metadata never produces a false edge.
+    assert not any("title" in r or "due-diligence" == r for r in refs)
 
 
 def test_wiki_graph_uses_active_agent_dir(tmp_path, monkeypatch):

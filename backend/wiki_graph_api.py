@@ -19,16 +19,31 @@ _SKIP: set[str] = set()  # show all pages
 
 
 def _page_type(text: str) -> str:
-    parts = text.split("---\n", 2)
-    if len(parts) < 3:
-        return "unknown"
-    m = re.search(r"^type:\s*(\S+)", parts[1], re.MULTILINE)
-    return m.group(1).strip("'\"") if m else "unknown"
+    from backend import wiki_schema
+    return wiki_schema.page_type(text)
 
 
 def _extract_links(text: str) -> list[str]:
     # [[target]] or [[target|alias]] or [[target#anchor]]
     return re.findall(r"\[\[([^\]|#]+?)(?:[|#][^\]]+)?\]\]", text)
+
+
+# A page-path reference in frontmatter, e.g. `wiki/concepts/due-diligence.md` or
+# `concepts/due-diligence.md`. The generic wiki schema expresses relationships through
+# frontmatter fields (party_a/party_b on relationships/ pages, sourced_from on concepts,
+# related_concepts on sources, depends_on/used_by, ...) whose values are these paths —
+# NOT [[wikilinks]]. Only relationship fields ever hold `.md` paths (tags/title/slug/
+# author never do), so extracting every such path from the frontmatter block yields the
+# real edges without false positives.
+_FM_REF_RE = re.compile(r"(?:wiki/)?[\w\-]+(?:/[\w\-]+)+\.md")
+
+
+def _frontmatter_refs(text: str) -> list[str]:
+    """Return page-path references found in the page's frontmatter block."""
+    parts = text.split("---\n", 2)
+    if len(parts) < 3:
+        return []
+    return _FM_REF_RE.findall(parts[1])
 
 
 def _add_config_layer(
@@ -127,8 +142,11 @@ async def wiki_graph(include_configs: bool = False) -> dict:
     degree: dict[str, int] = {k: 0 for k in nodes}
 
     for node_id, text in texts.items():
-        for raw in _extract_links(text):
-            target = raw.strip().removesuffix(".md")
+        # Edges come from inline [[wikilinks]] (Conwo convention) AND from page-path
+        # references in the frontmatter (generic-schema convention). Normalize both:
+        # strip an optional `wiki/` prefix and the `.md` suffix to match node ids.
+        for raw in _extract_links(text) + _frontmatter_refs(text):
+            target = raw.strip().removeprefix("wiki/").removesuffix(".md")
             if target not in nodes or target == node_id:
                 continue
             key = (min(node_id, target), max(node_id, target))

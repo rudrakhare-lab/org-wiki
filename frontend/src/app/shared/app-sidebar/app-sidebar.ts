@@ -423,6 +423,7 @@ export class AppSidebar implements OnInit {
     { label: 'Ingest', route: '/ingest', icon: 'ingest', roles: ['admin', 'developer'] },
     { label: 'Graph', route: '/graph', icon: 'graph', roles: ['admin', 'developer', 'general'] },
     { label: 'Admin', route: '/admin', icon: 'admin', roles: ['admin'] },
+    { label: 'Manage Agents', route: '/admin/agents', icon: 'admin', roles: ['admin'] },
   ];
 
   ngOnInit(): void {

@@ -1,104 +1,108 @@
-"""Tests for wiki_list_pages and wiki_check_duplicate tools."""
-import pytest
-from unittest.mock import patch, MagicMock
+"""Tests for wiki_list_pages and wiki_check_duplicate tools.
+
+Both handlers resolve the ACTIVE agent's wiki_dir (via agent_context) and validate
+categories against backend.wiki_schema.ALL_CATEGORIES, so these tests point the
+active agent at a temp dir rather than patching a module-level WIKI_ROOT.
+"""
+import types
+
+from backend import agent_context
 
 
-def _make_page(path: str, title: str) -> MagicMock:
-    """Create a mock WikiPage with path and title set."""
-    p = MagicMock()
-    p.path = path
-    p.title = title
+def _point_agent_at(monkeypatch, wiki_dir, schema_kind="workinsync"):
+    fake = types.SimpleNamespace(id="t", schema_kind=schema_kind, wiki_dir=wiki_dir)
+    monkeypatch.setattr(
+        agent_context, "get_current_agent", lambda: fake, raising=False
+    )
+
+
+def _write_page(wiki_dir, rel_path, title="Foo"):
+    p = wiki_dir / rel_path
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(f"# {title}\n", encoding="utf-8")
     return p
 
 
-def test_list_pages_modules():
+def test_list_pages_modules(tmp_path, monkeypatch):
     from backend.tools.wiki_read_tools import _wiki_list_pages_handler
 
-    with patch("backend.tools.wiki_read_tools.wiki_retriever") as mock_r:
-        page = _make_page("modules/visitor-management.md", "Visitor Management")
-        mock_r.all_paths.return_value = ["modules/visitor-management.md"]
-        mock_r.get_page.return_value = page
+    wiki = tmp_path / "wiki"
+    _write_page(wiki, "modules/visitor-management.md", "Visitor Management")
+    _point_agent_at(monkeypatch, wiki)
 
-        result = _wiki_list_pages_handler({"category": "modules"})
+    result = _wiki_list_pages_handler({"category": "modules"})
 
     assert result["total"] == 1
     assert result["pages"][0]["path"] == "modules/visitor-management.md"
     assert result["pages"][0]["slug"] == "visitor-management"
+    assert result["pages"][0]["title"] == "Visitor Management"
 
 
-def test_list_pages_all():
+def test_list_pages_all(tmp_path, monkeypatch):
     from backend.tools.wiki_read_tools import _wiki_list_pages_handler
 
-    paths = [f"{cat}/foo.md" for cat in ["modules", "entities", "sources"]]
-    pages = {p: _make_page(p, "Foo") for p in paths}
+    wiki = tmp_path / "wiki"
+    for cat in ["modules", "entities", "sources"]:
+        _write_page(wiki, f"{cat}/foo.md", "Foo")
+    _point_agent_at(monkeypatch, wiki)
 
-    with patch("backend.tools.wiki_read_tools.wiki_retriever") as mock_r:
-        mock_r.all_paths.return_value = paths
-        mock_r.get_page.side_effect = lambda p: pages.get(p)
-
-        result = _wiki_list_pages_handler({})
+    result = _wiki_list_pages_handler({})
 
     assert result["total"] == 3
 
 
-def test_list_pages_filters_by_category():
+def test_list_pages_filters_by_category(tmp_path, monkeypatch):
     from backend.tools.wiki_read_tools import _wiki_list_pages_handler
 
-    all_paths = ["modules/sso.md", "entities/user.md"]
-    pages = {
-        "modules/sso.md": _make_page("modules/sso.md", "SSO"),
-        "entities/user.md": _make_page("entities/user.md", "User"),
-    }
+    wiki = tmp_path / "wiki"
+    _write_page(wiki, "modules/sso.md", "SSO")
+    _write_page(wiki, "entities/user.md", "User")
+    _point_agent_at(monkeypatch, wiki)
 
-    with patch("backend.tools.wiki_read_tools.wiki_retriever") as mock_r:
-        mock_r.all_paths.return_value = all_paths
-        mock_r.get_page.side_effect = lambda p: pages.get(p)
-
-        result = _wiki_list_pages_handler({"category": "modules"})
+    result = _wiki_list_pages_handler({"category": "modules"})
 
     assert result["total"] == 1
     assert result["pages"][0]["slug"] == "sso"
 
 
-def test_list_pages_unknown_category():
+def test_list_pages_unknown_category(tmp_path, monkeypatch):
     from backend.tools.wiki_read_tools import _wiki_list_pages_handler
 
-    with patch("backend.tools.wiki_read_tools.wiki_retriever") as mock_r:
-        mock_r.all_paths.return_value = []
+    wiki = tmp_path / "wiki"
+    wiki.mkdir(parents=True)
+    _point_agent_at(monkeypatch, wiki)
 
-        result = _wiki_list_pages_handler({"category": "nonexistent"})
+    result = _wiki_list_pages_handler({"category": "nonexistent"})
 
     assert "error" in result
     assert result["code"] == "unknown_category"
 
 
-def test_check_duplicate_exists():
+def test_check_duplicate_exists(tmp_path, monkeypatch):
     from backend.tools.wiki_read_tools import _wiki_check_duplicate_handler
-    import tempfile, os
 
-    with tempfile.TemporaryDirectory() as tmp:
-        wiki_dir = os.path.join(tmp, "wiki", "modules")
-        os.makedirs(wiki_dir)
-        open(os.path.join(wiki_dir, "visitor-management.md"), "w").close()
+    wiki = tmp_path / "wiki"
+    _write_page(wiki, "modules/visitor-management.md", "Visitor Management")
+    _point_agent_at(monkeypatch, wiki)
 
-        with patch("backend.tools.wiki_read_tools.WIKI_ROOT", tmp):
-            result = _wiki_check_duplicate_handler(
-                {"slug": "visitor-management", "category": "modules"}
-            )
+    result = _wiki_check_duplicate_handler(
+        {"slug": "visitor-management", "category": "modules"}
+    )
 
     assert result["exists"] is True
     assert "visitor-management.md" in result["path"]
 
 
-def test_check_duplicate_not_exists():
+def test_check_duplicate_not_exists(tmp_path, monkeypatch):
     from backend.tools.wiki_read_tools import _wiki_check_duplicate_handler
-    import tempfile
 
-    with tempfile.TemporaryDirectory() as tmp:
-        with patch("backend.tools.wiki_read_tools.WIKI_ROOT", tmp):
-            result = _wiki_check_duplicate_handler(
-                {"slug": "brand-new-module", "category": "modules"}
-            )
+    wiki = tmp_path / "wiki"
+    wiki.mkdir(parents=True)
+    _point_agent_at(monkeypatch, wiki)
+
+    result = _wiki_check_duplicate_handler(
+        {"slug": "brand-new-module", "category": "modules"}
+    )
 
     assert result["exists"] is False
     assert result["path"] is None

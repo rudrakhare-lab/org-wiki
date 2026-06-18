@@ -57,7 +57,7 @@ from pydantic import BaseModel, Field
 
 from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
 from backend import trace_store
-from backend import agent_registry, agent_context
+from backend import agent_registry, agent_context, agent_provisioning
 from backend.trace_middleware import TraceMiddleware
 from backend import config as _config
 from backend.config import local_claude_code_enabled
@@ -465,17 +465,7 @@ def health_claude_code():
 @app.get("/agents")
 def list_agents():
     """Return public metadata for all registered agents. No auth required."""
-    return [
-        {
-            "id": a.id,
-            "display_name": a.display_name,
-            "description": a.description,
-            "modes": list(a.modes),
-            "has_jira": a.has_jira,
-            "has_pms": a.has_pms,
-        }
-        for a in agent_registry.all()
-    ]
+    return [_agent_public(a) for a in agent_registry.all()]
 
 
 @app.post("/query", response_model=QueryResponse)
@@ -1379,6 +1369,53 @@ def admin_revoke_token(token: str, _admin: dict = Depends(_require_admin)):
     if not revoked:
         raise HTTPException(status_code=404, detail="Token not found")
     return {"revoked": True}
+
+
+class CreateAgentRequest(BaseModel):
+    name: str
+    description: str | None = None
+
+
+class UpdateAgentRequest(BaseModel):
+    display_name: str | None = None
+    identity: str | None = None
+    description: str | None = None
+
+
+def _agent_public(a) -> dict:
+    return {"id": a.id, "display_name": a.display_name, "description": a.description,
+            "identity": a.identity, "accent": a.accent, "theme_base": a.theme_base,
+            "modes": list(a.modes), "has_jira": a.has_jira, "has_pms": a.has_pms}
+
+
+@app.post("/admin/agents")
+def create_agent_endpoint(req: CreateAgentRequest, admin: dict = Depends(_require_admin)):
+    try:
+        spec = agent_provisioning.create_agent(req.name, created_by=admin.get("email", "admin"), description=req.description or "")
+    except agent_provisioning.AgentExists as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except agent_provisioning.InvalidAgentName as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return _agent_public(spec)
+
+
+@app.patch("/admin/agents/{agent_id}")
+def update_agent_endpoint(agent_id: str, req: UpdateAgentRequest, admin: dict = Depends(_require_admin)):
+    agent_provisioning.update_agent(agent_id, display_name=req.display_name, identity=req.identity, description=req.description)
+    return _agent_public(agent_registry.get(agent_id))
+
+
+@app.delete("/admin/agents/{agent_id}")
+def delete_agent_endpoint(agent_id: str, hard: bool = False,
+                          admin: dict = Depends(_require_admin)):
+    try:
+        if hard:
+            agent_provisioning.delete_agent(agent_id)
+            return {"status": "deleted", "id": agent_id}
+        agent_provisioning.archive_agent(agent_id)
+        return {"status": "archived", "id": agent_id}
+    except agent_provisioning.AgentError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 _VALID_PROPOSAL_ID = __import__("re").compile(r"^[a-zA-Z0-9_\-]{8,64}$")

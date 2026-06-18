@@ -58,6 +58,92 @@ def _uploads_root(agent: agent_registry.AgentSpec) -> pathlib.Path:
 
 # ── System prompts ────────────────────────────────────────────────────────────
 
+_WIKI_STRUCTURE_WORKINSYNC = """\
+WIKI STRUCTURE:
+- wiki/sources/<slug>.md       — every ingested doc gets one
+- wiki/modules/<slug>.md       — product modules
+- wiki/entities/<slug>.md      — data models / domain objects
+- wiki/cross-module/<a>-<b>.md — when two modules connect
+- wiki/decisions/<date>-<title>.md — architecture decisions
+- wiki/configs/<slug>.md       — PMS config tables"""
+
+_WIKI_STRUCTURE_GENERIC = """\
+WIKI STRUCTURE:
+- wiki/sources/<slug>.md        — every ingested doc gets one
+- wiki/concepts/<slug>.md       — a concept, term, or topic
+- wiki/entities/<slug>.md       — data models / domain objects
+- wiki/relationships/<a>-<b>.md — when two topics connect
+- wiki/decisions/<date>-<title>.md — decisions/rationale
+- wiki/topics/<slug>.md         — a subject area that groups concepts"""
+
+_CLASSIFICATION_ORDER_WORKINSYNC = """\
+CLASSIFICATION ORDER:
+1. Folder context — raw/modules/<slug>/ tells you the module
+2. Doc type from content (PRD, SOP, spec, config sheet)
+3. Entity definitions (fields + types → entity pages)
+4. Dependency language ("calls X API") → cross-module pages
+5. Decision language ("we chose X because") → decision pages
+6. Config tables (property + description columns) → config pages"""
+
+_CLASSIFICATION_ORDER_GENERIC = """\
+CLASSIFICATION ORDER:
+1. Doc type from content (report, spec, guide, reference)
+2. Core concepts, terms, or topics introduced → concept pages
+3. Entity definitions (fields + types → entity pages)
+4. Relationship language ("X relates to / depends on Y") → relationship pages
+5. Decision language ("we chose X because") → decision pages
+6. Broad subject areas that group several concepts → topic pages"""
+
+
+def _wiki_structure(agent: agent_registry.AgentSpec) -> str:
+    return (
+        _WIKI_STRUCTURE_WORKINSYNC
+        if agent.schema_kind == "workinsync"
+        else _WIKI_STRUCTURE_GENERIC
+    )
+
+
+def _classification_order(agent: agent_registry.AgentSpec) -> str:
+    return (
+        _CLASSIFICATION_ORDER_WORKINSYNC
+        if agent.schema_kind == "workinsync"
+        else _CLASSIFICATION_ORDER_GENERIC
+    )
+
+
+def _classification_kinds(agent: agent_registry.AgentSpec) -> str:
+    return (
+        "module|entity|config|source|concept|decision|cross-module"
+        if agent.schema_kind == "workinsync"
+        else "concept|entity|topic|source|decision|relationship"
+    )
+
+
+def _cross_ref_example(agent: agent_registry.AgentSpec) -> str:
+    return (
+        "wiki/cross-module/..."
+        if agent.schema_kind == "workinsync"
+        else "wiki/relationships/..."
+    )
+
+
+def _schema_guidance(agent: agent_registry.AgentSpec) -> str:
+    if agent.schema_kind == "workinsync":
+        return (
+            "SLUG RULES: lowercase-hyphenated, match the module folder name.\n"
+            "BIDIRECTIONALITY: if module A depends_on B, then B must have used_by A. "
+            "Flag any asymmetry as a warning in your plan.\n"
+            "Folder context — raw/modules/<slug>/ tells you the module."
+        )
+    return (
+        "SLUG RULES: lowercase-hyphenated, derived from the concept/topic name.\n"
+        "RELATIONSHIPS: when two concepts relate, create a relationships/<a>-<b>.md page "
+        "whose frontmatter names party_a and party_b (page paths); cite the source via "
+        "sourced_from. Do not invent module/config structure.\n"
+        "Classify by concept, entity, topic, relationship, decision, or source."
+    )
+
+
 def _render_plan_prompt(agent: agent_registry.AgentSpec) -> str:
     """Return the Phase 1 system prompt, parameterized for the active agent."""
     return f"""\
@@ -68,27 +154,12 @@ identify cross-references with the existing wiki, and produce
 a structured JSON plan. You MUST NOT write anything — you have
 no write tools.
 
-WIKI STRUCTURE:
-- wiki/sources/<slug>.md       — every ingested doc gets one
-- wiki/modules/<slug>.md       — product modules
-- wiki/entities/<slug>.md      — data models / domain objects
-- wiki/cross-module/<a>-<b>.md — when two modules connect
-- wiki/decisions/<date>-<title>.md — architecture decisions
-- wiki/configs/<slug>.md       — PMS config tables
+{_wiki_structure(agent)}
 
-SLUG RULES: lowercase-hyphenated, match the module folder name.
+{_schema_guidance(agent)}
 Always call wiki_check_duplicate before proposing a new slug.
 
-BIDIRECTIONALITY: if module A depends_on B, then B must have
-used_by A. Flag any asymmetry as a warning in your plan.
-
-CLASSIFICATION ORDER:
-1. Folder context — raw/modules/<slug>/ tells you the module
-2. Doc type from content (PRD, SOP, spec, config sheet)
-3. Entity definitions (fields + types → entity pages)
-4. Dependency language ("calls X API") → cross-module pages
-5. Decision language ("we chose X because") → decision pages
-6. Config tables (property + description columns) → config pages
+{_classification_order(agent)}
 
 MANDATORY STEPS:
 1. Extract the document using extract_pdf / extract_docx / extract_xlsx / extract_text_file
@@ -99,7 +170,7 @@ MANDATORY STEPS:
 OUTPUT: a single JSON object with this structure:
 {{
   "summary_bullets": ["string", ...],
-  "classification": "module|entity|config|source|concept|decision|cross-module",
+  "classification": "{_classification_kinds(agent)}",
   "target_slug": "visitor-management",
   "operations": [
     {{
@@ -110,7 +181,7 @@ OUTPUT: a single JSON object with this structure:
       "change_description": "what this change does"
     }}
   ],
-  "cross_references": ["wiki/cross-module/..."],
+  "cross_references": ["{_cross_ref_example(agent)}"],
   "warnings": ["string", ...],
   "agent_reasoning": "one paragraph explaining classification"
 }}
@@ -222,7 +293,7 @@ async def _run_plan_job(
         for _ in range(20):
             response = await api_client.messages.create(
                 model=MODEL,
-                max_tokens=4096,
+                max_tokens=8192,
                 system=_render_plan_prompt(agent),
                 tools=registry.schemas,
                 messages=messages,
@@ -265,7 +336,15 @@ async def _run_plan_job(
                 break
 
             messages.append({"role": "assistant", "content": response.content})
-            messages.append({"role": "user", "content": tool_results})
+            if tool_results:
+                messages.append({"role": "user", "content": tool_results})
+            else:
+                # No tool calls and not end_turn (e.g. max_tokens truncation mid-output).
+                # Sending an empty user message would 400 ("non-empty content"); nudge the
+                # model to finish instead.
+                messages.append({"role": "user", "content": (
+                    "Continue. When finished, output ONLY the final JSON plan as a single "
+                    "```json code block.")})
 
         if not plan_json:
             _LOG.error("[plan_job] agent returned no parseable JSON  file=%s  job=%s",
@@ -404,7 +483,7 @@ async def _run_ingest_job(
         for _ in range(30):  # max 30 rounds
             response = await api_client.messages.create(
                 model=MODEL,
-                max_tokens=4096,
+                max_tokens=8192,
                 system=_render_execute_prompt(agent),
                 tools=registry.schemas,
                 messages=messages,
@@ -471,7 +550,14 @@ async def _run_ingest_job(
                 break
 
             messages.append({"role": "assistant", "content": response.content})
-            messages.append({"role": "user", "content": tool_results})
+            if tool_results:
+                messages.append({"role": "user", "content": tool_results})
+            else:
+                # No tool calls and not end_turn (e.g. max_tokens truncation). Avoid an
+                # empty user message (→ 400); nudge the model to continue executing.
+                messages.append({"role": "user", "content": (
+                    "Continue executing the remaining operations with the wiki tools. "
+                    "When every operation is done, stop.")})
 
         # Move uploaded file to proper raw/{slug}/ location under agent's raw_dir
         src = pathlib.Path(session.original_path)
@@ -494,6 +580,18 @@ async def _run_ingest_job(
             _LOG.info("[execute]   index rebuilt  agent=%s", aid)
         except Exception as idx_exc:
             _LOG.warning("[execute]   index rebuild failed  agent=%s  error=%s", aid, idx_exc)
+
+        # Best-effort: refresh the "_Total pages: N_" count in index.md. Never fail the job.
+        try:
+            _idx = agent.wiki_dir / "index.md"
+            if _idx.exists():
+                _n = sum(1 for _ in agent.wiki_dir.rglob("*.md")) - 1  # exclude index.md
+                import re as _re
+                _body = _idx.read_text(encoding="utf-8")
+                _body = _re.sub(r"_Total pages: \d+_", f"_Total pages: {max(0, _n)}_", _body, count=1)
+                _idx.write_text(_body, encoding="utf-8")
+        except Exception:
+            pass
 
         job.links = [p.replace("wiki/", "").replace(".md", "") for p in job.files_created]
         job.status = "complete"

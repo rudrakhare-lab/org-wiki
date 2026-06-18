@@ -29,6 +29,11 @@ export const routes: Routes = [
     loadComponent: () => import('./features/admin/admin-dashboard').then(m => m.AdminDashboard),
   },
   {
+    path: 'admin/agents',
+    canActivate: [authGuard, roleGuard(['admin'])],
+    loadComponent: () => import('./features/admin/manage-agents').then(m => m.ManageAgents),
+  },
+  {
     path: 'dashboard',
     canActivate: [authGuard, roleGuard(['admin'])],
     loadComponent: () => import('./features/traces/dashboard').then(m => m.Dashboard),

@@ -37,10 +37,20 @@ export class App {
       this.agentSvc.loadAgents();
     }
     effect(() => {
-      const infosec = this.agentSvc.activeId() === 'infosec';
-      if (typeof document !== 'undefined') {
-        document.body.classList.toggle('theme-infosec', infosec);
+      // Track both signals so this re-runs when the agent list loads.
+      this.agentSvc.agents();
+      this.agentSvc.activeId();
+      if (typeof document === 'undefined') return;
+      const base = this.agentSvc.activeBase();
+      document.body.classList.toggle('theme-dark', base === 'dark');
+      const accent = this.agentSvc.active()?.accent;
+      if (base === 'dark') {
+        // Keep the pre-booted inline accent until /agents resolves; only set when known.
+        if (accent) document.body.style.setProperty('--accent', accent);
+      } else {
+        document.body.style.removeProperty('--accent'); // light/Conwo → :root token
       }
+      this.agentSvc.persistThemeHints();
     });
   }
 

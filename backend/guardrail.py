@@ -114,9 +114,17 @@ def _iter_str_values(obj: Any) -> list[str]:
     return results
 
 
-def is_destructive_tool_call(tool_name: str, tool_input: dict) -> str | None:
-    """Return reason string if the tool call should be blocked, else None."""
-    if tool_name in _BLOCKED_TOOL_NAMES:
+def is_destructive_tool_call(
+    tool_name: str, tool_input: dict, allow_writes: bool = False
+) -> str | None:
+    """Return reason string if the tool call should be blocked, else None.
+
+    `allow_writes` is True only for the admin-gated ingest EXECUTE registry, where
+    wiki write tools are the whole point. It is False everywhere else — most
+    importantly the chat/query registry — so the chat loop stays strictly read-only.
+    The write-SQL check always applies: no tool, in any mode, may run write SQL.
+    """
+    if not allow_writes and tool_name in _BLOCKED_TOOL_NAMES:
         return f"tool '{tool_name}' is not available in query mode"
     for val in _iter_str_values(tool_input):
         if _WRITE_SQL_RE.search(val):

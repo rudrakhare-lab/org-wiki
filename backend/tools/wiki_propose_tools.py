@@ -46,7 +46,10 @@ def _wiki_dir():
 
 # Decision A: paths the agent is allowed to PROPOSE creating.
 # Structural subtrees (modules/, entities/, configs/) stay admin-only.
-_NEW_PATH_ALLOWLIST = ("concepts/", "cross-module/", "decisions/", "answers/", "sources/")
+# Resolved per the ACTIVE agent's schema (workinsync vs generic) at call time.
+def _allowed_new_prefixes() -> tuple[str, ...]:
+    from backend import wiki_schema, agent_context
+    return wiki_schema.for_agent(agent_context.get_current_agent()).propose_allowlist
 
 # Decision A: append tool is currently log-only. Other append targets are an
 # explicit opt-in via this allowlist.
@@ -428,10 +431,11 @@ def _wiki_propose_new_handler(inp: dict) -> dict:
         return err
     if not page_path.endswith(".md"):
         return {"error": "page_path must end in .md", "code": "invalid_path"}
-    if not any(page_path.startswith(p) for p in _NEW_PATH_ALLOWLIST):
+    allow = _allowed_new_prefixes()
+    if not any(page_path.startswith(p) for p in allow):
         return {
             "error": (
-                f"page_path must start with one of: {', '.join(_NEW_PATH_ALLOWLIST)}. "
+                f"page_path must start with one of: {', '.join(allow)}. "
                 f"Structural subtrees (modules/, entities/, configs/) are admin-only — "
                 f"ask an admin to create those pages."
             ),
