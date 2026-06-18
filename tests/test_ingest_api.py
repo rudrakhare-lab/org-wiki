@@ -273,3 +273,31 @@ def test_execute_continues_past_per_op_error(monkeypatch):
     assert job.status == "complete"            # did NOT abort on the edit error
     assert "wiki/concepts/a.md" in job.files_created
     assert len(job.warnings) == 1 and "old_str appears 260 times" in job.warnings[0]
+
+
+def test_regenerate_index_md_builds_toc(tmp_path):
+    import types
+    import backend.ingest_api as ing
+    wd = tmp_path / "wiki"
+    (wd / "concepts").mkdir(parents=True)
+    (wd / "relationships").mkdir(parents=True)
+    (wd / "index.md").write_text("# Old\n_Total pages: 0_\n")
+    (wd / "concepts" / "due-diligence.md").write_text("---\ncategory: concepts\n---\n# Due Diligence\nx")
+    (wd / "relationships" / "a-b.md").write_text("---\ncategory: relationships\n---\n# A to B\nx")
+    agent = types.SimpleNamespace(id="legal", schema_kind="generic", display_name="Legal", wiki_dir=wd)
+    ing._regenerate_index_md(agent)
+    body = (wd / "index.md").read_text()
+    assert "_Total pages: 2_" in body
+    assert "## Concepts" in body and "## Relationships" in body
+    assert "[Due Diligence](concepts/due-diligence.md)" in body
+
+
+def test_regenerate_index_md_skips_conwo(tmp_path):
+    import types
+    import backend.ingest_api as ing
+    wd = tmp_path / "wiki"
+    wd.mkdir(parents=True)
+    (wd / "index.md").write_text("# WorkInSync Feature Wiki — Index\n_Total pages: 101 | Modules: 22_\n")
+    agent = types.SimpleNamespace(id="conwo", schema_kind="workinsync", display_name="Conwo", wiki_dir=wd)
+    ing._regenerate_index_md(agent)
+    assert "Modules: 22" in (wd / "index.md").read_text()  # untouched

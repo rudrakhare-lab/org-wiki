@@ -56,6 +56,41 @@ def _uploads_root(agent: agent_registry.AgentSpec) -> pathlib.Path:
         return pathlib.Path(UPLOAD_DIR)
     return agent.raw_dir / "modules" / "_uploads"
 
+
+def _regenerate_index_md(agent: agent_registry.AgentSpec) -> None:
+    """Rebuild the agent's index.md as a live table of contents grouped by category.
+    Conwo (schema_kind='workinsync') keeps its hand-curated index — skip it."""
+    if agent.schema_kind == "workinsync":
+        return
+    from backend.wiki_retriever import _extract_title
+    wiki_dir = agent.wiki_dir
+    by_cat: dict[str, list[tuple[str, str]]] = {}
+    total = 0
+    for p in sorted(wiki_dir.rglob("*.md")):
+        rel = str(p.relative_to(wiki_dir)).replace("\\", "/")
+        if rel == "index.md":
+            continue
+        total += 1
+        cat = rel.split("/", 1)[0] if "/" in rel else "other"
+        try:
+            title = _extract_title(p.read_text(encoding="utf-8"), p.stem.replace("-", " ").title())
+        except OSError:
+            title = p.stem.replace("-", " ").title()
+        by_cat.setdefault(cat, []).append((title, rel))
+    lines = [f"# {agent.display_name} Wiki Index", f"_Total pages: {total}_", ""]
+    if total == 0:
+        lines.append("Empty knowledge base — ingest documents to populate it.")
+    else:
+        for cat in sorted(by_cat):
+            lines.append(f"## {cat.replace('-', ' ').title()}")
+            for title, rel in sorted(by_cat[cat]):
+                lines.append(f"- [{title}]({rel})")
+            lines.append("")
+    try:
+        (wiki_dir / "index.md").write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+    except OSError:
+        pass
+
 # ── System prompts ────────────────────────────────────────────────────────────
 
 _WIKI_STRUCTURE_WORKINSYNC = """\
@@ -157,6 +192,7 @@ no write tools.
 {_wiki_structure(agent)}
 
 {_schema_guidance(agent)}
+NEVER include wiki/index.md in your operations — the index/home page is generated automatically.
 Always call wiki_check_duplicate before proposing a new slug.
 
 {_classification_order(agent)}
@@ -202,10 +238,13 @@ For each operation in the plan:
 - "append"             → call wiki_append_section
 - "update_frontmatter" → call wiki_update_frontmatter
 
-After ALL operations complete successfully, call wiki_rebuild_index.
+Never create, edit, or update_frontmatter on wiki/index.md — it is generated
+automatically; skip any operation that targets it.
 
-If any tool call returns an error, stop immediately and do not
-continue. Report the error clearly.
+After the operations, call wiki_rebuild_index.
+
+If a tool call returns an error, note it and CONTINUE with the remaining
+operations — do not abort the run.
 """
 
 MODEL = "claude-sonnet-4-6"
@@ -579,15 +618,10 @@ async def _run_ingest_job(
         except Exception as idx_exc:
             _LOG.warning("[execute]   index rebuild failed  agent=%s  error=%s", aid, idx_exc)
 
-        # Best-effort: refresh the "_Total pages: N_" count in index.md. Never fail the job.
+        # Regenerate index.md as a live table of contents (created agents only;
+        # Conwo's hand-curated index is left untouched). Never fail the job.
         try:
-            _idx = agent.wiki_dir / "index.md"
-            if _idx.exists():
-                _n = sum(1 for _ in agent.wiki_dir.rglob("*.md")) - 1  # exclude index.md
-                import re as _re
-                _body = _idx.read_text(encoding="utf-8")
-                _body = _re.sub(r"_Total pages: \d+_", f"_Total pages: {max(0, _n)}_", _body, count=1)
-                _idx.write_text(_body, encoding="utf-8")
+            _regenerate_index_md(agent)
         except Exception:
             pass
 
