@@ -329,6 +329,9 @@ export class AdminDashboard implements OnInit, OnDestroy {
             this.syncMessage.set(`✓ Sync complete${parts ? ' — ' + parts : ''}`);
           } else if (job.state === 'error') {
             this.syncMessage.set(`Sync failed: ${job.message || 'see logs'}`);
+          } else {
+            // state === 'idle' — job was lost (e.g. backend restarted mid-run)
+            this.syncMessage.set('Sync status unavailable (backend may have restarted). Please retry.');
           }
         },
         error: () => { /* transient poll error — keep polling */ },
