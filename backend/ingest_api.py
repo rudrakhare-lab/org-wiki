@@ -127,6 +127,23 @@ def _cross_ref_example(agent: agent_registry.AgentSpec) -> str:
     )
 
 
+def _schema_guidance(agent: agent_registry.AgentSpec) -> str:
+    if agent.schema_kind == "workinsync":
+        return (
+            "SLUG RULES: lowercase-hyphenated, match the module folder name.\n"
+            "BIDIRECTIONALITY: if module A depends_on B, then B must have used_by A. "
+            "Flag any asymmetry as a warning in your plan.\n"
+            "Folder context — raw/modules/<slug>/ tells you the module."
+        )
+    return (
+        "SLUG RULES: lowercase-hyphenated, derived from the concept/topic name.\n"
+        "RELATIONSHIPS: when two concepts relate, create a relationships/<a>-<b>.md page "
+        "whose frontmatter names party_a and party_b (page paths); cite the source via "
+        "sourced_from. Do not invent module/config structure.\n"
+        "Classify by concept, entity, topic, relationship, decision, or source."
+    )
+
+
 def _render_plan_prompt(agent: agent_registry.AgentSpec) -> str:
     """Return the Phase 1 system prompt, parameterized for the active agent."""
     return f"""\
@@ -139,11 +156,8 @@ no write tools.
 
 {_wiki_structure(agent)}
 
-SLUG RULES: lowercase-hyphenated, match the module folder name.
+{_schema_guidance(agent)}
 Always call wiki_check_duplicate before proposing a new slug.
-
-BIDIRECTIONALITY: if module A depends_on B, then B must have
-used_by A. Flag any asymmetry as a warning in your plan.
 
 {_classification_order(agent)}
 

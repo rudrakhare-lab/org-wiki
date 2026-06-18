@@ -89,3 +89,12 @@ def test_system_prompt_no_workinsync_for_generic():
     assert "WorkInSync" not in info
     conwo = system_prompt.load_system_prompt("conwo")     # workinsync
     assert "WorkInSync" in conwo
+
+
+def test_ingest_plan_prose_is_generic_for_generic_agent():
+    import backend.ingest_api as ing
+    from backend import agent_registry
+    g = ing._render_plan_prompt(agent_registry.get("infosec"))
+    c = ing._render_plan_prompt(agent_registry.get("conwo"))
+    assert "BIDIRECTIONALITY" not in g and "module folder" not in g and "raw/modules/" not in g
+    assert "BIDIRECTIONALITY" in c
