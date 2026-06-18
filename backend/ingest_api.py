@@ -581,6 +581,18 @@ async def _run_ingest_job(
         except Exception as idx_exc:
             _LOG.warning("[execute]   index rebuild failed  agent=%s  error=%s", aid, idx_exc)
 
+        # Best-effort: refresh the "_Total pages: N_" count in index.md. Never fail the job.
+        try:
+            _idx = agent.wiki_dir / "index.md"
+            if _idx.exists():
+                _n = sum(1 for _ in agent.wiki_dir.rglob("*.md")) - 1  # exclude index.md
+                import re as _re
+                _body = _idx.read_text(encoding="utf-8")
+                _body = _re.sub(r"_Total pages: \d+_", f"_Total pages: {max(0, _n)}_", _body, count=1)
+                _idx.write_text(_body, encoding="utf-8")
+        except Exception:
+            pass
+
         job.links = [p.replace("wiki/", "").replace(".md", "") for p in job.files_created]
         job.status = "complete"
         _LOG.info("[execute] DONE  job=%s  created=%d  modified=%d  agent=%s",

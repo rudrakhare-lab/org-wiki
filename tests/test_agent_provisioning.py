@@ -82,3 +82,12 @@ def test_rename_and_archive(clean_db, no_extra_agents, tmp_path, monkeypatch):
     assert "legal" not in {a.id for a in agent_registry.all()}   # archived → hidden
     with pytest.raises(ap.AgentError):
         ap.archive_agent("conwo")   # built-ins protected
+
+
+def test_created_agent_index_lists_schema_categories(clean_db, no_extra_agents, tmp_path, monkeypatch):
+    from backend import agent_provisioning as ap, agent_registry, config
+    monkeypatch.setattr(config, "_BASE", tmp_path, raising=False)
+    monkeypatch.setattr(agent_registry, "_BASE", tmp_path, raising=False)
+    ap.create_agent("Legal", created_by="a")
+    idx = (tmp_path / "agents" / "legal" / "wiki" / "index.md").read_text()
+    assert "Concepts" in idx and "Relationships" in idx and "Topics" in idx

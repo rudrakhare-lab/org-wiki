@@ -81,7 +81,7 @@ def _claude_md_template(name: str, identity: str) -> str:
 
 
 def create_agent(name: str, created_by: str):
-    from backend import agent_registry, db, wiki_retriever
+    from backend import agent_registry, db, wiki_retriever, wiki_schema
     from backend.config import _BASE
 
     slug = slugify(name)
@@ -103,8 +103,12 @@ def create_agent(name: str, created_by: str):
         (wiki_abs / "concepts").mkdir(parents=True, exist_ok=True)
         (_BASE / raw_rel).mkdir(parents=True, exist_ok=True)
         created_paths.append(_BASE / "agents" / slug)
+        _cats = wiki_schema.for_kind("generic").categories
+        _sections = "\n".join(f"- **{c.replace('-', ' ').title()}** — `{c}/`" for c in _cats)
         (wiki_abs / "index.md").write_text(
-            f"# {name} Wiki Index\n_Total pages: 0_\n\n(Empty — ingest documents to populate.)\n",
+            f"# {name} Wiki Index\n_Total pages: 0_\n\n"
+            f"Empty knowledge base — ingest documents to populate it. Page categories:\n\n"
+            f"{_sections}\n",
             encoding="utf-8")
         (_BASE / claude_rel).write_text(_claude_md_template(name, identity), encoding="utf-8")
 
