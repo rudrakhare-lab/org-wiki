@@ -522,6 +522,7 @@ export interface IngestJobResponse {
   files_modified: string[];
   links: string[];
   error_msg: string;
+  warnings: string[];
 }
 
 const API_BASE = '';
