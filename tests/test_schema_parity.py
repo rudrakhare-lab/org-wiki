@@ -81,3 +81,11 @@ def test_write_tools_scalar_fields_include_category():
     import backend.tools.wiki_write_tools as wt
     assert "category" in wt._SCALAR_FIELDS
     assert {"type", "status", "owner"} <= wt._SCALAR_FIELDS
+
+
+def test_system_prompt_no_workinsync_for_generic():
+    from backend import system_prompt
+    info = system_prompt.load_system_prompt("infosec")   # generic, seeded in test DB
+    assert "WorkInSync" not in info
+    conwo = system_prompt.load_system_prompt("conwo")     # workinsync
+    assert "WorkInSync" in conwo

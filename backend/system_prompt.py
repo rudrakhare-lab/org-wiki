@@ -95,9 +95,13 @@ def load_system_prompt(agent_id: str = "conwo") -> str:
 
     # Identity header sourced from AgentSpec — for conwo this produces:
     #   "# Conwo Backend\n\nYou are Conwo, an AI assistant that answers …\n"
+    # "WorkInSync" wording is only correct for workinsync-schema agents; a generic
+    # agent (Legal/Infosec) must not be told it is a WorkInSync system.
+    _product = "WorkInSync " if getattr(spec, "schema_kind", "workinsync") == "workinsync" else ""
+    header = f"# {spec.display_name} Backend — {_product}Knowledge Query System\n\n"
     identity_header = (
-        f"# {spec.display_name} Backend — WorkInSync Knowledge Query System\n\n"
-        f"{spec.identity}\n"
+        header
+        + f"{spec.identity}\n"
         "You have access to pre-retrieved evidence from the wiki and Jira — it is "
         "provided in the user message. Follow the QUERY workflow below precisely.\n"
     )
