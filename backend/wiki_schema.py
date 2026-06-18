@@ -47,13 +47,16 @@ GENERIC = SchemaConventions(
     categories=("concepts", "relationships", "topics", "entities", "sources", "decisions"),
     propose_allowlist=("concepts/", "relationships/", "topics/", "entities/",
                        "decisions/", "sources/", "answers/"),
+    # Keys are the node-type VALUES generic pages actually carry — the plural
+    # `category:` folder names that page_type() returns. The frontend TYPE_COLORS
+    # map mirrors these keys (kept in sync as a static map; see graph-page.ts).
     page_types={
-        "concept": {"label": "Concept", "color": "#a855f7"},
+        "concepts": {"label": "Concept", "color": "#a855f7"},
         "relationships": {"label": "Relationship", "color": "#14b8a6"},
         "topics": {"label": "Topic", "color": "#3b82f6"},
-        "entity": {"label": "Entity", "color": "#22c55e"},
-        "source": {"label": "Source", "color": "#94a3b8"},
-        "decision": {"label": "Decision", "color": "#ef4444"},
+        "entities": {"label": "Entity", "color": "#22c55e"},
+        "sources": {"label": "Source", "color": "#94a3b8"},
+        "decisions": {"label": "Decision", "color": "#ef4444"},
     },
 )
 

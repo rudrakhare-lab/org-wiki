@@ -26,6 +26,13 @@ const TYPE_COLORS: Record<string, string> = {
   pattern:         '#FF7043',
   relationships:   '#14b8a6',
   topics:          '#3b82f6',
+  // Generic-schema pages carry plural `category:` values (e.g. "concepts"), which
+  // become the node type. Alias them to their singular colors so generic agents'
+  // graph nodes are coloured, not gray.
+  concepts:        '#9B59B6',
+  sources:         '#7F8C8D',
+  entities:        '#7ED321',
+  decisions:       '#E74C3C',
 };
 
 const DEFAULT_COLOR = '#BDC3C7';

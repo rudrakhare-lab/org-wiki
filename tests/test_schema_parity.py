@@ -8,6 +8,13 @@ def test_workinsync_categories_match_legacy():
     )
 
 
+def test_generic_page_type_keys_match_categories():
+    # Generic pages carry plural `category:` values as their node type; page_types
+    # must be keyed by exactly those so the graph legend colours them (not gray).
+    g = ws.for_kind("generic")
+    assert set(g.page_types.keys()) == set(g.categories)
+
+
 def test_generic_categories():
     g = ws.for_kind("generic").categories
     assert "concepts" in g and "relationships" in g and "topics" in g and "sources" in g
