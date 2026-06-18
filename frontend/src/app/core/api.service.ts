@@ -312,10 +312,25 @@ export type AgentEvent =
   | SseConversationSignal
   | { type: string; [k: string]: unknown };
 
+export interface SyncJob {
+  state: 'idle' | 'running' | 'done' | 'error';
+  started_at: string | null;
+  ended_at: string | null;
+  result: {
+    success?: boolean;
+    sync_summary?: string;
+    classify_summary?: string;
+    done_line?: string;
+    elapsed_s?: number;
+  } | null;
+  message: string;
+}
+
 export interface SyncStatus {
   jira: { last_sync_line: string; ticket_count: number };
   drive: { last_sync: string; file_count: number };
   feedback: { pending_count: number };
+  job?: SyncJob;
 }
 
 export interface IngestItem {
@@ -889,8 +904,9 @@ export class ApiService {
     return this.http.get<SyncStatus>(`${API_BASE}/admin/sync-status`, { headers: this.adminHeaders() });
   }
 
-  triggerSync(): Observable<{ status: string; pid?: number }> {
-    return this.http.post<{ status: string; pid?: number }>(`${API_BASE}/admin/trigger-sync`, {}, { headers: this.adminHeaders() });
+  triggerSync(): Observable<{ status: 'started' | 'already_running' | 'error'; message?: string }> {
+    return this.http.post<{ status: 'started' | 'already_running' | 'error'; message?: string }>(
+      `${API_BASE}/admin/trigger-sync`, {}, { headers: this.adminHeaders() });
   }
 
   getIngestQueue(): Observable<IngestItem[]> {

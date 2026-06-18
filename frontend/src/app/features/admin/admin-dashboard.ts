@@ -1,7 +1,7 @@
-import { Component, signal, computed, inject, OnInit } from '@angular/core';
+import { Component, signal, computed, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ApiService, SyncStatus, IngestItem, FeedbackRecord, AdminUser } from '../../core/api.service';
+import { ApiService, SyncStatus, SyncJob, IngestItem, FeedbackRecord, AdminUser } from '../../core/api.service';
 import { WikiProposalsPanel } from './wiki-proposals-panel';
 
 @Component({
@@ -202,7 +202,7 @@ import { WikiProposalsPanel } from './wiki-proposals-panel';
   `,
   styleUrl: './admin-dashboard.scss'
 })
-export class AdminDashboard implements OnInit {
+export class AdminDashboard implements OnInit, OnDestroy {
   private api = inject(ApiService);
 
   status = signal<SyncStatus | null>(null);
@@ -216,6 +216,7 @@ export class AdminDashboard implements OnInit {
   savingEmail = signal('');
   syncing = signal(false);
   syncMessage = signal('');
+  private syncPoll: ReturnType<typeof setInterval> | null = null;
   applying = signal('');
   patchPlan = signal('');
   applyResult = signal<{ success: boolean; output: string } | null>(null);
@@ -291,14 +292,59 @@ export class AdminDashboard implements OnInit {
 
   triggerSync() {
     this.syncing.set(true);
+    this.syncMessage.set('Starting full sync (fetch + classify)…');
     this.api.triggerSync().subscribe({
       next: r => {
-        this.syncing.set(false);
-        this.syncMessage.set(r.status === 'started' ? `Sync started (PID ${r.pid})` : r.status);
-        setTimeout(() => this.syncMessage.set(''), 4000);
+        if (r.status === 'already_running') {
+          this.syncMessage.set('A sync is already running — watching progress…');
+        } else if (r.status === 'error') {
+          this.syncing.set(false);
+          this.syncMessage.set(`Could not start sync: ${r.message ?? 'unknown error'}`);
+          return;
+        } else {
+          this.syncMessage.set('Sync in progress… (fetching + classifying tickets)');
+        }
+        this.startSyncPolling();
       },
-      error: () => this.syncing.set(false),
+      error: () => {
+        this.syncing.set(false);
+        this.syncMessage.set('Could not start sync (request failed).');
+      },
     });
+  }
+
+  private startSyncPolling() {
+    this.stopSyncPolling();
+    this.syncPoll = setInterval(() => {
+      this.api.getSyncStatus().subscribe({
+        next: s => {
+          this.status.set(s);
+          const job: SyncJob | undefined = s.job;
+          if (!job || job.state === 'running') return;
+          this.stopSyncPolling();
+          this.syncing.set(false);
+          if (job.state === 'done') {
+            const r = job.result || {};
+            const parts = [r.sync_summary, r.classify_summary].filter(Boolean).join(' · ');
+            this.syncMessage.set(`✓ Sync complete${parts ? ' — ' + parts : ''}`);
+          } else if (job.state === 'error') {
+            this.syncMessage.set(`Sync failed: ${job.message || 'see logs'}`);
+          } else {
+            // state === 'idle' — job was lost (e.g. backend restarted mid-run)
+            this.syncMessage.set('Sync status unavailable (backend may have restarted). Please retry.');
+          }
+        },
+        error: () => { /* transient poll error — keep polling */ },
+      });
+    }, 5000);
+  }
+
+  private stopSyncPolling() {
+    if (this.syncPoll) { clearInterval(this.syncPoll); this.syncPoll = null; }
+  }
+
+  ngOnDestroy() {
+    this.stopSyncPolling();
   }
 
   previewPatch(fb: FeedbackRecord) {
