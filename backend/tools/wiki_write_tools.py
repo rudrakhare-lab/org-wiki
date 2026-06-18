@@ -14,6 +14,7 @@ import pathlib
 import re
 
 from backend import wiki_retriever
+from backend import wiki_schema
 
 
 def _wiki_dir():
@@ -21,9 +22,11 @@ def _wiki_dir():
     from backend import agent_context
     return agent_context.get_current_agent().wiki_dir
 
-# Fields that are always scalars — never allow treating them as lists
-_SCALAR_FIELDS = {"type", "status", "owner", "module", "last_updated", "ingested",
-                  "doc_type", "date", "auto_generated", "human_edited", "cluster_id"}
+# Fields that are always scalars — never allow treating them as lists.
+# Sourced from wiki_schema (the single source of truth) so the generic-schema
+# `category`/`slug`/`title` guards stay in sync. Kept as a mutable set because
+# the module uses it for in-place membership checks elsewhere.
+_SCALAR_FIELDS = set(wiki_schema.SCALAR_FRONTMATTER_FIELDS)
 
 
 def _safe_path(rel_path: str) -> pathlib.Path | None:

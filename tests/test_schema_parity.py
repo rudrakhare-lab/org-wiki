@@ -75,3 +75,9 @@ def test_propose_new_allows_generic_paths(monkeypatch):
     monkeypatch.setattr(agent_context, "get_current_agent", lambda: fake, raising=False)
     al = pt._allowed_new_prefixes()
     assert "relationships/" in al and "topics/" in al
+
+
+def test_write_tools_scalar_fields_include_category():
+    import backend.tools.wiki_write_tools as wt
+    assert "category" in wt._SCALAR_FIELDS
+    assert {"type", "status", "owner"} <= wt._SCALAR_FIELDS
