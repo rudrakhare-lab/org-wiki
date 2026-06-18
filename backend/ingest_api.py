@@ -542,9 +542,7 @@ async def _run_ingest_job(
                     job.events.append(event)
 
                     if "error" in result:
-                        job.status = "error"
-                        job.error_msg = result["error"]
-                        return
+                        job.warnings.append(f"{block.name} {path}: {result['error']}".strip())
 
             if response.stop_reason == "end_turn":
                 break
@@ -594,9 +592,14 @@ async def _run_ingest_job(
             pass
 
         job.links = [p.replace("wiki/", "").replace(".md", "") for p in job.files_created]
-        job.status = "complete"
-        _LOG.info("[execute] DONE  job=%s  created=%d  modified=%d  agent=%s",
-                  job.job_id[:8], len(job.files_created), len(job.files_modified), aid)
+        if not job.files_created and not job.files_modified and job.warnings:
+            job.status = "error"
+            job.error_msg = job.warnings[-1]
+        else:
+            job.status = "complete"
+        _LOG.info("[execute] DONE  job=%s  status=%s  created=%d  modified=%d  warnings=%d  agent=%s",
+                  job.job_id[:8], job.status, len(job.files_created), len(job.files_modified),
+                  len(job.warnings), aid)
 
     except Exception as exc:
         job.status = "error"
@@ -655,4 +658,5 @@ async def get_job_status(job_id: str):
         "files_modified": job.files_modified,
         "links": job.links,
         "error_msg": job.error_msg,
+        "warnings": job.warnings,
     }

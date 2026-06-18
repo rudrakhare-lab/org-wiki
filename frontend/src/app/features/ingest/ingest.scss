@@ -94,6 +94,11 @@
   .error-title { font-weight: 600; color: #c62828; }
   .error-detail { font-size: 0.85em; color: #555; margin-top: 6px; }
 }
+.warnings-box { margin: 12px 0; padding: 12px 14px; border-radius: 10px;
+  background: var(--warning-soft); border: 1px solid var(--warning-border); color: var(--text); }
+.warnings-box .warnings-title { font-weight: 600; color: var(--warning); margin-bottom: 6px; }
+.warnings-box ul { margin: 0; padding-left: 18px; }
+.warnings-box li { font-family: ui-monospace, monospace; font-size: .82rem; color: var(--text-muted); margin: 2px 0; word-break: break-word; }
 .warning-note { font-size: 0.8em; color: #888; text-align: center; margin-top: 12px; }
 .error-banner { background: #ffebee; color: #c62828; padding: 12px; border-radius: 6px; margin-top: 12px; font-size: 0.88em; }
 .planning-spinner { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 80px 0;
