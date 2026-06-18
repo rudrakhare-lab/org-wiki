@@ -42,13 +42,18 @@ from __future__ import annotations
 import logging
 import os
 import subprocess
+import sys
 import time
 from pathlib import Path
 
 _LOG = logging.getLogger("trigger_sync")
 
 REPO = Path(__file__).resolve().parents[2]
-VENV_PY = REPO / "venv" / "bin" / "python"
+# Use the interpreter actually running the backend. The prod container has no
+# project venv (deps install into the system Python), so a hardcoded
+# venv/bin/python path does not exist — sys.executable is correct everywhere
+# (system Python in the container, the venv's python in local dev).
+VENV_PY = sys.executable
 DAILY_SYNC = REPO / "scripts" / "jira_daily_sync.py"
 LOG_FILE = REPO / "logs" / "jira_sync.log"
 
