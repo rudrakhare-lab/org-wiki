@@ -848,6 +848,32 @@ def test_query_same_agent_conversation_id_is_reused(monkeypatch, clean_db):
         app.dependency_overrides.clear()
 
 
+def test_wiki_graph_edges_from_frontmatter_refs():
+    """Generic-schema pages express relationships via frontmatter page-paths (party_a/
+    party_b, sourced_from, related_concepts), not [[wikilinks]]. The graph must turn
+    those into edges so created agents' graphs aren't edgeless."""
+    import backend.wiki_graph_api as wg
+
+    rel_page = (
+        "---\n"
+        "category: relationships\n"
+        "party_a: wiki/concepts/due-diligence.md\n"
+        "party_b: wiki/concepts/corporate-compliance.md\n"
+        "sourced_from:\n"
+        "- wiki/sources/profectus.md\n"
+        "title: 'Relationship: DD <-> CC'\n"
+        "tags:\n- due-diligence\n"
+        "---\n"
+        "# Body, no wikilinks here\n"
+    )
+    refs = {r.removeprefix("wiki/").removesuffix(".md") for r in wg._frontmatter_refs(rel_page)}
+    assert "concepts/due-diligence" in refs
+    assert "concepts/corporate-compliance" in refs
+    assert "sources/profectus" in refs
+    # Scalar metadata never produces a false edge.
+    assert not any("title" in r or "due-diligence" == r for r in refs)
+
+
 def test_wiki_graph_uses_active_agent_dir(tmp_path, monkeypatch):
     # Build a tiny infosec wiki and confirm the graph endpoint walks it (not conwo's).
     import asyncio
