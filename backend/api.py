@@ -1379,12 +1379,16 @@ def update_agent_endpoint(agent_id: str, req: UpdateAgentRequest, admin: dict = 
 
 
 @app.delete("/admin/agents/{agent_id}")
-def delete_agent_endpoint(agent_id: str, admin: dict = Depends(_require_admin)):
+def delete_agent_endpoint(agent_id: str, hard: bool = False,
+                          admin: dict = Depends(_require_admin)):
     try:
+        if hard:
+            agent_provisioning.delete_agent(agent_id)
+            return {"status": "deleted", "id": agent_id}
         agent_provisioning.archive_agent(agent_id)
+        return {"status": "archived", "id": agent_id}
     except agent_provisioning.AgentError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    return {"status": "archived", "id": agent_id}
 
 
 _VALID_PROPOSAL_ID = __import__("re").compile(r"^[a-zA-Z0-9_\-]{8,64}$")

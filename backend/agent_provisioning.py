@@ -166,3 +166,28 @@ def archive_agent(agent_id: str):
     with db.connection() as c:
         c.execute("UPDATE agents SET status='archived' WHERE id=%s", (agent_id,))
     agent_registry.invalidate_cache()
+
+
+def delete_agent(agent_id: str):
+    """Hard delete: remove the DB row AND the agent's on-disk dirs. Irreversible.
+    Conwo/Infosec are protected. Dir removal is best-effort and guarded to stay under
+    the data base dir and to match this agent's slug."""
+    if agent_id in PROTECTED:
+        raise AgentError(f"'{agent_id}' is a built-in agent and cannot be removed")
+    import shutil
+    from backend import db, agent_registry
+    from backend.config import _BASE
+
+    spec = agent_registry.get(agent_id)              # resolve dirs BEFORE deleting the row
+    with db.connection() as c:
+        c.execute("DELETE FROM agents WHERE id=%s", (agent_id,))
+    agent_registry.invalidate_cache()
+
+    try:
+        agent_dir = spec.wiki_dir.parent             # <base>/agents/<slug>
+        base = _BASE.resolve()
+        if (spec.id == agent_id and agent_dir.name == agent_id
+                and base in agent_dir.resolve().parents):
+            shutil.rmtree(agent_dir, ignore_errors=True)
+    except Exception:
+        pass

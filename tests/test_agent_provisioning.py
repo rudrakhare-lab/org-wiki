@@ -112,3 +112,20 @@ def test_update_agent_sets_description(clean_db, no_extra_agents, tmp_path, monk
     ap.update_agent("legal", description="new desc")
     agent_registry.invalidate_cache()
     assert agent_registry.get("legal").description == "new desc"
+
+
+def test_delete_agent_removes_row_and_dir(clean_db, no_extra_agents, tmp_path, monkeypatch):
+    import pytest
+    from backend import agent_provisioning as ap, agent_registry, config, db
+    monkeypatch.setattr(config, "_BASE", tmp_path, raising=False)
+    monkeypatch.setattr(agent_registry, "_BASE", tmp_path, raising=False)
+    ap.create_agent("Legal", created_by="a", description="x")
+    agent_dir = tmp_path / "agents" / "legal"
+    assert agent_dir.is_dir()
+    ap.delete_agent("legal")
+    agent_registry.invalidate_cache()
+    with db.connection() as c:
+        assert c.execute("SELECT 1 FROM agents WHERE id='legal'").fetchone() is None
+    assert not agent_dir.exists()
+    with pytest.raises(ap.AgentError):
+        ap.delete_agent("conwo")
