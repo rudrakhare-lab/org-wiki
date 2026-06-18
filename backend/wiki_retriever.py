@@ -153,8 +153,13 @@ class WikiIndex:
             return result[:top_n]
 
     def get_page(self, rel_path: str) -> WikiPage | None:
+        base = rel_path.removeprefix("wiki/")
         with self._lock:
-            return self._pages.get(rel_path)
+            for key in (rel_path, f"{rel_path}.md", base, f"{base}.md"):
+                p = self._pages.get(key)
+                if p:
+                    return p
+        return None
 
     def all_paths(self) -> list[str]:
         with self._lock:
@@ -276,7 +281,25 @@ def search(question: str, top_n: int = 5) -> list[WikiPage]:
 
 
 def get_page(rel_path: str) -> WikiPage | None:
-    return get_index().get_page(rel_path)
+    page = get_index().get_page(rel_path)
+    if page:
+        return page
+    # Disk fallback: survives a stale/missing in-memory index (e.g. a different
+    # replica, or before the agent's index is built). Reads from the active agent's
+    # wiki dir on the shared volume.
+    try:
+        from backend import agent_context
+        wd = agent_context.get_current_agent().wiki_dir
+        base = rel_path.removeprefix("wiki/")
+        for cand in (base, f"{base}.md"):
+            f = wd / cand
+            if f.is_file():
+                text = f.read_text(encoding="utf-8")
+                rel = str(f.relative_to(wd)).replace("\\", "/")
+                return WikiPage(path=rel, title=_extract_title(text, f.stem), full_text=text)
+    except Exception:
+        pass
+    return None
 
 
 def all_paths() -> list[str]:

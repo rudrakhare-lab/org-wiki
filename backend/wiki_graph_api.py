@@ -46,6 +46,34 @@ def _frontmatter_refs(text: str) -> list[str]:
     return _FM_REF_RE.findall(parts[1])
 
 
+def _frontmatter_relation_values(text: str) -> list[str]:
+    """Values of known relationship frontmatter fields — scalars, inline lists, or
+    YAML list items. Captures bare slugs/titles AND paths (party_a: corporate-compliance,
+    related: [a, b], sourced_from:\n  - wiki/sources/x.md)."""
+    parts = text.split("---\n", 2)
+    if len(parts) < 3:
+        return []
+    from backend import wiki_schema
+    rel = wiki_schema.RELATION_FRONTMATTER_FIELDS
+    out: list[str] = []
+    cur_rel = False
+    for line in parts[1].splitlines():
+        m = re.match(r"^([A-Za-z_][\w-]*):\s*(.*)$", line)
+        if m:
+            key, val = m.group(1).strip().lower(), m.group(2).strip()
+            cur_rel = key in rel
+            if cur_rel and val and val not in ("[]", "''", '""'):
+                if val.startswith("[") and val.endswith("]"):
+                    out += [v.strip().strip('"\'') for v in val[1:-1].split(",") if v.strip()]
+                else:
+                    out.append(val.strip('"\''))
+            continue
+        lm = re.match(r"^\s*-\s*(.+)$", line)
+        if lm and cur_rel:
+            out.append(lm.group(1).strip().strip('"\''))
+    return out
+
+
 def _add_config_layer(
     nodes: dict[str, dict],
     links: list[dict],
@@ -136,26 +164,58 @@ async def wiki_graph(include_configs: bool = False) -> dict:
         }
         texts[node_id] = text
 
-    # Build edges
+    # ── Build edges (format-agnostic reference resolution) ──────────────────
+    # Resolve a reference written as a full path, a bare slug, or a title to a node id.
+    slug_to_id: dict[str, str] = {}
+    title_to_id: dict[str, str] = {}
+    for nid, n in nodes.items():
+        slug_to_id.setdefault(nid.rsplit("/", 1)[-1], nid)
+        title_to_id.setdefault(str(n["label"]).strip().lower(), nid)
+
+    def _resolve(ref: str) -> str | None:
+        r = ref.strip().strip('"\'').removeprefix("wiki/").removesuffix(".md").strip()
+        if not r:
+            return None
+        if r in nodes:
+            return r
+        seg = r.rsplit("/", 1)[-1]
+        if seg in slug_to_id:
+            return slug_to_id[seg]
+        if r.replace("-", " ").lower() in title_to_id:
+            return title_to_id[r.replace("-", " ").lower()]
+        if r.lower() in title_to_id:
+            return title_to_id[r.lower()]
+        return None
+
     seen: set[tuple[str, str]] = set()
     links: list[dict] = []
     degree: dict[str, int] = {k: 0 for k in nodes}
 
+    def _add(a: str, b: str | None) -> None:
+        if not b or a == b:
+            return
+        key = (min(a, b), max(a, b))
+        if key in seen:
+            return
+        seen.add(key)
+        links.append({"source": a, "target": b})
+        degree[a] = degree.get(a, 0) + 1
+        degree[b] = degree.get(b, 0) + 1
+
     for node_id, text in texts.items():
-        # Edges come from inline [[wikilinks]] (Conwo convention) AND from page-path
-        # references in the frontmatter (generic-schema convention). Normalize both:
-        # strip an optional `wiki/` prefix and the `.md` suffix to match node ids.
-        for raw in _extract_links(text) + _frontmatter_refs(text):
-            target = raw.strip().removeprefix("wiki/").removesuffix(".md")
-            if target not in nodes or target == node_id:
-                continue
-            key = (min(node_id, target), max(node_id, target))
-            if key in seen:
-                continue
-            seen.add(key)
-            links.append({"source": node_id, "target": target})
-            degree[node_id] = degree.get(node_id, 0) + 1
-            degree[target] = degree.get(target, 0) + 1
+        for raw in _extract_links(text) + _frontmatter_refs(text) + _frontmatter_relation_values(text):
+            _add(node_id, _resolve(raw))
+        # Relationship pages connect their endpoints by slug halves, even when the
+        # frontmatter is sparse: relationships/<a>-<b>.md → edge to nodes a and b.
+        if node_id.startswith("relationships/"):
+            rslug = node_id.split("/", 1)[1]
+            for other_id in list(nodes):
+                if other_id == node_id:
+                    continue
+                oslug = other_id.rsplit("/", 1)[-1]
+                if oslug and (rslug.startswith(oslug + "-") or rslug.endswith("-" + oslug)
+                              or ("-" + oslug + "-") in ("-" + rslug + "-")):
+                    _add(node_id, other_id)
 
     for nid, d in degree.items():
         nodes[nid]["val"] = max(1, d)
