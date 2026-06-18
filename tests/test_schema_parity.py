@@ -41,3 +41,9 @@ def test_generic_propose_allowlist_has_relationships_topics_entities():
 def test_workinsync_propose_allowlist_excludes_generic_only_types():
     al = ws.for_kind("workinsync").propose_allowlist
     assert "topics/" not in al and "relationships/" not in al
+
+
+def test_graph_page_type_reads_category():
+    import backend.wiki_graph_api as wg
+    assert wg._page_type("---\ncategory: relationships\nslug: a-b\n---\n# x") == "relationships"
+    assert wg._page_type("---\ntype: module\n---\n# x") == "module"

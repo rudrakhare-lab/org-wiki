@@ -19,11 +19,8 @@ _SKIP: set[str] = set()  # show all pages
 
 
 def _page_type(text: str) -> str:
-    parts = text.split("---\n", 2)
-    if len(parts) < 3:
-        return "unknown"
-    m = re.search(r"^type:\s*(\S+)", parts[1], re.MULTILINE)
-    return m.group(1).strip("'\"") if m else "unknown"
+    from backend import wiki_schema
+    return wiki_schema.page_type(text)
 
 
 def _extract_links(text: str) -> list[str]:
