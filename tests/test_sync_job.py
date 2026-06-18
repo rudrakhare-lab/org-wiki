@@ -70,3 +70,25 @@ def test_overlap_is_blocked(monkeypatch):
     assert sync_job.start() == {"status": "already_running"}
     gate.set()
     _wait_until_idle_done()
+
+
+def test_worker_exception_sets_error(monkeypatch):
+    def boom(inp):
+        raise RuntimeError("kaboom")
+    monkeypatch.setattr("backend.tools.trigger_sync._trigger_jira_sync_handler", boom)
+    sync_job.start()
+    _wait_until_idle_done()
+    s = sync_job.status()
+    assert s["state"] == "error"
+    assert "kaboom" in s["message"]
+
+
+def test_status_result_is_a_copy(monkeypatch):
+    monkeypatch.setattr(
+        "backend.tools.trigger_sync._trigger_jira_sync_handler",
+        lambda inp: {"success": True, "sync_summary": "x"},
+    )
+    sync_job.start()
+    _wait_until_idle_done()
+    sync_job.status()["result"]["sync_summary"] = "MUTATED"
+    assert sync_job.status()["result"]["sync_summary"] == "x"

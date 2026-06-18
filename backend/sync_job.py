@@ -32,7 +32,10 @@ def _now() -> str:
 def status() -> dict:
     """Public snapshot of the current job (internal keys stripped)."""
     with _lock:
-        return {k: v for k, v in _state.items() if not k.startswith("_")}
+        snap = {k: v for k, v in _state.items() if not k.startswith("_")}
+    if isinstance(snap.get("result"), dict):
+        snap["result"] = dict(snap["result"])
+    return snap
 
 
 def _worker() -> None:
