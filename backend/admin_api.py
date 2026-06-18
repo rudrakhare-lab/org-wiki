@@ -95,6 +95,13 @@ def get_sync_status() -> dict:
     pending_feedback = list_feedback(status="pending")
     result["feedback"] = {"pending_count": len(pending_feedback)}
 
+    # Live state of the full-pipeline "Sync now" job (idle/running/done/error).
+    try:
+        from backend import sync_job
+        result["job"] = sync_job.status()
+    except Exception:
+        result["job"] = {"state": "idle"}
+
     return result
 
 
@@ -128,17 +135,14 @@ def get_ingest_queue() -> list[dict]:
 
 
 def trigger_jira_sync() -> dict:
-    """Run jira_sync.py --incremental as a background subprocess."""
-    try:
-        proc = subprocess.Popen(
-            [_PYTHON, str(_SCRIPTS / "jira_sync.py"), "--incremental"],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            cwd=str(ROOT),
-        )
-        return {"status": "started", "pid": proc.pid}
-    except Exception as exc:
-        return {"status": "error", "message": str(exc)}
+    """Run the FULL Jira pipeline (fetch + AI classification) in the background.
+
+    Delegates to the in-process job tracker so the HTTP request returns instantly,
+    overlapping runs are blocked, and the admin UI can poll get_sync_status() for
+    progress. (Previously this ran Stage 1 only — jira_sync.py --incremental — which
+    left freshly-fetched tickets unclassified.)"""
+    from backend import sync_job
+    return sync_job.start()
 
 
 def get_feedback_list(status: str = "pending", limit: int = 50) -> list[dict]:
