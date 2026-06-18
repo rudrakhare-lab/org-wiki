@@ -896,3 +896,39 @@ def test_wiki_graph_uses_active_agent_dir(tmp_path, monkeypatch):
 
     labels = {n["label"] for n in result["nodes"]}
     assert any("Ztestphish" in l or "Ztest" in l for l in labels)
+
+
+def test_wiki_graph_edges_from_bare_slug_and_relationship_slug(tmp_path, monkeypatch):
+    import asyncio, types
+    from backend import agent_context
+    import backend.wiki_graph_api as wg
+    wd = tmp_path / "wiki"
+    (wd / "concepts").mkdir(parents=True)
+    (wd / "relationships").mkdir(parents=True)
+    (wd / "concepts" / "due-diligence.md").write_text("---\ncategory: concepts\nslug: due-diligence\n---\n# Due Diligence")
+    (wd / "concepts" / "corporate-compliance.md").write_text("---\ncategory: concepts\nslug: corporate-compliance\n---\n# Corporate Compliance")
+    # relationship page references endpoints by BARE SLUG (not full wiki/...md path)
+    (wd / "relationships" / "due-diligence-corporate-compliance.md").write_text(
+        "---\ncategory: relationships\nparty_a: due-diligence\nparty_b: corporate-compliance\n---\n# Rel")
+    fake = types.SimpleNamespace(id="legal", schema_kind="generic", has_pms=False, wiki_dir=wd)
+    monkeypatch.setattr(agent_context, "get_current_agent", lambda: fake, raising=False)
+    result = asyncio.new_event_loop().run_until_complete(wg.wiki_graph(include_configs=False))
+    flat = {frozenset((l["source"], l["target"])) for l in result["links"]}
+    rel = "relationships/due-diligence-corporate-compliance"
+    assert frozenset((rel, "concepts/due-diligence")) in flat
+    assert frozenset((rel, "concepts/corporate-compliance")) in flat
+
+
+def test_get_page_tolerant_of_missing_md(tmp_path, monkeypatch):
+    import types
+    from backend import agent_context
+    import backend.wiki_retriever as wr
+    wd = tmp_path / "wiki"
+    (wd / "concepts").mkdir(parents=True)
+    (wd / "concepts" / "x.md").write_text("---\ncategory: concepts\n---\n# X Title\nbody text")
+    fake = types.SimpleNamespace(id="legal-getpage", schema_kind="generic", wiki_dir=wd)
+    monkeypatch.setattr(agent_context, "get_current_agent", lambda: fake, raising=False)
+    monkeypatch.setattr(agent_context, "get_current_agent_id", lambda: "legal-getpage", raising=False)
+    # graph passes node path WITHOUT .md — lookup must still resolve it
+    p = wr.get_page("concepts/x")
+    assert p is not None and "body text" in p.full_text
