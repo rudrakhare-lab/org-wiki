@@ -1,6 +1,7 @@
 import { Component, input, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService, WikiPage } from '../../core/api.service';
+import { AgentService } from '../../core/agent.service';
 
 const JIRA_BASE = 'https://moveinsync.atlassian.net/browse/';
 
@@ -53,7 +54,7 @@ const JIRA_BASE = 'https://moveinsync.atlassian.net/browse/';
             </section>
           }
 
-          @if (pmsConfigs().length) {
+          @if (hasPms() && pmsConfigs().length) {
             <section>
               <h4>PMS configs</h4>
               <ul class="source-list">
@@ -205,6 +206,12 @@ export class SourceDrawer {
   jiraBase = JIRA_BASE;
 
   private api = inject(ApiService);
+  private agentSvc = inject(AgentService);
+
+  /** Whether the active agent exposes PMS configs. Defaults true so Conwo/unknown keeps showing it. */
+  protected hasPms(): boolean {
+    return this.agentSvc.active()?.has_pms ?? true;
+  }
 
   totalCount() {
     return this.wikiPages().length + this.jiraKeys().length + this.pmsConfigs().length;

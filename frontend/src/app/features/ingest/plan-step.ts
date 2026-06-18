@@ -33,7 +33,7 @@ import { IngestPlan, IngestOperation } from '../../core/api.service';
         </div>
         <div class="badge">
           <span class="badge-label">Action</span>
-          <span class="badge-value">{{ hasExistingModule() ? 'Update existing page' : 'Create new page' }}</span>
+          <span class="badge-value">{{ isEditingExisting() ? 'Update existing page' : 'Create new page' }}</span>
         </div>
       </div>
 
@@ -115,9 +115,9 @@ export class PlanStep {
     return this.plan().operations.filter(o => o.type !== 'create');
   }
 
-  hasExistingModule(): boolean {
-    return this.plan().operations.some(
-      o => o.type !== 'create' && o.path.startsWith('wiki/modules/')
-    );
+  // An operation that targets an already-existing page (any category) —
+  // i.e. an edit/append/update rather than a create. Not specific to modules/.
+  isEditingExisting(): boolean {
+    return this.plan().operations.some(o => o.type !== 'create');
   }
 }

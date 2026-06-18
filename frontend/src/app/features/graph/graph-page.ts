@@ -24,6 +24,8 @@ const TYPE_COLORS: Record<string, string> = {
   integration:     '#F1C40F',
   person:          '#E91E63',
   pattern:         '#FF7043',
+  relationships:   '#14b8a6',
+  topics:          '#3b82f6',
 };
 
 const DEFAULT_COLOR = '#BDC3C7';
