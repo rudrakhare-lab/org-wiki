@@ -47,3 +47,21 @@ def test_graph_page_type_reads_category():
     import backend.wiki_graph_api as wg
     assert wg._page_type("---\ncategory: relationships\nslug: a-b\n---\n# x") == "relationships"
     assert wg._page_type("---\ntype: module\n---\n# x") == "module"
+
+
+def test_check_duplicate_is_agent_scoped_and_knows_generic_categories(tmp_path, monkeypatch):
+    import types
+    from backend import agent_context
+    import backend.tools.wiki_read_tools as rt
+
+    wiki = tmp_path / "wiki"
+    (wiki / "relationships").mkdir(parents=True)
+    (wiki / "relationships" / "a-b.md").write_text("---\ncategory: relationships\n---\n# x")
+
+    fake = types.SimpleNamespace(id="legal", schema_kind="generic", wiki_dir=wiki)
+    monkeypatch.setattr(agent_context, "get_current_agent", lambda: fake, raising=False)
+
+    hit = rt._wiki_check_duplicate_handler({"slug": "a-b", "category": "relationships"})
+    assert hit.get("exists") is True
+    miss = rt._wiki_check_duplicate_handler({"slug": "nope", "category": "topics"})
+    assert miss.get("exists") is False and "code" not in miss

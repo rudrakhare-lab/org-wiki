@@ -7,23 +7,13 @@ from __future__ import annotations
 
 import pathlib
 
-from backend import wiki_retriever
+from backend import wiki_retriever, wiki_schema
 
-# Resolved at import time so tests can patch it
-WIKI_ROOT = str(pathlib.Path(__file__).resolve().parents[2])
 
-CATEGORY_DIRS = {
-    "modules": "wiki/modules",
-    "entities": "wiki/entities",
-    "sources": "wiki/sources",
-    "concepts": "wiki/concepts",
-    "decisions": "wiki/decisions",
-    "cross-module": "wiki/cross-module",
-    "configs": "wiki/configs",
-    "integrations": "wiki/integrations",
-    "persons": "wiki/persons",
-    "patterns": "wiki/patterns",
-}
+def _wiki_dir() -> pathlib.Path:
+    """Return the active agent's wiki directory (resolved at call time)."""
+    from backend import agent_context
+    return pathlib.Path(agent_context.get_current_agent().wiki_dir)
 
 # ── wiki_list_pages ──────────────────────────────────────────────────────────
 
@@ -55,24 +45,23 @@ WIKI_LIST_PAGES_SCHEMA: dict = {
 def _wiki_list_pages_handler(inp: dict) -> dict:
     category = inp.get("category", "").strip().lower()
 
-    if category and category not in CATEGORY_DIRS:
+    if category and category not in wiki_schema.ALL_CATEGORIES:
         return {"error": f"Unknown category: {category!r}", "code": "unknown_category"}
 
-    all_paths = wiki_retriever.all_paths()
-
-    if category:
-        prefix = f"{category}/"
-        filtered_paths = [p for p in all_paths if p.startswith(prefix)]
-    else:
-        filtered_paths = all_paths
+    wiki_dir = _wiki_dir()
+    search_root = wiki_dir / category if category else wiki_dir
 
     pages = []
-    for rel_path in filtered_paths:
-        page = wiki_retriever.get_page(rel_path)
-        if page is None:
-            continue
-        slug = pathlib.Path(rel_path).stem
-        pages.append({"path": rel_path, "title": page.title, "slug": slug})
+    if search_root.is_dir():
+        for path in sorted(search_root.rglob("*.md")):
+            slug = path.stem
+            rel_path = str(path.relative_to(wiki_dir))
+            try:
+                text = path.read_text(encoding="utf-8")
+            except OSError:
+                text = ""
+            title = wiki_retriever._extract_title(text, fallback=slug)
+            pages.append({"path": rel_path, "title": title, "slug": slug})
 
     return {"pages": pages, "total": len(pages)}
 
@@ -112,13 +101,13 @@ def _wiki_check_duplicate_handler(inp: dict) -> dict:
 
     if not slug:
         return {"error": "slug is required", "code": "missing_input"}
-    if category not in CATEGORY_DIRS:
+    if category not in wiki_schema.ALL_CATEGORIES:
         return {"error": f"Unknown category: {category!r}", "code": "unknown_category"}
 
-    rel_dir = CATEGORY_DIRS[category]
-    candidate = pathlib.Path(WIKI_ROOT) / rel_dir / f"{slug}.md"
+    wiki_dir = _wiki_dir()
+    candidate = wiki_dir / category / f"{slug}.md"
     exists = candidate.exists()
     return {
         "exists": exists,
-        "path": str(candidate.relative_to(WIKI_ROOT)) if exists else None,
+        "path": str(candidate.relative_to(wiki_dir)) if exists else None,
     }
