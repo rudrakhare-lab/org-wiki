@@ -15,7 +15,7 @@ describe('ApiService agent admin', () => {
     api.createAgent('Legal').subscribe();
     const r = http.expectOne('/admin/agents');
     expect(r.request.method).toBe('POST');
-    expect(r.request.body).toEqual({ name: 'Legal' });
+    expect(r.request.body).toEqual({ name: 'Legal', description: '' });
     r.flush({ id: 'legal' });
   });
 
@@ -31,5 +31,19 @@ describe('ApiService agent admin', () => {
     const r = http.expectOne('/admin/agents/legal');
     expect(r.request.method).toBe('DELETE');
     r.flush({ status: 'archived', id: 'legal' });
+  });
+
+  it('createAgent sends name + description', () => {
+    api.createAgent('Legal', 'does legal').subscribe();
+    const r = http.expectOne('/admin/agents');
+    expect(r.request.body).toEqual({ name: 'Legal', description: 'does legal' });
+    r.flush({ id: 'legal' });
+  });
+
+  it('deleteAgent hits hard=true', () => {
+    api.deleteAgent('legal').subscribe();
+    const r = http.expectOne('/admin/agents/legal?hard=true');
+    expect(r.request.method).toBe('DELETE');
+    r.flush({ status: 'deleted', id: 'legal' });
   });
 });

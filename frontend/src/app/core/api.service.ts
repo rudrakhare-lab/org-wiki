@@ -832,14 +832,17 @@ export class ApiService {
   }
 
   // ── Agents (admin) ──────────────────────────────────────────────────────
-  createAgent(name: string): Observable<Agent> {
-    return this.http.post<Agent>(`${API_BASE}/admin/agents`, { name }, { headers: this.adminHeaders() });
+  createAgent(name: string, description = ''): Observable<Agent> {
+    return this.http.post<Agent>(`${API_BASE}/admin/agents`, { name, description }, { headers: this.adminHeaders() });
   }
-  updateAgent(id: string, patch: { display_name?: string; identity?: string }): Observable<Agent> {
+  updateAgent(id: string, patch: { display_name?: string; identity?: string; description?: string }): Observable<Agent> {
     return this.http.patch<Agent>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}`, patch, { headers: this.adminHeaders() });
   }
   archiveAgent(id: string): Observable<{ status: string; id: string }> {
     return this.http.delete<{ status: string; id: string }>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}`, { headers: this.adminHeaders() });
+  }
+  deleteAgent(id: string): Observable<{ status: string; id: string }> {
+    return this.http.delete<{ status: string; id: string }>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}?hard=true`, { headers: this.adminHeaders() });
   }
 
   // ── Traces / observability (admin-only) ────────────────────────────────
