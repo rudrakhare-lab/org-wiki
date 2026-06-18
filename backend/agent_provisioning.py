@@ -80,7 +80,7 @@ def _claude_md_template(name: str, identity: str) -> str:
             "(sources/concepts/entities/relationships/decisions/topics). No Jira/PMS.\n")
 
 
-def create_agent(name: str, created_by: str):
+def create_agent(name: str, created_by: str, description: str = ""):
     from backend import agent_registry, db, wiki_retriever, wiki_schema
     from backend.config import _BASE
 
@@ -114,11 +114,11 @@ def create_agent(name: str, created_by: str):
 
         with db.connection() as c:
             c.execute(
-                "INSERT INTO agents (id, display_name, identity, accent, theme_base, "
+                "INSERT INTO agents (id, display_name, identity, description, accent, theme_base, "
                 "schema_kind, modes, tools, has_jira, has_pms, wiki_dir, raw_dir, "
                 "claude_md, prompt_sections, status, created_by) VALUES "
-                "(%s,%s,%s,%s,'dark','generic','{api}',%s,false,false,%s,%s,%s,'{}','active',%s)",
-                (slug, name.strip(), identity, accent, _GENERIC_TOOLS,
+                "(%s,%s,%s,%s,%s,'dark','generic','{api}',%s,false,false,%s,%s,%s,'{}','active',%s)",
+                (slug, name.strip(), identity, description, accent, _GENERIC_TOOLS,
                  wiki_rel, raw_rel, claude_rel, created_by),
             )
     except Exception:
@@ -144,11 +144,13 @@ def create_agent(name: str, created_by: str):
 PROTECTED = {"conwo", "infosec"}
 
 
-def update_agent(agent_id: str, *, display_name: str | None = None, identity: str | None = None):
+def update_agent(agent_id: str, *, display_name: str | None = None, identity: str | None = None,
+                 description: str | None = None):
     from backend import db, agent_registry
     sets, params = [], []
     if display_name is not None: sets.append("display_name=%s"); params.append(display_name)
     if identity is not None:     sets.append("identity=%s");     params.append(identity)
+    if description is not None:   sets.append("description=%s");  params.append(description)
     if not sets:
         return
     params.append(agent_id)

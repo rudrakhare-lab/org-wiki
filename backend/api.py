@@ -1346,15 +1346,17 @@ def admin_revoke_token(token: str, _admin: dict = Depends(_require_admin)):
 
 class CreateAgentRequest(BaseModel):
     name: str
+    description: str | None = None
 
 
 class UpdateAgentRequest(BaseModel):
     display_name: str | None = None
     identity: str | None = None
+    description: str | None = None
 
 
 def _agent_public(a) -> dict:
-    return {"id": a.id, "display_name": a.display_name, "description": a.identity,
+    return {"id": a.id, "display_name": a.display_name, "description": a.description,
             "identity": a.identity, "accent": a.accent, "theme_base": a.theme_base,
             "modes": list(a.modes), "has_jira": a.has_jira, "has_pms": a.has_pms}
 
@@ -1362,7 +1364,7 @@ def _agent_public(a) -> dict:
 @app.post("/admin/agents")
 def create_agent_endpoint(req: CreateAgentRequest, admin: dict = Depends(_require_admin)):
     try:
-        spec = agent_provisioning.create_agent(req.name, created_by=admin.get("email", "admin"))
+        spec = agent_provisioning.create_agent(req.name, created_by=admin.get("email", "admin"), description=req.description or "")
     except agent_provisioning.AgentExists as e:
         raise HTTPException(status_code=409, detail=str(e))
     except agent_provisioning.InvalidAgentName as e:
@@ -1372,7 +1374,7 @@ def create_agent_endpoint(req: CreateAgentRequest, admin: dict = Depends(_requir
 
 @app.patch("/admin/agents/{agent_id}")
 def update_agent_endpoint(agent_id: str, req: UpdateAgentRequest, admin: dict = Depends(_require_admin)):
-    agent_provisioning.update_agent(agent_id, display_name=req.display_name, identity=req.identity)
+    agent_provisioning.update_agent(agent_id, display_name=req.display_name, identity=req.identity, description=req.description)
     return _agent_public(agent_registry.get(agent_id))
 
 

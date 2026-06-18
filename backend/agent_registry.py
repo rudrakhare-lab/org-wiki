@@ -71,7 +71,7 @@ def _row_to_spec(r) -> AgentSpec:
         prompt_sections=tuple(r["prompt_sections"] or ()),
         tools=tuple(r["tools"] or ()), modes=tuple(r["modes"] or ("api",)),
         has_jira=bool(r["has_jira"]), has_pms=bool(r["has_pms"]),
-        status=r["status"], description=r["identity"],
+        status=r["status"], description=(r["description"] or r["identity"]),
     )
 
 
