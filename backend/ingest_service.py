@@ -182,6 +182,7 @@ class IngestJob:
     links: list
     error_msg: str
     created_at: float
+    warnings: list = field(default_factory=list)
     agent_id: str = "conwo"
     _task: object = None  # asyncio.Task — kept to prevent GC
 
@@ -198,6 +199,7 @@ def create_job(job_id: str, agent_id: str = "conwo") -> "IngestJob":
         files_modified=[],
         links=[],
         error_msg="",
+        warnings=[],
         created_at=time.time(),
         agent_id=agent_id,
     )
