@@ -21,6 +21,7 @@ _APP_TABLES = [
     "custom_field_map", "tickets",
     "jira_links", "module_links", "dependencies", "configs",
     "rate_limits",
+    "agent_access",
 ]
 
 
