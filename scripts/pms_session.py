@@ -113,6 +113,26 @@ def _http(
         raise RuntimeError(f"Network error: {exc.reason}") from exc
 
 
+def _normalize_properties(raw: Any) -> dict:
+    """Normalize a /properties response to a flat {name: value} dict.
+
+    The live /properties endpoint returns a flat object — {propertyName: value} —
+    NOT the list-of-objects shape ([{propertyName, propertyValue}, ...]) that
+    default-properties/details returns. Iterating the dict as if it were that
+    list raised "string indices must be integers, not 'str'" for any BUID that
+    actually had overrides. Accept both shapes; anything else → {}.
+    """
+    if isinstance(raw, dict):
+        return dict(raw)
+    if isinstance(raw, list):
+        return {
+            item["propertyName"]: item.get("propertyValue")
+            for item in raw
+            if isinstance(item, dict) and "propertyName" in item
+        }
+    return {}
+
+
 # ── Session ──────────────────────────────────────────────────────────────────
 
 class Session:
@@ -344,19 +364,23 @@ class Session:
             level_key = "BUID"
 
         url = f"{self.base_url}/{self.service}/properties"
-        raw: list[dict] = _http(method="POST", url=url, service=self.service, token=token, cookie=cookie, body=body, cms_origin=self.cms_origin)
+        raw = _http(method="POST", url=url, service=self.service, token=token, cookie=cookie, body=body, cms_origin=self.cms_origin)
 
+        # /properties returns a flat {name: value} dict (see _normalize_properties).
+        configs = _normalize_properties(raw)
         self._levels[level_key] = {
             "fetched_at": _now(),
-            "configs": {item["propertyName"]: item["propertyValue"] for item in raw},
+            "configs": configs,
         }
         # Lazily extract room name from the room_name property when available
         if criteria and criteria.upper() == "ROOM_ID" and value:
-            room_name_val = self._levels[level_key]["configs"].get("room_name", "")
+            room_name_val = configs.get("room_name", "")
             if room_name_val and isinstance(room_name_val, str) and room_name_val.strip():
                 self._rooms[value] = room_name_val.strip()
         self.save()
-        return raw
+        # Return the list-of-objects shape callers expect (the runtime-values
+        # handler iterates item["propertyName"]/item["propertyValue"]).
+        return [{"propertyName": k, "propertyValue": v} for k, v in configs.items()]
 
     # ── Analysis ──────────────────────────────────────────────────────────────
 
