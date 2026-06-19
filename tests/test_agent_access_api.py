@@ -38,12 +38,13 @@ def test_general_allowed_on_default_agent(client):
     auth.create_user("g2@moveinsync.com", role="general", approved=True)
     tok = auth.create_token("g2@moveinsync.com")
     with patch("backend.api.orchestrator.run") as m:
-        m.side_effect = None
-        c.post("/query", json={"question": "hi?", "server": "com"},
-               headers={**_bearer(tok), "X-Agent-Id": "conwo"})
-    # not a 403 from the access gate (conwo is open); orchestrator is mocked
-    # so any non-403 means the gate let it through.
-    # (We assert the gate specifically did not fire.)
+        m.side_effect = RuntimeError("stop-after-gate")
+        r = c.post("/query", json={"question": "hi?", "server": "com"},
+                   headers={**_bearer(tok), "X-Agent-Id": "conwo"})
+    # The agent-access gate must NOT fire for the default agent. Reaching the
+    # orchestrator (which we force to raise) proves the gate let it through:
+    # the response is the orchestrator failure (500), never the gate's 403.
+    assert r.status_code != 403
 
 
 def test_request_access_creates_pending(client):
