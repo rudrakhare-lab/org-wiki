@@ -57,7 +57,7 @@ from pydantic import BaseModel, Field
 
 from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
 from backend import trace_store
-from backend import agent_registry, agent_context, agent_provisioning
+from backend import agent_registry, agent_context, agent_provisioning, agent_access
 from backend.trace_middleware import TraceMiddleware
 from backend import config as _config
 from backend.config import local_claude_code_enabled
@@ -468,6 +468,32 @@ def list_agents():
     return [_agent_public(a) for a in agent_registry.all()]
 
 
+@app.get("/agents/my-access")
+def my_agent_access(user: dict = Depends(_require_user)):
+    """Per-agent access state for the current user: open | granted | pending | none.
+    Admins (and the default agent) are always 'open'."""
+    is_admin = user.get("role") == "admin"
+    statuses = agent_access.list_for_user(user["email"])
+    out: dict[str, str] = {}
+    for a in agent_registry.all():
+        if a.id == agent_registry.DEFAULT_AGENT_ID or is_admin:
+            out[a.id] = "open"
+        else:
+            st = statuses.get(a.id)
+            out[a.id] = st if st in ("granted", "pending") else "none"
+    return out
+
+
+@app.post("/agents/{agent_id}/request-access")
+def request_agent_access(agent_id: str, user: dict = Depends(_require_user)):
+    """Create/refresh a pending access request for the current user."""
+    if agent_id == agent_registry.DEFAULT_AGENT_ID:
+        raise HTTPException(status_code=400, detail="The default agent is open to everyone.")
+    if not any(a.id == agent_id for a in agent_registry.all()):
+        raise HTTPException(status_code=404, detail=f"Unknown agent: {agent_id}")
+    return agent_access.request_access(user["email"], agent_id)
+
+
 @app.post("/query", response_model=QueryResponse)
 def query(
     req: QueryRequest,
@@ -511,6 +537,13 @@ def query(
                     "Your account is pending admin approval. "
                     "Please wait for an administrator to approve your access."
                 ),
+            )
+
+        # Agent-access gate: non-admin users need a grant for non-default agents.
+        if not agent_access.has_access(user, agent.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this agent. Request access from an admin.",
             )
 
         # Mode gate: reject requests for modes this agent doesn't support.
@@ -770,6 +803,13 @@ async def query_stream(
             ),
         )
 
+    # Agent-access gate: non-admin users need a grant for non-default agents.
+    if not agent_access.has_access(user, agent.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this agent. Request access from an admin.",
+        )
+
     # Mode gate: this endpoint streams Claude Code (agent mode) only.
     if not agent.mode_allowed("agent"):
         raise HTTPException(
@@ -991,8 +1031,15 @@ def log_agent_answer(req: AgentLogRequest, user: dict = Depends(_require_admin))
 def search(
     req: SearchRequest,
     request: Request,
+    user: dict | None = Depends(_get_user),
     agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
+    # Agent-access gate: non-admin users need a grant for non-default agents.
+    if not agent_access.has_access(user, agent.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this agent. Request access from an admin.",
+        )
     return orchestrator.search_only(req.question, server=req.server, agent=agent)
 
 
