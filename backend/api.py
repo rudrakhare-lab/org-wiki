@@ -1465,6 +1465,40 @@ def delete_agent_endpoint(agent_id: str, hard: bool = False,
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.get("/admin/agent-access/requests")
+def admin_agent_access_requests(_admin: dict = Depends(_require_admin)):
+    return agent_access.list_pending()
+
+
+@app.get("/admin/agent-access/grants")
+def admin_agent_access_grants(_admin: dict = Depends(_require_admin)):
+    return agent_access.list_grants()
+
+
+@app.post("/admin/agent-access/{email:path}/{agent_id}/approve")
+def admin_agent_access_approve(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "granted", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "granted"}
+
+
+@app.post("/admin/agent-access/{email:path}/{agent_id}/grant")
+def admin_agent_access_grant(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "granted", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "granted"}
+
+
+@app.post("/admin/agent-access/{email:path}/{agent_id}/reject")
+def admin_agent_access_reject(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "rejected", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "rejected"}
+
+
+@app.delete("/admin/agent-access/{email:path}/{agent_id}")
+def admin_agent_access_revoke(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "revoked", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "revoked"}
+
+
 _VALID_PROPOSAL_ID = __import__("re").compile(r"^[a-zA-Z0-9_\-]{8,64}$")
 
 
