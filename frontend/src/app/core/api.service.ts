@@ -800,6 +800,15 @@ export class ApiService {
     return this.http.get<Agent[]>(`${API_BASE}/agents`);
   }
 
+  getMyAgentAccess(): Observable<Record<string, string>> {
+    return this.http.get<Record<string, string>>(`${API_BASE}/agents/my-access`, { headers: this.adminHeaders() });
+  }
+
+  requestAgentAccess(id: string): Observable<{ agent_id: string; status: string }> {
+    return this.http.post<{ agent_id: string; status: string }>(
+      `${API_BASE}/agents/${encodeURIComponent(id)}/request-access`, {}, { headers: this.adminHeaders() });
+  }
+
   // ── Conversations ──────────────────────────────────────────────────────
 
   listConversations(): Observable<{ conversations: ConversationSummary[] }> {

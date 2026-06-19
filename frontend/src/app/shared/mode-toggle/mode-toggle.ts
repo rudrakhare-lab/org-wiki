@@ -21,10 +21,20 @@ import { AgentService } from '../../core/agent.service';
       @if (open()) {
         <div class="menu" role="listbox">
           @for (a of agents(); track a.id) {
-            <button class="item" role="option" [class.active]="a.id === activeId()" (click)="choose(a.id)">
+            <button class="item" role="option"
+                    [class.active]="a.id === activeId()"
+                    [class.locked]="!agentSvc.canUse(a.id)"
+                    (click)="choose(a.id)">
               <span class="dot" [style.background]="a.accent || '#1e293b'"></span>
               <span class="name">{{ a.display_name }}</span>
               @if (a.id === activeId()) { <span class="check">✓</span> }
+              @else if (agentSvc.accessFor(a.id) === 'pending') {
+                <span class="badge">pending</span>
+              }
+              @else if (!agentSvc.canUse(a.id)) {
+                <span class="lock" title="No access">🔒</span>
+                <button class="req-btn" (click)="requestAccess(a.id, $event)">Request access</button>
+              }
             </button>
           }
         </div>
@@ -63,6 +73,13 @@ import { AgentService } from '../../core/agent.service';
     .item.active { background: var(--accent-soft); }
     .item .check { margin-left: auto; color: var(--accent); }
     .item .name, .trigger .name { white-space: nowrap; }
+    .item.locked { opacity: .7; }
+    .item .lock { margin-left: auto; font-size: 13px; }
+    .item .badge { margin-left: auto; font-size: 11px; padding: 1px 6px; border-radius: 999px;
+      background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+    .req-btn { margin-left: 6px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--surface); color: var(--text); font-size: 11px; cursor: pointer; font: inherit; }
+    .req-btn:hover { border-color: var(--mt-color); }
   `]
 })
 export class ModeToggle {
@@ -83,7 +100,13 @@ export class ModeToggle {
   protected activeAccent(): string { return this.agentSvc.active()?.accent || '#1e293b'; }
 
   protected choose(id: string): void {
+    if (!this.agentSvc.canUse(id)) return;   // locked — ignore
     this.open.set(false);
-    if (id !== this.activeId()) this.agentSvc.setActive(id); // persists + reloads to /ask
+    this.agentSvc.setActive(id);
+  }
+
+  protected requestAccess(id: string, ev: Event): void {
+    ev.stopPropagation();                     // don't trigger choose()
+    this.agentSvc.requestAccess(id);
   }
 }
