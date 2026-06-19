@@ -294,6 +294,24 @@ def _require_developer_or_admin(user: dict | None = Depends(_get_user)) -> dict:
     return user
 
 
+def _require_agent_access(
+    user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+) -> None:
+    """Raise 403 if the user does not have access to the active agent.
+
+    Used as a dependency on routes that are agent-scoped but were not
+    previously gated (wiki read, graph, ingest). Reuses the same logic and
+    error message as the /query and /search gates so the client experience is
+    consistent.
+    """
+    if not agent_access.has_access(user, agent.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this agent. Request access from an admin.",
+        )
+
+
 # ---------------------------------------------------------------------------
 # Request / Response models
 # ---------------------------------------------------------------------------
@@ -1044,7 +1062,12 @@ def search(
 
 
 @app.get("/wiki/{path:path}")
-def get_wiki_page(path: str):
+def get_wiki_page(
+    path: str,
+    user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+    _access: None = Depends(_require_agent_access),
+):
     page = wiki_retriever.get_page(path)
     if not page:
         raise HTTPException(status_code=404, detail=f"Wiki page not found: {path}")
@@ -1589,11 +1612,18 @@ app.include_router(trace_api.router, dependencies=[Depends(_require_admin)])
 # defined. Any authenticated user — auth applied here at include time so
 # ingest_api.py needs no import from api.py (avoids a circular import).
 from backend import ingest_api  # noqa: E402
-app.include_router(ingest_api.router, dependencies=[Depends(_require_developer_or_admin)])
+app.include_router(
+    ingest_api.router,
+    dependencies=[Depends(_require_developer_or_admin), Depends(_require_agent_access)],
+)
 
 from backend import wiki_graph_api  # noqa: E402
 # Graph is open to all approved users (admin/developer/general) — read-only browse.
-app.include_router(wiki_graph_api.router, dependencies=[Depends(_require_user)])
+# _require_agent_access ensures the user also has access to the active agent.
+app.include_router(
+    wiki_graph_api.router,
+    dependencies=[Depends(_require_user), Depends(_require_agent_access)],
+)
 
 
 # ---------------------------------------------------------------------------
