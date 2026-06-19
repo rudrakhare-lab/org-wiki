@@ -57,7 +57,7 @@ from pydantic import BaseModel, Field
 
 from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
 from backend import trace_store
-from backend import agent_registry, agent_context, agent_provisioning
+from backend import agent_registry, agent_context, agent_provisioning, agent_access
 from backend.trace_middleware import TraceMiddleware
 from backend import config as _config
 from backend.config import local_claude_code_enabled
@@ -294,6 +294,24 @@ def _require_developer_or_admin(user: dict | None = Depends(_get_user)) -> dict:
     return user
 
 
+def _require_agent_access(
+    user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+) -> None:
+    """Raise 403 if the user does not have access to the active agent.
+
+    Used as a dependency on routes that are agent-scoped but were not
+    previously gated (wiki read, graph, ingest). Reuses the same logic and
+    error message as the /query and /search gates so the client experience is
+    consistent.
+    """
+    if not agent_access.has_access(user, agent.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this agent. Request access from an admin.",
+        )
+
+
 # ---------------------------------------------------------------------------
 # Request / Response models
 # ---------------------------------------------------------------------------
@@ -468,6 +486,32 @@ def list_agents():
     return [_agent_public(a) for a in agent_registry.all()]
 
 
+@app.get("/agents/my-access")
+def my_agent_access(user: dict = Depends(_require_user)):
+    """Per-agent access state for the current user: open | granted | pending | none.
+    Admins (and the default agent) are always 'open'."""
+    is_admin = user.get("role") == "admin"
+    statuses = agent_access.list_for_user(user["email"])
+    out: dict[str, str] = {}
+    for a in agent_registry.all():
+        if a.id == agent_registry.DEFAULT_AGENT_ID or is_admin:
+            out[a.id] = "open"
+        else:
+            st = statuses.get(a.id)
+            out[a.id] = st if st in ("granted", "pending") else "none"
+    return out
+
+
+@app.post("/agents/{agent_id}/request-access")
+def request_agent_access(agent_id: str, user: dict = Depends(_require_user)):
+    """Create/refresh a pending access request for the current user."""
+    if agent_id == agent_registry.DEFAULT_AGENT_ID:
+        raise HTTPException(status_code=400, detail="The default agent is open to everyone.")
+    if not any(a.id == agent_id for a in agent_registry.all()):
+        raise HTTPException(status_code=404, detail=f"Unknown agent: {agent_id}")
+    return agent_access.request_access(user["email"], agent_id)
+
+
 @app.post("/query", response_model=QueryResponse)
 def query(
     req: QueryRequest,
@@ -511,6 +555,13 @@ def query(
                     "Your account is pending admin approval. "
                     "Please wait for an administrator to approve your access."
                 ),
+            )
+
+        # Agent-access gate: non-admin users need a grant for non-default agents.
+        if not agent_access.has_access(user, agent.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this agent. Request access from an admin.",
             )
 
         # Mode gate: reject requests for modes this agent doesn't support.
@@ -770,6 +821,13 @@ async def query_stream(
             ),
         )
 
+    # Agent-access gate: non-admin users need a grant for non-default agents.
+    if not agent_access.has_access(user, agent.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this agent. Request access from an admin.",
+        )
+
     # Mode gate: this endpoint streams Claude Code (agent mode) only.
     if not agent.mode_allowed("agent"):
         raise HTTPException(
@@ -991,13 +1049,25 @@ def log_agent_answer(req: AgentLogRequest, user: dict = Depends(_require_admin))
 def search(
     req: SearchRequest,
     request: Request,
+    user: dict | None = Depends(_get_user),
     agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
+    # Agent-access gate: non-admin users need a grant for non-default agents.
+    if not agent_access.has_access(user, agent.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this agent. Request access from an admin.",
+        )
     return orchestrator.search_only(req.question, server=req.server, agent=agent)
 
 
 @app.get("/wiki/{path:path}")
-def get_wiki_page(path: str):
+def get_wiki_page(
+    path: str,
+    user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+    _access: None = Depends(_require_agent_access),
+):
     page = wiki_retriever.get_page(path)
     if not page:
         raise HTTPException(status_code=404, detail=f"Wiki page not found: {path}")
@@ -1418,6 +1488,40 @@ def delete_agent_endpoint(agent_id: str, hard: bool = False,
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.get("/admin/agent-access/requests")
+def admin_agent_access_requests(_admin: dict = Depends(_require_admin)):
+    return agent_access.list_pending()
+
+
+@app.get("/admin/agent-access/grants")
+def admin_agent_access_grants(_admin: dict = Depends(_require_admin)):
+    return agent_access.list_grants()
+
+
+@app.post("/admin/agent-access/{email:path}/{agent_id}/approve")
+def admin_agent_access_approve(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "granted", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "granted"}
+
+
+@app.post("/admin/agent-access/{email:path}/{agent_id}/grant")
+def admin_agent_access_grant(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "granted", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "granted"}
+
+
+@app.post("/admin/agent-access/{email:path}/{agent_id}/reject")
+def admin_agent_access_reject(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "rejected", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "rejected"}
+
+
+@app.delete("/admin/agent-access/{email:path}/{agent_id}")
+def admin_agent_access_revoke(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "revoked", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "revoked"}
+
+
 _VALID_PROPOSAL_ID = __import__("re").compile(r"^[a-zA-Z0-9_\-]{8,64}$")
 
 
@@ -1508,11 +1612,18 @@ app.include_router(trace_api.router, dependencies=[Depends(_require_admin)])
 # defined. Any authenticated user — auth applied here at include time so
 # ingest_api.py needs no import from api.py (avoids a circular import).
 from backend import ingest_api  # noqa: E402
-app.include_router(ingest_api.router, dependencies=[Depends(_require_developer_or_admin)])
+app.include_router(
+    ingest_api.router,
+    dependencies=[Depends(_require_developer_or_admin), Depends(_require_agent_access)],
+)
 
 from backend import wiki_graph_api  # noqa: E402
 # Graph is open to all approved users (admin/developer/general) — read-only browse.
-app.include_router(wiki_graph_api.router, dependencies=[Depends(_require_user)])
+# _require_agent_access ensures the user also has access to the active agent.
+app.include_router(
+    wiki_graph_api.router,
+    dependencies=[Depends(_require_user), Depends(_require_agent_access)],
+)
 
 
 # ---------------------------------------------------------------------------

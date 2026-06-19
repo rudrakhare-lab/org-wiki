@@ -21,6 +21,7 @@ export class AgentService {
 
   readonly agents = signal<Agent[]>([]);
   readonly activeId = signal<string>(this.readPersisted());
+  readonly access = signal<Record<string, string>>({});
 
   private readPersisted(): string {
     try {
@@ -38,8 +39,33 @@ export class AgentService {
         if (!list.some((a) => a.id === this.activeId())) {
           this.setActive(DEFAULT_AGENT_ID, false);
         }
+        this.loadAccess();
       },
       error: () => { /* leave default; switcher just won't populate */ },
+    });
+  }
+
+  loadAccess(): void {
+    this.api.getMyAgentAccess().subscribe({
+      next: (m) => this.access.set(m || {}),
+      error: () => { /* leave empty; switcher treats unknown as locked */ },
+    });
+  }
+
+  accessFor(id: string): string {
+    return this.access()[id] ?? (id === DEFAULT_AGENT_ID ? 'open' : 'none');
+  }
+
+  canUse(id: string): boolean {
+    const s = this.accessFor(id);
+    return s === 'open' || s === 'granted';
+  }
+
+  requestAccess(id: string): void {
+    this.access.update((m) => ({ ...m, [id]: 'pending' }));   // optimistic
+    this.api.requestAgentAccess(id).subscribe({
+      next: (r) => this.access.update((m) => ({ ...m, [id]: r.status })),
+      error: () => this.access.update((m) => ({ ...m, [id]: 'none' })),  // revert
     });
   }
 

@@ -765,6 +765,9 @@ def test_query_ignores_cross_agent_conversation_id(monkeypatch, clean_db):
         ),
     )
     try:
+        from backend import agent_access
+        agent_access.set_status("u@x.com", "infosec", "granted", "admin@x.com")
+
         client = TestClient(app)
         # Infosec request reusing the CONWO conversation id must NOT append to it.
         r = client.post(
