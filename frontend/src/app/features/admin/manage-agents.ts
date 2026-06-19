@@ -73,6 +73,52 @@ const PROTECTED = new Set(['conwo', 'infosec']);
           </div>
         }
       </div>
+
+      <section class="access-requests">
+        <h2>Agent access requests</h2>
+        @if (accessRequests().length === 0) {
+          <div class="empty">No pending requests.</div>
+        } @else {
+          <table>
+            <thead><tr><th>User</th><th>Agent</th><th>Requested</th><th>Action</th></tr></thead>
+            <tbody>
+              @for (r of accessRequests(); track r.user_email + r.agent_id) {
+                <tr>
+                  <td>{{ r.user_email }}</td><td>{{ r.agent_id }}</td><td>{{ r.requested_at }}</td>
+                  <td>
+                    <button (click)="approve(r.user_email, r.agent_id)">Approve</button>
+                    <button (click)="reject(r.user_email, r.agent_id)">Reject</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+
+      <section class="grants">
+        <h2>Agent grants</h2>
+        <div class="grant-form">
+          <input placeholder="user email" [ngModel]="grantEmail()" (ngModelChange)="grantEmail.set($event)" />
+          <input placeholder="agent id" [ngModel]="grantAgentId()" (ngModelChange)="grantAgentId.set($event)" />
+          <button (click)="grantDirect()">Grant</button>
+        </div>
+        @if (grants().length === 0) {
+          <div class="empty">No grants yet.</div>
+        } @else {
+          <table>
+            <thead><tr><th>User</th><th>Agent</th><th>By</th><th></th></tr></thead>
+            <tbody>
+              @for (g of grants(); track g.user_email + g.agent_id) {
+                <tr>
+                  <td>{{ g.user_email }}</td><td>{{ g.agent_id }}</td><td>{{ g.decided_by }}</td>
+                  <td><button (click)="revoke(g.user_email, g.agent_id)">Revoke</button></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
     </section>
   `,
 })
@@ -91,10 +137,27 @@ export class ManageAgents {
   editDesc = '';
   deletingId = signal<string | null>(null);
   deleteText = '';
+  accessRequests = signal<{ user_email: string; agent_id: string; requested_at: string }[]>([]);
+  grants = signal<{ user_email: string; agent_id: string; decided_by: string }[]>([]);
+  grantEmail = signal('');
+  grantAgentId = signal('');
 
-  constructor() { this.agentSvc.loadAgents(); }
+  constructor() { this.agentSvc.loadAgents(); this.loadAccess(); }
 
   isProtected(id: string): boolean { return PROTECTED.has(id); }
+
+  loadAccess() {
+    this.api.getAgentAccessRequests().subscribe({ next: r => this.accessRequests.set(r), error: () => {} });
+    this.api.getAgentGrants().subscribe({ next: g => this.grants.set(g), error: () => {} });
+  }
+  approve(e: string, id: string) { this.api.approveAgentAccess(e, id).subscribe({ next: () => this.loadAccess() }); }
+  reject(e: string, id: string) { this.api.rejectAgentAccess(e, id).subscribe({ next: () => this.loadAccess() }); }
+  revoke(e: string, id: string) { this.api.revokeAgentAccess(e, id).subscribe({ next: () => this.loadAccess() }); }
+  grantDirect() {
+    const e = this.grantEmail().trim(), id = this.grantAgentId().trim();
+    if (!e || !id) return;
+    this.api.grantAgentAccess(e, id).subscribe({ next: () => { this.grantEmail.set(''); this.loadAccess(); } });
+  }
 
   create(): void {
     const name = this.newName().trim();

@@ -872,6 +872,26 @@ export class ApiService {
   deleteAgent(id: string): Observable<{ status: string; id: string }> {
     return this.http.delete<{ status: string; id: string }>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}?hard=true`, { headers: this.adminHeaders() });
   }
+  getAgentAccessRequests(): Observable<{ user_email: string; agent_id: string; requested_at: string }[]> {
+    return this.http.get<{ user_email: string; agent_id: string; requested_at: string }[]>(
+      `${API_BASE}/admin/agent-access/requests`, { headers: this.adminHeaders() });
+  }
+  getAgentGrants(): Observable<{ user_email: string; agent_id: string; decided_by: string }[]> {
+    return this.http.get<{ user_email: string; agent_id: string; decided_by: string }[]>(
+      `${API_BASE}/admin/agent-access/grants`, { headers: this.adminHeaders() });
+  }
+  approveAgentAccess(email: string, id: string): Observable<unknown> {
+    return this.http.post(`${API_BASE}/admin/agent-access/${encodeURIComponent(email)}/${encodeURIComponent(id)}/approve`, {}, { headers: this.adminHeaders() });
+  }
+  rejectAgentAccess(email: string, id: string): Observable<unknown> {
+    return this.http.post(`${API_BASE}/admin/agent-access/${encodeURIComponent(email)}/${encodeURIComponent(id)}/reject`, {}, { headers: this.adminHeaders() });
+  }
+  grantAgentAccess(email: string, id: string): Observable<unknown> {
+    return this.http.post(`${API_BASE}/admin/agent-access/${encodeURIComponent(email)}/${encodeURIComponent(id)}/grant`, {}, { headers: this.adminHeaders() });
+  }
+  revokeAgentAccess(email: string, id: string): Observable<unknown> {
+    return this.http.delete(`${API_BASE}/admin/agent-access/${encodeURIComponent(email)}/${encodeURIComponent(id)}`, { headers: this.adminHeaders() });
+  }
 
   // ── Traces / observability (admin-only) ────────────────────────────────
   listTraces(params: TraceListParams = {}): Observable<TraceSessionList> {
