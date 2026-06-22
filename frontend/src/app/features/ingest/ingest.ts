@@ -51,11 +51,18 @@ export class Ingest implements OnInit, OnDestroy {
     if (!files.length) return;
     this.bulkUploading.set(true);
     const uploadIds: string[] = [];
-    for (const f of files) {
-      const res = await this.api.uploadIngestFile(f, '', '').toPromise();
-      if (res?.upload_id) uploadIds.push(res.upload_id);
+    try {
+      for (const f of files) {
+        try {
+          const res = await this.api.uploadIngestFile(f, '', '').toPromise();
+          if (res?.upload_id) uploadIds.push(res.upload_id);
+        } catch {
+          /* skip this file; continue uploading the rest */
+        }
+      }
+    } finally {
+      this.bulkUploading.set(false);
     }
-    this.bulkUploading.set(false);
     if (!uploadIds.length) return;
     this.api.startBulkIngest(uploadIds).subscribe({
       next: r => {
@@ -73,9 +80,12 @@ export class Ingest implements OnInit, OnDestroy {
     const tick = () => this.api.getBulkStatus(id).subscribe({
       next: s => {
         this.bulkStatus.set(s);
-        if (['done', 'failed', 'interrupted'].includes(s.batch.status)) this.stopBulkPolling();
+        if (['done', 'failed', 'interrupted'].includes(s.batch.status)) {
+          this.stopBulkPolling();
+          localStorage.removeItem('conwo_bulk_batch');
+        }
       },
-      error: () => { /* keep polling */ },
+      error: (err: { status?: number }) => { if (err?.status === 404) this.stopBulkPolling(); },
     });
     tick();
     this.bulkPoll = setInterval(tick, 2000);
