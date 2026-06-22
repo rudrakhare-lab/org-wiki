@@ -1,42 +1,113 @@
 <div class="ingest-page">
   <div class="ingest-container">
 
-    @switch (phase()) {
-      @case ('upload') {
-        <app-upload-step (done)="onUploaded($event)" />
-        @if (planningError()) {
-          <div class="error-banner">{{ planningError() }}</div>
+    <!-- Mode toggle -->
+    <div class="mode-toggle">
+      <button
+        class="mode-btn"
+        [class.active]="!bulkMode()"
+        (click)="bulkMode.set(false)"
+      >Single (review)</button>
+      <button
+        class="mode-btn"
+        [class.active]="bulkMode()"
+        (click)="bulkMode.set(true)"
+      >Bulk dump</button>
+    </div>
+
+    <!-- ── Single-file review flow (unchanged) ── -->
+    @if (!bulkMode()) {
+      @switch (phase()) {
+        @case ('upload') {
+          <app-upload-step (done)="onUploaded($event)" />
+          @if (planningError()) {
+            <div class="error-banner">{{ planningError() }}</div>
+          }
+        }
+
+        @case ('planning') {
+          <div class="planning-spinner">
+            <div class="spinner"></div>
+            <p>Analysing document…</p>
+          </div>
+        }
+
+        @case ('plan-review') {
+          @if (planResponse(); as pr) {
+            <app-plan-step
+              [plan]="pr.plan"
+              [filename]="uploadResult()?.filename ?? ''"
+              [sessionId]="pr.session_id"
+              (approve)="onApprove()"
+              (cancel)="onCancel()"
+            />
+          }
+        }
+
+        @case ('executing') {
+          @if (planResponse(); as pr) {
+            <app-execute-step
+              [sessionId]="pr.session_id"
+              [filename]="uploadResult()?.filename ?? ''"
+              (ingestAnother)="onIngestAnother()"
+            />
+          }
         }
       }
+    }
 
-      @case ('planning') {
-        <div class="planning-spinner">
-          <div class="spinner"></div>
-          <p>Analysing document…</p>
+    <!-- ── Bulk dump panel ── -->
+    @if (bulkMode()) {
+      <div class="bulk-panel">
+        <h2>Bulk dump</h2>
+        <p class="subtitle">Select multiple files — they will be uploaded and queued for ingestion without a manual review step.</p>
+
+        <div class="form-field">
+          <label>Files</label>
+          <input
+            type="file"
+            multiple
+            accept=".pdf,.docx,.xlsx,.md,.txt,.rtf"
+            (change)="onBulkFiles($event)"
+          />
         </div>
-      }
 
-      @case ('plan-review') {
-        @if (planResponse(); as pr) {
-          <app-plan-step
-            [plan]="pr.plan"
-            [filename]="uploadResult()?.filename ?? ''"
-            [sessionId]="pr.session_id"
-            (approve)="onApprove()"
-            (cancel)="onCancel()"
-          />
-        }
-      }
+        <button
+          class="btn-primary"
+          style="margin-top: 16px;"
+          [disabled]="bulkUploading() || !bulkFiles().length"
+          (click)="runBulk()"
+        >
+          @if (bulkUploading()) { Uploading… } @else { Run bulk ingest }
+        </button>
 
-      @case ('executing') {
-        @if (planResponse(); as pr) {
-          <app-execute-step
-            [sessionId]="pr.session_id"
-            [filename]="uploadResult()?.filename ?? ''"
-            (ingestAnother)="onIngestAnother()"
-          />
+        @if (bulkStatus()) {
+          <div class="bulk-progress-section">
+            <div class="progress-bar" style="margin-top: 20px;">
+              <div class="progress-fill" [style.width.%]="bulkProgress()"></div>
+            </div>
+            <p class="bulk-summary">
+              {{ bulkStatus()?.batch?.completed }} done /
+              {{ bulkStatus()?.batch?.failed }} failed of
+              {{ bulkStatus()?.batch?.total }}
+              &nbsp;—&nbsp;
+              <strong>{{ bulkStatus()?.batch?.status }}</strong>
+            </p>
+
+            <div class="bulk-file-list">
+              @for (it of bulkStatus()?.items || []; track it.filename) {
+                <div class="bulk-row">
+                  <span class="fname">{{ it.filename }}</span>
+                  <span class="chip" [class]="'st-' + it.status">{{ it.status }}</span>
+                  @if (it.status === 'failed' && it.error) {
+                    <span class="err">{{ it.error }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
         }
-      }
+      </div>
     }
 
   </div>

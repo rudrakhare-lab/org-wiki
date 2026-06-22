@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, signal, ViewEncapsulation } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApiService, IngestPlanResponse } from '../../core/api.service';
+import { ApiService, IngestPlanResponse, BulkBatch } from '../../core/api.service';
 import { inject } from '@angular/core';
 import { UploadStep, UploadResult } from './upload-step';
 import { PlanStep } from './plan-step';
@@ -33,7 +33,70 @@ export class Ingest implements OnInit, OnDestroy {
   private planStartSub?: Subscription;
   private planPollHandle?: ReturnType<typeof setInterval>;
 
+  // ── Bulk mode ────────────────────────────────────────────────────────────
+  bulkMode = signal(false);
+  bulkFiles = signal<File[]>([]);
+  bulkUploading = signal(false);
+  bulkBatchId = signal<string | null>(localStorage.getItem('conwo_bulk_batch') || null);
+  bulkStatus = signal<BulkBatch | null>(null);
+  private bulkPoll: ReturnType<typeof setInterval> | null = null;
+
+  onBulkFiles(ev: Event) {
+    const input = ev.target as HTMLInputElement;
+    this.bulkFiles.set(input.files ? Array.from(input.files) : []);
+  }
+
+  async runBulk() {
+    const files = this.bulkFiles();
+    if (!files.length) return;
+    this.bulkUploading.set(true);
+    const uploadIds: string[] = [];
+    for (const f of files) {
+      const res = await this.api.uploadIngestFile(f, '', '').toPromise();
+      if (res?.upload_id) uploadIds.push(res.upload_id);
+    }
+    this.bulkUploading.set(false);
+    if (!uploadIds.length) return;
+    this.api.startBulkIngest(uploadIds).subscribe({
+      next: r => {
+        this.bulkBatchId.set(r.batch_id);
+        localStorage.setItem('conwo_bulk_batch', r.batch_id);
+        this.startBulkPolling();
+      },
+    });
+  }
+
+  private startBulkPolling() {
+    this.stopBulkPolling();
+    const id = this.bulkBatchId();
+    if (!id) return;
+    const tick = () => this.api.getBulkStatus(id).subscribe({
+      next: s => {
+        this.bulkStatus.set(s);
+        if (['done', 'failed', 'interrupted'].includes(s.batch.status)) this.stopBulkPolling();
+      },
+      error: () => { /* keep polling */ },
+    });
+    tick();
+    this.bulkPoll = setInterval(tick, 2000);
+  }
+
+  private stopBulkPolling() {
+    if (this.bulkPoll) { clearInterval(this.bulkPoll); this.bulkPoll = null; }
+  }
+
+  bulkProgress(): number {
+    const b = this.bulkStatus()?.batch;
+    return b && b.total ? Math.round(((b.completed + b.failed) / b.total) * 100) : 0;
+  }
+
   ngOnInit() {
+    // Resume bulk polling if a batch was in progress
+    if (this.bulkBatchId()) {
+      this.bulkMode.set(true);
+      this.startBulkPolling();
+    }
+
     // Case 1: execute job already running → jump straight to execute screen
     const savedJobId = localStorage.getItem(STORAGE_JOB_ID);
     if (savedJobId) {
@@ -60,6 +123,7 @@ export class Ingest implements OnInit, OnDestroy {
       clearInterval(this.planPollHandle);
       this.planPollHandle = undefined;
     }
+    this.stopBulkPolling();
     // Keep localStorage — the background job is still running and we need to resume
   }
 

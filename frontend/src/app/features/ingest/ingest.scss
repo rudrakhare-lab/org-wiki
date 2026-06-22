@@ -106,6 +106,59 @@
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
+// ── Mode toggle ───────────────────────────────────────────────────────────────
+.mode-toggle {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.mode-btn {
+  flex: 1;
+  padding: 10px;
+  background: #f5f5f5;
+  border: none;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  color: #555;
+  &.active { background: #1976d2; color: white; font-weight: 600; }
+  &:hover:not(.active) { background: #e0e0e0; }
+}
+
+// ── Bulk dump panel ──────────────────────────────────────────────────────────
+.bulk-panel {
+  h2 { margin: 0 0 6px; font-size: 1.4em; }
+  .subtitle { margin: 0 0 20px; color: #666; font-size: 0.9em; }
+}
+.bulk-summary { font-size: 0.88em; color: #555; margin: 8px 0 12px; }
+.bulk-file-list { display: flex; flex-direction: column; gap: 6px; }
+.bulk-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85em;
+  padding: 6px 10px;
+  background: #f9f9f9;
+  border-radius: 6px;
+  .fname { flex: 1; font-family: monospace; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .err { color: #c62828; font-size: 0.85em; flex: 1; }
+}
+.chip {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  font-weight: 600;
+  white-space: nowrap;
+  &.st-queued    { background: #e3f2fd; color: #1976d2; }
+  &.st-planning  { background: #fff8e1; color: #f57f17; }
+  &.st-writing   { background: #e8f5e9; color: #2e7d32; }
+  &.st-done      { background: #c8e6c9; color: #1b5e20; }
+  &.st-failed    { background: #ffebee; color: #c62828; }
+}
+
 // ── Shared buttons ────────────────────────────────────────────────────────────
 .btn-primary { width: 100%; padding: 14px; background: #1976d2; color: white; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer;
   &:hover:not(:disabled) { background: #1565c0; }
