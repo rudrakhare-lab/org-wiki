@@ -679,6 +679,42 @@ async def execute_ingest(
     return {"job_id": job_id, "status": "running"}
 
 
+class BulkIngestRequest(BaseModel):
+    upload_ids: list[str]
+
+
+@router.post("/bulk")
+async def start_bulk_ingest(req: BulkIngestRequest, request: Request):
+    """Create a bulk batch from already-uploaded files and start the serial runner.
+    Each upload_id must exist under the active agent's uploads root."""
+    from backend import ingest_batch
+    agent = _get_agent(request)
+    if not req.upload_ids:
+        raise HTTPException(status_code=400, detail="upload_ids must not be empty")
+    root = _uploads_root(agent)
+    items: list[dict] = []
+    for uid in req.upload_ids:
+        updir = root / uid
+        files = [p for p in updir.iterdir() if p.is_file()] if updir.is_dir() else []
+        if not files:
+            raise HTTPException(status_code=400, detail=f"unknown or empty upload: {uid}")
+        f = files[0]
+        items.append({"upload_id": uid, "filename": f.name, "file_path": str(f)})
+    created_by = getattr(request.state, "user_email", None)
+    result = ingest_batch.create_batch(agent.id, created_by, items)
+    asyncio.create_task(ingest_batch.run_batch(result["batch_id"]))
+    return result
+
+
+@router.get("/bulk/{batch_id}")
+def get_bulk_status(batch_id: str):
+    from backend import ingest_batch
+    got = ingest_batch.get_batch(batch_id)
+    if got is None:
+        raise HTTPException(status_code=404, detail="batch not found")
+    return got
+
+
 @router.get("/job/{job_id}")
 async def get_job_status(job_id: str):
     job = ingest_service.get_job(job_id)
