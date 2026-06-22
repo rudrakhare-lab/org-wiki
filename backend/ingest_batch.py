@@ -94,12 +94,14 @@ def list_queued_items(batch_id: str) -> list[dict]:
 
 def reconcile_interrupted() -> int:
     """At startup, mark still-running batches and their in-flight items interrupted.
-    Fail-open: never raise."""
+    Only items belonging to currently-running batches are touched.
+    Returns the number of batches flipped to interrupted. Fail-open: never raise."""
     try:
         with db.connection() as conn:
             conn.execute(
                 "UPDATE ingest_batch_items SET status='interrupted', updated_at=%s "
-                "WHERE status IN ('planning','writing')",
+                "WHERE status IN ('planning','writing') "
+                "AND batch_id IN (SELECT id FROM ingest_batches WHERE status='running')",
                 (_now(),),
             )
             cur = conn.execute(

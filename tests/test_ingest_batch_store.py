@@ -64,3 +64,15 @@ def test_reconcile_interrupted_flips_running_and_inflight():
     assert {i["status"] for i in got["items"]} <= {"interrupted", "queued"}
     # the in-flight 'writing' item became 'interrupted'
     assert any(i["status"] == "interrupted" for i in got["items"])
+
+
+def test_reconcile_does_not_touch_items_of_nonrunning_batches():
+    r = ingest_batch.create_batch("conwo", "a@x.com",
+        [{"upload_id": "u0", "filename": "f0.pdf", "file_path": "/tmp/f0.pdf"}])
+    items = ingest_batch.get_batch(r["batch_id"])["items"]
+    ingest_batch.set_item_status(items[0]["id"], "writing")
+    ingest_batch.set_batch_status(r["batch_id"], "done")   # batch no longer running
+    ingest_batch.reconcile_interrupted()
+    got = ingest_batch.get_batch(r["batch_id"])
+    assert got["items"][0]["status"] == "writing"          # untouched
+    assert got["batch"]["status"] == "done"
