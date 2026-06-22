@@ -113,6 +113,8 @@ async def lifespan(app: FastAPI):
     # Sweep stale in_progress traces from a previous run (multi-replica safe:
     # only reconciles sessions older than the threshold). Fail-open.
     trace_store.reconcile_orphans()
+    from backend import ingest_batch
+    ingest_batch.reconcile_interrupted()
     # If wiki/ lives on a mounted volume (CONWO_DATA_DIR) that's still empty,
     # seed it from the image's baked baseline so the knowledge base is present.
     _seed_wiki_if_empty()

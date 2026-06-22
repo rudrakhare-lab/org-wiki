@@ -458,6 +458,12 @@ export interface TraceListParams {
 
 // ── Ingest types ──────────────────────────────────────────────────────────────
 
+export interface BulkBatchItem { filename: string; status: string; error?: string | null; }
+export interface BulkBatch {
+  batch: { id: string; status: string; total: number; completed: number; failed: number };
+  items: BulkBatchItem[];
+}
+
 export interface IngestUploadResponse {
   upload_id: string;
   filename: string;
@@ -1078,6 +1084,16 @@ export class ApiService {
       { session_id: sessionId },
       { headers }
     );
+  }
+
+  startBulkIngest(uploadIds: string[]): Observable<{ batch_id: string; total: number }> {
+    return this.http.post<{ batch_id: string; total: number }>(
+      `${API_BASE}/api/ingest/bulk`, { upload_ids: uploadIds }, { headers: this.adminHeaders() });
+  }
+
+  getBulkStatus(batchId: string): Observable<BulkBatch> {
+    return this.http.get<BulkBatch>(
+      `${API_BASE}/api/ingest/bulk/${encodeURIComponent(batchId)}`, { headers: this.adminHeaders() });
   }
 
   getIngestJob(jobId: string): Observable<IngestJobResponse> {
