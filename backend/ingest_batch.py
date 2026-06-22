@@ -156,7 +156,12 @@ async def run_batch(batch_id: str) -> None:
             except Exception:
                 pass
 
-    set_batch_status(batch_id, "done")
+    final = get_batch(batch_id)
+    b = final["batch"] if final else {}
+    if b.get("total", 0) > 0 and b.get("failed", 0) >= b.get("total", 0):
+        set_batch_status(batch_id, "failed")
+    else:
+        set_batch_status(batch_id, "done")
 
 
 def _batch_agent(batch_id: str) -> str:

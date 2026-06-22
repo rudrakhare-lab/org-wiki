@@ -78,3 +78,11 @@ def test_run_batch_isolates_an_execute_failure(monkeypatch):
     got = ingest_batch.get_batch(r["batch_id"])
     assert got["batch"]["failed"] == 1 and got["batch"]["completed"] == 1
     assert ingest_service.is_locked() is False  # lock always released
+
+
+def test_run_batch_all_failed_sets_failed(monkeypatch):
+    _stub_plan(monkeypatch, fail_on=("f0.pdf", "f1.pdf")); _stub_execute(monkeypatch)
+    r = ingest_batch.create_batch("conwo", "a@x.com", _items(2))
+    asyncio.run(ingest_batch.run_batch(r["batch_id"]))
+    got = ingest_batch.get_batch(r["batch_id"])
+    assert got["batch"]["status"] == "failed" and got["batch"]["failed"] == 2

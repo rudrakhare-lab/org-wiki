@@ -60,3 +60,12 @@ def test_bulk_requires_auth(client):
     _make_upload(root, "u0", "a.pdf")
     r = c.post("/api/ingest/bulk", json={"upload_ids": ["u0"]})  # no token
     assert r.status_code in (401, 403)
+
+
+def test_bulk_status_cross_agent_404(client):
+    c, h, _ = client
+    from backend import ingest_batch
+    r = ingest_batch.create_batch("infosec", "x@x.com",
+        [{"upload_id": "u0", "filename": "a.pdf", "file_path": "/tmp/a.pdf"}])
+    # active agent defaults to conwo (no X-Agent-Id) → agent_id mismatch → 404
+    assert c.get(f"/api/ingest/bulk/{r['batch_id']}", headers=h).status_code == 404

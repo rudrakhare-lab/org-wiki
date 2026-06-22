@@ -85,7 +85,7 @@ export class Ingest implements OnInit, OnDestroy {
           localStorage.removeItem('conwo_bulk_batch');
         }
       },
-      error: (err: { status?: number }) => { if (err?.status === 404) this.stopBulkPolling(); },
+      error: (err: { status?: number }) => { if (err?.status === 404) { this.stopBulkPolling(); localStorage.removeItem('conwo_bulk_batch'); } },
     });
     tick();
     this.bulkPoll = setInterval(tick, 2000);

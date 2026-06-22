@@ -26,6 +26,9 @@ from backend import agent_registry, ingest_service
 router = APIRouter(prefix="/api/ingest")
 _LOG = logging.getLogger("ingest")
 
+# Strong-reference set for fire-and-forget bulk tasks; prevents GC mid-batch.
+_BULK_TASKS: set = set()
+
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024  # 100 MB
 SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".md", ".txt", ".rtf"}
 
@@ -702,15 +705,18 @@ async def start_bulk_ingest(req: BulkIngestRequest, request: Request):
         items.append({"upload_id": uid, "filename": f.name, "file_path": str(f)})
     created_by = getattr(request.state, "user_email", None)
     result = ingest_batch.create_batch(agent.id, created_by, items)
-    asyncio.create_task(ingest_batch.run_batch(result["batch_id"]))
+    task = asyncio.create_task(ingest_batch.run_batch(result["batch_id"]))
+    _BULK_TASKS.add(task)
+    task.add_done_callback(_BULK_TASKS.discard)
     return result
 
 
 @router.get("/bulk/{batch_id}")
-def get_bulk_status(batch_id: str):
+async def get_bulk_status(batch_id: str, request: Request):
     from backend import ingest_batch
+    agent = _get_agent(request)
     got = ingest_batch.get_batch(batch_id)
-    if got is None:
+    if got is None or got["batch"].get("agent_id") != agent.id:
         raise HTTPException(status_code=404, detail="batch not found")
     return got
 
