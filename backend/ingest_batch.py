@@ -108,6 +108,7 @@ async def run_batch(batch_id: str) -> None:
     from backend import ingest_service
     from backend.ingest_api import _run_plan_job, _run_ingest_job
 
+    agent_id = _batch_agent(batch_id)   # constant for the batch — resolve once
     for item in list_queued_items(batch_id):
         item_id = item["id"]
         try:
@@ -115,7 +116,7 @@ async def run_batch(batch_id: str) -> None:
             set_item_status(item_id, "planning")
             await _acquire_lock_blocking()                # _run_plan_job releases it
             plan_job = ingest_service.create_plan_job(
-                uuid4().hex, item["upload_id"], agent_id=_batch_agent(batch_id))
+                uuid4().hex, item["upload_id"], agent_id=agent_id)
             await _run_plan_job(plan_job, item["file_path"], item["filename"], "", "")
             if plan_job.status != "done" or not plan_job.session_id:
                 set_item_status(item_id, "failed",
@@ -148,7 +149,8 @@ async def run_batch(batch_id: str) -> None:
                 bump_counts(batch_id, failed=1)
             except Exception:
                 pass
-            # ensure the lock isn't held across to the next item
+            # ensure the lock isn't held across to the next item;
+            # double-release is safe — release_lock() is idempotent
             try:
                 ingest_service.release_lock()
             except Exception:
