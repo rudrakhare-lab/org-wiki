@@ -100,113 +100,78 @@ def test_list_criteria_missing_criteria_returns_missing_input(monkeypatch):
 # ──────────────────────────────────────────────────────────────────────────────
 # pms_verify_buid
 
-def test_verify_buid_found_in_directory(monkeypatch):
-    """BUID present in the directory list — straightforward found=True."""
+def test_verify_buid_found_when_offices_returned(monkeypatch):
+    """A valid BUID on the right server returns offices (token-free) → found=True."""
     monkeypatch.setenv("PMS_TOKEN_COM", "fake-token")
     from backend.tools.pms_tools import _pms_verify_buid_handler
 
     mock_session = MagicMock()
-    # Real PMS shape: dicts in the buids list, plus the isAllBuids flag
-    mock_session.fetch_roles.return_value = {
-        "serviceId": "VISITOR",
-        "role": "ROLE_READ_ONLY",
-        "isAllBuids": True,
-        "buids": [
-            {"buid": "genpactindia-GInd", "tenantName": "Genpact India", "stratus": False},
-            {"buid": "another-buid-XYZ", "tenantName": "Another", "stratus": False},
-        ],
+    mock_session.fetch_offices.return_value = {
+        "LOpwc-OFC-0001": "PwC Pune (Pune, India)",
+        "LOpwc-OFC-0002": "PwC Bangalore (Bangalore, India)",
     }
     with patch("pms_session.Session.load", return_value=mock_session):
         result = _pms_verify_buid_handler({
-            "service": "VISITOR",
+            "service": "PROJECT-MANAGEMENT-SERVICE",
             "server": "com",
-            "buid": "genpactindia-GInd",
+            "buid": "pwc-WP",
         })
 
     assert result["found"] is True
-    assert result["in_directory"] is True
-    assert result["is_all_buids"] is True
-    assert "in the .com directory" in result["message"]
+    assert result["office_count"] == 2
+    assert result["server"] == "com"
+    assert len(result["offices_sample"]) == 2
+    assert ".com" in result["message"]
+    # Must NOT report the dead route_unavailable / shape_unknown errors any more
+    assert result.get("code") not in ("route_unavailable", "shape_unknown")
 
 
-def test_verify_buid_isallbuids_true_buid_not_in_list_returns_soft_warning(monkeypatch):
-    """Real PMS scenario: isAllBuids=true (cross-tenant access) but the
-    queried BUID is not in the directory listing. Should report found=True
-    with a soft warning to confirm via pms_diagnose_property."""
+def test_verify_buid_not_found_when_no_offices_warns_other_server(monkeypatch):
+    """Wrong server / invalid BUID returns zero offices → found=False with a
+    warning to try the other server before concluding the BUID is invalid."""
     monkeypatch.setenv("PMS_TOKEN_COM", "fake-token")
     from backend.tools.pms_tools import _pms_verify_buid_handler
 
     mock_session = MagicMock()
-    mock_session.fetch_roles.return_value = {
-        "isAllBuids": True,
-        "buids": [
-            {"buid": "named-tenant-AB", "tenantName": "Named A"},
-            {"buid": "named-tenant-CD", "tenantName": "Named C"},
-        ],
-    }
+    mock_session.fetch_offices.return_value = {}
     with patch("pms_session.Session.load", return_value=mock_session):
         result = _pms_verify_buid_handler({
-            "service": "VISITOR",
+            "service": "PROJECT-MANAGEMENT-SERVICE",
             "server": "com",
-            "buid": "unlisted-but-real",
-        })
-
-    assert result["found"] is True  # cross-tenant access
-    assert result["in_directory"] is False
-    assert result["is_all_buids"] is True
-    assert "cross-tenant" in result["message"]
-    assert "pms_diagnose_property" in result["message"]
-
-
-def test_verify_buid_not_found_returns_mismatch_warning(monkeypatch):
-    """No cross-tenant access AND BUID not in list → hard mismatch warning."""
-    monkeypatch.setenv("PMS_TOKEN_COM", "fake-token")
-    from backend.tools.pms_tools import _pms_verify_buid_handler
-
-    mock_session = MagicMock()
-    mock_session.fetch_roles.return_value = {
-        "isAllBuids": False,
-        "buids": [
-            {"buid": "real-buid-AB", "tenantName": "Real A"},
-            {"buid": "another-buid-CD", "tenantName": "Another C"},
-        ],
-    }
-    with patch("pms_session.Session.load", return_value=mock_session):
-        result = _pms_verify_buid_handler({
-            "service": "VISITOR",
-            "server": "com",
-            "buid": "nonexistentbuid-FAKE",
+            "buid": "pwc-WP",
         })
 
     assert result["found"] is False
-    assert result["is_all_buids"] is False
+    assert result["office_count"] == 0
     assert "⚠️" in result["message"]
-    assert "wrong server" in result["message"]
     assert "try .in" in result["message"]
 
 
-def test_verify_buid_unknown_shape_returns_raw_response(monkeypatch):
-    """If fetch_roles returns a shape _extract_accessible_buids can't parse,
-    we surface the raw response with code='shape_unknown' so the smoke test
-    or operator can see what the real API returns."""
-    monkeypatch.setenv("PMS_TOKEN_COM", "fake-token")
+def test_verify_buid_works_token_free(monkeypatch):
+    """The offices endpoint is token-free, so verify must succeed even when no
+    PMS credentials are configured — it must NOT return credentials_required."""
+    monkeypatch.delenv("PMS_TOKEN_COM", raising=False)
+    monkeypatch.delenv("PMS_TOKEN", raising=False)
     from backend.tools.pms_tools import _pms_verify_buid_handler
 
     mock_session = MagicMock()
-    # Deliberately unrecognized shape
-    mock_session.fetch_roles.return_value = {
-        "userInfo": {"someField": "value", "permissionsList": ["a", "b"]},
-    }
+    mock_session.fetch_offices.return_value = {"LO-1": "Office One"}
     with patch("pms_session.Session.load", return_value=mock_session):
         result = _pms_verify_buid_handler({
-            "service": "VISITOR",
+            "service": "PROJECT-MANAGEMENT-SERVICE",
             "server": "com",
-            "buid": "any-buid-XX",
+            "buid": "pwc-WP",
         })
 
-    assert result["code"] == "shape_unknown"
-    assert "raw_response" in result
-    assert result["raw_response"]["userInfo"]["someField"] == "value"
+    assert result.get("status") != "credentials_required"
+    assert result["found"] is True
+
+
+def test_verify_buid_missing_buid_returns_missing_input(monkeypatch):
+    from backend.tools.pms_tools import _pms_verify_buid_handler
+
+    result = _pms_verify_buid_handler({"service": "VISITOR", "server": "com", "buid": ""})
+    assert result["code"] == "missing_input"
 
 
 # ──────────────────────────────────────────────────────────────────────────────
