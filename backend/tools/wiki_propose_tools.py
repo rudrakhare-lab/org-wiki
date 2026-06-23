@@ -34,14 +34,22 @@ from typing import Any
 import frontmatter  # type: ignore[import-not-found]
 import yaml  # type: ignore[import-not-found]
 
-from backend import wiki_retriever, wiki_proposals
-from backend.config import WIKI_DIR
+from backend import wiki_retriever, wiki_proposals, agent_context
 
 _log = logging.getLogger(__name__)
 
+
+def _wiki_dir():
+    """Return the active agent's wiki directory (resolved at call time)."""
+    from backend import agent_context
+    return agent_context.get_current_agent().wiki_dir
+
 # Decision A: paths the agent is allowed to PROPOSE creating.
 # Structural subtrees (modules/, entities/, configs/) stay admin-only.
-_NEW_PATH_ALLOWLIST = ("concepts/", "cross-module/", "decisions/", "answers/", "sources/")
+# Resolved per the ACTIVE agent's schema (workinsync vs generic) at call time.
+def _allowed_new_prefixes() -> tuple[str, ...]:
+    from backend import wiki_schema, agent_context
+    return wiki_schema.for_agent(agent_context.get_current_agent()).propose_allowlist
 
 # Decision A: append tool is currently log-only. Other append targets are an
 # explicit opt-in via this allowlist.
@@ -83,8 +91,9 @@ def _validate_path(path: str) -> tuple[Path | None, dict | None]:
     if ".." in p or p.startswith("/"):
         return None, {"error": "Path traversal not allowed.", "code": "path_traversal"}
     try:
-        resolved = (WIKI_DIR / p).resolve()
-        wiki_root = WIKI_DIR.resolve()
+        _wd = _wiki_dir()
+        resolved = (_wd / p).resolve()
+        wiki_root = _wd.resolve()
         if resolved != wiki_root and wiki_root not in resolved.parents:
             return None, {"error": "Path outside wiki directory.", "code": "path_traversal"}
     except Exception:
@@ -422,10 +431,11 @@ def _wiki_propose_new_handler(inp: dict) -> dict:
         return err
     if not page_path.endswith(".md"):
         return {"error": "page_path must end in .md", "code": "invalid_path"}
-    if not any(page_path.startswith(p) for p in _NEW_PATH_ALLOWLIST):
+    allow = _allowed_new_prefixes()
+    if not any(page_path.startswith(p) for p in allow):
         return {
             "error": (
-                f"page_path must start with one of: {', '.join(_NEW_PATH_ALLOWLIST)}. "
+                f"page_path must start with one of: {', '.join(allow)}. "
                 f"Structural subtrees (modules/, entities/, configs/) are admin-only — "
                 f"ask an admin to create those pages."
             ),
@@ -461,6 +471,7 @@ def _wiki_propose_new_handler(inp: dict) -> dict:
         reason=reason,
         answer_id=answer_id,
         validation_log=validation_log,
+        agent_id=agent_context.get_current_agent_id(),
     )
     return {
         "status": "pending",
@@ -539,6 +550,7 @@ def _wiki_propose_edit_handler(inp: dict) -> dict:
         answer_id=answer_id,
         suggested_companion_edit=companion,
         validation_log=validation_log,
+        agent_id=agent_context.get_current_agent_id(),
     )
     return {
         "status": "pending",
@@ -596,6 +608,7 @@ def _wiki_propose_append_handler(inp: dict) -> dict:
         reason=reason,
         answer_id=answer_id,
         validation_log=validation_log,
+        agent_id=agent_context.get_current_agent_id(),
     )
     return {
         "status": "pending",
@@ -661,6 +674,7 @@ def _wiki_propose_multi_edit_handler(inp: dict) -> dict:
         answer_id=answer_id,
         suggested_companion_edit=None,
         validation_log=validation_log,
+        agent_id=agent_context.get_current_agent_id(),
     )
     return {
         "status": "pending",

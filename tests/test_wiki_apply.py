@@ -46,7 +46,10 @@ def isolated_wiki(tmp_path, monkeypatch):
 
     import backend.wiki_apply as wa
     importlib.reload(wa)
-    monkeypatch.setattr(wa, "WIKI_DIR", fake_wiki, raising=False)
+    # After sub-fix (B), wiki_apply resolves paths via _wiki_dir() (agent
+    # context) rather than a module-level WIKI_DIR constant.  Patch the
+    # function directly so the apply layer targets the temp wiki dir.
+    monkeypatch.setattr(wa, "_wiki_dir", lambda: fake_wiki, raising=False)
 
     import backend.admin_api as adm
     importlib.reload(adm)
@@ -480,7 +483,9 @@ def test_dispatcher_reindex_called_after_apply(isolated_wiki, monkeypatch):
     )
     rebuild_called = []
     from backend import wiki_retriever
-    monkeypatch.setattr(wiki_retriever, "rebuild_index", lambda: rebuild_called.append(1))
+    # rebuild_index is now called with the proposal's agent_id (sub-fix D);
+    # accept *args so the lambda doesn't break when the arg is passed.
+    monkeypatch.setattr(wiki_retriever, "rebuild_index", lambda *a: rebuild_called.append(1))
     result = ctx["adm"].apply_wiki_proposal(pid)
     assert result["success"] is True
     assert result.get("index_rebuilt") is True
@@ -546,10 +551,12 @@ def test_integration_propose_new_apply_indexed(isolated_wiki, monkeypatch):
     rebuild_index would pick it up on a fresh build."""
     ctx = isolated_wiki
 
-    # Set the propose-tool module's WIKI_DIR too — it caches the import
+    # Point the propose-tool module at the temp wiki dir.  After sub-fix (B)
+    # wiki_propose_tools uses _wiki_dir() (agent context), not a WIKI_DIR
+    # constant, so patch the function directly.
     import backend.tools.wiki_propose_tools as wpt
     importlib.reload(wpt)
-    monkeypatch.setattr(wpt, "WIKI_DIR", ctx["wiki_dir"], raising=False)
+    monkeypatch.setattr(wpt, "_wiki_dir", lambda: ctx["wiki_dir"], raising=False)
     monkeypatch.setattr(wpt, "wiki_proposals", ctx["wp"], raising=False)
     fake_retriever = MagicMock()
     fake_retriever.get_page = MagicMock(return_value=None)
@@ -593,7 +600,8 @@ def test_integration_propose_edit_apply_file_updated(isolated_wiki, monkeypatch)
 
     import backend.tools.wiki_propose_tools as wpt
     importlib.reload(wpt)
-    monkeypatch.setattr(wpt, "WIKI_DIR", ctx["wiki_dir"], raising=False)
+    # Same pattern as test_integration_propose_new_apply_indexed above
+    monkeypatch.setattr(wpt, "_wiki_dir", lambda: ctx["wiki_dir"], raising=False)
     monkeypatch.setattr(wpt, "wiki_proposals", ctx["wp"], raising=False)
     # Real retriever-like behavior for this test: get_page returns content
     mock_page = MagicMock()

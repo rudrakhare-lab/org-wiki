@@ -77,7 +77,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parent
-VENV_PY = REPO / "venv" / "bin" / "python"
+# Interpreter running this script — works whether invoked from the project venv
+# (local dev) or the prod container's system Python (no venv). A hardcoded
+# venv/bin/python path does not exist in the container.
+VENV_PY = sys.executable
 LOG_DIR = REPO / "logs"
 LOG_FILE = LOG_DIR / "jira_sync.log"
 SYNC_SCRIPT = HERE / "jira_sync.py"

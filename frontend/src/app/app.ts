@@ -1,23 +1,26 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { ApiService } from './core/api.service';
+import { AgentService } from './core/agent.service';
 import { ConversationStore } from './core/conversation.store';
 import { AppSidebar } from './shared/app-sidebar/app-sidebar';
+import { ModeToggle } from './shared/mode-toggle/mode-toggle';
 
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, AppSidebar],
+  imports: [RouterOutlet, AppSidebar, ModeToggle],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
 export class App {
-  readonly title = 'Conwo';
+  get title(): string { return this.agentSvc.activeName(); }
   private router = inject(Router);
   private api = inject(ApiService);
   private conversations = inject(ConversationStore);
+  private agentSvc = inject(AgentService);
 
   currentUrl = signal<string>(this.router.url);
   signedIn = signal<boolean>(this.readToken().length > 0);
@@ -29,10 +32,57 @@ export class App {
         this.currentUrl.set((e as NavigationEnd).urlAfterRedirects);
         this.signedIn.set(this.readToken().length > 0);
       });
+    this.hydrateUser();
+    if (this.signedIn()) {
+      this.agentSvc.loadAgents();
+    }
+    effect(() => {
+      // Track both signals so this re-runs when the agent list loads.
+      this.agentSvc.agents();
+      this.agentSvc.activeId();
+      if (typeof document === 'undefined') return;
+      const base = this.agentSvc.activeBase();
+      document.body.classList.toggle('theme-dark', base === 'dark');
+      const accent = this.agentSvc.active()?.accent;
+      if (base === 'dark') {
+        // Keep the pre-booted inline accent until /agents resolves; only set when known.
+        if (accent) document.body.style.setProperty('--accent', accent);
+      } else {
+        document.body.style.removeProperty('--accent'); // light/Conwo → :root token
+      }
+      this.agentSvc.persistThemeHints();
+    });
+  }
+
+  /**
+   * On bootstrap, refresh the signed-in user's role + approval from the server.
+   * This (a) gives pre-feature sessions their role/approved flags, (b) picks up
+   * an admin approval without a re-login, and (c) propagates role changes. A 401
+   * means the stored token is invalid → sign out. (Deep-linking before this
+   * resolves falls back to the optimistic localStorage flags — acceptable for the
+   * pilot; the backend is the real gate.)
+   */
+  private hydrateUser() {
+    if (!this.signedIn()) return;
+    this.api.getMe().subscribe({
+      next: (me) => {
+        this.api.setUserRole(me.role);
+        this.api.setUserApproved(me.approved);
+        this.agentSvc.loadAgents();
+        const url = this.currentUrl();
+        if (!me.approved && !url.startsWith('/pending') && !url.startsWith('/login')) {
+          this.router.navigateByUrl('/pending');
+        }
+      },
+      error: (err) => {
+        if (err?.status === 401) this.signOut();
+      },
+    });
   }
 
   showHeaderNav(): boolean {
-    return !this.currentUrl().startsWith('/login') && this.signedIn();
+    const url = this.currentUrl();
+    return !url.startsWith('/login') && !url.startsWith('/pending') && this.signedIn();
   }
 
   signOut() {

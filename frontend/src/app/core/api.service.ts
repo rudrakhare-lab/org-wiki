@@ -45,6 +45,22 @@ export interface QueryResponse {
   intent?: string;
   rewritten_query?: string;
   intent_confidence?: number;
+  cost_usd?: number;
+  cost_inr?: number;
+}
+
+// ── Agents ─────────────────────────────────────────────────────────────────
+
+export interface Agent {
+  id: string;
+  display_name: string;
+  description: string;
+  identity?: string;     // editable identity line (backend _agent_public sends it)
+  accent?: string;       // hex, e.g. "#a78bfa"
+  theme_base?: string;   // 'light' | 'dark'
+  modes: string[];
+  has_jira: boolean;
+  has_pms: boolean;
 }
 
 // ── Conversations / chat history ───────────────────────────────────────────
@@ -74,6 +90,7 @@ export interface ChatMessage {
   intent?: string | null;
   rewritten_query?: string | null;
   intent_confidence?: number | null;
+  cost_inr?: number | null;
 }
 
 export interface Conversation {
@@ -124,6 +141,20 @@ export interface OperationalStatus {
   last_successful_sync: string | null;
   wiki_page_count: number;
   pending_admin_review_count: number;
+}
+
+export interface AdminUser {
+  email: string;
+  role: string;
+  approved: boolean;
+  created_at: string;
+  created_by: string | null;
+}
+
+export interface CurrentUser {
+  email: string;
+  role: string;
+  approved: boolean;
 }
 
 export type ProposalType = 'new' | 'edit' | 'append' | 'multi_edit' | 'legacy_text';
@@ -281,10 +312,25 @@ export type AgentEvent =
   | SseConversationSignal
   | { type: string; [k: string]: unknown };
 
+export interface SyncJob {
+  state: 'idle' | 'running' | 'done' | 'error';
+  started_at: string | null;
+  ended_at: string | null;
+  result: {
+    success?: boolean;
+    sync_summary?: string;
+    classify_summary?: string;
+    done_line?: string;
+    elapsed_s?: number;
+  } | null;
+  message: string;
+}
+
 export interface SyncStatus {
   jira: { last_sync_line: string; ticket_count: number };
   drive: { last_sync: string; file_count: number };
   feedback: { pending_count: number };
+  job?: SyncJob;
 }
 
 export interface IngestItem {
@@ -314,6 +360,7 @@ export interface TraceSessionSummary {
   mode: string;            // api | claude-code
   status: string;          // success | error | rejected | client_disconnect | orphaned
   question: string | null;
+  user_email: string | null;
   total_tokens_input: number | null;
   total_tokens_output: number | null;
   total_cost_usd: number | null;
@@ -411,6 +458,12 @@ export interface TraceListParams {
 
 // ── Ingest types ──────────────────────────────────────────────────────────────
 
+export interface BulkBatchItem { filename: string; status: string; error?: string | null; }
+export interface BulkBatch {
+  batch: { id: string; status: string; total: number; completed: number; failed: number };
+  items: BulkBatchItem[];
+}
+
 export interface IngestUploadResponse {
   upload_id: string;
   filename: string;
@@ -490,6 +543,7 @@ export interface IngestJobResponse {
   files_modified: string[];
   links: string[];
   error_msg: string;
+  warnings: string[];
 }
 
 const API_BASE = '';
@@ -497,6 +551,7 @@ const ADMIN_TOKEN_KEY = 'conwo_admin_token';
 const USER_EMAIL_KEY = 'conwo_user_email';
 const USER_NAME_KEY = 'conwo_user_name';
 const USER_ROLE_KEY = 'conwo_user_role';
+const USER_APPROVED_KEY = 'conwo_user_approved';
 const MODE_STORAGE = 'conwo_query_mode';
 
 @Injectable({ providedIn: 'root' })
@@ -513,10 +568,11 @@ export class ApiService {
     localStorage.setItem(ADMIN_TOKEN_KEY, token);
   }
 
-  setUserInfo(email: string, name: string, role = ''): void {
+  setUserInfo(email: string, name: string, role = '', approved = true): void {
     localStorage.setItem(USER_EMAIL_KEY, email);
     localStorage.setItem(USER_NAME_KEY, name);
     localStorage.setItem(USER_ROLE_KEY, role);
+    localStorage.setItem(USER_APPROVED_KEY, approved ? 'true' : 'false');
   }
 
   getUserEmail(): string {
@@ -531,14 +587,58 @@ export class ApiService {
     return localStorage.getItem(USER_ROLE_KEY) ?? '';
   }
 
+  /**
+   * Optimistic: an unknown/missing flag → approved=true. The backend is the real
+   * gate (so an optimistic client cannot leak access), and genuinely-new users
+   * get an explicit `approved:false` from the login response. This keeps
+   * pre-feature sessions from being bounced to /pending before bootstrap
+   * hydration (getMe) resolves their real status.
+   */
+  getUserApproved(): boolean {
+    return localStorage.getItem(USER_APPROVED_KEY) !== 'false';
+  }
+
+  setUserApproved(approved: boolean): void {
+    localStorage.setItem(USER_APPROVED_KEY, approved ? 'true' : 'false');
+  }
+
+  setUserRole(role: string): void {
+    localStorage.setItem(USER_ROLE_KEY, role);
+  }
+
   clearUserInfo(): void {
     localStorage.removeItem(USER_EMAIL_KEY);
     localStorage.removeItem(USER_NAME_KEY);
     localStorage.removeItem(USER_ROLE_KEY);
+    localStorage.removeItem(USER_APPROVED_KEY);
   }
 
   isAdmin(): boolean {
     return this.getUserRole() === 'admin';
+  }
+
+  isDeveloper(): boolean {
+    return this.getUserRole() === 'developer';
+  }
+
+  /** True when admin or developer (the roles that may ingest / view the graph). */
+  isDeveloperOrAdmin(): boolean {
+    const r = this.getUserRole();
+    return r === 'admin' || r === 'developer';
+  }
+
+  isApproved(): boolean {
+    return this.getUserApproved();
+  }
+
+  /** Current user identity/role/approval from the server (bootstrap hydration
+   *  + the pending-approval screen). Uses the standard Bearer header. */
+  getMe(): Observable<CurrentUser> {
+    const token = this.getAdminToken();
+    const headers = token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+      : new HttpHeaders();
+    return this.http.get<CurrentUser>(`${API_BASE}/auth/me`, { headers });
   }
 
   getStoredMode(): QueryMode {
@@ -700,6 +800,21 @@ export class ApiService {
     return this.http.get<WikiGraphData>(`${API_BASE}/api/wiki/graph`, { headers });
   }
 
+  // ── Agents ────────────────────────────────────────────────────────────
+
+  getAgents(): Observable<Agent[]> {
+    return this.http.get<Agent[]>(`${API_BASE}/agents`);
+  }
+
+  getMyAgentAccess(): Observable<Record<string, string>> {
+    return this.http.get<Record<string, string>>(`${API_BASE}/agents/my-access`, { headers: this.adminHeaders() });
+  }
+
+  requestAgentAccess(id: string): Observable<{ agent_id: string; status: string }> {
+    return this.http.post<{ agent_id: string; status: string }>(
+      `${API_BASE}/agents/${encodeURIComponent(id)}/request-access`, {}, { headers: this.adminHeaders() });
+  }
+
   // ── Conversations ──────────────────────────────────────────────────────
 
   listConversations(): Observable<{ conversations: ConversationSummary[] }> {
@@ -750,6 +865,40 @@ export class ApiService {
     return new HttpHeaders({ Authorization: `Bearer ${this.getAdminToken()}` });
   }
 
+  // ── Agents (admin) ──────────────────────────────────────────────────────
+  createAgent(name: string, description = ''): Observable<Agent> {
+    return this.http.post<Agent>(`${API_BASE}/admin/agents`, { name, description }, { headers: this.adminHeaders() });
+  }
+  updateAgent(id: string, patch: { display_name?: string; identity?: string; description?: string }): Observable<Agent> {
+    return this.http.patch<Agent>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}`, patch, { headers: this.adminHeaders() });
+  }
+  archiveAgent(id: string): Observable<{ status: string; id: string }> {
+    return this.http.delete<{ status: string; id: string }>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}`, { headers: this.adminHeaders() });
+  }
+  deleteAgent(id: string): Observable<{ status: string; id: string }> {
+    return this.http.delete<{ status: string; id: string }>(`${API_BASE}/admin/agents/${encodeURIComponent(id)}?hard=true`, { headers: this.adminHeaders() });
+  }
+  getAgentAccessRequests(): Observable<{ user_email: string; agent_id: string; requested_at: string }[]> {
+    return this.http.get<{ user_email: string; agent_id: string; requested_at: string }[]>(
+      `${API_BASE}/admin/agent-access/requests`, { headers: this.adminHeaders() });
+  }
+  getAgentGrants(): Observable<{ user_email: string; agent_id: string; decided_by: string }[]> {
+    return this.http.get<{ user_email: string; agent_id: string; decided_by: string }[]>(
+      `${API_BASE}/admin/agent-access/grants`, { headers: this.adminHeaders() });
+  }
+  approveAgentAccess(email: string, id: string): Observable<unknown> {
+    return this.http.post(`${API_BASE}/admin/agent-access/${encodeURIComponent(email)}/${encodeURIComponent(id)}/approve`, {}, { headers: this.adminHeaders() });
+  }
+  rejectAgentAccess(email: string, id: string): Observable<unknown> {
+    return this.http.post(`${API_BASE}/admin/agent-access/${encodeURIComponent(email)}/${encodeURIComponent(id)}/reject`, {}, { headers: this.adminHeaders() });
+  }
+  grantAgentAccess(email: string, id: string): Observable<unknown> {
+    return this.http.post(`${API_BASE}/admin/agent-access/${encodeURIComponent(email)}/${encodeURIComponent(id)}/grant`, {}, { headers: this.adminHeaders() });
+  }
+  revokeAgentAccess(email: string, id: string): Observable<unknown> {
+    return this.http.delete(`${API_BASE}/admin/agent-access/${encodeURIComponent(email)}/${encodeURIComponent(id)}`, { headers: this.adminHeaders() });
+  }
+
   // ── Traces / observability (admin-only) ────────────────────────────────
   listTraces(params: TraceListParams = {}): Observable<TraceSessionList> {
     const qs = new URLSearchParams();
@@ -790,12 +939,40 @@ export class ApiService {
     return this.http.get<SyncStatus>(`${API_BASE}/admin/sync-status`, { headers: this.adminHeaders() });
   }
 
-  triggerSync(): Observable<{ status: string; pid?: number }> {
-    return this.http.post<{ status: string; pid?: number }>(`${API_BASE}/admin/trigger-sync`, {}, { headers: this.adminHeaders() });
+  triggerSync(): Observable<{ status: 'started' | 'already_running' | 'error'; message?: string }> {
+    return this.http.post<{ status: 'started' | 'already_running' | 'error'; message?: string }>(
+      `${API_BASE}/admin/trigger-sync`, {}, { headers: this.adminHeaders() });
   }
 
   getIngestQueue(): Observable<IngestItem[]> {
     return this.http.get<IngestItem[]>(`${API_BASE}/admin/ingest-queue`, { headers: this.adminHeaders() });
+  }
+
+  // ── Admin: user management (approval + roles) ──────────────────────────
+  adminListUsers(): Observable<{ users: AdminUser[] }> {
+    return this.http.get<{ users: AdminUser[] }>(`${API_BASE}/admin/users`, { headers: this.adminHeaders() });
+  }
+
+  approveUser(email: string, role?: string): Observable<{ email: string; approved: boolean; role: string }> {
+    return this.http.post<{ email: string; approved: boolean; role: string }>(
+      `${API_BASE}/admin/users/${encodeURIComponent(email)}/approve`,
+      role ? { role } : {},
+      { headers: this.adminHeaders() });
+  }
+
+  getAuthConfig(): Observable<{ dev_login: boolean }> {
+    return this.http.get<{ dev_login: boolean }>(`${API_BASE}/auth/config`);
+  }
+
+  devLogin(email: string): Observable<{ token: string; email: string; name: string; role: string; approved: boolean }> {
+    return this.http.post<{ token: string; email: string; name: string; role: string; approved: boolean }>(
+      `${API_BASE}/auth/dev-login`, { email });
+  }
+
+  updateUserRole(email: string, role: string): Observable<{ email: string; role: string }> {
+    return this.http.patch<{ email: string; role: string }>(
+      `${API_BASE}/admin/users/${encodeURIComponent(email)}/role`, { role },
+      { headers: this.adminHeaders() });
   }
 
   getFeedbackList(status = 'pending'): Observable<FeedbackRecord[]> {
@@ -907,6 +1084,16 @@ export class ApiService {
       { session_id: sessionId },
       { headers }
     );
+  }
+
+  startBulkIngest(uploadIds: string[]): Observable<{ batch_id: string; total: number }> {
+    return this.http.post<{ batch_id: string; total: number }>(
+      `${API_BASE}/api/ingest/bulk`, { upload_ids: uploadIds }, { headers: this.adminHeaders() });
+  }
+
+  getBulkStatus(batchId: string): Observable<BulkBatch> {
+    return this.http.get<BulkBatch>(
+      `${API_BASE}/api/ingest/bulk/${encodeURIComponent(batchId)}`, { headers: this.adminHeaders() });
   }
 
   getIngestJob(jobId: string): Observable<IngestJobResponse> {

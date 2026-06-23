@@ -66,12 +66,12 @@ def parse_args() -> argparse.Namespace:
 
     criteria = sub.add_parser("criteria-values", help="Get allowed values for a criterion")
     criteria.add_argument("--service", required=True)
-    criteria.add_argument("--criteria", required=True, help="Example: OFFICEID, ROOMID, ROLE")
+    criteria.add_argument("--criteria", required=True, help="Example: OFFICEID, ROOM_ID, ROLE")
 
     props = sub.add_parser("properties", help="Get current properties for BUID/criterion")
     props.add_argument("--service", required=True)
     props.add_argument("--buid", required=True)
-    props.add_argument("--criteria", help="Example: OFFICEID, ROOMID, ROLE")
+    props.add_argument("--criteria", help="Example: OFFICEID, ROOM_ID, ROLE")
     props.add_argument("--value", help="Criterion value, e.g. office id, room id, role")
 
     return parser.parse_args()
@@ -143,7 +143,7 @@ def build_request(args: argparse.Namespace) -> tuple[str, str, str, dict[str, An
             if not args.criteria or args.value is None:
                 raise SystemExit("--criteria and --value must be provided together")
             body[args.criteria] = args.value
-        return "POST", f"{base}/{args.service}/properties/v2", args.service, body
+        return "POST", f"{base}/{args.service}/properties", args.service, body
     raise SystemExit(f"Unknown command: {args.command}")
 
 

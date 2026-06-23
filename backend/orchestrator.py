@@ -137,6 +137,7 @@ def run(
     user_role: str = "viewer",
     conversation_id: str | None = None,
     trace_id: str | None = None,
+    agent=None,
 ) -> OrchestratorResult:
     """
     Execute the full QUERY workflow and return a structured result.
@@ -144,15 +145,21 @@ def run(
     mode="api":          claude_api_key required — runs deep search tool loop.
     mode="claude-code":  claude_api_key ignored — single-shot subprocess call.
     """
+    from backend import agent_registry
+    if agent is None:
+        agent = agent_registry.default()
+    if not agent.mode_allowed(mode):
+        raise ValueError(f"Agent '{agent.id}' does not support mode '{mode}'")
+
     if mode == "claude-code":
         result = run_single_shot(question, mode, None, server, buid, functional_area,
-                                 user_role, trace_id=trace_id)
+                                 user_role, trace_id=trace_id, agent=agent)
         result.deep_search_used = False
         return result
     return run_deep(
         question, mode, claude_api_key, server, buid, functional_area,
         service, officeid, roomid, role, user_role, conversation_id,
-        trace_id=trace_id,
+        trace_id=trace_id, agent=agent,
     )
 
 
@@ -170,20 +177,25 @@ def run_deep(
     user_role: str = "viewer",
     conversation_id: str | None = None,
     trace_id: str | None = None,
+    agent=None,
 ) -> OrchestratorResult:
     """Agentic deep search via Anthropic tool_use loop with deterministic preflight."""
+    from backend import agent_registry as _ar
     from backend.deep_system_prompt import load_deep_system_prompt
     from backend.preflight import build_seed_message, run_preflight
     from backend.providers.deep_query import DeepQueryProvider
     from backend.tools import build_registry
 
+    if agent is None:
+        agent = _ar.default()
+
     # Build registry once; preflight + tool loop share it
-    registry = build_registry(user_role=user_role)
+    registry = build_registry(user_role=user_role, agent=agent)
 
     # 1. Deterministic preflight: wiki search + Jira ranked search +
     #    full bodies of top LATEST tickets. Runs for EVERY query.
     bundle = run_preflight(question, functional_area=functional_area, registry=registry,
-                           trace_id=trace_id)
+                           trace_id=trace_id, agent=agent)
 
     _intent = bundle.intent_result.intent.value if bundle.intent_result else "GENERAL"
     _rewritten_query = bundle.intent_result.rewritten_query if bundle.intent_result else ""
@@ -207,10 +219,10 @@ def run_deep(
     # back due to missing API key — caller still gets prior_messages from
     # _load_conversation_context for the recent window in any case.
     summary = load_conversation_summary(conversation_id)
-    user_message = build_seed_message(question, " | ".join(scope_parts), bundle, summary=summary)
+    user_message = build_seed_message(question, " | ".join(scope_parts), bundle, summary=summary, agent=agent)
 
     # 3. Run tool loop (using the SAME registry that the preflight used)
-    system_prompt = load_deep_system_prompt()
+    system_prompt = load_deep_system_prompt(agent)
     provider = DeepQueryProvider(api_key=claude_api_key or "")
     history = _load_conversation_context(conversation_id) if conversation_id else []
     deep_result = provider.generate_with_tools(
@@ -271,6 +283,7 @@ def run_deep(
         ),
         answer_id=answer_id,
         created_at=created_at,
+        agent_id=agent.id,
     )
 
     return OrchestratorResult(
@@ -302,6 +315,7 @@ def run_single_shot(
     functional_area: str | None = None,
     user_role: str = "viewer",
     trace_id: str | None = None,
+    agent=None,
 ) -> OrchestratorResult:
     """Single-shot RAG — used for mode=claude-code (subprocess can't do tool_use).
 
@@ -309,11 +323,23 @@ def run_single_shot(
     event: claude-code billing is external (no resp.usage), and emitting a
     zero-token event would roll up tokens/cost as 0 instead of the agreed NULL.
     """
+    from backend import agent_registry as _ar
+    if agent is None:
+        agent = _ar.default()
+
     # 1. Wiki retrieval
     wiki_pages = wiki_retriever.search(question, top_n=5)
 
-    # 2. Jira retrieval
-    jira_result = jira_retriever.search(question, functional_area=functional_area)
+    # 2. Jira retrieval — gated on agent.has_jira
+    if agent.has_jira:
+        jira_result = jira_retriever.search(question, functional_area=functional_area)
+    else:
+        jira_result = {
+            "markdown": "",
+            "rows": [],
+            "buckets": {"LATEST": [], "HISTORICAL": [], "STALE": []},
+            "keywords": [],
+        }
 
     # 3. Build context
     wiki_context = _format_wiki_context(wiki_pages)
@@ -330,7 +356,7 @@ def run_single_shot(
     )
 
     # 5. Select provider and call
-    system_prompt = load_system_prompt()
+    system_prompt = load_system_prompt(agent.id)
     provider = _select_provider(mode, claude_api_key)
     provider_result = provider.generate(system_prompt, user_message)
 
@@ -369,6 +395,7 @@ def run_single_shot(
         retrieval_notes=f"mode={mode} keywords={jira_result['keywords']} server={server}",
         answer_id=answer_id,
         created_at=created_at,
+        agent_id=agent.id,
     )
 
     return OrchestratorResult(
@@ -386,10 +413,22 @@ def run_single_shot(
     )
 
 
-def search_only(question: str, server: str = "com") -> dict:
+def search_only(question: str, server: str = "com", agent=None) -> dict:
     """Retrieval-only path — no LLM. Returns raw wiki + Jira results."""
+    from backend import agent_registry as _ar
+    if agent is None:
+        agent = _ar.default()
+
     wiki_pages = wiki_retriever.search(question, top_n=5)
-    jira_result = jira_retriever.search(question)
+    if agent.has_jira:
+        jira_result = jira_retriever.search(question)
+    else:
+        jira_result = {
+            "markdown": "",
+            "rows": [],
+            "buckets": {"LATEST": [], "HISTORICAL": [], "STALE": []},
+            "keywords": [],
+        }
     return {
         "wiki_pages": [
             {"path": p.path, "title": p.title, "excerpt": p.excerpt(400)}

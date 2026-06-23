@@ -14,25 +14,32 @@ import pathlib
 import re
 
 from backend import wiki_retriever
+from backend import wiki_schema
 
-from backend.config import WIKI_DIR as _CFG_WIKI_DIR
-# Parent of the wiki/ dir; honors CONWO_DATA_DIR (the PVC) in prod. _safe_path
-# joins WIKI_ROOT/"wiki", so this resolves to the configured WIKI_DIR.
-WIKI_ROOT = str(_CFG_WIKI_DIR.parent)
 
-# Fields that are always scalars — never allow treating them as lists
-_SCALAR_FIELDS = {"type", "status", "owner", "module", "last_updated", "ingested",
-                  "doc_type", "date", "auto_generated", "human_edited", "cluster_id"}
+def _wiki_dir():
+    """Return the active agent's wiki directory (resolved at call time)."""
+    from backend import agent_context
+    return agent_context.get_current_agent().wiki_dir
+
+# Fields that are always scalars — never allow treating them as lists.
+# Sourced from wiki_schema (the single source of truth) so the generic-schema
+# `category`/`slug`/`title` guards stay in sync. Kept as a mutable set because
+# the module uses it for in-place membership checks elsewhere.
+_SCALAR_FIELDS = set(wiki_schema.SCALAR_FRONTMATTER_FIELDS)
 
 
 def _safe_path(rel_path: str) -> pathlib.Path | None:
     """Return resolved Path if rel_path is inside wiki/, else None.
 
-    Reads WIKI_ROOT at call time (not module load time) so that tests can
-    patch the module-level constant and have _safe_path reflect the new value.
+    Resolves the active agent's wiki_dir at call time so that the path is
+    always relative to the correct agent's wiki directory.
     """
-    wiki_root = pathlib.Path(WIKI_ROOT)
-    wiki_subdir = (wiki_root / "wiki").resolve()
+    wiki_dir = _wiki_dir()
+    wiki_subdir = wiki_dir.resolve()
+    # rel_path is already relative to wiki/ (e.g. "wiki/modules/foo.md"),
+    # so join against the parent of wiki_dir to preserve the "wiki/" prefix.
+    wiki_root = wiki_dir.parent
     candidate = (wiki_root / rel_path).resolve()
     try:
         candidate.relative_to(wiki_subdir)

@@ -105,7 +105,7 @@ def test_wiki_read_page_reads_unindexed_files(monkeypatch, tmp_path):
     target.write_text("# Fresh Page\n\nNot indexed yet.\n", encoding="utf-8")
 
     from backend.tools import wiki_tools
-    monkeypatch.setattr(wiki_tools, "WIKI_DIR", fake_wiki)
+    monkeypatch.setattr(wiki_tools, "_wiki_dir", lambda: fake_wiki)
     monkeypatch.setattr(wiki_tools.wiki_retriever, "get_page", lambda path: None)
 
     result = wiki_tools._wiki_read_page_handler({"path": "freshly_created.md"})
@@ -122,7 +122,7 @@ def test_wiki_read_page_disk_fallback_pagination(monkeypatch, tmp_path):
     (fake_wiki / "big.md").write_text("x" * 5000, encoding="utf-8")
 
     from backend.tools import wiki_tools
-    monkeypatch.setattr(wiki_tools, "WIKI_DIR", fake_wiki)
+    monkeypatch.setattr(wiki_tools, "_wiki_dir", lambda: fake_wiki)
     monkeypatch.setattr(wiki_tools.wiki_retriever, "get_page", lambda path: None)
 
     result = wiki_tools._wiki_read_page_handler({"path": "big.md", "limit": 1000})
@@ -138,7 +138,7 @@ def test_wiki_read_page_path_traversal_still_blocked(monkeypatch, tmp_path):
     fake_wiki.mkdir()
 
     from backend.tools import wiki_tools
-    monkeypatch.setattr(wiki_tools, "WIKI_DIR", fake_wiki)
+    monkeypatch.setattr(wiki_tools, "_wiki_dir", lambda: fake_wiki)
     monkeypatch.setattr(wiki_tools.wiki_retriever, "get_page", lambda path: None)
 
     for bad in ("../etc/passwd", "/etc/passwd", "../../something.md"):
@@ -152,7 +152,7 @@ def test_wiki_read_page_not_found_for_truly_missing(monkeypatch, tmp_path):
     fake_wiki.mkdir()
 
     from backend.tools import wiki_tools
-    monkeypatch.setattr(wiki_tools, "WIKI_DIR", fake_wiki)
+    monkeypatch.setattr(wiki_tools, "_wiki_dir", lambda: fake_wiki)
     monkeypatch.setattr(wiki_tools.wiki_retriever, "get_page", lambda path: None)
 
     result = wiki_tools._wiki_read_page_handler({"path": "does-not-exist.md"})

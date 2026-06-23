@@ -15,6 +15,7 @@ import { ConfidenceBadge } from '../../shared/confidence-badge/confidence-badge'
 import { SourceDrawer } from '../../shared/source-drawer/source-drawer';
 import { FeedbackPanel } from '../ask/feedback-panel';
 import { AgentTranscript, AgentRequest } from './agent-transcript';
+import { AgentService } from '../../core/agent.service';
 
 const PMS_SERVICES = [
   'VISITOR', 'MEETING_ROOMS', 'BOOKING-RULE-ENGINE', 'WIS-SEAT-BOOKING',
@@ -58,7 +59,7 @@ const PMS_SERVICES = [
             @if (showEmptyState()) {
               <div class="empty-state">
                 <h1 class="empty-title">{{ greeting() }}</h1>
-                <p class="empty-sub">What would you like to know today?</p>
+                <p class="empty-sub">What would you like to know about WorkInSync today?</p>
               </div>
             }
 
@@ -72,7 +73,7 @@ const PMS_SERVICES = [
                 <article class="message message-assistant">
                   <div class="message-meta">
                     <img src="logo.png" alt="" class="conwo-avatar" />
-                    Conwo
+                    {{ agentSvc.activeName() }}
                     @if (m.mode) { <span class="meta-sub">· {{ modeLabel(m.mode) }}</span> }
                   </div>
                   <div class="message-body">
@@ -107,6 +108,10 @@ const PMS_SERVICES = [
                     }
 
                     <div class="answer-body" [innerHTML]="renderMarkdown(m.content)"></div>
+
+                    @if (m.cost_inr && m.cost_inr > 0) {
+                      <div class="query-cost">This query cost ₹{{ m.cost_inr | number:'1.2-2' }}</div>
+                    }
 
                     @if (m.sources && hasSources(m.sources)) {
                       <app-source-drawer
@@ -215,7 +220,7 @@ const PMS_SERVICES = [
 
             @if (loading()) {
               <article class="message message-assistant">
-                <div class="message-meta"><img src="logo.png" alt="" class="conwo-avatar" />Conwo</div>
+                <div class="message-meta"><img src="logo.png" alt="" class="conwo-avatar" />{{ agentSvc.activeName() }}</div>
                 <div class="message-body">
                   <div class="thinking">
                     <span class="thinking-dots" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -227,7 +232,7 @@ const PMS_SERVICES = [
 
             @if (agentActive()) {
               <article class="message message-assistant">
-                <div class="message-meta"><img src="logo.png" alt="" class="conwo-avatar" />Conwo <span class="meta-sub">· Claude Code</span></div>
+                <div class="message-meta"><img src="logo.png" alt="" class="conwo-avatar" />{{ agentSvc.activeName() }} <span class="meta-sub">· Claude Code</span></div>
                 <div class="message-body">
                   <app-agent-transcript
                     [request]="agentRequest()"
@@ -255,7 +260,7 @@ const PMS_SERVICES = [
               </div>
             }
 
-            @if (mode() === 'agent' && !claudeCodeAvailable()) {
+            @if (agentSupportsAgentMode() && mode() === 'agent' && !claudeCodeAvailable()) {
               <div class="notice notice-warning">
                 Claude Code CLI not found on the backend. Install it and run
                 <code>claude login</code>, then refresh.
@@ -355,6 +360,12 @@ const PMS_SERVICES = [
 export class Ask implements OnInit {
   private api = inject(ApiService);
   private store = inject(ConversationStore);
+  agentSvc = inject(AgentService);
+
+  agentSupportsAgentMode(): boolean {
+    const a = this.agentSvc.active();
+    return !a || a.modes.includes('agent');   // permissive until the list loads
+  }
 
   question = '';
   server: 'com' | 'in' = 'com';
@@ -414,6 +425,9 @@ export class Ask implements OnInit {
     const stored = this.api.getStoredMode();
     // Migrate any user previously on the legacy single-shot mode to Deep Search.
     this.mode.set(stored === 'claude-code' ? 'api' : stored);
+    if (this.mode() === 'agent' && !this.agentSupportsAgentMode()) {
+      this.mode.set('api');
+    }
     this.api.checkClaudeCodeHealth().subscribe({
       next: r => {
         this.claudeCodeAvailable.set(r.available);
@@ -677,6 +691,7 @@ export class Ask implements OnInit {
       intent: res.intent,
       rewritten_query: res.rewritten_query,
       intent_confidence: res.intent_confidence,
+      cost_inr: res.cost_inr,
     };
     this.messages.update(arr => [...arr, msg]);
   }

@@ -1,36 +1,40 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 
 const ADMIN_TOKEN_KEY = 'conwo_admin_token';
+const ACTIVE_AGENT_KEY = 'conwo_active_agent';
 
-// Public endpoints that should NOT receive an Authorization header. Everything
-// else — including /status, /conversations, /query, /admin/* — gets the
-// stored bearer token attached automatically, so per-method header attachment
-// becomes optional. Adding a new authenticated endpoint requires no special
-// handling.
 const PUBLIC_PATHS = ['/health', '/health/claude-code'];
 
 function isPublicPath(url: string): boolean {
   return PUBLIC_PATHS.some(p => url.endsWith(p));
 }
 
+function readLocal(key: string): string {
+  try {
+    return (typeof localStorage !== 'undefined') ? (localStorage.getItem(key) ?? '') : '';
+  } catch {
+    return '';
+  }
+}
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   if (isPublicPath(req.url)) {
     return next(req);
   }
-  // Do not override an Authorization header that was set explicitly by a
-  // caller (preserves the existing manual-attachment patterns until they're
-  // cleaned up in a later pass).
-  if (req.headers.has('Authorization')) {
-    return next(req);
+
+  // Always stamp the active agent (default conwo) so every API call is
+  // agent-scoped. The backend defaults to conwo when the header is absent,
+  // so this is additive and safe for existing endpoints.
+  const agentId = readLocal(ACTIVE_AGENT_KEY) || 'conwo';
+  const setHeaders: Record<string, string> = { 'X-Agent-Id': agentId };
+
+  // Attach the bearer token unless the caller set Authorization explicitly.
+  if (!req.headers.has('Authorization')) {
+    const token = readLocal(ADMIN_TOKEN_KEY);
+    if (token) {
+      setHeaders['Authorization'] = `Bearer ${token}`;
+    }
   }
-  const token = (typeof localStorage !== 'undefined')
-    ? (localStorage.getItem(ADMIN_TOKEN_KEY) ?? '')
-    : '';
-  if (!token) {
-    return next(req);
-  }
-  const authed = req.clone({
-    setHeaders: { Authorization: `Bearer ${token}` },
-  });
-  return next(authed);
+
+  return next(req.clone({ setHeaders }));
 };

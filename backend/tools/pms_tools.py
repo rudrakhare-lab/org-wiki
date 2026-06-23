@@ -23,6 +23,33 @@ _VALID_SERVICES = frozenset({
     "EMP-EXP-COMMON-CONFIG", "PROJECT-MANAGEMENT-SERVICE", "APP_SERVER_CONFIG", "ETS",
 })
 
+# Services with NO live PMS API endpoint. They stay in _VALID_SERVICES so the
+# LLM recognises the names, but there is no POST /{service}/properties to call:
+#   - APP_SERVER_CONFIG: static reference, ingested from wis_service_configs.xlsx
+#     (sheets 10-11) → wiki/configs/app-server-config.md.
+#   - ETS: not present in any ingested PMS config file; properties are Jira-sourced
+#     only (PB-52960, SE-51628, SE-47565). No live endpoint exists.
+# Live-fetch handlers short-circuit on these with a clear, honest message instead
+# of issuing a request that 404s/401s.
+_NO_LIVE_ENDPOINT = frozenset({"APP_SERVER_CONFIG", "ETS"})
+
+
+def _no_live_endpoint(service: str) -> dict:
+    """Clear response for a service that has no live PMS API endpoint."""
+    where = ("wiki/configs/app-server-config.md (static reference)"
+             if service == "APP_SERVER_CONFIG"
+             else "Jira tickets only (PB-52960, SE-51628, SE-47565)")
+    return {
+        "status": "no_live_endpoint",
+        "code": "no_live_endpoint",
+        "service": service,
+        "message": (
+            f"'{service}' has no live PMS API endpoint — it cannot be fetched via "
+            f"the PMS debug tools. Source: {where}. Answer from the wiki/Jira "
+            f"evidence instead of attempting a live lookup."
+        ),
+    }
+
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
 PMS_DEFAULT_PROPERTIES_SCHEMA: dict = {
@@ -231,7 +258,7 @@ PMS_RUNTIME_VALUES_SCHEMA: dict = {
     "name": "pms_runtime_values",
     "description": (
         "Fetch live PMS config values for a specific BUID at a specific level of the hierarchy "
-        "(DEFAULT → BUID → OFFICEID → ROOMID/ROLE). "
+        "(DEFAULT → BUID → OFFICEID → ROOM_ID/ROLE). "
         "Config hierarchy: a property set at OFFICEID level overrides BUID, which overrides DEFAULT. "
         "Returns credentials_required if PMS tokens are not configured — treat this as "
         "informational and answer with wiki/Jira evidence instead. "
@@ -255,17 +282,17 @@ PMS_RUNTIME_VALUES_SCHEMA: dict = {
             },
             "criteria": {
                 "type": "string",
-                "enum": ["OFFICEID", "ROOMID", "ROLE"],
+                "enum": ["OFFICEID", "ROOM_ID", "ROLE"],
                 "description": (
                     "Optional sub-BUID level. Omit to fetch BUID-level configs. "
-                    "Use OFFICEID for office overrides, ROOMID for meeting-room overrides, "
+                    "Use OFFICEID for office overrides, ROOM_ID for meeting-room overrides, "
                     "ROLE for PROJECT-MANAGEMENT-SERVICE role overrides."
                 ),
             },
             "value": {
                 "type": "string",
                 "description": (
-                    "The criteria value (e.g. an OFFICEID string, ROOMID string, "
+                    "The criteria value (e.g. an OFFICEID string, ROOM_ID string, "
                     "or role name like 'employee'). Required when criteria is set."
                 ),
             },
@@ -308,11 +335,43 @@ def _is_auth_error(exc: Exception) -> bool:
     return "401" in str(exc)
 
 
+def _is_route_unavailable(exc: Exception) -> bool:
+    """True when the PMS API has no such route server-side.
+
+    The token-free server-side scheme (cms…/propmanagement/{service}/…) only
+    exposes property-data routes (default-properties, properties, offices).
+    The BUID-roles and criteria-value-list endpoints exist ONLY under the
+    auth-gated /api scheme, so calling them server-side returns a Spring
+    NoResourceFoundException ("No static resource …"). Detect that so we can
+    report it clearly instead of as a generic API error or a false "outage".
+    """
+    s = str(exc)
+    return "NoResourceFoundException" in s or "No static resource" in s
+
+
+def _route_unavailable(tool: str) -> dict:
+    """Clear, honest response for a PMS endpoint with no token-free server-side route."""
+    return {
+        "status": "unavailable_server_side",
+        "code": "route_unavailable",
+        "message": (
+            f"'{tool}' is not available from the server: this PMS endpoint exists "
+            "only on the auth-gated /api scheme, and Conwo calls PMS token-free "
+            "(server-side) in production. Live config values still work via "
+            "pms_runtime_values / pms_diagnose_property; office names via "
+            "pms_list_offices. This helper requires an authenticated PMS session."
+        ),
+    }
+
+
 # ── Handlers ──────────────────────────────────────────────────────────────────
 
 def _pms_default_properties_handler(inp: dict) -> dict:
     service = str(inp.get("service", "")).strip().upper()
     server = str(inp.get("server", "com")).strip().lower()
+
+    if service in _NO_LIVE_ENDPOINT:
+        return _no_live_endpoint(service)
 
     token, cookie = _get_tokens(server)
 
@@ -358,8 +417,16 @@ def _pms_runtime_values_handler(inp: dict) -> dict:
     criteria = inp.get("criteria")
     value = inp.get("value")
 
+    # Normalise the legacy 'ROOMID' spelling to the API's 'ROOM_ID' (the POST
+    # body key and criteria-value-list path both use the underscore form).
+    if isinstance(criteria, str) and criteria.strip().upper() == "ROOMID":
+        criteria = "ROOM_ID"
+
     if not buid:
         return {"error": "buid is required", "code": "missing_input"}
+
+    if service in _NO_LIVE_ENDPOINT:
+        return _no_live_endpoint(service)
 
     token, cookie = _get_tokens(server)
 
@@ -448,6 +515,8 @@ def _pms_list_criteria_handler(inp: dict) -> dict:
     except Exception as exc:
         if _is_auth_error(exc):
             return _credentials_required(server)
+        if _is_route_unavailable(exc):
+            return _route_unavailable("pms_list_criteria")
         return {"error": str(exc), "code": "api_error"}
 
     return {
@@ -527,6 +596,8 @@ def _pms_verify_buid_handler(inp: dict) -> dict:
     except Exception as exc:
         if _is_auth_error(exc):
             return _credentials_required(server)
+        if _is_route_unavailable(exc):
+            return _route_unavailable("pms_verify_buid")
         return {"error": str(exc), "code": "api_error"}
 
     accessible = _extract_accessible_buids(roles)
@@ -599,6 +670,9 @@ def _pms_diagnose_property_handler(inp: dict) -> dict:
 
     if not buid or not property_name:
         return {"error": "buid and property are required", "code": "missing_input"}
+
+    if service in _NO_LIVE_ENDPOINT:
+        return _no_live_endpoint(service)
 
     token, cookie = _get_tokens(server)
 

@@ -66,7 +66,7 @@ interface ProgressItem {
       @if (done()) {
         <div class="success-box">
           <div class="success-title">
-            ✅ Ingestion complete — {{ createdCount() }} created, {{ modifiedCount() }} modified
+            ✅ Ingestion complete — {{ createdCount() }} created, {{ modifiedCount() }} modified@if (warnings().length) {, {{ warnings().length }} warning{{ warnings().length === 1 ? '' : 's' }}}
           </div>
           <div class="result-links">
             @for (link of resultLinks(); track link) {
@@ -74,6 +74,14 @@ interface ProgressItem {
             }
           </div>
         </div>
+        @if (warnings().length) {
+          <div class="warnings-box">
+            <div class="warnings-title">⚠️ Skipped {{ warnings().length }} operation{{ warnings().length === 1 ? '' : 's' }}:</div>
+            <ul>
+              @for (w of warnings(); track w) { <li>{{ w }}</li> }
+            </ul>
+          </div>
+        }
         <button class="btn-primary" (click)="ingestAnother.emit()">Ingest another doc</button>
       }
 
@@ -104,6 +112,7 @@ export class ExecuteStep implements OnInit, OnDestroy {
   resultLinks = signal<string[]>([]);
   createdCount = signal(0);
   modifiedCount = signal(0);
+  warnings = signal<string[]>([]);
   elapsedSeconds = signal(0);
   resuming = signal(false);  // true when resuming a job from a previous visit
 
@@ -172,7 +181,7 @@ export class ExecuteStep implements OnInit, OnDestroy {
     }, 2000);
   }
 
-  private applyJobState(job: { status: string; events: Array<{ type: string; tool: string; path: string; status: string; result: Record<string, unknown>; completed: number; total: number }>; files_created: string[]; files_modified: string[]; links: string[]; error_msg: string }) {
+  private applyJobState(job: { status: string; events: Array<{ type: string; tool: string; path: string; status: string; result: Record<string, unknown>; completed: number; total: number }>; files_created: string[]; files_modified: string[]; links: string[]; error_msg: string; warnings?: string[] }) {
     for (const evt of job.events) {
       if (evt.type === 'progress') {
         this.total.set(evt.total);
@@ -196,6 +205,7 @@ export class ExecuteStep implements OnInit, OnDestroy {
       this.resultLinks.set(job.links);
       this.createdCount.set(job.files_created.length);
       this.modifiedCount.set(job.files_modified.length);
+      this.warnings.set(job.warnings ?? []);
       this.clearJobStorage();
       this.stopTimers();
     } else if (job.status === 'error') {

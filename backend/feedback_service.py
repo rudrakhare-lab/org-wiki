@@ -49,6 +49,7 @@ def log_answer(
     retrieval_notes: str = "",
     answer_id: str | None = None,
     created_at: str | None = None,
+    agent_id: str = "conwo",
 ) -> str:
     """Log an answer record and return the answer_id.
 
@@ -70,6 +71,7 @@ def log_answer(
             "pms": list(pms_configs or []),
         },
         "retrieval_notes": retrieval_notes,
+        "agent_id": agent_id,
     }
     ANSWER_LOG.parent.mkdir(parents=True, exist_ok=True)
     _la_append(ANSWER_LOG, record)

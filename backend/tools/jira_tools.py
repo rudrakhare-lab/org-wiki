@@ -27,7 +27,10 @@ def _recently_resolved_params(p: dict) -> tuple:
     # Compute the cutoff date in Python (UTC) — Postgres has no SQLite date('now',...).
     days = int(p.get("days", 90))
     cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).date().isoformat()
-    return (cutoff, min(int(p.get("limit", 20)), 50))
+    # Optional functional_area filter: empty string matches all areas (the
+    # `%s = '' OR ...` guard in the SQL). Passed twice for the two placeholders.
+    area = (p.get("functional_area") or "").strip()
+    return (cutoff, area, area, min(int(p.get("limit", 20)), 50))
 
 def _open_by_priority_params(p: dict) -> tuple:
     priority = p.get("priority", "P0")
@@ -44,30 +47,36 @@ _NAMED_QUERIES: dict[str, tuple[str, Any]] = {
         "substr(updated_at,1,10) AS updated, substr(resolved_at,1,10) AS resolved, "
         "comment_count, functional_area "
         "FROM tickets WHERE functional_area = %s "
-        "ORDER BY updated_at DESC LIMIT %s",
+        "ORDER BY updated_at DESC, key ASC LIMIT %s",
         _tickets_by_area_params,
     ),
+    # `key ASC` is a deterministic tiebreaker so same-day resolutions return in a
+    # stable order on every call. The optional functional_area filter
+    # (`%s = '' OR functional_area = %s`) makes "recent resolved in <area>" exact
+    # and repeatable — without it the LLM falls back to keyword search, which
+    # ranks by content size (not recency) and yields different answers per run.
     "recently_resolved": (
         "SELECT key, summary, status_category, priority, "
         "substr(updated_at,1,10) AS updated, substr(resolved_at,1,10) AS resolved, "
         "comment_count, functional_area "
         "FROM tickets WHERE status_category = 'done' AND resolved_at IS NOT NULL "
         "AND substr(resolved_at,1,10) >= %s "
-        "ORDER BY resolved_at DESC LIMIT %s",
+        "AND (%s = '' OR functional_area = %s) "
+        "ORDER BY resolved_at DESC, key ASC LIMIT %s",
         _recently_resolved_params,
     ),
     "open_by_priority": (
         "SELECT key, summary, status_category, priority, "
         "substr(updated_at,1,10) AS updated, comment_count, functional_area "
         "FROM tickets WHERE status_category != 'done' AND priority = %s "
-        "ORDER BY updated_at DESC LIMIT %s",
+        "ORDER BY updated_at DESC, key ASC LIMIT %s",
         _open_by_priority_params,
     ),
     "tickets_linking_key": (
         "SELECT key, summary, status_category, "
         "substr(updated_at,1,10) AS updated "
         "FROM tickets WHERE links_json ILIKE %s "
-        "ORDER BY updated_at DESC LIMIT 20",
+        "ORDER BY updated_at DESC, key ASC LIMIT 20",
         _tickets_linking_key_params,
     ),
 }
@@ -164,7 +173,12 @@ JIRA_NAMED_QUERY_SCHEMA: dict = {
         "Run a named aggregate Jira query for pattern analysis. "
         f"Allowed query names: {', '.join(_ALLOWED_QUERY_NAMES)}. "
         "Use 'tickets_by_area' for all tickets in a functional area. "
-        "Use 'recently_resolved' for recently closed tickets. "
+        "Use 'recently_resolved' for recently closed tickets — pass functional_area "
+        "to scope it to one area (e.g. WP-admin). This is the DETERMINISTIC, "
+        "correctly-ordered path for 'recent/latest resolved tickets in <area>' "
+        "questions: results are ordered by resolved_at DESC then key — do NOT use "
+        "jira_search_ranked for these (keyword search ranks by content, not recency, "
+        "and gives inconsistent results). "
         "Use 'open_by_priority' for high-priority open issues. "
         "Use 'tickets_linking_key' to find tickets that reference a given key."
     ),
@@ -181,7 +195,7 @@ JIRA_NAMED_QUERY_SCHEMA: dict = {
                 "description": (
                     "Query parameters. "
                     "tickets_by_area: {functional_area, limit?}. "
-                    "recently_resolved: {days? (default 90), limit?}. "
+                    "recently_resolved: {functional_area? (scope to one area), days? (default 90), limit?}. "
                     "open_by_priority: {priority: P0|P1|P2, limit?}. "
                     "tickets_linking_key: {key}."
                 ),

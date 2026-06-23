@@ -32,6 +32,8 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   overflow: hidden;
+  /* clear the fixed top-right mode toggle so they don't overlap */
+  margin-right: 200px;
 }
 
 .range-tab {

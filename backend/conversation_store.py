@@ -54,15 +54,16 @@ def init_schema() -> None:
 
 # ── Conversations ────────────────────────────────────────────────────────────
 
-def create_conversation(title: str | None = None, user_email: str | None = None) -> dict[str, Any]:
+def create_conversation(title: str | None = None, user_email: str | None = None,
+                        agent_id: str = "conwo") -> dict[str, Any]:
     cid = _new_id()
     now = _now()
     final_title = (title or "New chat").strip()[:200] or "New chat"
     with _connect() as conn:
         conn.execute(
-            "INSERT INTO conversations (id, title, created_at, updated_at, user_email) "
-            "VALUES (%s, %s, %s, %s, %s)",
-            (cid, final_title, now, now, user_email),
+            "INSERT INTO conversations (id, title, created_at, updated_at, user_email, agent_id) "
+            "VALUES (%s, %s, %s, %s, %s, %s)",
+            (cid, final_title, now, now, user_email, agent_id),
         )
     return {
         "id": cid,
@@ -70,44 +71,39 @@ def create_conversation(title: str | None = None, user_email: str | None = None)
         "created_at": now,
         "updated_at": now,
         "user_email": user_email,
+        "agent_id": agent_id,
         "message_count": 0,
     }
 
 
-def list_conversations(limit: int = 200, user_email: str | None = None) -> list[dict[str, Any]]:
+def list_conversations(limit: int = 200, user_email: str | None = None,
+                       agent_id: str = "conwo") -> list[dict[str, Any]]:
+    where = ["c.agent_id = %s"]
+    params: list[Any] = [agent_id]
+    if user_email is not None:
+        where.append("c.user_email = %s")
+        params.append(user_email)
+    params.append(limit)
     with _connect() as conn:
-        if user_email is not None:
-            rows = conn.execute(
-                """
-                SELECT c.id, c.title, c.created_at, c.updated_at,
-                       (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id)
-                       AS message_count
-                FROM conversations c
-                WHERE c.user_email = %s
-                ORDER BY c.updated_at DESC
-                LIMIT %s
-                """,
-                (user_email, limit),
-            ).fetchall()
-        else:
-            rows = conn.execute(
-                """
-                SELECT c.id, c.title, c.created_at, c.updated_at,
-                       (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id)
-                       AS message_count
-                FROM conversations c
-                ORDER BY c.updated_at DESC
-                LIMIT %s
-                """,
-                (limit,),
-            ).fetchall()
+        rows = conn.execute(
+            f"""
+            SELECT c.id, c.title, c.created_at, c.updated_at,
+                   (SELECT COUNT(*) FROM messages m WHERE m.conversation_id = c.id)
+                   AS message_count
+            FROM conversations c
+            WHERE {" AND ".join(where)}
+            ORDER BY c.updated_at DESC
+            LIMIT %s
+            """,
+            tuple(params),
+        ).fetchall()
     return [dict(r) for r in rows]
 
 
 def get_conversation(conversation_id: str) -> dict[str, Any] | None:
     with _connect() as conn:
         conv_row = conn.execute(
-            "SELECT id, title, created_at, updated_at, user_email FROM conversations WHERE id = %s",
+            "SELECT id, title, created_at, updated_at, user_email, agent_id FROM conversations WHERE id = %s",
             (conversation_id,),
         ).fetchone()
         if not conv_row:
@@ -115,7 +111,8 @@ def get_conversation(conversation_id: str) -> dict[str, Any] | None:
         msg_rows = conn.execute(
             """
             SELECT id, conversation_id, role, content, created_at, mode, server, buid,
-                   answer_id, confidence, sources_json, tool_trace_json, missing_context_json
+                   answer_id, confidence, sources_json, tool_trace_json, missing_context_json,
+                   cost_inr
             FROM messages
             WHERE conversation_id = %s
             ORDER BY created_at ASC
@@ -171,6 +168,8 @@ def add_message(
     sources: dict | None = None,
     tool_trace: list[dict] | None = None,
     missing_context: list[str] | None = None,
+    agent_id: str = "conwo",
+    cost_inr: float | None = None,
 ) -> dict[str, Any]:
     """
     Append a message to a conversation. The caller is responsible for ensuring
@@ -196,8 +195,9 @@ def add_message(
             """
             INSERT INTO messages (
                 id, conversation_id, role, content, created_at, mode, server, buid,
-                answer_id, confidence, sources_json, tool_trace_json, missing_context_json
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                answer_id, confidence, sources_json, tool_trace_json, missing_context_json,
+                agent_id, cost_inr
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 mid,
@@ -213,6 +213,8 @@ def add_message(
                 json.dumps(sources) if sources is not None else None,
                 json.dumps(tool_trace) if tool_trace is not None else None,
                 json.dumps(missing_context) if missing_context is not None else None,
+                agent_id,
+                cost_inr,
             ),
         )
         conn.execute(
@@ -234,6 +236,8 @@ def add_message(
         "sources": sources,
         "tool_trace": tool_trace,
         "missing_context": missing_context,
+        "agent_id": agent_id,
+        "cost_inr": cost_inr,
     }
 
 
@@ -296,6 +300,7 @@ def _row_to_message(row: Any) -> dict[str, Any]:
         "sources": _safe_json(row["sources_json"]),
         "tool_trace": _safe_json(row["tool_trace_json"]),
         "missing_context": _safe_json(row["missing_context_json"]),
+        "cost_inr": float(row["cost_inr"]) if row["cost_inr"] is not None else None,
     }
 
 

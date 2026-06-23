@@ -153,8 +153,13 @@ class WikiIndex:
             return result[:top_n]
 
     def get_page(self, rel_path: str) -> WikiPage | None:
+        base = rel_path.removeprefix("wiki/")
         with self._lock:
-            return self._pages.get(rel_path)
+            for key in (rel_path, f"{rel_path}.md", base, f"{base}.md"):
+                p = self._pages.get(key)
+                if p:
+                    return p
+        return None
 
     def all_paths(self) -> list[str]:
         with self._lock:
@@ -228,29 +233,78 @@ def _mentioned_services(question: str) -> list[str]:
     return found
 
 
-# Module-level singleton, built once at import time when build() is called
-_INDEX = WikiIndex()
+# Per-agent index registry — replaces the module-level singleton.
+# Keys are agent IDs (e.g. "conwo", "infosec"). Callers never touch this dict
+# directly; they go through search()/get_page()/all_paths()/page_count(), which
+# resolve the active agent from the current_agent ContextVar via get_index().
+_INDICES: dict[str, WikiIndex] = {}
+_indices_lock = threading.RLock()
 
 
-def build_index() -> None:
-    _INDEX.build()
+def build_index(agent_id: str | None = None, wiki_dir: Path | None = None) -> WikiIndex:
+    """Build (or rebuild) one agent's index.
+
+    agent_id=None  → defaults to the active agent from the ContextVar (or "conwo").
+    wiki_dir=None  → resolved from agent_registry; pass explicitly to override
+                     (useful in tests where an AgentSpec may not exist).
+    """
+    from backend import agent_context, agent_registry
+    aid = agent_id or agent_context.get_current_agent_id()
+    if wiki_dir is None:
+        spec = agent_registry.get(aid)
+        wiki_dir = spec.wiki_dir
+    idx = WikiIndex()
+    idx.build(wiki_dir)
+    with _indices_lock:
+        _INDICES[aid] = idx
+    return idx
 
 
-def rebuild_index() -> None:
-    _INDEX.build()
+def get_index(agent_id: str | None = None) -> WikiIndex:
+    """Return the index for the given (or active) agent, building it on demand."""
+    from backend import agent_context
+    aid = agent_id or agent_context.get_current_agent_id()
+    with _indices_lock:
+        idx = _INDICES.get(aid)
+    if idx is None:
+        idx = build_index(aid)
+    return idx
+
+
+def rebuild_index(agent_id: str | None = None) -> WikiIndex:
+    """Alias for build_index — forces a full re-scan for the active/named agent."""
+    return build_index(agent_id)
 
 
 def search(question: str, top_n: int = 5) -> list[WikiPage]:
-    return _INDEX.search(question, top_n)
+    return get_index().search(question, top_n)
 
 
 def get_page(rel_path: str) -> WikiPage | None:
-    return _INDEX.get_page(rel_path)
+    page = get_index().get_page(rel_path)
+    if page:
+        return page
+    # Disk fallback: survives a stale/missing in-memory index (e.g. a different
+    # replica, or before the agent's index is built). Reads from the active agent's
+    # wiki dir on the shared volume.
+    try:
+        from backend import agent_context
+        wd = agent_context.get_current_agent().wiki_dir
+        base = rel_path.removeprefix("wiki/")
+        for cand in (base, f"{base}.md"):
+            f = wd / cand
+            if f.is_file():
+                text = f.read_text(encoding="utf-8")
+                rel = str(f.relative_to(wd)).replace("\\", "/")
+                return WikiPage(path=rel, title=_extract_title(text, f.stem), full_text=text)
+    except Exception:
+        pass
+    return None
 
 
 def all_paths() -> list[str]:
-    return _INDEX.all_paths()
+    return get_index().all_paths()
 
 
 def page_count() -> int:
-    return _INDEX.page_count
+    return get_index().page_count

@@ -21,7 +21,7 @@ def stream_client(tmp_path, monkeypatch):
     monkeypatch.setattr(cs, "CONVERSATIONS_DB", tmp_path / "c.sqlite", raising=False)
     monkeypatch.setattr(cs, "CONVERSATIONS_DIR", tmp_path, raising=False)
     monkeypatch.setenv("GOOGLE_CLIENT_ID", "test-id")
-    auth_module.create_user("stream@moveinsync.com", role="admin")
+    auth_module.create_user("stream@moveinsync.com", role="admin", approved=True)
     token = auth_module.create_token("stream@moveinsync.com")
     return tmp_path, monkeypatch, auth_module, cs, token
 
@@ -32,9 +32,9 @@ def test_stream_conversation_is_owned_by_user(stream_client):
     captured_email = {}
     original_create = cs.create_conversation
 
-    def spy_create(title=None, user_email=None):
+    def spy_create(title=None, user_email=None, **kwargs):
         captured_email["value"] = user_email
-        return original_create(title=title, user_email=user_email)
+        return original_create(title=title, user_email=user_email, **kwargs)
 
     # Disable preflight so we don't need to patch the locally-imported
     # run_preflight / build_agent_preamble inside query_stream.

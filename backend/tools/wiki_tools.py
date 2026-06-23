@@ -8,10 +8,15 @@ Security:
 from __future__ import annotations
 
 from backend import wiki_retriever
-from backend.config import WIKI_DIR
 # Note: the old `from backend.wiki_proposals import create_proposal` was
 # removed in Track A Sub-pass B. The structured wiki_propose_* tools live in
 # backend/tools/wiki_propose_tools.py and call typed creators directly.
+
+
+def _wiki_dir():
+    """Return the active agent's wiki directory (resolved at call time)."""
+    from backend import agent_context
+    return agent_context.get_current_agent().wiki_dir
 
 # ── Schemas ───────────────────────────────────────────────────────────────────
 
@@ -114,8 +119,9 @@ def _wiki_read_page_handler(inp: dict) -> dict:
 
     # Layer 2: filesystem containment check (catches symlink-based escapes)
     try:
-        resolved = (WIKI_DIR / path).resolve()
-        wiki_root = WIKI_DIR.resolve()
+        _wd = _wiki_dir()
+        resolved = (_wd / path).resolve()
+        wiki_root = _wd.resolve()
         # The resolved path must be the wiki root itself or a descendant
         if resolved != wiki_root and wiki_root not in resolved.parents:
             return {"error": "Path outside wiki directory.", "code": "path_traversal"}

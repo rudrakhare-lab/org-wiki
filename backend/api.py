@@ -57,6 +57,7 @@ from pydantic import BaseModel, Field
 
 from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
 from backend import trace_store
+from backend import agent_registry, agent_context, agent_provisioning, agent_access
 from backend.trace_middleware import TraceMiddleware
 from backend import config as _config
 from backend.config import local_claude_code_enabled
@@ -112,10 +113,14 @@ async def lifespan(app: FastAPI):
     # Sweep stale in_progress traces from a previous run (multi-replica safe:
     # only reconciles sessions older than the threshold). Fail-open.
     trace_store.reconcile_orphans()
+    from backend import ingest_batch
+    ingest_batch.reconcile_interrupted()
     # If wiki/ lives on a mounted volume (CONWO_DATA_DIR) that's still empty,
     # seed it from the image's baked baseline so the knowledge base is present.
     _seed_wiki_if_empty()
-    wiki_retriever.build_index()
+    from backend import agent_registry as _agent_registry
+    for _a in _agent_registry.all():
+        wiki_retriever.build_index(_a.id)
     # Single-key deployment check — api-mode queries will return 503 until the
     # operator sets ANTHROPIC_API_KEY. Don't crash; the server must still come
     # up for admin endpoints and conversation CRUD even without an LLM key.
@@ -148,8 +153,17 @@ async def lifespan(app: FastAPI):
             "Server is starting anyway; the proposal queue may need manual inspection.",
             exc,
         )
+    # In-app nightly Jira sync (alternative to a k8s CronJob). No-ops unless
+    # CONWO_ENABLE_JIRA_CRON is set AND this is the StatefulSet leader pod (-0).
+    from backend import jira_scheduler
+    _jira_cron_task = asyncio.create_task(jira_scheduler.run_forever())
     yield
-    # Shutdown — release the PostgreSQL pool.
+    # Shutdown — stop the scheduler, then release the PostgreSQL pool.
+    _jira_cron_task.cancel()
+    try:
+        await _jira_cron_task
+    except (asyncio.CancelledError, Exception):
+        pass
     try:
         from backend import db
         db.close_pool()
@@ -194,6 +208,26 @@ from backend.metrics import setup_metrics  # noqa: E402
 setup_metrics(app)
 
 
+# Agent-resolution middleware. Starlette runs middleware in REVERSE order of
+# registration, so this last-registered one is OUTERMOST — it runs BEFORE
+# TraceMiddleware. That ordering is deliberate: it makes request.state.agent_id
+# (and the ContextVar) available by the time TraceMiddleware mints the trace
+# session, so per-agent trace scoping (Task 6) can stamp agent_id from the start.
+# Reads the X-Agent-Id header (default "conwo") and sets request.state.agent_id
+# plus the per-request current_agent ContextVar; the ContextVar is always reset
+# in the finally block so agent identity never leaks across requests.
+@app.middleware("http")
+async def _agent_resolution_middleware(request, call_next):
+    agent_id = request.headers.get("x-agent-id") or "conwo"
+    spec = agent_registry.get(agent_id)
+    request.state.agent_id = spec.id
+    token = agent_context.set_current_agent(spec.id)
+    try:
+        return await call_next(request)
+    finally:
+        agent_context.reset_current_agent(token)
+
+
 # ---------------------------------------------------------------------------
 # Auth helpers
 # ---------------------------------------------------------------------------
@@ -203,6 +237,11 @@ def _get_user(authorization: str | None = Header(default=None)) -> dict | None:
         return None
     token = authorization[7:].strip()
     return _config.lookup_user_by_token(token)
+
+
+def _get_agent(request: Request) -> agent_registry.AgentSpec:
+    """Resolve the active agent for this request (set by middleware)."""
+    return agent_registry.get(getattr(request.state, "agent_id", "conwo"))
 
 
 def _require_user(user: dict | None = Depends(_get_user)) -> dict:
@@ -245,6 +284,36 @@ def _require_admin(user: dict | None = Depends(_get_user)) -> dict:
     return user
 
 
+def _require_developer_or_admin(user: dict | None = Depends(_get_user)) -> dict:
+    """Developer OR admin role. Gates the ingest endpoints — general users may
+    ask/search/browse the graph but not ingest. (The wiki-graph endpoints are
+    open to all approved users via _require_user.)"""
+    if not user or user.get("role") not in ("admin", "developer"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Developer or admin access required",
+        )
+    return user
+
+
+def _require_agent_access(
+    user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+) -> None:
+    """Raise 403 if the user does not have access to the active agent.
+
+    Used as a dependency on routes that are agent-scoped but were not
+    previously gated (wiki read, graph, ingest). Reuses the same logic and
+    error message as the /query and /search gates so the client experience is
+    consistent.
+    """
+    if not agent_access.has_access(user, agent.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this agent. Request access from an admin.",
+        )
+
+
 # ---------------------------------------------------------------------------
 # Request / Response models
 # ---------------------------------------------------------------------------
@@ -282,6 +351,8 @@ class QueryResponse(BaseModel):
     intent: str = "GENERAL"
     rewritten_query: str = ""
     intent_confidence: float = 0.0
+    cost_usd: float = 0.0
+    cost_inr: float = 0.0
 
 
 class AgentStreamRequest(BaseModel):
@@ -333,7 +404,7 @@ class FeedbackRequest(BaseModel):
 
 class CreateUserRequest(BaseModel):
     email: str = Field(..., min_length=3, max_length=200)
-    role: Literal["viewer", "contributor", "admin"] = "viewer"
+    role: Literal["general", "developer", "admin"] = "general"
     expires_at: str | None = Field(default=None)
 
 
@@ -349,7 +420,12 @@ class GoogleLoginResponse(BaseModel):
     token: str
     email: str
     name: str
-    role: str = "viewer"
+    role: str = "general"
+    approved: bool = False
+
+
+class DevLoginRequest(BaseModel):
+    email: str
 
 
 # ---------------------------------------------------------------------------
@@ -406,11 +482,44 @@ def health_claude_code():
     }
 
 
+@app.get("/agents")
+def list_agents():
+    """Return public metadata for all registered agents. No auth required."""
+    return [_agent_public(a) for a in agent_registry.all()]
+
+
+@app.get("/agents/my-access")
+def my_agent_access(user: dict = Depends(_require_user)):
+    """Per-agent access state for the current user: open | granted | pending | none.
+    Admins (and the default agent) are always 'open'."""
+    is_admin = user.get("role") == "admin"
+    statuses = agent_access.list_for_user(user["email"])
+    out: dict[str, str] = {}
+    for a in agent_registry.all():
+        if a.id == agent_registry.DEFAULT_AGENT_ID or is_admin:
+            out[a.id] = "open"
+        else:
+            st = statuses.get(a.id)
+            out[a.id] = st if st in ("granted", "pending") else "none"
+    return out
+
+
+@app.post("/agents/{agent_id}/request-access")
+def request_agent_access(agent_id: str, user: dict = Depends(_require_user)):
+    """Create/refresh a pending access request for the current user."""
+    if agent_id == agent_registry.DEFAULT_AGENT_ID:
+        raise HTTPException(status_code=400, detail="The default agent is open to everyone.")
+    if not any(a.id == agent_id for a in agent_registry.all()):
+        raise HTTPException(status_code=404, detail=f"Unknown agent: {agent_id}")
+    return agent_access.request_access(user["email"], agent_id)
+
+
 @app.post("/query", response_model=QueryResponse)
 def query(
     req: QueryRequest,
     request: Request,
     user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
     trace_id = getattr(request.state, "trace_id", None)
     trace_status = "success"   # NOT named `status` — that's the fastapi module used below
@@ -437,7 +546,32 @@ def query(
             )
 
         user_email = (user or {}).get("email")
-        user_role = (user or {}).get("role", "viewer")
+        user_role = (user or {}).get("role", "general")
+
+        # Approval gate: a signed-in but unapproved user cannot run queries. New
+        # Google sign-ups are provisioned unapproved until an admin approves them.
+        if user and not user.get("approved", False):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    "Your account is pending admin approval. "
+                    "Please wait for an administrator to approve your access."
+                ),
+            )
+
+        # Agent-access gate: non-admin users need a grant for non-default agents.
+        if not agent_access.has_access(user, agent.id):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="You don't have access to this agent. Request access from an admin.",
+            )
+
+        # Mode gate: reject requests for modes this agent doesn't support.
+        if not agent.mode_allowed(req.mode):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Agent '{agent.id}' does not support mode '{req.mode}'.",
+            )
 
         # Rate limit check before any DB writes (skip for unauthenticated users).
         if user:
@@ -454,18 +588,30 @@ def query(
         # even if the orchestrator fails downstream.
         conversation_id = req.conversation_id
         if conversation_id:
-            if not conversation_store.get_conversation(conversation_id):
-                conversation_id = None  # treat missing id as "start fresh"
+            _conv = conversation_store.get_conversation(conversation_id)
+            if (
+                not _conv
+                or _conv.get("agent_id") != agent.id
+                or _conv.get("user_email") != user_email
+            ):
+                # Mismatch: wrong agent, wrong user, or missing — start fresh.
+                # Do NOT raise; silently degrade to a new conversation so the
+                # caller's UX is not broken by a cross-agent or cross-user id.
+                conversation_id = None
         if not conversation_id:
             conv = conversation_store.create_conversation(
                 title=conversation_store.auto_title_from_question(req.question),
                 user_email=user_email,
+                agent_id=agent.id,
             )
             conversation_id = conv["id"]
 
         # Enrich the (middleware-created) trace session with real mode/question/conv.
+        # Pass agent_id so the enriching UPSERT keeps the row agent-scoped (the
+        # UPSERT's COALESCE is last-writer-wins for the never-null agent_id).
         trace_store.start_session(trace_id, mode=req.mode, question=req.question,
-                                  conversation_id=conversation_id)
+                                  conversation_id=conversation_id, user_email=user_email,
+                                  agent_id=agent_context.get_current_agent_id())
 
         conversation_store.add_message(
             conversation_id=conversation_id,
@@ -474,6 +620,7 @@ def query(
             mode=req.mode,
             server=req.server,
             buid=req.buid,
+            agent_id=agent.id,
         )
 
         # Layer 1 guardrail: block destructive requests before calling the LLM.
@@ -509,6 +656,7 @@ def query(
                 sources={"wiki_pages": [], "jira_keys": [], "pms_configs": []},
                 tool_trace=[],
                 missing_context=[],
+                agent_id=agent.id,
             )
             return QueryResponse(
                 answer_id=_refusal_id,
@@ -546,7 +694,21 @@ def query(
             user_role=user_role,
             conversation_id=conversation_id,
             trace_id=trace_id,
+            agent=agent,
         )
+
+        # Per-query cost (₹) for the chat footer. The LLM usage events are already
+        # recorded by now, so aggregating the trace yields a fresh cost inline.
+        # Fail-open: any problem leaves cost at 0 (the UI hides a 0/None footer) and
+        # never affects the response. cost_usd is None for claude-code/agent mode.
+        cost_usd = 0.0
+        cost_inr = 0.0
+        try:
+            agg = trace_store.cost_for_trace(trace_id)
+            cost_usd = float((agg or {}).get("cost_usd") or 0.0)
+            cost_inr = round(cost_usd * _config.CONWO_USD_INR, 2)
+        except Exception:
+            pass
 
         # Persist the assistant message — even on error we save something so the
         # conversation reflects the attempt.
@@ -567,6 +729,8 @@ def query(
             },
             tool_trace=result.tool_trace,
             missing_context=result.missing_context,
+            agent_id=agent.id,
+            cost_inr=cost_inr or None,
         )
 
         return QueryResponse(
@@ -588,6 +752,8 @@ def query(
             intent=result.intent,
             rewritten_query=result.rewritten_query,
             intent_confidence=result.intent_confidence,
+            cost_usd=cost_usd,
+            cost_inr=cost_inr,
         )
     except HTTPException:
         # Expected gateway rejection (401 auth / 429 rate-limit / 503 missing-key).
@@ -612,6 +778,7 @@ async def query_stream(
     req: AgentStreamRequest,
     request: Request,
     user: dict = Depends(_require_admin),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
     """
     Stream a Claude Code agent session over SSE.
@@ -646,15 +813,47 @@ async def query_stream(
             detail="Claude Code CLI not installed on this server.",
         )
 
+    # Approval gate (defense-in-depth; this endpoint is already admin-only).
+    if not user.get("approved", False):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=(
+                "Your account is pending admin approval. "
+                "Please wait for an administrator to approve your access."
+            ),
+        )
+
+    # Agent-access gate: non-admin users need a grant for non-default agents.
+    if not agent_access.has_access(user, agent.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this agent. Request access from an admin.",
+        )
+
+    # Mode gate: this endpoint streams Claude Code (agent mode) only.
+    if not agent.mode_allowed("agent"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Agent '{agent.id}' does not support Claude Code (agent) mode.",
+        )
+
     # Resolve / create conversation, save the user message before the stream
     # so it appears in history even if the stream is cancelled.
     conversation_id = req.conversation_id
-    if conversation_id and not conversation_store.get_conversation(conversation_id):
-        conversation_id = None
+    if conversation_id:
+        _conv = conversation_store.get_conversation(conversation_id)
+        if (
+            not _conv
+            or _conv.get("agent_id") != agent.id
+            or _conv.get("user_email") != user.get("email")
+        ):
+            # Wrong agent/user or missing — start fresh rather than raising.
+            conversation_id = None
     if not conversation_id:
         conv = conversation_store.create_conversation(
             title=conversation_store.auto_title_from_question(req.question),
             user_email=user.get("email"),
+            agent_id=agent.id,
         )
         conversation_id = conv["id"]
 
@@ -665,6 +864,7 @@ async def query_stream(
         mode="claude-code-agent",
         server=req.server,
         buid=req.buid,
+        agent_id=agent.id,
     )
 
     # Layer 1 guardrail: same check as /query — block before the stream opens.
@@ -703,7 +903,8 @@ async def query_stream(
     # claude-code only (G25); end_session runs in the generator's finally below.
     trace_id = getattr(request.state, "trace_id", None)
     trace_store.start_session(trace_id, mode="claude-code", question=req.question,
-                              conversation_id=conversation_id)
+                              conversation_id=conversation_id, user_email=user.get("email"),
+                              agent_id=agent_context.get_current_agent_id())
 
     # Deterministic preflight: run the SAME wiki+Jira+ticket retrieval we do
     # for Deep Search, then prepend the result to the question we hand to
@@ -717,7 +918,7 @@ async def query_stream(
         "0", "false", "no", "off"
     }
     if preflight_enabled:
-        bundle = run_preflight(req.question, trace_id=trace_id)
+        bundle = run_preflight(req.question, trace_id=trace_id, agent=agent)
         augmented_question = build_agent_preamble(bundle) + f"**User question:** {req.question}"
         preflight_keys = [t.get("key") for t in bundle.preflight_tickets if t.get("key")]
     else:
@@ -847,12 +1048,28 @@ def log_agent_answer(req: AgentLogRequest, user: dict = Depends(_require_admin))
 
 
 @app.post("/search")
-def search(req: SearchRequest):
-    return orchestrator.search_only(req.question, server=req.server)
+def search(
+    req: SearchRequest,
+    request: Request,
+    user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
+    # Agent-access gate: non-admin users need a grant for non-default agents.
+    if not agent_access.has_access(user, agent.id):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You don't have access to this agent. Request access from an admin.",
+        )
+    return orchestrator.search_only(req.question, server=req.server, agent=agent)
 
 
 @app.get("/wiki/{path:path}")
-def get_wiki_page(path: str):
+def get_wiki_page(
+    path: str,
+    user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+    _access: None = Depends(_require_agent_access),
+):
     page = wiki_retriever.get_page(path)
     if not page:
         raise HTTPException(status_code=404, detail=f"Wiki page not found: {path}")
@@ -863,40 +1080,66 @@ def get_wiki_page(path: str):
 # Conversations — chat history CRUD
 # ---------------------------------------------------------------------------
 
-def _check_conversation_access(conversation_id: str, user: dict) -> dict:
-    """Load conversation and verify the user can access it. Returns the conversation.
+def _check_conversation_access(
+    conversation_id: str,
+    user: dict,
+    agent: "agent_registry.AgentSpec | None" = None,
+) -> dict:
+    """Load conversation and verify the user (and agent) can access it. Returns the conversation.
 
     Non-admin users can only see their own conversations; returns 404 (not 403)
     for both missing and unauthorized IDs to avoid leaking existence to third parties.
+    When an agent is supplied the conversation's agent_id must also match — one agent
+    cannot read, rename, or delete another agent's thread.
     """
     conv = conversation_store.get_conversation(conversation_id)
     if not conv:
         raise HTTPException(status_code=404, detail="Conversation not found")
     if user.get("role") != "admin" and conv.get("user_email") != user.get("email"):
         raise HTTPException(status_code=404, detail="Conversation not found")
+    if agent is not None and conv.get("agent_id") != agent.id:
+        raise HTTPException(status_code=404, detail="Conversation not found")
     return conv
 
 
 @app.post("/conversations")
-def create_conversation(req: ConversationCreateRequest, user: dict | None = Depends(_get_user)):
+def create_conversation(
+    req: ConversationCreateRequest,
+    user: dict | None = Depends(_get_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
     user_email = (user or {}).get("email")
-    return conversation_store.create_conversation(title=req.title, user_email=user_email)
+    return conversation_store.create_conversation(
+        title=req.title, user_email=user_email, agent_id=agent.id
+    )
 
 
 @app.get("/conversations")
-def list_conversations(limit: int = 200, user: dict = Depends(_require_user)):
+def list_conversations(
+    limit: int = 200,
+    user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
     if limit < 1:
         limit = 1
     if limit > 500:
         limit = 500
     # Admins see all conversations; everyone else sees only their own
     user_email = None if user.get("role") == "admin" else user.get("email")
-    return {"conversations": conversation_store.list_conversations(limit=limit, user_email=user_email)}
+    return {
+        "conversations": conversation_store.list_conversations(
+            limit=limit, user_email=user_email, agent_id=agent.id
+        )
+    }
 
 
 @app.get("/conversations/{conversation_id}")
-def get_conversation(conversation_id: str, user: dict = Depends(_require_user)):
-    conv = _check_conversation_access(conversation_id, user)
+def get_conversation(
+    conversation_id: str,
+    user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
+    conv = _check_conversation_access(conversation_id, user, agent)
     return conv
 
 
@@ -905,8 +1148,9 @@ def patch_conversation(
     conversation_id: str,
     req: ConversationPatchRequest,
     user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
-    _check_conversation_access(conversation_id, user)
+    _check_conversation_access(conversation_id, user, agent)
     ok = conversation_store.update_conversation_title(conversation_id, req.title)
     if not ok:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -915,8 +1159,12 @@ def patch_conversation(
 
 
 @app.delete("/conversations/{conversation_id}")
-def delete_conversation(conversation_id: str, user: dict = Depends(_require_user)):
-    _check_conversation_access(conversation_id, user)
+def delete_conversation(
+    conversation_id: str,
+    user: dict = Depends(_require_user),
+    agent: agent_registry.AgentSpec = Depends(_get_agent),
+):
+    _check_conversation_access(conversation_id, user, agent)
     ok = conversation_store.delete_conversation(conversation_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -986,7 +1234,7 @@ def google_login(req: GoogleLoginRequest) -> GoogleLoginResponse:
     """Exchange a Google ID token for a Conwo session token.
 
     Verifies the Google credential, enforces @moveinsync.com domain,
-    auto-provisions the user on first login (role: viewer), and returns
+    auto-provisions the user on first login (role: general), and returns
     a random session token stored in auth_store.
     """
     import os
@@ -1004,15 +1252,67 @@ def google_login(req: GoogleLoginRequest) -> GoogleLoginResponse:
     email = user_info["email"]
     from backend import auth_store
     if not auth_store.get_user(email):
-        auth_store.create_user(email, role="viewer")
+        # First login auto-provisions an unapproved 'general' user. An admin must
+        # approve the account before the user can run any query.
+        auth_store.create_user(email, role="general", approved=False)
     user = auth_store.get_user(email)
     token = auth_store.create_token(email)
     return GoogleLoginResponse(
         token=token,
         email=email,
         name=user_info["name"],
-        role=(user or {}).get("role", "viewer"),
+        role=(user or {}).get("role", "general"),
+        approved=bool((user or {}).get("approved", False)),
     )
+
+
+@app.get("/auth/config")
+def auth_config():
+    """Public, unauthenticated. Tells the frontend whether the dev email-login box
+    should render. False on prod (CONWO_DEV_LOGIN unset) — Google is the only path."""
+    from backend import config
+    return {"dev_login": config.dev_login_enabled()}
+
+
+@app.post("/auth/dev-login", response_model=GoogleLoginResponse)
+def dev_login(req: DevLoginRequest):
+    """Dev-only email login, gated by CONWO_DEV_LOGIN. Mirrors google_login's
+    provisioning exactly: a new email is created as general + unapproved, then must be
+    approved by an admin. Returns 403 (inert) when the flag is off, so this route is
+    a no-op in production."""
+    from backend import config, auth_store
+    if not config.dev_login_enabled():
+        raise HTTPException(status_code=403, detail="Dev login is disabled.")
+    email = req.email.strip().lower()
+    if not email.endswith("@moveinsync.com"):
+        raise HTTPException(
+            status_code=403,
+            detail="Only @moveinsync.com accounts can sign in.",
+        )
+    if not auth_store.get_user(email):
+        auth_store.create_user(email, role="general", approved=False)
+    user = auth_store.get_user(email)
+    token = auth_store.create_token(email)
+    return GoogleLoginResponse(
+        token=token,
+        email=email,
+        name=email.split("@")[0],
+        role=(user or {}).get("role", "general"),
+        approved=bool((user or {}).get("approved", False)),
+    )
+
+
+@app.get("/auth/me")
+def auth_me(user: dict = Depends(_require_user)):
+    """Current user's identity, role, and approval status. The frontend calls this
+    on bootstrap to hydrate role/approval (so admin approvals and role changes take
+    effect without a re-login) and from the pending-approval screen. Uses
+    _require_user, NOT the approval gate — a pending user must read their own status."""
+    return {
+        "email": user.get("email"),
+        "role": user.get("role", "general"),
+        "approved": bool(user.get("approved", False)),
+    }
 
 
 # Admin endpoints (require admin Bearer token)
@@ -1068,6 +1368,7 @@ def admin_create_user(
             req.email,
             role=req.role,
             created_by=_admin.get("email"),
+            approved=True,  # an admin explicitly creating a user implies approval
         )
     token = auth_store.create_token(req.email, expires_at=req.expires_at)
     return {
@@ -1094,6 +1395,45 @@ def admin_delete_user(email: str, _admin: dict = Depends(_require_admin)):
     return {"deleted": True, "email": email}
 
 
+class UpdateRoleRequest(BaseModel):
+    role: Literal["general", "developer", "admin"]
+
+
+class ApproveUserRequest(BaseModel):
+    role: Literal["general", "developer", "admin"] | None = None
+
+
+@app.post("/admin/users/{email:path}/approve")
+def admin_approve_user(
+    email: str,
+    req: ApproveUserRequest | None = None,
+    _admin: dict = Depends(_require_admin),
+):
+    """Approve a pending user so they can run queries. If a role is supplied, set it
+    in the same action (used by the Approvals tab's role-picker)."""
+    from backend import auth_store
+    if req is not None and req.role is not None:
+        if not auth_store.set_user_role(email, req.role):
+            raise HTTPException(status_code=404, detail=f"User not found: {email}")
+    if not auth_store.set_user_approved(email, True):
+        raise HTTPException(status_code=404, detail=f"User not found: {email}")
+    return {"email": email, "approved": True,
+            "role": (auth_store.get_user(email) or {}).get("role")}
+
+
+@app.patch("/admin/users/{email:path}/role")
+def admin_update_user_role(
+    email: str,
+    req: UpdateRoleRequest,
+    _admin: dict = Depends(_require_admin),
+):
+    """Change a user's role (general / developer / admin)."""
+    from backend import auth_store
+    if not auth_store.set_user_role(email, req.role):
+        raise HTTPException(status_code=404, detail=f"User not found: {email}")
+    return {"email": email, "role": req.role}
+
+
 @app.delete("/admin/tokens/{token}")
 def admin_revoke_token(token: str, _admin: dict = Depends(_require_admin)):
     from backend import auth_store
@@ -1101,6 +1441,87 @@ def admin_revoke_token(token: str, _admin: dict = Depends(_require_admin)):
     if not revoked:
         raise HTTPException(status_code=404, detail="Token not found")
     return {"revoked": True}
+
+
+class CreateAgentRequest(BaseModel):
+    name: str
+    description: str | None = None
+
+
+class UpdateAgentRequest(BaseModel):
+    display_name: str | None = None
+    identity: str | None = None
+    description: str | None = None
+
+
+def _agent_public(a) -> dict:
+    return {"id": a.id, "display_name": a.display_name, "description": a.description,
+            "identity": a.identity, "accent": a.accent, "theme_base": a.theme_base,
+            "modes": list(a.modes), "has_jira": a.has_jira, "has_pms": a.has_pms}
+
+
+@app.post("/admin/agents")
+def create_agent_endpoint(req: CreateAgentRequest, admin: dict = Depends(_require_admin)):
+    try:
+        spec = agent_provisioning.create_agent(req.name, created_by=admin.get("email", "admin"), description=req.description or "")
+    except agent_provisioning.AgentExists as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except agent_provisioning.InvalidAgentName as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    return _agent_public(spec)
+
+
+@app.patch("/admin/agents/{agent_id}")
+def update_agent_endpoint(agent_id: str, req: UpdateAgentRequest, admin: dict = Depends(_require_admin)):
+    agent_provisioning.update_agent(agent_id, display_name=req.display_name, identity=req.identity, description=req.description)
+    return _agent_public(agent_registry.get(agent_id))
+
+
+@app.delete("/admin/agents/{agent_id}")
+def delete_agent_endpoint(agent_id: str, hard: bool = False,
+                          admin: dict = Depends(_require_admin)):
+    try:
+        if hard:
+            agent_provisioning.delete_agent(agent_id)
+            return {"status": "deleted", "id": agent_id}
+        agent_provisioning.archive_agent(agent_id)
+        return {"status": "archived", "id": agent_id}
+    except agent_provisioning.AgentError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/admin/agent-access/requests")
+def admin_agent_access_requests(_admin: dict = Depends(_require_admin)):
+    return agent_access.list_pending()
+
+
+@app.get("/admin/agent-access/grants")
+def admin_agent_access_grants(_admin: dict = Depends(_require_admin)):
+    return agent_access.list_grants()
+
+
+@app.post("/admin/agent-access/{email:path}/{agent_id}/approve")
+def admin_agent_access_approve(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "granted", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "granted"}
+
+
+@app.post("/admin/agent-access/{email:path}/{agent_id}/grant")
+def admin_agent_access_grant(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "granted", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "granted"}
+
+
+@app.post("/admin/agent-access/{email:path}/{agent_id}/reject")
+def admin_agent_access_reject(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "rejected", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "rejected"}
+
+
+@app.delete("/admin/agent-access/{email:path}/{agent_id}")
+def admin_agent_access_revoke(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
+    agent_access.set_status(email, agent_id, "revoked", admin["email"])
+    return {"email": email, "agent_id": agent_id, "status": "revoked"}
 
 
 _VALID_PROPOSAL_ID = __import__("re").compile(r"^[a-zA-Z0-9_\-]{8,64}$")
@@ -1193,10 +1614,18 @@ app.include_router(trace_api.router, dependencies=[Depends(_require_admin)])
 # defined. Any authenticated user — auth applied here at include time so
 # ingest_api.py needs no import from api.py (avoids a circular import).
 from backend import ingest_api  # noqa: E402
-app.include_router(ingest_api.router, dependencies=[Depends(_require_user)])
+app.include_router(
+    ingest_api.router,
+    dependencies=[Depends(_require_developer_or_admin), Depends(_require_agent_access)],
+)
 
 from backend import wiki_graph_api  # noqa: E402
-app.include_router(wiki_graph_api.router, dependencies=[Depends(_require_user)])
+# Graph is open to all approved users (admin/developer/general) — read-only browse.
+# _require_agent_access ensures the user also has access to the active agent.
+app.include_router(
+    wiki_graph_api.router,
+    dependencies=[Depends(_require_user), Depends(_require_agent_access)],
+)
 
 
 # ---------------------------------------------------------------------------

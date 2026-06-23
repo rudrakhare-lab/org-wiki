@@ -55,8 +55,13 @@ class TraceMiddleware(BaseHTTPMiddleware):
         if traced:
             # Create the parent session row FIRST (FK requires it before any event).
             # mode is a hint here (body not parsed yet); the handler UPSERTs the real mode.
+            # agent_id comes from the current_agent ContextVar, set by the outer
+            # agent-resolution middleware — stamp it here so the row is agent-scoped
+            # from creation (the handler's enriching UPSERT passes the same value).
+            from backend import agent_context
             trace_store.start_session(
-                trace_id, mode=(request.query_params.get("mode") or "unknown"))
+                trace_id, mode=(request.query_params.get("mode") or "unknown"),
+                agent_id=agent_context.get_current_agent_id())
             trace_store.record_event(
                 trace_id, component="api_gateway", event_type="request_start",
                 metadata={

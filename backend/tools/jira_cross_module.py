@@ -109,8 +109,12 @@ from backend import db, jira_retriever
 _LOG = logging.getLogger("jira_cross_module")
 
 REPO = Path(__file__).resolve().parents[2]
-from backend.config import WIKI_DIR as _WIKI_DIR  # honors CONWO_DATA_DIR (PVC)
-WIKI_MODULES_DIR = _WIKI_DIR / "modules"
+
+
+def _wiki_dir():
+    """Return the active agent's wiki directory (resolved at call time)."""
+    from backend import agent_context
+    return agent_context.get_current_agent().wiki_dir
 
 
 # ── Schema ────────────────────────────────────────────────────────────────────
@@ -219,7 +223,7 @@ def _jira_search_cross_module_handler(inp: dict) -> dict:
     if not primary_module:
         return {"error": "primary_module is required", "code": "missing_input"}
 
-    page_path = WIKI_MODULES_DIR / f"{primary_module}.md"
+    page_path = _wiki_dir() / "modules" / f"{primary_module}.md"
     if not page_path.exists():
         return {
             "error": f"Module page not found: wiki/modules/{primary_module}.md",
