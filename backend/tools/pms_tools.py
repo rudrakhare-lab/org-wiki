@@ -164,16 +164,17 @@ PMS_LIST_CRITERIA_SCHEMA: dict = {
 PMS_VERIFY_BUID_SCHEMA: dict = {
     "name": "pms_verify_buid",
     "description": (
-        "Check whether a BUID is accessible on a given server (.com or "
-        ".in). Returns found:bool plus the list of accessible BUIDs for "
-        "that server. Use this FIRST whenever the server is ambiguous "
-        "and the user has named a specific BUID — a BUID may exist on "
-        ".com but not .in (or vice versa), and wrong-server queries "
-        "silently return empty results that look like 'no config set'.\n\n"
-        "Strong signal interpretation: found=false ALMOST ALWAYS means "
-        "the wrong server was chosen, not that the BUID doesn't exist. "
-        "Try the other server before telling the user the BUID is "
-        "invalid.\n\n"
+        "Check whether a BUID exists on a given server (.com or .in). "
+        "Verifies via the token-free offices endpoint: returns found:bool "
+        "plus office_count and a small offices_sample. Use this FIRST "
+        "whenever the server is ambiguous and the user has named a "
+        "specific BUID — a BUID may exist on .com but not .in (or vice "
+        "versa), and wrong-server queries silently return empty results "
+        "that look like 'no config set'.\n\n"
+        "Strong signal interpretation: found=false (zero offices) ALMOST "
+        "ALWAYS means the wrong server was chosen, not that the BUID "
+        "doesn't exist. Try the other server before telling the user the "
+        "BUID is invalid.\n\n"
         "When NOT to call: do not use this for general BUID lookup or "
         "discovery — only to verify a specific candidate the user named. "
         "Do not call before every config query — call once per BUID per "
@@ -591,58 +592,34 @@ def _pms_verify_buid_handler(inp: dict) -> dict:
         return {"error": f"PMS session not available: {exc}", "code": "import_error"}
 
     session = Session.load(service, buid, server)
+    # Verify BUID existence via the TOKEN-FREE offices endpoint instead of the
+    # auth-gated roles endpoint. The roles route (/user/service/{service}/roles)
+    # exists only on the /api scheme; called token-free server-side it returns a
+    # Spring NoResourceFoundException (route_unavailable), so the old check was
+    # permanently broken in production. The offices endpoint is reachable
+    # token-free and discriminates cleanly: a valid BUID on the correct server
+    # returns offices; a wrong-server or invalid BUID returns an empty list.
     try:
-        roles = session.fetch_roles(token, cookie)
+        offices = session.fetch_offices(token, cookie) or {}
     except Exception as exc:
         if _is_auth_error(exc):
             return _credentials_required(server)
-        if _is_route_unavailable(exc):
-            return _route_unavailable("pms_verify_buid")
         return {"error": str(exc), "code": "api_error"}
 
-    accessible = _extract_accessible_buids(roles)
-    if accessible is None:
-        return {
-            "service": service,
-            "server": server,
-            "buid": buid,
-            "found": False,
-            "code": "shape_unknown",
-            "raw_response": roles,
-            "message": (
-                "fetch_roles returned an unfamiliar shape — cannot determine "
-                "accessibility automatically. Inspect raw_response."
-            ),
-        }
-
-    # Real PMS returns isAllBuids=true for read-only users with cross-tenant
-    # access. In that case the `buids` list is informational (named tenants)
-    # rather than gating access — the user can query any BUID even if not
-    # explicitly listed.
-    is_all_buids = bool(roles.get("isAllBuids")) if isinstance(roles, dict) else False
-    in_list = buid in accessible
     other = "in" if server == "com" else "com"
+    office_count = len(offices)
+    found = office_count > 0
+    # Cap echoed list to avoid bloating the context — model can re-call if needed
+    offices_sample = [name for _, name in list(offices.items())[:10]]
 
-    if in_list:
-        found = True
-        message = f"BUID '{buid}' is in the .{server} directory and accessible."
-    elif is_all_buids:
-        # Soft warning: account has cross-tenant access, but the BUID isn't
-        # in the named tenant list. Often valid (queries can still succeed);
-        # sometimes a typo. Suggest verifying via a config query.
-        found = True
+    if found:
         message = (
-            f"BUID '{buid}' is NOT in the .{server} directory listing, but "
-            f"the account has isAllBuids=true (cross-tenant read access), so "
-            f"the BUID may still be queryable. Confirm with pms_diagnose_property "
-            f"for a known property; if that errors, the BUID likely lives on "
-            f".{other} instead."
+            f"BUID '{buid}' exists on the .{server} server "
+            f"({office_count} office(s) found) — server/BUID confirmed."
         )
     else:
-        found = False
         message = (
-            f"⚠️ BUID '{buid}' is NOT in the .{server} directory listing AND "
-            f"the account does not have cross-tenant access (isAllBuids=false). "
+            f"⚠️ BUID '{buid}' returned NO offices on the .{server} server. "
             f"This usually means the wrong server — try .{other} before "
             f"concluding the BUID is invalid."
         )
@@ -652,11 +629,8 @@ def _pms_verify_buid_handler(inp: dict) -> dict:
         "server": server,
         "buid": buid,
         "found": found,
-        "in_directory": in_list,
-        "is_all_buids": is_all_buids,
-        "accessible_count": len(accessible),
-        # Cap echoed list to avoid bloating the context — model can re-call if needed
-        "accessible_buids_sample": accessible[:20],
+        "office_count": office_count,
+        "offices_sample": offices_sample,
         "message": message,
     }
 
