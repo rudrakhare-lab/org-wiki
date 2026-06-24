@@ -91,6 +91,7 @@ export interface ChatMessage {
   rewritten_query?: string | null;
   intent_confidence?: number | null;
   cost_inr?: number | null;
+  image_data_url?: string | null;
 }
 
 export interface Conversation {
@@ -659,6 +660,27 @@ export class ApiService {
       ? new HttpHeaders({ Authorization: `Bearer ${token}` })
       : new HttpHeaders();
     return this.http.post<QueryResponse>(`${API_BASE}/query`, req, { headers });
+  }
+
+  queryWithImage(req: QueryRequest, imageFile: File): Observable<QueryResponse> {
+    const token = this.getAdminToken();
+    const headers = token
+      ? new HttpHeaders({ Authorization: `Bearer ${token}` })
+      : new HttpHeaders();
+
+    const form = new FormData();
+    form.append('question', req.question);
+    form.append('mode', req.mode ?? 'api');
+    form.append('server', req.server ?? 'com');
+    if (req.buid) form.append('buid', req.buid);
+    if (req.service) form.append('service', req.service);
+    if (req.officeid) form.append('officeid', req.officeid);
+    if (req.roomid) form.append('roomid', req.roomid);
+    if (req.role) form.append('role', req.role);
+    if (req.conversation_id) form.append('conversation_id', req.conversation_id);
+    form.append('image', imageFile);
+
+    return this.http.post<QueryResponse>(`${API_BASE}/query`, form, { headers });
   }
 
   /**
