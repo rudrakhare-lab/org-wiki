@@ -115,7 +115,7 @@ export class UploadStep {
     'visitor-management',
   ];
 
-  private readonly supported = new Set(['.pdf', '.docx', '.doc', '.xlsx', '.xls', '.md', '.txt', '.rtf']);
+  private readonly supported = new Set(['.pdf', '.docx', '.doc', '.xlsx', '.xls', '.md', '.txt', '.rtf', '.png', '.jpg', '.jpeg', '.webp', '.gif']);
 
   onDragOver(e: DragEvent) {
     e.preventDefault();
