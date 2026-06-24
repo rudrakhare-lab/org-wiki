@@ -65,3 +65,6 @@ raw/modules/_uploads/
 
 # Stray Obsidian canvas files
 *.canvas
+
+# MCP config — contains API tokens, never commit
+.mcp.json
