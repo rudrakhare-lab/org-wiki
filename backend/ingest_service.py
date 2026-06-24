@@ -98,7 +98,7 @@ def build_plan_registry(agent=None):
         WIKI_CHECK_DUPLICATE_SCHEMA, _wiki_check_duplicate_handler,
     )
     from backend.document_extractor import (
-        extract_pdf, extract_docx, extract_xlsx, extract_text_file,
+        extract_pdf, extract_docx, extract_xlsx, extract_text_file, extract_image,
     )
 
     r = ToolRegistry(user_role="contributor")
@@ -155,6 +155,18 @@ def build_plan_registry(agent=None):
             },
         },
         lambda inp: extract_text_file(inp["file_path"]),
+    )
+    reg(
+        {
+            "name": "extract_image",
+            "description": "Extract text and description from an image file (PNG, JPG, JPEG, WEBP, GIF) using Vision. Returns {text, title, char_count, truncated}.",
+            "input_schema": {
+                "type": "object",
+                "properties": {"file_path": {"type": "string"}},
+                "required": ["file_path"],
+            },
+        },
+        lambda inp: extract_image(inp["file_path"]),
     )
 
     # Wiki read tools

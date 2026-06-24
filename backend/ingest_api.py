@@ -30,7 +30,8 @@ _LOG = logging.getLogger("ingest")
 _BULK_TASKS: set = set()
 
 MAX_UPLOAD_BYTES = 100 * 1024 * 1024  # 100 MB
-SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".md", ".txt", ".rtf"}
+SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".md", ".txt", ".rtf",
+                        ".png", ".jpg", ".jpeg", ".webp", ".gif"}
 
 # Where uploads land before being moved to raw/modules/{slug}/.
 # Uses RAW_DIR so it honors CONWO_DATA_DIR (the mounted PVC) in prod.

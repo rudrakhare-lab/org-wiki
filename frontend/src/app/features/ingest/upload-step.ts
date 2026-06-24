@@ -46,7 +46,7 @@ export interface UploadResult {
           #fileInput
           type="file"
           style="display:none"
-          accept=".pdf,.docx,.doc,.xlsx,.xls,.md,.txt,.rtf"
+          accept=".pdf,.docx,.doc,.xlsx,.xls,.md,.txt,.rtf,.png,.jpg,.jpeg,.webp,.gif"
           (change)="onFileSelected($event)"
         />
       </div>
@@ -137,7 +137,7 @@ export class UploadStep {
   private setFile(f: File) {
     const ext = '.' + f.name.split('.').pop()!.toLowerCase();
     if (!this.supported.has(ext)) {
-      this.typeError.set(`Unsupported file type: ${ext}. Allowed: PDF, DOCX, XLSX, MD, TXT`);
+      this.typeError.set(`Unsupported file type: ${ext}. Allowed: PDF, DOCX, XLSX, MD, TXT, PNG, JPG, WEBP, GIF`);
       this.selectedFile.set(null);
       return;
     }
