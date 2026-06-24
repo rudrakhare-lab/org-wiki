@@ -842,3 +842,56 @@
   }
   .scope-link { display: none; }
 }
+
+// ── Image attach ───────────────────────────────────────────────────────────
+
+.msg-image-thumb {
+  max-width: 320px;
+  max-height: 240px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.image-preview-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  .preview-thumb {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+  }
+  .clear-image-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text-muted, #888);
+    &:hover { color: var(--text-primary, #333); }
+  }
+}
+
+.attach-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-muted, #888);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: var(--surface-muted, rgba(0,0,0,0.06));
+    color: var(--text, #333);
+  }
+
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+}
