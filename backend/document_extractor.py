@@ -8,11 +8,29 @@ the LLM context budget.
 """
 from __future__ import annotations
 
+import base64
+import os
 import pathlib
 
 MAX_CHARS = 50_000
 
-SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".md", ".txt", ".rtf"}
+SUPPORTED_EXTENSIONS = {".pdf", ".docx", ".xlsx", ".md", ".txt", ".rtf",
+                        ".png", ".jpg", ".jpeg", ".webp", ".gif"}
+
+IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".webp", ".gif"}
+
+_VISION_PROMPT = """\
+You are analyzing an image uploaded to a knowledge base.
+Describe every component, relationship, data flow, decision, and label visible.
+Output structured text (headings, bullet points) suitable for a wiki page.
+Include: what the diagram shows, every named component, every arrow/connection and what it means,
+any labels, annotations, or decision points. Be exhaustive — nothing visible should be omitted.\
+"""
+
+
+def _get_anthropic_client():
+    import anthropic
+    return anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
 
 
 class UnsupportedFileType(ValueError):
@@ -30,6 +48,8 @@ def extract_document(file_path: str) -> dict:
         return extract_docx(file_path)
     if ext == ".xlsx":
         return extract_xlsx(file_path)
+    if ext in IMAGE_EXTENSIONS:
+        return extract_image(file_path)
     # .md, .txt, .rtf — plain text
     return extract_text_file(file_path)
 
@@ -112,6 +132,53 @@ def extract_text_file(file_path: str) -> dict:
     truncated = len(text) > MAX_CHARS
     return {
         "text": text[:MAX_CHARS],
+        "char_count": len(text),
+        "truncated": truncated,
+    }
+
+
+def extract_image(file_path: str) -> dict:
+    """Extract text description from an image using Claude Vision."""
+    ext = pathlib.Path(file_path).suffix.lower()
+    if ext not in IMAGE_EXTENSIONS:
+        raise UnsupportedFileType(f"Unsupported image type: {ext!r}")
+
+    media_type_map = {
+        ".png": "image/png",
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".webp": "image/webp",
+        ".gif": "image/gif",
+    }
+    media_type = media_type_map[ext]
+    b64 = base64.standard_b64encode(pathlib.Path(file_path).read_bytes()).decode("utf-8")
+
+    client = _get_anthropic_client()
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=4096,
+        messages=[{
+            "role": "user",
+            "content": [
+                {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": b64}},
+                {"type": "text", "text": _VISION_PROMPT},
+            ],
+        }],
+    )
+    text = response.content[0].text
+
+    # Use first heading as title, or fall back to filename stem
+    title = pathlib.Path(file_path).stem
+    for line in text.splitlines():
+        stripped = line.lstrip("#").strip()
+        if stripped:
+            title = stripped
+            break
+
+    truncated = len(text) > MAX_CHARS
+    return {
+        "text": text[:MAX_CHARS],
+        "title": title,
         "char_count": len(text),
         "truncated": truncated,
     }
