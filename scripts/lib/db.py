@@ -74,6 +74,7 @@ _TICKET_COLUMNS = [
     "key", "project", "type", "status", "status_category", "priority", "resolution",
     "summary", "description_text", "description_raw_json", "resolution_text",
     "comment_count", "comments_text", "comments_raw_json",
+    "sprint_id", "sprint_name",
     "functional_area", "components_json", "labels_json",
     "reporter_account_id", "reporter_display_name",
     "assignee_account_id", "assignee_display_name",

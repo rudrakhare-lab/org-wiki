@@ -95,5 +95,6 @@ fields = [
   "issuelinks",
   "attachment",
   "customfield_11516",
+  "customfield_10020",   # Sprint (Jira Software board sprint field)
 ]
 expand = "renderedFields"
