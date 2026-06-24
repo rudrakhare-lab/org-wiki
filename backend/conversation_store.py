@@ -112,7 +112,7 @@ def get_conversation(conversation_id: str) -> dict[str, Any] | None:
             """
             SELECT id, conversation_id, role, content, created_at, mode, server, buid,
                    answer_id, confidence, sources_json, tool_trace_json, missing_context_json,
-                   cost_inr
+                   cost_inr, image_data, image_media_type
             FROM messages
             WHERE conversation_id = %s
             ORDER BY created_at ASC
@@ -170,6 +170,8 @@ def add_message(
     missing_context: list[str] | None = None,
     agent_id: str = "conwo",
     cost_inr: float | None = None,
+    image_data: bytes | None = None,
+    image_media_type: str | None = None,
 ) -> dict[str, Any]:
     """
     Append a message to a conversation. The caller is responsible for ensuring
@@ -196,8 +198,8 @@ def add_message(
             INSERT INTO messages (
                 id, conversation_id, role, content, created_at, mode, server, buid,
                 answer_id, confidence, sources_json, tool_trace_json, missing_context_json,
-                agent_id, cost_inr
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                agent_id, cost_inr, image_data, image_media_type
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             (
                 mid,
@@ -215,6 +217,8 @@ def add_message(
                 json.dumps(missing_context) if missing_context is not None else None,
                 agent_id,
                 cost_inr,
+                image_data,
+                image_media_type,
             ),
         )
         conn.execute(
@@ -238,6 +242,8 @@ def add_message(
         "missing_context": missing_context,
         "agent_id": agent_id,
         "cost_inr": cost_inr,
+        "image_data": image_data,
+        "image_media_type": image_media_type,
     }
 
 
@@ -301,6 +307,8 @@ def _row_to_message(row: Any) -> dict[str, Any]:
         "tool_trace": _safe_json(row["tool_trace_json"]),
         "missing_context": _safe_json(row["missing_context_json"]),
         "cost_inr": float(row["cost_inr"]) if row["cost_inr"] is not None else None,
+        "image_data": bytes(row["image_data"]) if row["image_data"] is not None else None,
+        "image_media_type": row["image_media_type"],
     }
 
 
