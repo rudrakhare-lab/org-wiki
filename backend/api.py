@@ -514,13 +514,74 @@ def request_agent_access(agent_id: str, user: dict = Depends(_require_user)):
     return agent_access.request_access(user["email"], agent_id)
 
 
+SUPPORTED_MEDIA_TYPES = {"image/png", "image/jpeg", "image/webp", "image/gif"}
+
+
 @app.post("/query", response_model=QueryResponse)
-def query(
-    req: QueryRequest,
+async def query(
     request: Request,
     user: dict | None = Depends(_get_user),
     agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
+    # Support both application/json (existing) and multipart/form-data (image upload).
+    content_type = request.headers.get("content-type", "")
+    if "multipart/form-data" in content_type or "application/x-www-form-urlencoded" in content_type:
+        form = await request.form()
+        question = form.get("question", "")
+        mode = form.get("mode", "api")
+        server = form.get("server", "com")
+        buid = form.get("buid") or None
+        functional_area = form.get("functional_area") or None
+        service = form.get("service") or None
+        officeid = form.get("officeid") or None
+        roomid = form.get("roomid") or None
+        role = form.get("role") or None
+        conversation_id = form.get("conversation_id") or None
+        image_file = form.get("image")
+        if image_file and hasattr(image_file, "read"):
+            image_media_type = image_file.content_type or "image/png"
+            if image_media_type not in SUPPORTED_MEDIA_TYPES:
+                raise HTTPException(
+                    status_code=415,
+                    detail=f"Unsupported image media type '{image_media_type}'. "
+                           f"Supported: {sorted(SUPPORTED_MEDIA_TYPES)}",
+                )
+            image_bytes = await image_file.read()
+        else:
+            image_bytes = None
+            image_media_type = None
+        if not question or len(question) < 1:
+            raise HTTPException(status_code=422, detail="question is required")
+        if len(question) > 2000:
+            raise HTTPException(status_code=422, detail="question too long (max 2000 chars)")
+        if server not in ("com", "in"):
+            raise HTTPException(status_code=422, detail="server must be 'com' or 'in'")
+        if mode not in ("api", "claude-code"):
+            raise HTTPException(status_code=422, detail="mode must be 'api' or 'claude-code'")
+        req = QueryRequest(
+            question=question,
+            mode=mode,
+            server=server,
+            buid=buid,
+            functional_area=functional_area,
+            service=service,
+            officeid=officeid,
+            roomid=roomid,
+            role=role,
+            conversation_id=conversation_id,
+        )
+    else:
+        from pydantic import ValidationError as _ValidationError
+        try:
+            body = await request.json()
+            req = QueryRequest(**body)
+        except _ValidationError as exc:
+            raise HTTPException(status_code=422, detail=exc.errors()) from exc
+        except Exception as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
+        image_bytes = None
+        image_media_type = None
+
     trace_id = getattr(request.state, "trace_id", None)
     trace_status = "success"   # NOT named `status` — that's the fastapi module used below
     try:
@@ -621,6 +682,8 @@ def query(
             server=req.server,
             buid=req.buid,
             agent_id=agent.id,
+            image_data=image_bytes,
+            image_media_type=image_media_type,
         )
 
         # Layer 1 guardrail: block destructive requests before calling the LLM.
@@ -693,6 +756,8 @@ def query(
             role=req.role,
             user_role=user_role,
             conversation_id=conversation_id,
+            image_data=image_bytes,
+            image_media_type=image_media_type,
             trace_id=trace_id,
             agent=agent,
         )

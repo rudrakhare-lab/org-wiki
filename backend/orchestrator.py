@@ -158,6 +158,8 @@ def run(
     conversation_id: str | None = None,
     trace_id: str | None = None,
     agent=None,
+    image_data: bytes | None = None,
+    image_media_type: str | None = None,
 ) -> OrchestratorResult:
     """
     Execute the full QUERY workflow and return a structured result.
@@ -180,6 +182,8 @@ def run(
         question, mode, claude_api_key, server, buid, functional_area,
         service, officeid, roomid, role, user_role, conversation_id,
         trace_id=trace_id, agent=agent,
+        image_data=image_data,
+        image_media_type=image_media_type,
     )
 
 
