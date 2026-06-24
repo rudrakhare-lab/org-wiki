@@ -154,18 +154,27 @@ def extract_image(file_path: str) -> dict:
     b64 = base64.standard_b64encode(pathlib.Path(file_path).read_bytes()).decode("utf-8")
 
     client = _get_anthropic_client()
-    response = client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=4096,
-        messages=[{
-            "role": "user",
-            "content": [
-                {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": b64}},
-                {"type": "text", "text": _VISION_PROMPT},
-            ],
-        }],
-    )
-    text = response.content[0].text
+    try:
+        response = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=4096,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": b64}},
+                    {"type": "text", "text": _VISION_PROMPT},
+                ],
+            }],
+        )
+        text = response.content[0].text
+    except Exception as exc:
+        stem = pathlib.Path(file_path).stem
+        return {
+            "text": f"[Image extraction failed: {exc}]",
+            "title": stem,
+            "char_count": 0,
+            "truncated": False,
+        }
 
     # Use first heading as title, or fall back to filename stem
     title = pathlib.Path(file_path).stem

@@ -516,6 +516,24 @@ def request_agent_access(agent_id: str, user: dict = Depends(_require_user)):
 
 SUPPORTED_MEDIA_TYPES = {"image/png", "image/jpeg", "image/webp", "image/gif"}
 
+MAX_QUERY_IMAGE_BYTES = 5 * 1024 * 1024  # 5 MB — Anthropic Vision API limit
+
+_MAGIC_BYTES: list[tuple[bytes, str]] = [
+    (b"\x89PNG", "image/png"),
+    (b"\xff\xd8\xff", "image/jpeg"),
+    (b"GIF8", "image/gif"),
+]
+
+
+def _sniff_media_type(data: bytes) -> str | None:
+    """Return MIME type by inspecting magic bytes; None if unrecognised."""
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBP":
+        return "image/webp"
+    for magic, mime in _MAGIC_BYTES:
+        if data[: len(magic)] == magic:
+            return mime
+    return None
+
 
 @app.post("/query", response_model=QueryResponse)
 async def query(
@@ -539,14 +557,31 @@ async def query(
         conversation_id = form.get("conversation_id") or None
         image_file = form.get("image")
         if image_file and hasattr(image_file, "read"):
-            image_media_type = image_file.content_type or "image/png"
-            if image_media_type not in SUPPORTED_MEDIA_TYPES:
+            # Fast-path: reject obviously wrong Content-Type before reading bytes
+            _ct = image_file.content_type or ""
+            if _ct and _ct not in SUPPORTED_MEDIA_TYPES:
                 raise HTTPException(
                     status_code=415,
-                    detail=f"Unsupported image media type '{image_media_type}'. "
+                    detail=f"Unsupported image media type '{_ct}'. "
                            f"Supported: {sorted(SUPPORTED_MEDIA_TYPES)}",
                 )
-            image_bytes = await image_file.read()
+            # Read with 1-byte over-read to detect files that exceed the cap
+            image_bytes = await image_file.read(MAX_QUERY_IMAGE_BYTES + 1)
+            if len(image_bytes) > MAX_QUERY_IMAGE_BYTES:
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"Image too large. Maximum size is "
+                           f"{MAX_QUERY_IMAGE_BYTES // (1024 * 1024)} MB.",
+                )
+            # Definitive validation: sniff magic bytes, ignoring client header
+            sniffed = _sniff_media_type(image_bytes)
+            if sniffed is None or sniffed not in SUPPORTED_MEDIA_TYPES:
+                raise HTTPException(
+                    status_code=415,
+                    detail=f"Unsupported image type. Supported: "
+                           f"{', '.join(sorted(SUPPORTED_MEDIA_TYPES))}",
+                )
+            image_media_type = sniffed
         else:
             image_bytes = None
             image_media_type = None
@@ -1205,7 +1240,14 @@ def get_conversation(
     agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
     conv = _check_conversation_access(conversation_id, user, agent)
-    return conv
+    # Strip raw image bytes before JSON serialisation — bytes are not JSON-serialisable
+    # and are only needed internally by the orchestrator, not by API clients.
+    # image_media_type is kept so clients know whether a message had an image attached.
+    safe_conv = {**conv, "messages": [
+        {k: v for k, v in m.items() if k != "image_data"}
+        for m in (conv.get("messages") or [])
+    ]}
+    return safe_conv
 
 
 @app.patch("/conversations/{conversation_id}")

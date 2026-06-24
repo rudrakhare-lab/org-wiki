@@ -256,7 +256,7 @@ def run_deep(
                 "type": "image",
                 "source": {
                     "type": "base64",
-                    "media_type": image_media_type or "image/png",
+                    "media_type": image_media_type,  # guaranteed non-None by api.py validation
                     "data": b64,
                 },
             },
