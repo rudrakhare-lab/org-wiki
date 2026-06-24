@@ -169,7 +169,7 @@ Unchanged — the tool loop runs fully on every query. The image is passed as pa
 
 ---
 
-## Open questions
+## Decisions
 
-- Should large images be resized/compressed client-side before upload to keep message history payloads manageable? (Recommend: yes, cap at 1MB / 1024px longest side via Canvas API)
-- Should image data be included when replaying very long conversation histories (e.g. 20+ turns)? Base64 images are large — may need to cap image replay to the last N turns only.
+- **No client-side compression** — images are uploaded at full resolution and fidelity.
+- **Full history replay** — all messages with images are replayed to Claude on every turn, regardless of conversation length.
