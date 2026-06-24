@@ -98,7 +98,7 @@ def build_plan_registry(agent=None):
         WIKI_CHECK_DUPLICATE_SCHEMA, _wiki_check_duplicate_handler,
     )
     from backend.document_extractor import (
-        extract_pdf, extract_docx, extract_xlsx, extract_text_file, extract_image,
+        extract_pdf, extract_docx, extract_xlsx, extract_text_file, extract_image, IMAGE_EXTENSIONS,
     )
 
     r = ToolRegistry(user_role="contributor")

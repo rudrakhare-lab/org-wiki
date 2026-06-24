@@ -39,7 +39,7 @@ export interface UploadResult {
           <div class="drop-hint">
             <span class="drop-icon">📄</span>
             <span>Drop a file here, or click to browse</span>
-            <span class="drop-types">PDF · DOCX · XLSX · MD · TXT</span>
+            <span class="drop-types">PDF · DOCX · XLSX · MD · TXT · PNG · JPG · WEBP · GIF</span>
           </div>
         }
         <input
