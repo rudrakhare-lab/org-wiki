@@ -607,8 +607,10 @@ export class Ask implements OnInit {
   }
 
   onImageFileSelected(event: Event) {
-    const file = (event.target as HTMLInputElement).files?.[0];
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
     if (file) this.setPendingImage(file);
+    input.value = ''; // reset so same file can be re-selected after clearing
   }
 
   setPendingImage(file: File) {
