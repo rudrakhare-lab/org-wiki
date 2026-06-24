@@ -324,7 +324,7 @@ class QueryRequest(BaseModel):
     # is rejected outright (see model_config).
     model_config = {"extra": "forbid"}
 
-    question: str = Field(..., min_length=3, max_length=2000)
+    question: str = Field(..., min_length=1, max_length=2000)
     mode: Literal["api", "claude-code"] = "api"
     server: str = Field(default="com", pattern=r"^(com|in)$")
     buid: str | None = None
@@ -356,7 +356,7 @@ class QueryResponse(BaseModel):
 
 
 class AgentStreamRequest(BaseModel):
-    question: str = Field(..., min_length=3, max_length=2000)
+    question: str = Field(..., min_length=1, max_length=2000)
     conversation_id: str | None = None
     server: str = Field(default="com", pattern=r"^(com|in)$")
     buid: str | None = None
@@ -386,7 +386,7 @@ class ConversationPatchRequest(BaseModel):
 
 
 class SearchRequest(BaseModel):
-    question: str = Field(..., min_length=3, max_length=2000)
+    question: str = Field(..., min_length=1, max_length=2000)
     server: str = Field(default="com", pattern=r"^(com|in)$")
 
 

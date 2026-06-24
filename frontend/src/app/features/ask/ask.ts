@@ -643,7 +643,11 @@ export class Ask implements OnInit {
       },
       error: err => {
         this.loading.set(false);
-        this.error.set(err?.error?.detail ?? 'Request failed. Could not reach the backend.');
+        const detail = err?.error?.detail;
+        const msg = Array.isArray(detail)
+          ? detail.map((e: { msg?: string }) => e.msg ?? JSON.stringify(e)).join('; ')
+          : (typeof detail === 'string' ? detail : 'Request failed. Could not reach the backend.');
+        this.error.set(msg);
       },
     });
   }
