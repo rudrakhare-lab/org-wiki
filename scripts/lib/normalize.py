@@ -211,6 +211,11 @@ def normalize_issue(
     external_urls = extract_external_urls(description_text, comments_text)
     external_urls_json = json.dumps(external_urls, ensure_ascii=False)
 
+    # ------------------------- sprint ----------------------------------
+    # customfield_10020 is an array of sprint objects; take the last one
+    # (most recent sprint the ticket was in).
+    sprint_id, sprint_name = _resolve_sprint(fields.get("customfield_10020"))
+
     # ------------------------- functional area -------------------------
     fa_value = _resolve_functional_area(fields.get(fa_field_id))
 
@@ -247,6 +252,9 @@ def normalize_issue(
         "comments_text": comments_text or None,
         "comments_raw_json": comments_raw_json,
 
+        "sprint_id":   sprint_id,
+        "sprint_name": sprint_name,
+
         "functional_area": fa_value,
         "components_json": components_json,
         "labels_json": labels_json,
@@ -276,6 +284,23 @@ def normalize_issue(
         "last_triaged_at": None,
         "embedding_id": None,
     }
+
+
+def _resolve_sprint(value: Any) -> tuple[str | None, str | None]:
+    """customfield_10020 is a list of sprint dicts. Return (id, name) of the
+    last sprint (most recent assignment). Each sprint dict looks like:
+      {"id": 123, "name": "Sprint 42", "state": "active|closed|future", ...}
+    """
+    if not value:
+        return None, None
+    # Some Jira versions return a plain string representation — skip those
+    sprints = [s for s in value if isinstance(s, dict)]
+    if not sprints:
+        return None, None
+    last = sprints[-1]
+    sid = str(last["id"]) if "id" in last else None
+    sname = last.get("name") or None
+    return sid, sname
 
 
 def _resolve_functional_area(value: Any) -> str | None:
