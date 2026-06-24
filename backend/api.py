@@ -1417,6 +1417,8 @@ def admin_approve_user(
             raise HTTPException(status_code=404, detail=f"User not found: {email}")
     if not auth_store.set_user_approved(email, True):
         raise HTTPException(status_code=404, detail=f"User not found: {email}")
+    from backend import email_service
+    email_service.send_account_approved(email)
     return {"email": email, "approved": True,
             "role": (auth_store.get_user(email) or {}).get("role")}
 
@@ -1503,18 +1505,27 @@ def admin_agent_access_grants(_admin: dict = Depends(_require_admin)):
 @app.post("/admin/agent-access/{email:path}/{agent_id}/approve")
 def admin_agent_access_approve(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
     agent_access.set_status(email, agent_id, "granted", admin["email"])
+    from backend import email_service, agent_registry
+    spec = agent_registry.get(agent_id)
+    email_service.send_agent_access_approved(email, spec.display_name, agent_id)
     return {"email": email, "agent_id": agent_id, "status": "granted"}
 
 
 @app.post("/admin/agent-access/{email:path}/{agent_id}/grant")
 def admin_agent_access_grant(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
     agent_access.set_status(email, agent_id, "granted", admin["email"])
+    from backend import email_service, agent_registry
+    spec = agent_registry.get(agent_id)
+    email_service.send_agent_access_approved(email, spec.display_name, agent_id)
     return {"email": email, "agent_id": agent_id, "status": "granted"}
 
 
 @app.post("/admin/agent-access/{email:path}/{agent_id}/reject")
 def admin_agent_access_reject(email: str, agent_id: str, admin: dict = Depends(_require_admin)):
     agent_access.set_status(email, agent_id, "rejected", admin["email"])
+    from backend import email_service, agent_registry
+    spec = agent_registry.get(agent_id)
+    email_service.send_agent_access_rejected(email, spec.display_name)
     return {"email": email, "agent_id": agent_id, "status": "rejected"}
 
 
