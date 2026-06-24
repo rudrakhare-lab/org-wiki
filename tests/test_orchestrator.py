@@ -147,3 +147,81 @@ def test_run_single_shot_substitutes_answer_id_in_returned_text(monkeypatch, tmp
     assert call_kwargs["answer_id"] == fake_id
     assert f"`{fake_id}`" in call_kwargs["answer_text"]
     assert "<ANSWER_ID>" not in call_kwargs["answer_text"]
+
+
+# ---------------------------------------------------------------------------
+# Image content block tests (Task 5)
+# ---------------------------------------------------------------------------
+
+
+def test_load_conversation_context_includes_image_blocks():
+    """Messages with image_data produce content block lists, not plain strings."""
+    from backend.orchestrator import _load_conversation_context
+    from unittest.mock import patch
+
+    img_bytes = b"\x89PNG\r\n\x1a\n"
+    fake_conv = {
+        "messages": [
+            {"role": "user", "content": "describe this",
+             "image_data": img_bytes, "image_media_type": "image/png"},
+            {"role": "assistant", "content": "It shows a flowchart.",
+             "image_data": None, "image_media_type": None},
+        ]
+    }
+    with patch("backend.orchestrator.conversation_store.get_conversation",
+               return_value=fake_conv):
+        history = _load_conversation_context("fake-id")
+
+    # Last message is assistant (not user), so nothing is dropped.
+    # Both messages survive as a valid pair.
+    assert len(history) == 2
+    # Re-test with 2 prior + 1 current to get a pair
+    fake_conv2 = {
+        "messages": [
+            {"role": "user", "content": "hi", "image_data": None, "image_media_type": None},
+            {"role": "assistant", "content": "hello", "image_data": None, "image_media_type": None},
+            {"role": "user", "content": "describe this",
+             "image_data": img_bytes, "image_media_type": "image/png"},
+        ]
+    }
+    with patch("backend.orchestrator.conversation_store.get_conversation",
+               return_value=fake_conv2):
+        history = _load_conversation_context("fake-id")
+
+    # First pair: text-only user → content is a plain string
+    assert history[0]["role"] == "user"
+    assert isinstance(history[0]["content"], str)
+    assert history[0]["content"] == "hi"
+
+
+def test_load_conversation_context_image_message_becomes_blocks():
+    from backend.orchestrator import _load_conversation_context
+    from unittest.mock import patch
+    import base64
+
+    img_bytes = b"\x89PNG\r\n\x1a\n"
+    b64 = base64.standard_b64encode(img_bytes).decode()
+
+    fake_conv = {
+        "messages": [
+            {"role": "user", "content": "what is this?",
+             "image_data": img_bytes, "image_media_type": "image/png"},
+            {"role": "assistant", "content": "A diagram.",
+             "image_data": None, "image_media_type": None},
+            # current turn (will be dropped)
+            {"role": "user", "content": "tell me more",
+             "image_data": None, "image_media_type": None},
+        ]
+    }
+    with patch("backend.orchestrator.conversation_store.get_conversation",
+               return_value=fake_conv):
+        history = _load_conversation_context("fake-id")
+
+    # First message had image → content must be a list of blocks
+    user_msg = history[0]
+    assert user_msg["role"] == "user"
+    assert isinstance(user_msg["content"], list)
+    assert user_msg["content"][0]["type"] == "image"
+    assert user_msg["content"][0]["source"]["data"] == b64
+    assert user_msg["content"][1]["type"] == "text"
+    assert user_msg["content"][1]["text"] == "what is this?"
