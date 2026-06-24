@@ -125,3 +125,100 @@ def test_xlsx_truncation(tmp):
     assert len(result["text_repr"]) == 50_000
     assert result["char_count"] > 50_000
     assert "sheets" in result
+
+
+# ── image extraction tests ───────────────────────────────────────────────────
+
+# Minimal valid 1x1 PNG
+_TINY_PNG = bytes([
+    0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A,  # PNG signature
+    0x00, 0x00, 0x00, 0x0D, 0x49, 0x48, 0x44, 0x52,  # IHDR chunk length + type
+    0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,  # width=1, height=1
+    0x08, 0x02, 0x00, 0x00, 0x00, 0x90, 0x77, 0x53,  # bit depth, colour type, ...
+    0xDE, 0x00, 0x00, 0x00, 0x0C, 0x49, 0x44, 0x41,  # IDAT chunk
+    0x54, 0x08, 0xD7, 0x63, 0xF8, 0xCF, 0xC0, 0x00,
+    0x00, 0x00, 0x02, 0x00, 0x01, 0xE2, 0x21, 0xBC,
+    0x33, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E,  # IEND chunk
+    0x44, 0xAE, 0x42, 0x60, 0x82,
+])
+
+
+def test_extract_image_returns_text_and_title(tmp):
+    from unittest.mock import MagicMock, patch
+    from backend.document_extractor import extract_image
+
+    img_path = tmp / "diagram.png"
+    img_path.write_bytes(_TINY_PNG)
+
+    mock_client = MagicMock()
+    mock_client.messages.create.return_value = MagicMock(
+        content=[MagicMock(text="## Architecture\nService A calls Service B.")]
+    )
+
+    with patch("backend.document_extractor._get_anthropic_client", return_value=mock_client):
+        result = extract_image(str(img_path))
+
+    assert "text" in result
+    assert "title" in result
+    assert "Architecture" in result["text"]
+    assert result["char_count"] > 0
+    assert result["truncated"] is False
+
+
+def test_extract_image_title_fallback(tmp):
+    """When response has no heading, title falls back to filename stem."""
+    from unittest.mock import MagicMock, patch
+    from backend.document_extractor import extract_image
+
+    img_path = tmp / "mydiagram.png"
+    img_path.write_bytes(_TINY_PNG)
+
+    mock_client = MagicMock()
+    mock_client.messages.create.return_value = MagicMock(
+        content=[MagicMock(text="This is a plain description with no heading.")]
+    )
+
+    with patch("backend.document_extractor._get_anthropic_client", return_value=mock_client):
+        result = extract_image(str(img_path))
+
+    # First non-empty line is used as title (no # prefix)
+    assert result["title"] == "This is a plain description with no heading."
+
+
+def test_extract_image_unsupported_extension(tmp):
+    from backend.document_extractor import extract_image, UnsupportedFileType
+
+    p = tmp / "file.bmp"
+    p.write_bytes(b"fake")
+    with pytest.raises(UnsupportedFileType):
+        extract_image(str(p))
+
+
+def test_extract_image_dispatched_by_extract_document(tmp):
+    """extract_document() should dispatch .png to extract_image()."""
+    from unittest.mock import MagicMock, patch
+    from backend.document_extractor import extract_document
+
+    img_path = tmp / "arch.png"
+    img_path.write_bytes(_TINY_PNG)
+
+    mock_client = MagicMock()
+    mock_client.messages.create.return_value = MagicMock(
+        content=[MagicMock(text="## Flow\nStep 1 → Step 2")]
+    )
+
+    with patch("backend.document_extractor._get_anthropic_client", return_value=mock_client):
+        result = extract_document(str(img_path))
+
+    assert "text" in result
+    assert "Flow" in result["text"]
+
+
+def test_image_extensions_exported():
+    """IMAGE_EXTENSIONS must be importable from document_extractor for ingest_api.py."""
+    from backend.document_extractor import IMAGE_EXTENSIONS
+    assert ".png" in IMAGE_EXTENSIONS
+    assert ".jpg" in IMAGE_EXTENSIONS
+    assert ".jpeg" in IMAGE_EXTENSIONS
+    assert ".webp" in IMAGE_EXTENSIONS
+    assert ".gif" in IMAGE_EXTENSIONS

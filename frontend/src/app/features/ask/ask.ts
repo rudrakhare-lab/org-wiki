@@ -67,7 +67,12 @@ const PMS_SERVICES = [
               @if (m.role === 'user') {
                 <article class="message message-user">
                   <div class="message-meta">You</div>
-                  <div class="message-bubble">{{ m.content }}</div>
+                  <div class="message-bubble">
+                    @if (m.image_data_url) {
+                      <img [src]="m.image_data_url" class="msg-image-thumb" alt="Attached image">
+                    }
+                    {{ m.content }}
+                  </div>
                 </article>
               } @else if (m.role === 'assistant') {
                 <article class="message message-assistant">
@@ -320,6 +325,13 @@ const PMS_SERVICES = [
               <a class="scope-link" routerLink="/search">Search without AI →</a>
             </div>
 
+            <input #imageInput type="file" accept="image/png,image/jpeg,image/webp,image/gif" style="display:none" (change)="onImageFileSelected($event)">
+            @if (pendingImageUrl()) {
+              <div class="image-preview-bar">
+                <img [src]="pendingImageUrl()" class="preview-thumb" alt="Image to send">
+                <button type="button" class="clear-image-btn" (click)="clearPendingImage()" aria-label="Remove image">✕</button>
+              </div>
+            }
             <div class="composer-input-wrap" [class.disabled]="!canAsk()">
               <textarea
                 [(ngModel)]="question"
@@ -327,9 +339,22 @@ const PMS_SERVICES = [
                 class="composer-input"
                 rows="1"
                 (keydown)="onComposerKeydown($event)"
+                (paste)="onPaste($event)"
                 [disabled]="loading() || agentActive()"
                 aria-label="Ask a question"
               ></textarea>
+              <button
+                type="button"
+                class="attach-btn"
+                (click)="imageInput.click()"
+                [disabled]="loading() || agentActive()"
+                aria-label="Attach image"
+                title="Attach image"
+              >
+                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M13.5 8.5l-5.5 5.5a4 4 0 01-5.657-5.657l6-6a2.5 2.5 0 013.535 3.535l-6 6a1 1 0 01-1.414-1.414l5.5-5.5" />
+                </svg>
+              </button>
               <button
                 class="send-btn"
                 type="button"
@@ -388,6 +413,8 @@ export class Ask implements OnInit {
 
   messages = signal<ChatMessage[]>([]);
   conversationId = signal<string | null>(null);
+  pendingImage = signal<File | null>(null);
+  pendingImageUrl = signal<string | null>(null);
   agentRequest = signal<AgentRequest | null>(null);
 
   constructor() {
@@ -570,6 +597,34 @@ export class Ask implements OnInit {
     }
   }
 
+  onPaste(event: ClipboardEvent) {
+    const item = Array.from(event.clipboardData?.items ?? []).find(i => i.type.startsWith('image/'));
+    if (!item) return;
+    event.preventDefault();
+    const file = item.getAsFile();
+    if (!file) return;
+    this.setPendingImage(file);
+  }
+
+  onImageFileSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.setPendingImage(file);
+    input.value = ''; // reset so same file can be re-selected after clearing
+  }
+
+  setPendingImage(file: File) {
+    this.pendingImage.set(file);
+    const reader = new FileReader();
+    reader.onload = e => this.pendingImageUrl.set(e.target?.result as string);
+    reader.readAsDataURL(file);
+  }
+
+  clearPendingImage() {
+    this.pendingImage.set(null);
+    this.pendingImageUrl.set(null);
+  }
+
   // ── Ask flow ─────────────────────────────────────────────────────────
 
   ask() {
@@ -601,6 +656,7 @@ export class Ask implements OnInit {
       mode: this.mode(),
       server: this.server,
       buid: this.buid || undefined,
+      image_data_url: this.pendingImageUrl(),
     };
     this.messages.update(arr => [...arr, optimisticUser]);
 
@@ -609,10 +665,12 @@ export class Ask implements OnInit {
       return;
     }
 
-    this.runDeepSearch(q);
+    const imageFile = this.pendingImage();
+    this.clearPendingImage();
+    this.runDeepSearch(q, imageFile);
   }
 
-  private runDeepSearch(q: string) {
+  private runDeepSearch(q: string, imageFile?: File | null) {
     this.loading.set(true);
 
     const payload = {
@@ -627,7 +685,11 @@ export class Ask implements OnInit {
       conversation_id: this.conversationId() ?? undefined,
     };
 
-    this.api.query(payload).subscribe({
+    const obs$ = imageFile
+      ? this.api.queryWithImage(payload, imageFile)
+      : this.api.query(payload);
+
+    obs$.subscribe({
       next: res => {
         this.loading.set(false);
         if (res.error) {

@@ -17,6 +17,7 @@ Flow (single-shot mode, used for mode="claude-code"):
 """
 from __future__ import annotations
 
+import base64 as _b64
 import re
 from dataclasses import dataclass, field
 from typing import Literal
@@ -96,7 +97,26 @@ def _load_conversation_context(conversation_id: str, max_turns: int = 6) -> list
     # Safety net: ensure even count so we never pass an assistant-first history.
     if len(tail) % 2 != 0:
         tail = tail[1:]
-    return [{"role": m["role"], "content": m["content"]} for m in tail]
+    result = []
+    for m in tail:
+        img = m.get("image_data")
+        if img and m["role"] == "user":
+            b64 = _b64.standard_b64encode(img).decode()
+            content: str | list = [
+                {
+                    "type": "image",
+                    "source": {
+                        "type": "base64",
+                        "media_type": m.get("image_media_type", "image/png"),
+                        "data": b64,
+                    },
+                },
+                {"type": "text", "text": m["content"]},
+            ]
+        else:
+            content = m["content"]
+        result.append({"role": m["role"], "content": content})
+    return result
 
 
 @dataclass
@@ -138,6 +158,8 @@ def run(
     conversation_id: str | None = None,
     trace_id: str | None = None,
     agent=None,
+    image_data: bytes | None = None,
+    image_media_type: str | None = None,
 ) -> OrchestratorResult:
     """
     Execute the full QUERY workflow and return a structured result.
@@ -160,6 +182,8 @@ def run(
         question, mode, claude_api_key, server, buid, functional_area,
         service, officeid, roomid, role, user_role, conversation_id,
         trace_id=trace_id, agent=agent,
+        image_data=image_data,
+        image_media_type=image_media_type,
     )
 
 
@@ -178,6 +202,8 @@ def run_deep(
     conversation_id: str | None = None,
     trace_id: str | None = None,
     agent=None,
+    image_data: bytes | None = None,
+    image_media_type: str | None = None,
 ) -> OrchestratorResult:
     """Agentic deep search via Anthropic tool_use loop with deterministic preflight."""
     from backend import agent_registry as _ar
@@ -221,13 +247,31 @@ def run_deep(
     summary = load_conversation_summary(conversation_id)
     user_message = build_seed_message(question, " | ".join(scope_parts), bundle, summary=summary, agent=agent)
 
+    # When an image is attached, wrap the seeded user message in content blocks
+    # so the Anthropic API receives the image alongside the text.
+    if image_data:
+        b64 = _b64.standard_b64encode(image_data).decode()
+        user_message_content: str | list = [
+            {
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": image_media_type,  # guaranteed non-None by api.py validation
+                    "data": b64,
+                },
+            },
+            {"type": "text", "text": user_message},
+        ]
+    else:
+        user_message_content = user_message
+
     # 3. Run tool loop (using the SAME registry that the preflight used)
     system_prompt = load_deep_system_prompt(agent)
     provider = DeepQueryProvider(api_key=claude_api_key or "")
     history = _load_conversation_context(conversation_id) if conversation_id else []
     deep_result = provider.generate_with_tools(
         system_prompt=system_prompt,
-        user_message=user_message,
+        user_message=user_message_content,
         tool_registry=registry,
         prior_messages=history,
         trace_id=trace_id,
