@@ -49,3 +49,9 @@ def test_fetch_pdf_success_and_failure(tmp_path):
     def fail(cmd, **kw):
         return _Proc(1, err="404 notFound")
     assert fetch_pdf("FID2", str(tmp_path), runner=fail) is None
+
+
+def test_fetch_pdf_runner_raises_returns_none(tmp_path):
+    def raising_runner(cmd, **kw):
+        raise OSError("rclone not found")
+    assert fetch_pdf("FID3", str(tmp_path), runner=raising_runner) is None
