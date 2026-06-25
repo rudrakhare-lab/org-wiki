@@ -141,3 +141,56 @@ def test_docx_image_directly_after_heading_no_nearby(tmp_path):
     assert len(images) == 1
     assert images[0]["section"] == "Config"
     assert images[0]["nearby_text"] is None
+
+
+# ---------------------------------------------------------------------------
+# XLSX Tests (Task 4)
+# ---------------------------------------------------------------------------
+
+import openpyxl
+
+
+def test_xlsx_walks_all_tabs_and_formula_links(tmp_path):
+    wb = openpyxl.Workbook()
+    ws1 = wb.active
+    ws1.title = "Tab1"
+    ws1["A1"].value = "linked"
+    ws1["A1"].hyperlink = "https://docs.google.com/document/d/DOC_IN_TAB1/edit"
+    ws2 = wb.create_sheet("Tab2")
+    ws2["B2"].value = '=HYPERLINK("https://docs.google.com/presentation/d/DECK_IN_TAB2/edit","go")'
+    ws2["B3"].value = "see https://docs.google.com/document/d/PASTED_AS_TEXT/edit for details"
+    path = tmp_path / "book.xlsx"
+    wb.save(str(path))
+
+    urls, _ = extract_links_and_images(str(path), str(tmp_path / "img"))
+    assert "https://docs.google.com/document/d/DOC_IN_TAB1/edit" in urls          # cell hyperlink, tab 1
+    assert "https://docs.google.com/presentation/d/DECK_IN_TAB2/edit" in urls     # =HYPERLINK formula, tab 2
+    assert "https://docs.google.com/document/d/PASTED_AS_TEXT/edit" in urls       # bare URL in text, tab 2
+
+
+def test_xlsx_image_dict_shape_and_section(tmp_path):
+    """Image from xlsx must return the locked dict shape with section=tab_name."""
+    import pathlib
+    from openpyxl.drawing.image import Image as XLImage
+
+    # Write the minimal PNG to a temp file (openpyxl.drawing.image.Image needs a path/file)
+    png_path = tmp_path / "tiny.png"
+    png_path.write_bytes(_minimal_png())
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Diagrams"
+    img = XLImage(str(png_path))
+    ws.add_image(img, "A1")
+    path = tmp_path / "imgbook.xlsx"
+    wb.save(str(path))
+
+    img_dir = tmp_path / "img"
+    _, images = extract_links_and_images(str(path), str(img_dir))
+
+    assert len(images) == 1
+    result = images[0]
+    assert set(result.keys()) == {"path", "section", "nearby_text"}
+    assert result["section"] == "Diagrams"
+    assert result["nearby_text"] is None
+    assert pathlib.Path(result["path"]).exists()

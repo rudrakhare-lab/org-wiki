@@ -23,9 +23,15 @@ same three keys — do NOT rename them.
 from __future__ import annotations
 
 import pathlib
+import re as _re
 
 _HYPERLINK_REL = "hyperlink"
 _IMAGE_REL = "image"
+
+# Matches the URL inside =HYPERLINK("url", ...) formula strings.
+_HYPERLINK_FORMULA = _re.compile(r'HYPERLINK\(\s*"([^"]+)"', _re.IGNORECASE)
+# Matches bare https?:// URLs pasted as visible text in cells.
+_BARE_URL = _re.compile(r'https?://[^\s"\'<>)\]]+')
 
 
 def _write_blob(blob: bytes, image_dir: str, stem: str, idx: int, ext: str) -> str:
@@ -104,6 +110,57 @@ def _extract_docx(path: str, image_dir: str) -> tuple[list[str], list[dict]]:
     return urls, images
 
 
+def _extract_xlsx(path: str, image_dir: str) -> tuple[list[str], list[dict]]:
+    """Extract URLs and images from a .xlsx file.
+
+    URL extraction: walks EVERY worksheet and collects three forms of link:
+      1. cell.hyperlink.target  — structured hyperlink relationship on the cell
+      2. =HYPERLINK("url",...)  — formula string (Google Sheets export common case)
+      3. bare https?:// URL     — pasted-as-text in a cell value (most common real case)
+
+    Image extraction: reads ws._images on each worksheet; each image is returned
+    as the locked dict shape {"path", "section", "nearby_text"} where section is
+    the worksheet tab name (R3 mapping: xlsx tab_name → section) and nearby_text
+    is None (robustly reading anchor-adjacent cells is fiddly; None is acceptable
+    per spec and consistent with YAGNI).
+    """
+    import openpyxl
+
+    wb = openpyxl.load_workbook(path)  # data_only=False (default) — preserves formulas
+    stem = pathlib.Path(path).stem
+    urls: list[str] = []
+    images: list[dict] = []
+    idx = 0
+
+    for ws in wb.worksheets:            # EVERY tab
+        for row in ws.iter_rows():
+            for cell in row:
+                # Form 1: structured hyperlink on the cell
+                if cell.hyperlink and cell.hyperlink.target:
+                    urls.append(cell.hyperlink.target)
+                # Form 2 & 3: scan string cell values
+                if isinstance(cell.value, str):
+                    if "HYPERLINK(" in cell.value.upper():
+                        urls.extend(_HYPERLINK_FORMULA.findall(cell.value))
+                    urls.extend(_BARE_URL.findall(cell.value))
+
+        # Images: ws._images is the list openpyxl populates from drawings
+        for img in getattr(ws, "_images", []):
+            try:
+                blob = img._data() if callable(getattr(img, "_data", None)) else img.ref
+                if isinstance(blob, bytes):
+                    images.append({
+                        "path": _write_blob(blob, image_dir, stem, idx, ".png"),
+                        "section": ws.title,   # R3: xlsx tab_name → section
+                        "nearby_text": None,   # acceptable per spec (YAGNI)
+                    })
+                    idx += 1
+            except Exception:
+                pass
+
+    return urls, images
+
+
 def extract_links_and_images(
     local_path: str, image_dir: str
 ) -> tuple[list[str], list[dict]]:
@@ -117,4 +174,6 @@ def extract_links_and_images(
     ext = pathlib.Path(local_path).suffix.lower()
     if ext == ".docx":
         return _extract_docx(local_path, image_dir)
+    if ext == ".xlsx":
+        return _extract_xlsx(local_path, image_dir)
     raise ValueError(f"no extractor for {ext!r}")
