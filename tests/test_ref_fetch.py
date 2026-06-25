@@ -35,3 +35,17 @@ def test_other_failure_is_error(tmp_path):
         return _Proc(1, err="some transient network blip")
     res = fetch_drive_file("FID", "gslide", str(tmp_path), runner=runner)
     assert res.status == "error"
+
+
+from scripts.lib.ref_fetch import fetch_pdf
+
+
+def test_fetch_pdf_success_and_failure(tmp_path):
+    def ok(cmd, **kw):
+        (tmp_path / "FID.pdf").write_bytes(b"%PDF-1.4")
+        return _Proc(0)
+    assert fetch_pdf("FID", str(tmp_path), runner=ok).endswith("FID.pdf")
+
+    def fail(cmd, **kw):
+        return _Proc(1, err="404 notFound")
+    assert fetch_pdf("FID2", str(tmp_path), runner=fail) is None

@@ -248,3 +248,19 @@ def test_pptx_picture_dict_shape_and_slide_context(tmp_path):
     assert img["section"] == "Setup Slide"
     assert "Click the gear icon" in (img["nearby_text"] or "")
     assert pathlib.Path(img["path"]).exists()
+
+
+# ---------------------------------------------------------------------------
+# PDF Tests (Task 7b)
+# ---------------------------------------------------------------------------
+
+import os
+import pytest
+from scripts.lib.ref_extract import extract_pdf_links
+
+
+def test_extract_pdf_links_returns_list(tmp_path):
+    # Build a tiny PDF with a visible URL using pdfplumber's dependency (pdfminer can't write);
+    # instead assert the function handles a missing/empty file gracefully and returns a list.
+    missing = str(tmp_path / "nope.pdf")
+    assert extract_pdf_links(missing) == []

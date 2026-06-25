@@ -41,3 +41,16 @@ def fetch_drive_file(file_id, ref_type, dest_dir, remote="gdrive:", runner=subpr
     if any(m in low for m in _DENIED_MARKERS):
         return FetchResult("access_denied", error=blob.strip()[:300])
     return FetchResult("error", error=blob.strip()[:300])
+
+
+def fetch_pdf(file_id, dest_dir, remote="gdrive:", runner=subprocess.run):
+    """Best-effort PDF render for link scraping. Returns path or None; never raises."""
+    dest = pathlib.Path(dest_dir) / f"{file_id}.pdf"
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    cmd = ["rclone", "backend", "copyid", "--drive-export-formats", "pdf",
+           remote, file_id, str(dest)]
+    try:
+        proc = runner(cmd, capture_output=True, text=True)
+    except Exception:
+        return None
+    return str(dest) if proc.returncode == 0 and dest.exists() else None

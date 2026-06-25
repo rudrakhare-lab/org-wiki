@@ -270,3 +270,23 @@ def extract_links_and_images(
     if ext == ".pptx":
         return _extract_pptx(local_path, image_dir)
     raise ValueError(f"no extractor for {ext!r}")
+
+
+def extract_pdf_links(pdf_path: str) -> list:
+    """Scrape annotation URIs + visible-text URLs from a PDF render. Never raises."""
+    if not pathlib.Path(pdf_path).exists():
+        return []
+    urls = []
+    try:
+        import pdfplumber
+
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                for annot in (page.annots or []):
+                    uri = annot.get("uri") or (annot.get("data") or {}).get("A", {}).get("URI")
+                    if uri:
+                        urls.append(uri)
+                urls.extend(_BARE_URL.findall(page.extract_text() or ""))
+    except Exception:
+        return urls
+    return urls
