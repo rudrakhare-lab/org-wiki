@@ -194,3 +194,57 @@ def test_xlsx_image_dict_shape_and_section(tmp_path):
     assert result["section"] == "Diagrams"
     assert result["nearby_text"] is None
     assert pathlib.Path(result["path"]).exists()
+
+
+# ---------------------------------------------------------------------------
+# PPTX Tests (Task 5)
+# ---------------------------------------------------------------------------
+
+from pptx import Presentation
+from pptx.util import Inches
+
+
+def test_pptx_extracts_run_hyperlink(tmp_path):
+    """Run hyperlink inside a text-run must surface in urls list."""
+    prs = Presentation()
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    tb = slide.shapes.add_textbox(Inches(1), Inches(1), Inches(4), Inches(1))
+    run = tb.text_frame.paragraphs[0].add_run()
+    run.text = "open sheet"
+    run.hyperlink.address = "https://docs.google.com/spreadsheets/d/SHEET_IN_DECK/edit"
+    path = tmp_path / "deck.pptx"
+    prs.save(str(path))
+
+    urls, _ = extract_links_and_images(str(path), str(tmp_path / "img"))
+    assert "https://docs.google.com/spreadsheets/d/SHEET_IN_DECK/edit" in urls
+
+
+def test_pptx_picture_dict_shape_and_slide_context(tmp_path):
+    """Picture from pptx must return the locked dict with section=slide_title,
+    nearby_text containing body text on that slide."""
+    import pathlib
+
+    prs = Presentation()
+    # slide_layouts[5] = "Title Only" — provides a title placeholder
+    slide = prs.slides.add_slide(prs.slide_layouts[5])
+    slide.shapes.title.text = "Setup Slide"
+
+    # Add a textbox with body text
+    tb = slide.shapes.add_textbox(Inches(1), Inches(2), Inches(4), Inches(1))
+    tb.text_frame.paragraphs[0].add_run().text = "Click the gear icon"
+
+    # Add a picture
+    slide.shapes.add_picture(BytesIO(_minimal_png()), Inches(1), Inches(3))
+
+    path = tmp_path / "ctx_deck.pptx"
+    prs.save(str(path))
+
+    img_dir = tmp_path / "img"
+    _, images = extract_links_and_images(str(path), str(img_dir))
+
+    assert len(images) == 1
+    img = images[0]
+    assert set(img.keys()) == {"path", "section", "nearby_text"}
+    assert img["section"] == "Setup Slide"
+    assert "Click the gear icon" in (img["nearby_text"] or "")
+    assert pathlib.Path(img["path"]).exists()

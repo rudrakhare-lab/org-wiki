@@ -160,6 +160,98 @@ def _extract_xlsx(path: str, image_dir: str) -> tuple[list[str], list[dict]]:
     return urls, images
 
 
+def _extract_pptx(path: str, image_dir: str) -> tuple[list[str], list[dict]]:
+    """Extract URLs and context-tagged images from a .pptx file.
+
+    URL extraction: for every slide, recurses into GROUP shapes and collects:
+      1. shape click_action.hyperlink.address  — shape-level click hyperlink
+      2. text-run run.hyperlink.address        — hyperlink on an individual run
+      3. bare https?:// URLs in shape text     — pasted-as-text (reuses _BARE_URL)
+
+    Image extraction: every PICTURE shape's blob is written to image_dir.
+    Context (R3 mapping):
+      - section     = slide title placeholder text (slide_title), or None
+      - nearby_text = all non-empty text on the slide joined by newline, or None
+    Both values are computed ONCE per slide (including recursing groups) and
+    tagged onto every picture found on that slide, at any nesting depth.
+    """
+    from pptx import Presentation
+    from pptx.enum.shapes import MSO_SHAPE_TYPE
+
+    prs = Presentation(path)
+    stem = pathlib.Path(path).stem
+    urls: list[str] = []
+    images: list[dict] = []
+    counter = [0]  # mutable cell so nested walker can bump it
+
+    def _gather_text(shapes) -> list[str]:
+        """Recursively collect all non-empty text-frame texts across shapes."""
+        texts: list[str] = []
+        for shape in shapes:
+            if shape.shape_type == MSO_SHAPE_TYPE.GROUP:
+                texts.extend(_gather_text(shape.shapes))
+            elif shape.has_text_frame:
+                t = (shape.text_frame.text or "").strip()
+                if t:
+                    texts.append(t)
+        return texts
+
+    def walk(shapes, slide_title: str | None, slide_text: str | None) -> None:
+        for shape in shapes:
+            # Shape-level click hyperlink
+            try:
+                addr = shape.click_action.hyperlink.address
+                if addr:
+                    urls.append(addr)
+            except Exception:
+                pass
+
+            if shape.shape_type == MSO_SHAPE_TYPE.GROUP:
+                # Recurse — pass slide-level context unchanged
+                walk(shape.shapes, slide_title, slide_text)
+                continue
+
+            # Text-run hyperlinks + bare URLs
+            if shape.has_text_frame:
+                for para in shape.text_frame.paragraphs:
+                    for run in para.runs:
+                        try:
+                            addr = run.hyperlink.address
+                            if addr:
+                                urls.append(addr)
+                        except Exception:
+                            pass
+                urls.extend(_BARE_URL.findall(shape.text_frame.text or ""))
+
+            # Pictures — write blob and return R3 dict with slide context
+            if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
+                try:
+                    image = shape.image
+                    ext = "." + (image.ext or "png")
+                    images.append({
+                        "path": _write_blob(image.blob, image_dir, stem, counter[0], ext),
+                        "section": slide_title,    # R3: pptx slide_title → section
+                        "nearby_text": slide_text, # R3: pptx slide_text  → nearby_text
+                    })
+                    counter[0] += 1
+                except Exception:
+                    pass
+
+    for slide in prs.slides:
+        # Compute slide-level context once (including text in groups)
+        if slide.shapes.title is not None:
+            slide_title: str | None = (slide.shapes.title.text or "").strip() or None
+        else:
+            slide_title = None
+
+        gathered = _gather_text(slide.shapes)
+        slide_text: str | None = "\n".join(gathered) or None
+
+        walk(slide.shapes, slide_title, slide_text)
+
+    return urls, images
+
+
 def extract_links_and_images(
     local_path: str, image_dir: str
 ) -> tuple[list[str], list[dict]]:
@@ -175,4 +267,6 @@ def extract_links_and_images(
         return _extract_docx(local_path, image_dir)
     if ext == ".xlsx":
         return _extract_xlsx(local_path, image_dir)
+    if ext == ".pptx":
+        return _extract_pptx(local_path, image_dir)
     raise ValueError(f"no extractor for {ext!r}")
