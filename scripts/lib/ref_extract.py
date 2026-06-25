@@ -147,14 +147,13 @@ def _extract_xlsx(path: str, image_dir: str) -> tuple[list[str], list[dict]]:
         # Images: ws._images is the list openpyxl populates from drawings
         for img in getattr(ws, "_images", []):
             try:
-                blob = img._data() if callable(getattr(img, "_data", None)) else img.ref
-                if isinstance(blob, bytes):
-                    images.append({
-                        "path": _write_blob(blob, image_dir, stem, idx, ".png"),
-                        "section": ws.title,   # R3: xlsx tab_name → section
-                        "nearby_text": None,   # acceptable per spec (YAGNI)
-                    })
-                    idx += 1
+                blob = img._data()
+                images.append({
+                    "path": _write_blob(blob, image_dir, stem, idx, ".png"),
+                    "section": ws.title,   # R3: xlsx tab_name → section
+                    "nearby_text": None,   # acceptable per spec (YAGNI)
+                })
+                idx += 1
             except Exception:
                 pass
 
