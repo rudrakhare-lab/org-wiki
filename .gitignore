@@ -68,3 +68,6 @@ raw/modules/_uploads/
 
 # MCP config — contains API tokens, never commit
 .mcp.json
+
+# SE-runbook crawl/extract output (verbatim archive; regenerate from source)
+raw/se-runbook/

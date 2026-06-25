@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
-_Last updated: 2026-05-27_
-_Total pages: 101 | Modules: 22 | Configs: 11 | Entities: 12 | Concepts: 0 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 35 | Cross-module: 8_
+_Last updated: 2026-06-25_
+_Total pages: 108 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 5 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 36 | Cross-module: 8_
 
 ---
 
@@ -22,6 +22,16 @@ _Total pages: 101 | Modules: 22 | Configs: 11 | Entities: 12 | Concepts: 0 | Ans
 | [[modules/access-management]] | External access-card vendor integration — REST API (.com/.in) + SFTP file-based modes; card swipe → booking check-in/out | active | unknown | desk-management, meeting-rooms, parking-management, meal-management |
 | [[modules/employee-provisioning]] | Inbound employee data sync — SCIM 2.0 (Azure AD / Okta / any IdP) + SFTP CSV modes; users-only, 40-min cadence | active | unknown | — |
 | [[modules/sso]] | Single Sign-On — SAML 2.0 (workinsync.io SP) + OAuth 2.0/OIDC (mis-auth); IdP-agnostic (Azure AD / Okta / ADFS / Google); TechOps integration process | active | unknown | — |
+| [[modules/ets]] | Employee Transport Service — upstream office/shift/premise source; feeds WorkInSync premise + capacity creation (SE runbook) | stub | unknown | — |
+
+## Runbooks
+| Page | Topic | Module | Source |
+|------|-------|--------|--------|
+| [[runbooks/ets-office-premise-setup]] | Create/edit office premise + booking capacity (WIS-Configurations sheet + Postman) | [[modules/ets]] | [[sources/se-runbook-ets-office-premise]] |
+| [[runbooks/parking-premise-setup]] | Create/validate 2W/4W parking premise + capacity (WIS sheet + Postman) | [[modules/parking-management]] | [[sources/se-runbook-ets-office-premise]] |
+| [[runbooks/floor-plan-upload]] | Floor premise + floor-plan upload (file / background-image / DIY JSON+SVG) | [[modules/floor-kiosk]] | [[sources/se-runbook-ets-office-premise]] |
+| [[runbooks/guard-user-creation]] | Guard user creation, premise-user mapping, QR code, update/delete premise | [[modules/guard-app-kiosks]] | [[sources/se-runbook-ets-office-premise]] |
+| [[runbooks/guard-app-setup]] | Guard app links (non-IOT/IOT), amenities, useful links | [[modules/guard-app-kiosks]] | [[sources/se-runbook-ets-office-premise]] |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -111,3 +121,4 @@ _Total pages: 101 | Modules: 22 | Configs: 11 | Entities: 12 | Concepts: 0 | Ans
 | [[sources/pms-configs-com-wis-service-configs]] | config | 2026-05-26 | configs/pms, configs/visitor-management, configs/meeting-rooms, configs/booking-rule-engine, configs/wis-seat-booking, configs/guard-app, configs/emp-experience-email, configs/emp-experience-internal, configs/emp-experience-common, configs/app-server-config |
 
 | [[sources/launch-ets-sop]] | spec | 2026-04-28 | modules/implementation |
+| [[sources/se-runbook-ets-office-premise]] | misc | 2026-06-25 | runbooks/ets-office-premise-setup, modules/ets |

@@ -216,3 +216,42 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - **§1 Operational Safety:** never write `.py` into the project tree under uvicorn `--reload` (rebuilds index from disk → can destroy in-memory state); throwaway scripts → `/tmp/`; Edit tool allowed on `wiki/*.md` for small fixes.
 - **§4:** diff-and-decide re-ingest methodology + Drive duplicate-variant handling.
 - **§10/§11:** Phase 4/5 (enrich/synthesize) marked as unimplemented stubs.
+
+---
+
+## [2026-06-25 17:30] ingest | SE Runbook (WIS-Configurations) — sections 1–10: ETS Office Premise Setup
+- Source: 132-page / 34-tab SE Service-Engineering Google Doc (`raw/se-runbook/WIS-Configurations-…docx`), node #0 of the SE-runbook ingestion plan (`docs/superpowers/plans/2026-06-25-se-runbook-reference-crawler.md`). This is the FIRST topic of ~13; ingested topic-by-topic with per-topic review.
+- Created: [[runbooks/ets-office-premise-setup]] (new `runbook` page type), [[modules/ets]] (new — fills the ETS gap noted in CLAUDE.md §1), [[sources/se-runbook-ets-office-premise]]
+- Updated: [[index]] (counts 101→104; new Runbooks section; ETS module row; source row)
+- Extraction: full `.docx` parsed into 72 heading-sections; 80 screenshots extracted to `raw/se-runbook/images/` tagged to their section; screenshots read in-context (vision) during authoring per plan R4.
+- Flags:
+  - ⚠️ Internal contradiction in the source on the capacity multiply rule (DB-client-only vs universal) — preserved both, flagged in the runbook Notes & Gotchas; needs owning-team confirmation (Conflict & Recency policy, rung 4).
+  - Example values (`tata-TCPOC`, GUIDs, geocodes) flagged throughout as placeholders, not literal config.
+  - Linked resources pending reference crawler: ETS config sheet `1WpEu4vW…` (11 tabs), WIS-Configurations sheet `1FyWuDnS…`.
+- Schema note: `runbooks/` page type used per approved plan (R5); CLAUDE.md §2 schema addition for the runbook type is deferred to Phase C (flagged, not yet written).
+
+## [2026-06-25 18:15] ingest | SE Runbook — topic #2: Parking Premise Setup (sections 11–13)
+- Piloted the corrected subagent model: a subagent authored ONLY the runbook file and RETURNED proposed edits for the shared module page; the main agent applied them (no cross-topic clobbering).
+- Created: [[runbooks/parking-premise-setup]]
+- Updated: [[modules/parking-management]] (new "Backend premise setup (SE-only)" block: runbook cross-ref + 2 SE endpoints + flagged premiseType codes; new Open Question on ETS setup-dependency; Last Updated + source), [[index]] (Runbooks 1→2, pages 104→105)
+- Verification (mechanical evidence map, tiered corpus = sections + screenshot OCR + full doc): in-section 53, screenshot-OCR 21, elsewhere 1, NOT-IN-DOC **1** (benign Config-Flow orientation line). Coverage: 3 sections, 9/9 screenshots cited. OCR sidecars generated for all 9 in-scope screenshots.
+- Catches handled:
+  - ⚠️ Over-claim caught + fixed: subagent stated `premiseType 6 = 2-wheeler / 3 = 4-wheeler` as a definitional rule; doc only *shows* it in an example screenshot → reworded to "observed in example, confirm with owning team".
+  - Faithfully preserved the source's literal `premise-capcity` URL misspelling.
+  - 480-vs-500 capacity discrepancy between submit form and validation response: transcribed both, not resolved.
+  - Section 13 bleeds into floor-plan-upload content (sec13_img018–021) → scoped out, reserved for that runbook.
+- Open schema question raised: ETS setup-time dependency → `depends_on` vs a separate setup relationship (affects desk/guard/parking/meal).
+- Background: full-80 screenshot coverage OCR running (R2).
+
+## [2026-06-25 19:30] ingest | SE Runbook — WAVE 1: topics #3–#5 (sections 14–34)
+- Subagent-driven (3 parallel): each wrote ONLY its runbook file + returned proposed shared-page edits; main agent applied/merged shared pages serially (no clobbering).
+- Created: [[runbooks/floor-plan-upload]] (#3, floor-kiosk), [[runbooks/guard-user-creation]] (#4, guard-app-kiosks), [[runbooks/guard-app-setup]] (#5, guard-app-kiosks)
+- Updated: [[modules/floor-kiosk]] (SE upload endpoints A/B/C, seatValidation, premiseType 4, empexp first-time check), [[modules/guard-app-kiosks]] (stub→active: full API table merged from #4+#5, deployment modes, amenities, runbook links), [[index]] (Runbooks 2→5, pages 105→108)
+- Verification (mechanical evidence map, tiered corpus = sections + 80/80 screenshot OCR + full doc): **NOT-IN-DOC = 0 for all three**; screenshot coverage 11/11 (#3, incl. sec13 bleed-over), 11/11 (#4), 1/1 (#5). Zero invented identifiers.
+- Conflict flags surfaced (preserved in runbooks + module Open Questions, routed to owning team — NOT silently resolved):
+  - `buIdOfficeGuid` (body) vs `buldOfficeGuid` (sheet header) — two spellings, same field.
+  - premiseId cut-paste mismatches within sections 16 & 18 (URL vs params list) — always substitute the real FloorPremiseID.
+  - seat-UUID change API on `serviceuat.moveinsync.com` (UAT) while other uploads are production.
+  - Guard IOT app URL has `-beta` hostname; "OLD Guard App link" still present; amenities bulk template on a staging URL.
+  - `floorBackgroungImage` body key misspelling preserved verbatim.
+- Tracer hardened this wave: tiered corpus + checks space-free identifiers/URLs only (multi-word prose spans skipped) → trustworthy low-noise NOT-IN-DOC counts.

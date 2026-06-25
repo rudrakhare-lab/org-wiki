@@ -79,11 +79,21 @@ _Source: Dynamic Policy for Parking v1.3 (2025-10-22)._
 - Grid plan: admin slot allocation page showing summary (Hotslot/Team/Employee/Blocked counts per zone/level) with date/office/zone/level/vehicle filters.
 - New parking slots require email to MoveInSync team for backend addition — **not self-serve**.
 
+### Backend premise setup (SE-only)
+Parking *premises* (distinct from the slot/grid admin above) are created at the backend by the SE team. Full procedure: [[runbooks/parking-premise-setup]].
+- Requires a **TO ticket** to enable Parking per site first, plus an existing **office premise** (the parking premise's `parentPremise` = the office `premiseId`).
+- SE/backend endpoints used:
+  - `GET https://mis-security.moveinsync.com/mis-security-guard/premise/buid/<BUID>` — list premises (incl. parking)
+  - `GET https://mis-security.moveinsync.com/mis-security-guard/premise-capcity/buid/<BUID>?startTime=<ms>&endTime=<ms>` — capacity records (note source's literal `premise-capcity` spelling)
+- Parking `premiseType` codes (read from the runbook example — ⚠️ confirm as the standard convention): `6` = 2-wheeler, `3` = 4-wheeler.
+- _Source: [[sources/se-runbook-ets-office-premise]]_
+
 ## Open Questions
+- Setup-time dependency on **ETS**: the parking premise is built under the office premise (created via [[runbooks/ets-office-premise-setup]] / [[modules/ets]]). Is this a `depends_on` (runtime) or a separate setup-time relationship? (Schema decision — affects desk/guard/parking/meal uniformly.)
 - Who is the module owner team?
 - What is the exact property name for the parking cut-off time config? (PRD says "Property name →" but leaves it blank.)
 - Is parking check-in auto-release configured separately from meeting room auto-release, or shared?
 - Does the waitlist mechanism auto-assign slot or notify employee to book?
 
 ## Last Updated
-2025-10-22 — _Source: [[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]]_
+2026-06-25 — _Sources: [[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]], [[sources/se-runbook-ets-office-premise]] (SE backend premise setup)_
