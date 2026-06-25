@@ -92,7 +92,7 @@ def test_docx_image_dict_shape(tmp_path):
     _, images = extract_links_and_images(str(path), str(tmp_path / "img"))
     assert len(images) == 1
     img = images[0]
-    assert set(img.keys()) >= {"path", "section", "nearby_text"}
+    assert set(img.keys()) == {"path", "section", "nearby_text"}
 
 
 # ---------------------------------------------------------------------------
@@ -122,3 +122,22 @@ def test_unsupported_extension_raises(tmp_path):
     fake.write_text("hello")
     with pytest.raises(ValueError, match="no extractor for"):
         extract_links_and_images(str(fake), str(tmp_path / "img"))
+
+
+# ---------------------------------------------------------------------------
+# Test 6 — heading immediately before image (no paragraph in between)
+# ---------------------------------------------------------------------------
+
+def test_docx_image_directly_after_heading_no_nearby(tmp_path):
+    """When a heading directly precedes an image with no paragraph in between,
+    nearby_text is None (heading is the boundary; text lives in section)."""
+    doc = Document()
+    doc.add_heading("Config", level=2)
+    doc.add_picture(BytesIO(_minimal_png()))
+    path = tmp_path / "headingonly.docx"
+    doc.save(str(path))
+
+    _, images = extract_links_and_images(str(path), str(tmp_path / "img"))
+    assert len(images) == 1
+    assert images[0]["section"] == "Config"
+    assert images[0]["nearby_text"] is None
