@@ -1,0 +1,124 @@
+"""Tests for scripts/lib/ref_extract.py — Task 3 (docx) with R3 context."""
+from __future__ import annotations
+
+import struct
+import zlib
+from io import BytesIO
+
+import pytest
+from docx import Document
+
+from scripts.lib.ref_extract import extract_links_and_images
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+def _minimal_png() -> bytes:
+    """Return the bytes of a minimal valid 1×1 white PNG."""
+    def _chunk(name: bytes, data: bytes) -> bytes:
+        c = zlib.crc32(name + data) & 0xFFFFFFFF
+        return struct.pack(">I", len(data)) + name + data + struct.pack(">I", c)
+
+    sig = b"\x89PNG\r\n\x1a\n"
+    ihdr_data = struct.pack(">IIBBBBB", 1, 1, 8, 2, 0, 0, 0)
+    ihdr = _chunk(b"IHDR", ihdr_data)
+    raw_row = b"\x00\xFF\xFF\xFF"          # filter byte + 3 RGB bytes
+    idat = _chunk(b"IDAT", zlib.compress(raw_row))
+    iend = _chunk(b"IEND", b"")
+    return sig + ihdr + idat + iend
+
+
+# ---------------------------------------------------------------------------
+# Test 1 — hyperlink relationship surfaces in urls
+# ---------------------------------------------------------------------------
+
+def test_docx_links_extracted(tmp_path):
+    doc = Document()
+    p = doc.add_paragraph()
+    p.add_run("see this")
+    part = doc.part
+    part.relate_to(
+        "https://docs.google.com/spreadsheets/d/SHEET1/edit",
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink",
+        is_external=True,
+    )
+    path = tmp_path / "doc.docx"
+    doc.save(str(path))
+
+    urls, images = extract_links_and_images(str(path), str(tmp_path / "img"))
+    assert "https://docs.google.com/spreadsheets/d/SHEET1/edit" in urls
+
+
+# ---------------------------------------------------------------------------
+# Test 2 — R3 context: section + nearby_text on returned image dicts
+# ---------------------------------------------------------------------------
+
+def test_docx_image_context(tmp_path):
+    """Image dict must carry section (nearest preceding heading) and
+    nearby_text (nearest preceding non-empty paragraph)."""
+    doc = Document()
+    doc.add_heading("Setup", level=1)
+    doc.add_paragraph("Open the admin console")
+    # Add an inline picture — python-docx writes it as a Run with w:drawing
+    doc.add_picture(BytesIO(_minimal_png()))
+
+    path = tmp_path / "ctx.docx"
+    doc.save(str(path))
+
+    img_dir = tmp_path / "img"
+    urls, images = extract_links_and_images(str(path), str(img_dir))
+
+    assert len(images) == 1
+    img = images[0]
+    assert img["section"] == "Setup"
+    assert "Open the admin console" in img["nearby_text"]
+    # The written file must actually exist
+    import pathlib
+    assert pathlib.Path(img["path"]).exists()
+
+
+# ---------------------------------------------------------------------------
+# Test 3 — dict has required keys (path / section / nearby_text)
+# ---------------------------------------------------------------------------
+
+def test_docx_image_dict_shape(tmp_path):
+    doc = Document()
+    doc.add_picture(BytesIO(_minimal_png()))
+    path = tmp_path / "shape.docx"
+    doc.save(str(path))
+
+    _, images = extract_links_and_images(str(path), str(tmp_path / "img"))
+    assert len(images) == 1
+    img = images[0]
+    assert set(img.keys()) >= {"path", "section", "nearby_text"}
+
+
+# ---------------------------------------------------------------------------
+# Test 4 — None context when no heading / paragraph precede the image
+# ---------------------------------------------------------------------------
+
+def test_docx_image_no_context(tmp_path):
+    """When no heading or paragraph precede the image, both fields are None."""
+    doc = Document()
+    doc.add_picture(BytesIO(_minimal_png()))
+    path = tmp_path / "nocontext.docx"
+    doc.save(str(path))
+
+    _, images = extract_links_and_images(str(path), str(tmp_path / "img"))
+    assert len(images) == 1
+    img = images[0]
+    assert img["section"] is None
+    assert img["nearby_text"] is None
+
+
+# ---------------------------------------------------------------------------
+# Test 5 — dispatcher raises ValueError for unsupported extension
+# ---------------------------------------------------------------------------
+
+def test_unsupported_extension_raises(tmp_path):
+    fake = tmp_path / "note.txt"
+    fake.write_text("hello")
+    with pytest.raises(ValueError, match="no extractor for"):
+        extract_links_and_images(str(fake), str(tmp_path / "img"))
