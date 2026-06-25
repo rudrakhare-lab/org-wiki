@@ -50,6 +50,15 @@ Client provides DWG/PNG/PDF
 - Export feeds the Premise service (older name for the Wayfinding service), which uses `premiseID` / `parentPremiseID` for path computation
 - Floor plan updates: re-draw affected paths → re-export JSON → re-upload
 
+#### SE upload endpoints (from the SE runbook — see [[runbooks/floor-plan-upload]])
+- **Method A — file-based:** `POST https://mis-security.moveinsync.com/mis-security-guard/csv/upload/floorplan?floorType=WITH_FLOOR_PLAN&forceUpdateFloorPlan=false&premiseId=<FloorPremiseID>`
+- **Method B — background image + file:** `POST https://mis-security.moveinsync.com/mis-security-guard/csv/upload/floorplan?floorType=WITH_BACKGROUND_IMAGE…`
+- **Method C — DIY (JSON + SVG):** `POST https://wis-premise.workinsync.io/mis-security-guard/csv/upload/layout/<premiseId>?forceUpdateFloorPlan=false&wktDimensionInCm=100`
+- Prerequisite: `seatValidation=true` in the Booking service before floor-plan work begins; the floor premise is `premiseType: 4`.
+- First DIY upload requires setting `employeeFloorPlanUrl` / `adminFloorPlanUrl` / `adminAssignmentFloorPlanUrl` in the `empexp` service.
+- ⚠️ The seat-UUID change API in the runbook uses a `serviceuat.moveinsync.com` (UAT) host while other uploads are production — confirm with owning team.
+- _Source: [[sources/se-runbook-ets-office-premise]]_
+
 ## Hardware Specifications
 | Parameter | Specification |
 |-----------|--------------|
@@ -79,4 +88,4 @@ Client provides DWG/PNG/PDF
 - Has Phase 2 (version control + S3 storage) been shipped?
 
 ## Last Updated
-2022-08-26 — _Source: [[sources/diy-floor-planner-prd]], [[sources/floor-kiosk-device-spec]], [[sources/floor-plan-sop]]_
+2026-06-25 — _Sources: [[sources/diy-floor-planner-prd]], [[sources/floor-kiosk-device-spec]], [[sources/floor-plan-sop]], [[sources/se-runbook-ets-office-premise]] (SE upload endpoints)_
