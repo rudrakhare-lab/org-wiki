@@ -4,6 +4,7 @@
 Brief's 6 refs tests + R2 image surface tests.
 TDD order: write all tests first (RED), then implement (GREEN).
 """
+import pytest
 import sqlite3
 from scripts.lib.ref_manifest import Manifest
 
@@ -34,6 +35,13 @@ def test_update_status_sets_fields(tmp_path):
     m.update_status("https://x/a", "fetched", local_path="/p/a.docx", sha256="deadbeef")
     row = m.next_discovered()
     assert row is None  # no longer 'discovered'
+
+
+def test_update_status_rejects_unknown_fields(tmp_path):
+    m = _mk(tmp_path)
+    m.add_if_new("https://x/a", "gdoc", 0, "root", file_id="a")
+    with pytest.raises(ValueError, match="unknown manifest fields"):
+        m.update_status("https://x/a", "done", bogus_field="x")
 
 
 def test_coverage_complete_and_report(tmp_path):
