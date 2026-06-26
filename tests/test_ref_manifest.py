@@ -153,3 +153,35 @@ def test_report_does_not_include_image_counts(tmp_path):
     m.add_image_if_new("img/screenshot.png", "doc.docx")
     # report() must return {"done": 1} only — no image keys
     assert m.report() == {"done": 1}
+
+
+# ── Task R: Resilience — new tests ──────────────────────────────────────────
+
+def test_is_image_done(tmp_path):
+    """is_image_done: pending→False, done→True, absent path→False."""
+    m = _mk(tmp_path)
+    m.add_image_if_new("img/shot.png", "doc.docx")
+    # pending → False
+    assert m.is_image_done("img/shot.png") is False
+    # set to done → True
+    m.set_image_ocr("img/shot.png", "done")
+    assert m.is_image_done("img/shot.png") is True
+    # absent path → False
+    assert m.is_image_done("img/nonexistent.png") is False
+
+
+def test_requeue_incomplete_fetches(tmp_path):
+    """requeue_incomplete_fetches flips fetched→discovered, returns count,
+    and next_discovered returns the requeued url."""
+    m = _mk(tmp_path)
+    m.add_if_new("https://x/a", "gdoc", 1, "root", file_id="a")
+    m.update_status("https://x/a", "fetched")
+    # Before requeue: not in discovered frontier
+    assert m.next_discovered() is None
+    # Requeue returns count of rows flipped
+    count = m.requeue_incomplete_fetches()
+    assert count == 1
+    # Now it's back in the frontier
+    row = m.next_discovered()
+    assert row is not None
+    assert row["url"] == "https://x/a"

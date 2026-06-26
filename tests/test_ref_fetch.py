@@ -55,3 +55,22 @@ def test_fetch_pdf_runner_raises_returns_none(tmp_path):
     def raising_runner(cmd, **kw):
         raise OSError("rclone not found")
     assert fetch_pdf("FID3", str(tmp_path), runner=raising_runner) is None
+
+
+# ── Task R: Resilience — timeout tests ──────────────────────────────────────
+
+def test_fetch_drive_file_timeout_returns_error(tmp_path):
+    """A runner raising TimeoutExpired → FetchResult with status 'error'."""
+    def timeout_runner(cmd, **kw):
+        raise subprocess.TimeoutExpired(cmd, 180)
+
+    res = fetch_drive_file("FID", "gdoc", str(tmp_path), runner=timeout_runner)
+    assert res.status == "error"
+
+
+def test_fetch_pdf_timeout_returns_none(tmp_path):
+    """A runner raising TimeoutExpired → fetch_pdf returns None (covered by except Exception)."""
+    def timeout_runner(cmd, **kw):
+        raise subprocess.TimeoutExpired(cmd, 180)
+
+    assert fetch_pdf("FID", str(tmp_path), runner=timeout_runner) is None

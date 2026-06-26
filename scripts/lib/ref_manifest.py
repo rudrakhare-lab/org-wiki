@@ -158,3 +158,18 @@ class Manifest:
                 (ocr_status, image_path),
             )
         self.conn.commit()
+
+    def is_image_done(self, image_path: str) -> bool:
+        """Return True iff image_path exists in the images table with ocr_status='done'."""
+        row = self.conn.execute(
+            "SELECT 1 FROM images WHERE image_path=? AND ocr_status='done'", (image_path,)
+        ).fetchone()
+        return row is not None
+
+    def requeue_incomplete_fetches(self) -> int:
+        """Reopen rows fetched-but-not-fully-processed (interrupted mid-extract/OCR) so a
+        resumed run reprocesses them. next_discovered() only returns 'discovered' rows, so a
+        'fetched' row would otherwise be stranded."""
+        cur = self.conn.execute("UPDATE refs SET status='discovered' WHERE status='fetched'")
+        self.conn.commit()
+        return cur.rowcount
