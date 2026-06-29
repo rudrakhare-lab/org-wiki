@@ -11,7 +11,8 @@ Assembled from composable blocks keyed to the agent's capabilities:
                                  has_jira or has_pms)
   _EVIDENCE_BLOCK_WIKI_ONLY   — wiki-only evidence workflow (infosec and other
                                  agents without Jira/PMS access)
-  _ANSWER_FOOTER_BLOCK        — answer format + hard rules (all agents, Jira/PMS-free)
+  _WIKI_ONLY_ANSWER_FORMAT    — answer format + calibration (wiki-only agents only)
+  _HARD_RULES_BLOCK           — hard rules (all agents, universal)
 """
 from __future__ import annotations
 
@@ -372,9 +373,9 @@ at least two search angles (synonyms, related terms, parent concept) before
 concluding that a topic is absent from the knowledge base.
 """
 
-# ── Block 3: Answer footer — Jira/PMS-free (all agents) ──────────────────────
+# ── Block 3a: Answer format — wiki-only agents (no Jira/PMS) ──────────────────
 
-_ANSWER_FOOTER_BLOCK = """\
+_WIKI_ONLY_ANSWER_FORMAT = """\
 ## Required answer format
 
 ```
@@ -400,7 +401,11 @@ If score ≤3, tell me what was wrong or what the answer should have said.
 - High — multiple wiki pages agree; no conflicts; clear documentation
 - Medium — single page, or mild conflict, or partial coverage
 - Low — strong conflict, or topic only partially covered, or nothing found
+"""
 
+# ── Block 3b: Hard rules — universal (all agents) ────────────────────────────
+
+_HARD_RULES_BLOCK = """\
 ## Hard rules
 
 - Never invent property names, page paths, or facts — only cite content from tool results.
@@ -432,10 +437,14 @@ def load_deep_system_prompt(agent=None) -> str:
     blocks = [_SAFETY_BLOCK_DEEP, f"{agent.identity}\n"]
 
     if agent.has_jira or agent.has_pms:
+        # Jira/PMS agents get their single answer format inside the evidence block.
         blocks.append(_EVIDENCE_BLOCK_JIRA_PMS)
     else:
+        # Wiki-only agents get the evidence block + the wiki-only answer format.
         blocks.append(_EVIDENCE_BLOCK_WIKI_ONLY)
+        blocks.append(_WIKI_ONLY_ANSWER_FORMAT)
 
-    blocks.append(_ANSWER_FOOTER_BLOCK)
+    # Hard rules are universal — appended for every agent, exactly once.
+    blocks.append(_HARD_RULES_BLOCK)
 
     return "\n\n".join(blocks)
