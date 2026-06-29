@@ -312,3 +312,9 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - 🔴 Secrets: 0 (none in source; enrollment codes/QRs were blank placeholders).
 - Flags: device naming convention only has an MR-kiosk example (flagged); meeting-room-kiosk Scalefusion content cross-linked to meeting-rooms, not duplicated.
 - Verification: token scan clean; augment (sources preserved; config fills in-place, other props untouched).
+
+## [2026-06-29 17:05] ingest | SE Runbook — Digital Wayfinding topic (Phase D)
+- Created: [[runbooks/digital-wayfinding-setup]], [[sources/se-runbook-digital-wayfinding]]
+- Updated: [[modules/digital-wayfinding]] (enriched 75→214 lines: value/use-case, product-architecture ASCII reconstruction w/ caveat, DIY Floorplanner table, API endpoints), [[index]] (counts 124→126, Runbooks 13→14, Sources 43→44)
+- Source docs: Digital Wayfinding SOP + SE-runbook crawl (Conwo WorkInSync Docs Drive)
+- Flags: product-architecture diagram is a reconstruction from SOP screenshots/text — marked with caveat. `ENABLE_INDOOR_NAVIGATION` default not stated in source (left blank pending confirm). Token scan: CLEAN (no secrets in source).
