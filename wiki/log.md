@@ -463,3 +463,27 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
   - No ESG/carbon feature encountered in 2023 decks — esg-dashboard trap does not fire.
   - Several slides partially truncated in extracted source; where PB/property was cut, noted as "(enablement in source deck — see raw evidence)".
 - Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, `client_secret`, or `eyJ...` JWT prefixes in output.
+
+## [2026-06-30 05:00] ingest | Release Notes 2022 + named/undated (FINAL batch — release-notes layer complete)
+- Created: [[history/release-notes-2022]]
+- Updated: [[index]] (total 156→157, Release Notes counter 5→6, added row for release-notes-2022), [[history/release-notes]] (2022 row marked Done with link; layer-complete note added to intro; 2022 Feature→Module Quick Map section added before 2025 map; `last_updated` bumped to 2026-06-30)
+- Sources: 14 entries from /tmp/rn_misc_inputs.md — no per-note source-summary pages created; raw_paths cited inline in Linked Raw Evidence table on the year page.
+- **Classification decisions:**
+  - Dated 2022 (2 notes): "Release Notes Nov (2022)", "Release Notes Dec (2022)" — year explicit in title.
+  - Monthly undated (7 notes): Apr.1&May.1, Jun.1, Jun.2, Jul.1, Aug.1, Oct.1, Oct.2 — grouped as 2022 by inference from pre-numbering scheme; year not stated in source; caveat stated prominently in page intro.
+  - Named/feature undated (5 notes): N-Level Hierarchy, Parking–Vehicle Creation, Recurring Bookings, Indemnification Form, Seat Assignment — no date in title or content; listed in separate section tagged "(undated)".
+  - **Skipped (1 entry):** "tabs Setup URLs Demo Script Release Notes Repo Copy of Release Notes …" — Google Drive navigation/tab index entry with no `raw_path` and no release-note content; not a release note. Excluded and noted at end of page.
+- Features ingested: ~57 total across desk-management (15), employee-experience (14), parking-management (9), meal-management (6), mobile-app (6), meeting-rooms (5), visitor-management (3), employee-provisioning (4), ms-teams-integration (2), sso (2), ets (3), safe-reach (1), tags-desk-parking (1), third-party (1), admin-experience (4), floor-kiosk (1).
+- ⚠️ Flags:
+  - **Indemnification Form** (Named/undated): this is the original ship of the indemnification feature; extended in RN 11-2024 (WiS-ETS Sites, PB-42901) — flagged inline with ⚠️. Maps to [[modules/safe-reach]] + [[modules/ets]] (women's-safety + transport).
+  - **N-Level Hierarchy** (Named/undated): original ship; extended in RN 02-2024 (Team Calendar Custom Hierarchy Views) and RN 08-2024 (N-Level Desk Allocation Hierarchy, PB-40525) — flagged inline.
+  - **SSO on Mobile App** (RN Nov-2022): original ship; extended in RN 04-2023 (Stratus) and RN 09&10-2023 (config enhancements) — flagged inline.
+  - **Parking Waitlist** (RN Oct.1): original ship; waitlist expiry added in RN 01-2026 — flagged inline.
+  - **Check-in Modes** (RN Nov-2022): original ship (`officeCheckInMode`); split into web/app in RN 12-2023, refined in RN 03-2025/RN 05-2025 — flagged inline.
+  - **Walk-in Visitor Entry** (RN Oct.1): original ship; significantly extended in RN 03&04-2024 and RN 05-2024 — flagged inline.
+  - **Vehicle Creation for Parking** (Named/undated): prevent-editing control re-shipped in RN 10-2024 (PB-42733) — flagged inline.
+  - **admin-experience** module: referenced by Office Admin Role (Jun.1), Workplace Insights Dashboard (Apr.May), Admin Configuration UI (Apr.May), and Restrict Manager (Jun.1). Module listed in CLAUDE.md but NO wiki page exists — flagged inline, not auto-created (Rule 6).
+  - **esg-dashboard** module: no ESG/carbon feature encountered in 2022 notes — trap does not fire.
+  - Dating inference caveat for monthly notes stated prominently in page intro and at each `### RN` heading tag.
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, `client_secret`, or `eyJ...` JWT prefixes in output.
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, `client_secret`, or `eyJ...` JWT prefixes in output.

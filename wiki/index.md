@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
 _Last updated: 2026-06-30_
-_Total pages: 156 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 30 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 53 | Cross-module: 8 | Release Notes: 5_
+_Total pages: 157 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 30 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 53 | Cross-module: 8 | Release Notes: 6_
 
 ---
 
@@ -69,6 +69,7 @@ _Total pages: 156 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[history/release-notes-2025]] | RN 01-2025 through RN 15-2025 (incl. combined 09&10) — 58 features across desk-management, meeting-rooms, parking, meal, emp-exp, visitor-management, access-management, delegation, floor-kiosk, tags-desk-parking, ets, employee-provisioning | 2025 |
 | [[history/release-notes-2024]] | RN 01-2024 through RN 16-2024 (excl. RN 09 — absent from crawl; RN 03&04 combined) — 63 features across visitor-management, meeting-rooms, desk-management, parking-management, meal-management, employee-experience, delegation, ets, ms-teams-integration, access-management, tags-desk-parking, employee-provisioning, mobile-app | 2024 |
 | [[history/release-notes-2023]] | RN 01-2023 through RN 15-2023 (incl. combined 09&10) — 57 features across visitor-management, meeting-rooms, desk-management, parking-management, meal-management, employee-experience, ets, sso, delegation, mobile-app, ms-teams-integration, digital-wayfinding, safe-reach, access-management, tags-desk-parking, employee-provisioning, floor-kiosk, admin-experience | 2023 |
+| [[history/release-notes-2022]] | 2 dated 2022 notes (Nov, Dec) + 7 monthly undated (Apr–Oct, 2022 inferred) + 5 named/undated feature notes — ~57 features across desk-management, employee-experience, parking-management, meeting-rooms, meal-management, visitor-management, mobile-app, ms-teams-integration, safe-reach, ets, sso, tags-desk-parking, third-party, employee-provisioning, admin-experience | 2022 |
 
 ## Concepts
 | Page | Summary | Used By |

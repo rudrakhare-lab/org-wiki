@@ -1,6 +1,6 @@
 ---
 type: release-notes
-last_updated: 2026-06-29
+last_updated: 2026-06-30
 source: "—"
 ---
 
@@ -9,6 +9,8 @@ source: "—"
 ## How to read this layer
 
 The release-notes history layer is a **dated changelog** ingested from the PM/sales-facing release-note decks. Each per-year page lists what shipped, newest-first, with the properties and SE-ticket enablement steps noted per feature.
+
+**Layer status (2026-06-30): COMPLETE.** All years from 2022 through 2026 are now ingested. The 2022 page covers the pre-numbering era (irregular note titles); 2023–2026 follow the NN-YYYY numbering scheme.
 
 **Recency caveat (read before citing anything here):**
 - Release notes are a point-in-time changelog. A note saying "property X defaults to false" describes the behaviour at ship time. Later releases or per-customer configuration changes may have altered the default.
@@ -24,7 +26,74 @@ The release-notes history layer is a **dated changelog** ingested from the PM/sa
 | 2025 | [[history/release-notes-2025]] | Done — RN 01-2025 through RN 15-2025 (incl. 09&10 combined) |
 | 2024 | [[history/release-notes-2024]] | Done — RN 01-2024 through RN 16-2024 (excl. RN 09 — absent from crawl; RN 03&04 combined) |
 | 2023 | [[history/release-notes-2023]] | Done — RN 01-2023 through RN 15-2023 (incl. 09&10 combined) |
-| 2022 | — | Pending ingest |
+| 2022 | [[history/release-notes-2022]] | Done — 2 dated notes (Nov/Dec 2022) + 7 monthly undated (Apr–Oct, 2022 inferred) + 5 named/feature notes (undated) |
+
+## 2022 Feature → Module Quick Map
+
+_Notes: "Dated 2022" = Nov/Dec explicitly dated. "Monthly" = Apr–Oct, year inferred. "Named" = undated feature notes, likely pre-2023._
+
+| Feature | Note | Module(s) |
+|---------|----|-----------|
+| Mobile App: No-Internet Handling Overhaul | RN Dec-2022 | [[modules/mobile-app]] |
+| Team Calendar & Booking Form Parity | RN Dec-2022 | [[modules/employee-experience]], [[modules/desk-management]] |
+| Direct-Open Office Booking Form | RN Dec-2022 | [[modules/employee-experience]] |
+| Configurable Check-in Modes (Mobile) | RN Nov-2022 | [[modules/employee-experience]], [[modules/mobile-app]] |
+| Employee Deactivation: Resource Cleanup | RN Nov-2022 | [[modules/employee-experience]], [[modules/desk-management]], [[modules/meeting-rooms]], [[modules/parking-management]] |
+| Filter Cancelled Bookings Toggle | RN Nov-2022 | [[modules/employee-experience]] |
+| GDPR Compliance Pop-up on Mobile | RN Nov-2022 | [[modules/mobile-app]] |
+| Parking Floor Plan | RN Nov-2022 | [[modules/parking-management]] |
+| SSO on Mobile App | RN Nov-2022 | [[modules/sso]], [[modules/mobile-app]] |
+| Meal Consumption Workflow (Vendor Billing) | RN Nov-2022 | [[modules/meal-management]] |
+| Welcome Email (Employees) | RN Oct.2 | [[modules/employee-experience]], [[modules/employee-provisioning]] |
+| Auto-Onboard Employees | RN Oct.2 | [[modules/employee-provisioning]] |
+| Bookings on Non-Working Days / Weekly Offs | RN Oct.2 | [[modules/desk-management]], [[modules/employee-experience]] |
+| WFH Renamed to "Remote" | RN Oct.2 | [[modules/employee-experience]] |
+| Separate Parking Days-in-Advance Window | RN Oct.2 | [[modules/parking-management]] |
+| Meal Booking Mandatory | RN Oct.1 | [[modules/meal-management]] |
+| Shuttle Demand Generation | RN Oct.1 | [[modules/ets]] |
+| Auto-Population of Booking Form (Web) | RN Oct.1 | [[modules/employee-experience]] |
+| Mobile Accessibility — Tracking & Trip Feedback | RN Oct.1 | [[modules/mobile-app]] |
+| Parking Booking Waitlist | RN Oct.1 | [[modules/parking-management]] |
+| Parking Booking Reminder Notification | RN Oct.1 | [[modules/parking-management]] |
+| Walk-in Visitor Entry (Receptionist) | RN Oct.1 | [[modules/visitor-management]] |
+| Office Address Display During Booking | RN Aug.1 | [[modules/employee-experience]] |
+| Search by Desk Number on Floor Plan | RN Aug.1 | [[modules/desk-management]] |
+| Employee Profile Audit History | RN Aug.1 | [[modules/employee-experience]] |
+| WiS MS Teams App — Side Navigation | RN Aug.1 | [[modules/ms-teams-integration]] |
+| Meeting Rooms Multi-Timezone Support | RN Jul.1 | [[modules/meeting-rooms]] |
+| Meeting Rooms Booking Form Redesign | RN Jul.1 | [[modules/meeting-rooms]] |
+| Secure Cancel/End Meeting via Kiosk (PIN/OTP) | RN Jul.1 | [[modules/meeting-rooms]], [[modules/floor-kiosk]] |
+| Employee Check-out Location Capture | RN Jul.1 | [[modules/employee-experience]], [[modules/desk-management]] |
+| Dynamic Policy Engine for Parking (Tags) | RN Jun.2 | [[modules/parking-management]], [[modules/tags-desk-parking]] |
+| Real-Time Third-Party Vendor API Integration | RN Jun.2 | [[modules/third-party]] |
+| QR Codes for Parking Slots | RN Jun.2 | [[modules/parking-management]] |
+| Customisable Email Sender IDs | RN Jun.1 | [[modules/employee-experience]] |
+| Team Seat Highlighting on Floor Plan | RN Jun.1 | [[modules/desk-management]] |
+| Office Admin Role — Configuration Management | RN Jun.1 | [[modules/admin-experience]] |
+| Max Bookings per Week/Month (Recurring + Multi-Day) | RN Jun.1 | [[modules/desk-management]] |
+| Restrict Manager from Employee Create/Edit | RN Jun.1 | [[modules/employee-provisioning]], [[modules/admin-experience]] |
+| Audit History of Employee Profile (first ship) | RN Apr.1 & May.1 | [[modules/employee-experience]] |
+| Meeting Rooms on Mobile App | RN Apr.1 & May.1 | [[modules/meeting-rooms]], [[modules/mobile-app]] |
+| Workplace Insights Dashboard | RN Apr.1 & May.1 | [[modules/admin-experience]] |
+| App Lock-Screen | RN Apr.1 & May.1 | [[modules/mobile-app]] |
+| Admin Configuration UI | RN Apr.1 & May.1 | [[modules/admin-experience]] |
+| Disable Overlapping Bookings | RN Apr.1 & May.1 | [[modules/desk-management]], [[modules/employee-experience]] |
+| Employee Reactivation from UI | RN Apr.1 & May.1 | [[modules/employee-provisioning]] |
+| N-Level Hierarchy Desk Allocation | Named | [[modules/desk-management]], [[modules/employee-experience]] |
+| Employee DataSync Bulk Upload — Hierarchy Column | Named | [[modules/employee-provisioning]] |
+| Vehicle Creation for Parking | Named | [[modules/parking-management]] |
+| Recurring Bookings (WFO) | Named | [[modules/desk-management]], [[modules/employee-experience]] |
+| Meal Booking Time Windows | Named | [[modules/meal-management]] |
+| Booking Cut-Off by Shift | Named | [[modules/desk-management]] |
+| Indemnification Form (Women's Transport) | Named | [[modules/safe-reach]], [[modules/ets]] |
+| Employee Preferences (Booking Form) | Named | [[modules/employee-experience]] |
+| Seat Assignment on Floor Plan View | Named | [[modules/desk-management]] |
+| Meal Booking from Mobile App | Named | [[modules/meal-management]] |
+| Desk Utilisation Dashboard | Named | [[modules/desk-management]] |
+| Seat Assignment via File Upload | Named | [[modules/desk-management]] |
+| Sanitization Workflow | Named | [[modules/desk-management]] |
+| Geofence Violation for QR Code Scan | Named | [[modules/desk-management]], [[modules/employee-experience]] |
+| Shift-Based Self-Booking Control | Named | [[modules/ets]], [[modules/employee-experience]] |
 
 ## 2025 Feature → Module Quick Map
 
