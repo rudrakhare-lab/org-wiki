@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
 _Last updated: 2026-06-29_
-_Total pages: 130 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 17 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 45 | Cross-module: 8_
+_Total pages: 132 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 18 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 46 | Cross-module: 8_
 
 ---
 
@@ -19,6 +19,7 @@ _Total pages: 130 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[modules/implementation]] | Internal SOPs for client onboarding and ETS migration | internal | unknown | — |
 | [[modules/ms-teams-integration]] | WorkInSync app on Microsoft Teams — Azure AD SSO, Graph API permissions, license/install flows | active | unknown | sso |
 | [[modules/third-party]] | WorkInSync's Slack integration — workspace install, WFO/WFH booking from Home tab, check-in notifications, Slack status updates | active | unknown | — |
+| [[modules/tags-desk-parking]] | Shared tag + dynamic-fields engine for desk, parking & meeting-rooms (seat-type mapping, Consul dynamicFields) | active | unknown | — |
 | [[modules/safe-reach]] | Late-departure employee safety workflow — VMS kiosk-initiated, configurable form, gender-trigger, ETA, IVR/mobile/email notification chain, WIS dashboard, reports | active | unknown | visitor-management |
 | [[modules/access-management]] | External access-card vendor integration — REST API (.com/.in) + SFTP file-based modes; card swipe → booking check-in/out | active | unknown | desk-management, meeting-rooms, parking-management, meal-management |
 | [[modules/employee-provisioning]] | Inbound employee data sync — SCIM 2.0 (Azure AD / Okta / any IdP) + SFTP CSV modes; users-only, 40-min cadence | active | unknown | — |
@@ -46,6 +47,7 @@ _Total pages: 130 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[runbooks/desk-booking-setup]] | End-to-end desk booking / space-management setup (discovery, floor plan, desk allocation, bulk upload, config) | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
 | [[runbooks/recurring-booking-setup]] | Enable recurring / WorkPlanner bookings via Booking Rule Engine properties | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
 | [[runbooks/booking-approval-camunda]] | Add BUID to Camunda DMN decision table + set booking-approval properties | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
+| [[runbooks/tag-and-dynamic-fields-setup]] | GET/PUT Consul `dynamicFields` config + SeatTypeMapping structure | [[modules/tags-desk-parking]] | [[sources/se-runbook-tags-desk-parking]] |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -145,3 +147,4 @@ _Total pages: 130 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[sources/se-runbook-floor-kiosk]] | misc | 2026-06-29 | modules/floor-kiosk, runbooks/floor-kiosk-device-setup, configs/visitor-management |
 | [[sources/se-runbook-digital-wayfinding]] | misc | 2026-06-29 | modules/digital-wayfinding, runbooks/digital-wayfinding-setup |
 | [[sources/se-runbook-desk-management]] | misc | 2026-06-29 | modules/desk-management, runbooks/desk-booking-setup, runbooks/recurring-booking-setup, runbooks/booking-approval-camunda |
+| [[sources/se-runbook-tags-desk-parking]] | misc | 2026-06-29 | modules/tags-desk-parking, runbooks/tag-and-dynamic-fields-setup |

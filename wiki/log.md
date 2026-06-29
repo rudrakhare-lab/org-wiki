@@ -326,3 +326,11 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - Config properties: 19 documented (BOOKING-RULE-ENGINE ×3, EMP-EXP-COMMON-CONFIG ×1, WIS-SEAT-BOOKING ×15) — no defaults stated in source; captured as open questions
 - Secrets redacted: 2 RS256 JWTs (pre-redacted), Basic-auth base64 credential → `<base64(username:password)>`, internal email userId → `<userId>`, Camunda demo creds omitted; controller also scrubbed credential fragment + real email from source-summary disclosure prose
 - Flags: ⚠️ Perpetual Digi Pass doc is 2021 historical only (current enablement unverified) — Previously-note + open question. Graph sweep TODO: `sanitization` lists desk-management in depends_on but desk-management used_by omits it; `implementation` reciprocal unconfirmed; consider new [[entities/desk]] page; `booking-rule-engine` has no module page (config-only).
+
+## [2026-06-29 18:05] ingest | SE Runbook — Tags-Desk-Parking topic (Phase D) — STUB → ACTIVE
+- Created: [[runbooks/tag-and-dynamic-fields-setup]], [[sources/se-runbook-tags-desk-parking]]
+- Updated: [[modules/tags-desk-parking]] (stub→active; all §2a sections filled; depends_on: []; used_by += desk-management → [meeting-rooms, parking-management, desk-management] — closes desk-management reciprocity), [[index]] (added missing tags-desk-parking Modules row; counts 130→132, Runbooks 17→18, Sources 45→46)
+- Sources: 4 docs (Parking Tag Creation, Tagging&DynamicFields curl, SeatTypeMapping xlsx, + 1 bundled visitor doc EXCLUDED). Existing parking runbooks (parking-tag-and-vehicle-setup, parking-dynamic-policy) linked, not duplicated.
+- Config properties: 3 Consul-backed dynamicFields (DynamicData, transport, licenseNo on wisSeatBooking) — NOT PMS xlsx props; no defaults stated
+- Secrets redacted: HS512 x-wis-token JWTs (pre-redacted), example BUID UUID → <BUID>
+- Flags: ⚠️ Doc 4 (businessGuests/contractor/deliveryPersonnel) is VISITOR-management dynamic-fields config bundled by mistake — needs separate visitor ingest (NOT modelled here). SeatTypeMapping upload mechanism undocumented. Beta host wis-seat-beta.moveinsync.com in source — confirm prod URL. Graph sweep: room-tag entity used_by should add desk-management + parking-management.
