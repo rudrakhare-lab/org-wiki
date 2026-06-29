@@ -5,7 +5,7 @@ owner: unknown
 depends_on: [sso]
 used_by: [meeting-rooms, visitor-management]
 last_updated: 2024-01-08
-source: "[[sources/ms-teams-app-permissions-security]]"
+source: "[[sources/ms-teams-app-permissions-security]], [[sources/se-runbook-ms-teams]]"
 ---
 
 # MS Teams Integration Module
@@ -48,6 +48,51 @@ WIS mobile-app module), or identity itself (owned by `sso`).
 - **Publisher Attested compliance**: adheres to Microsoft 365 App Compliance; **no Microsoft customer data is processed or stored**; GDPR compliant with named capabilities for personal-data **delete**, **restrict / limit processing**, and **correct / update**; OWASP Top 10 vulnerability classes documented as prevented via an established vulnerability identification + risk-ranking process
 - **MFA on internal infrastructure** (not product-side): the source explicitly names three areas where WorkInSync supports MFA — **Code Repositories**, **DNS Management**, and **Credential/Key Stores**. End-user MFA goes through Azure AD SSO (see `sso` module).
 
+## Onboarding Pathways
+Two distinct pathways depending on how the client discovered WorkInSync (as documented in the 2022 Integration Control Doc — verify current onboarding flow before client use):
+
+- **Existing Stratus client** — client already has a Stratus instance (e.g. `xyz@workinsync.io` placeholder) and is a paying customer. They install the **Free** version of the Teams app and log in with their existing Stratus credentials. No re-onboarding and no re-payment required. The Teams app is a **direct port of the Stratus instance** — what they see on the web is what they see in Teams.
+- **New client discovered via Teams** — client found WorkInSync through the Teams Marketplace or Microsoft AppSource. The app is transactable; they select a plan (Free ≤50 users / Standard / Professional), complete a one-time purchase (Microsoft issues invoice), and are directed to an onboarding landing page where their organization is provisioned into WorkInSync.
+
+_Source: [[sources/se-runbook-ms-teams]]_
+
+## Features Exposed in Teams
+
+> ⚠️ As documented in the 2022 Integration Control Doc — verify current feature set before relying on this list; the product may have expanded since 2022.
+
+### Employee features
+- Create a desk booking or modify an existing one
+- Check in when Working from Home; check out at end of day
+- Find where teammates are working from and view their real-time presence
+- Broadcast your own work location (WFH / WFO + selected desk) to colleagues
+
+### People Manager features
+- Receive notifications when team members start or end their day
+- Receive booking and booking-update notifications from direct reports
+- Create bookings, view today's / upcoming bookings and meetings
+- View team activity — see where the team is working from
+
+### Bot Commands (conversational / natural-language)
+The WorkInSync bot understands conversational commands and natural-language variations:
+
+| Command intent | Example invocation | Notes |
+|---|---|---|
+| Book a seat | "Book a seat" or variations | Bot prompts for remaining details |
+| Fetch bookings | "Show my upcoming bookings", "Show my bookings for tomorrow" | Next booking or by date |
+| Modify or cancel | Via booking-card options after fetching | Uses booking card UI within chat |
+| Check-in / check-out | "Check in" / "Check out" | For WFH; notifies colleagues |
+| Find a teammate | "Find [colleague name]" | Shows where the colleague is working from today |
+
+### Tabs
+**Personal Tabs (user's own context):**
+- **Bookings Tab** — browse past and future bookings via a calendar control; edit or cancel future bookings
+- **Team Activity Tab** — view whereabouts of frequently-worked-with people; searchable across the organization
+
+**Team Tabs (shared team context):**
+- **Team Activity Tab** — install in a Teams "Team" channel for a quick view of a specific team's working locations
+
+_Source: [[sources/se-runbook-ms-teams]]_
+
 ## Data Entities Used
 (none — this module is operational and compliance-oriented; the source introduces no WorkInSync data entities)
 
@@ -79,7 +124,7 @@ _Note: the source presents Graph permissions from two perspectives — the user-
 _Note: this table reflects permission **scopes** named in the source. The mapping of each scope to specific Microsoft Graph REST endpoint paths (e.g. `/me`, `/me/presence`, `/users/{id}/mailboxSettings`) is not documented in the source. Update when an engineering reference is ingested._
 
 ## Open Questions
-- The source does not enumerate the **WorkInSync features actually exposed inside the Teams app** (booking via chat? notifications? embedded tabs? a personal app surface?). A separate Teams-app feature spec would close this. ⚠️
+- **Partially resolved**: The 2022 Integration Control Doc (v1.1, 2022-06-20) now documents the features exposed in the Teams app — desk booking, WFH check-in/out, presence/teammate-finder, people-manager notifications, bot commands (book/fetch/modify/cancel/find), and personal+team tabs (Bookings Tab, Team Activity Tab). See `## Features Exposed in Teams` above. ⚠️ **This source is from 2022 — verify the CURRENT feature set** before using with clients; the product has likely evolved.
 - **Outlook ownership**: `meeting-rooms.md` flags this as open ("Is the Outlook/Google integration connector managed inside `ms-teams-integration` or is it a separate service?"). This source covers MS Teams app permissions only — does NOT resolve the question. Leave deferred to Tier 2.5 `meeting-rooms` re-ingest, which has the `outlook-*` source docs. ⚠️
 - **mobile-app coupling**: the source notes that installing on Teams web/desktop auto-propagates to the **Teams mobile client** — that is Microsoft's Teams app, not the WorkInSync `mobile-app` module. Confirm with team whether any data or feature flows between this module and `mobile-app`.
 - **License-tier feature gating**: what is paywalled at Free vs Standard vs Professional? Source defers to the WiS Pricing Page without listing specifics.

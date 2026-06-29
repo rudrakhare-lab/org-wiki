@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
 _Last updated: 2026-06-29_
-_Total pages: 143 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 26 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 49 | Cross-module: 8_
+_Total pages: 145 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 27 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 50 | Cross-module: 8_
 
 ---
 
@@ -56,6 +56,7 @@ _Total pages: 143 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[runbooks/visitor-bulk-upload]] | Enable visitor bulk upload (Consul flag + role_access + profile/custom field template config, 100-visitor max) | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
 | [[runbooks/visitor-notifications-setup]] | Property-controlled notifications (opt-in BUID, per-persona routing, notification panel, privilege) | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
 | [[runbooks/visitor-custom-fields-setup]] | Walk-in custom fields + Belongings consistency + per-visitor-type dynamic field schema | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
+| [[runbooks/ms-teams-integration-setup]] | IT-admin onboarding — both pathways (existing Stratus / new Teams client), admin/per-user consent, license management (WIS portal + MS Admin Center) | [[modules/ms-teams-integration]] | [[sources/se-runbook-ms-teams]] |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -159,3 +160,4 @@ _Total pages: 143 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[sources/se-runbook-meeting-rooms]] | misc | 2026-06-29 | modules/meeting-rooms, runbooks/meeting-room-setup, runbooks/meeting-room-catering-setup, runbooks/outlook-room-integration |
 | [[sources/se-runbook-kiosk]] | misc | 2026-06-29 | runbooks/meeting-room-kiosk-setup, modules/guard-app-kiosks, modules/meeting-rooms |
 | [[sources/se-runbook-visitor-management]] | misc | 2026-06-29 | modules/visitor-management, runbooks/visitor-badge-printer-setup, runbooks/visitor-bulk-upload, runbooks/visitor-notifications-setup, runbooks/visitor-custom-fields-setup, configs/visitor-management |
+| [[sources/se-runbook-ms-teams]] | misc | 2026-06-29 | modules/ms-teams-integration, runbooks/ms-teams-integration-setup |
