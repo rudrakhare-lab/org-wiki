@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
 _Last updated: 2026-06-29_
-_Total pages: 113 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 8 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 38 | Cross-module: 8_
+_Total pages: 116 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 9 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 39 | Cross-module: 8_
 
 ---
 
@@ -23,6 +23,7 @@ _Total pages: 113 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[modules/employee-provisioning]] | Inbound employee data sync — SCIM 2.0 (Azure AD / Okta / any IdP) + SFTP CSV modes; users-only, 40-min cadence | active | unknown | — |
 | [[modules/sso]] | Single Sign-On — SAML 2.0 (workinsync.io SP) + OAuth 2.0/OIDC (mis-auth); IdP-agnostic (Azure AD / Okta / ADFS / Google); TechOps integration process | active | unknown | — |
 | [[modules/ets]] | Employee Transport Service — upstream office/shift/premise source; feeds WorkInSync premise + capacity creation (SE runbook) | stub | unknown | — |
+| [[modules/sanitization]] | Seat sanitization — HOUSEKEEPER QR-scan cleaning, cut-off; + vaccination status | active | unknown | desk-management, guard-app-kiosks |
 
 ## Runbooks
 | Page | Topic | Module | Source |
@@ -35,6 +36,7 @@ _Total pages: 113 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[runbooks/meal-booking]] | Cafeteria premise → office map → meal Consul config → counters → QR (mis-security-guard + meal-booking-app) | [[modules/meal-management]] | [[sources/se-runbook-meal-booking]] |
 | [[runbooks/parking-tag-and-vehicle-setup]] | Vehicle sub-types (SEDAN/SUV…), BUID mapping, parking-tag creation, QR (level/slot) | [[modules/parking-management]] | [[sources/se-runbook-parking]] |
 | [[runbooks/parking-dynamic-policy]] | Dynamic parking policy — tag rules, employee/slot bulk-upload, BLOCK_HOTSEAT | [[modules/parking-management]] | [[sources/se-runbook-parking]] |
+| [[runbooks/seat-sanitization]] | HOUSEKEEPER user creation, QR-scan enable/disable, sanitize cut-off | [[modules/sanitization]] | [[sources/se-runbook-sanitization]] |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -127,3 +129,4 @@ _Total pages: 113 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[sources/se-runbook-ets-office-premise]] | misc | 2026-06-25 | runbooks/ets-office-premise-setup, modules/ets |
 | [[sources/se-runbook-meal-booking]] | misc | 2026-06-29 | runbooks/meal-booking, modules/meal-management, configs/booking-rule-engine, configs/emp-experience-common |
 | [[sources/se-runbook-parking]] | misc | 2026-06-29 | runbooks/parking-tag-and-vehicle-setup, runbooks/parking-dynamic-policy, modules/parking-management |
+| [[sources/se-runbook-sanitization]] | misc | 2026-06-29 | modules/sanitization, runbooks/seat-sanitization |
