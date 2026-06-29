@@ -397,3 +397,15 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - Declined edges (per §10 Rule 6 — no invented dependencies): `BOOKING-RULE-ENGINE` (config-only, no module page) on [[modules/guard-app-kiosks]] — documented as cross-cutting, not a depends_on; digital-wayfinding↔employee-experience (Drive filing only, not architectural) — converted to a non-edge traceability note on [[modules/employee-experience]].
 - Verification: re-ran graph_sweep.py → 0 asymmetries; all new wikilink targets confirmed present. No new pages (counts unchanged: 151/30/53).
 - Still open (content/freshness, NOT graph edges — deferred): ETS setup-vs-runtime dependency nature; ms-teams→desk/emp-exp soft surfacing (no confirmed dependency); personalGuest dynamic-field schema gap; Outlook-2021 + PB-22330 freshness; several `.com`-only configs.
+
+## [2026-06-29 18:30] ingest | Release Notes 2026 — RN 01-2026 through RN 05-2026 (Phase D history layer)
+- Created: [[history/release-notes-2026]], [[history/release-notes]]
+- Updated: [[index]] (total 151→153, added Release Notes: 2 counter, new ## Release Notes (History) section)
+- Sources: 5 × raw .pptx files (RN 01–05-2026) via /tmp/rn2026_inputs.md — no per-RN source-summary pages created in this batch; raw_paths cited inline in the year page.
+- Features ingested: 33 total across visitor-management (9), meeting-rooms (12), parking-management (3), meal-management (2), employee-experience (2), floor-kiosk (3), safe-reach (2), access-management (1), desk-management (3).
+- ⚠️ Flags:
+  - RN 01-2026 `enableOtpOverride`: consistent with existing [[modules/visitor-management]] curation. New companion property `failureReasonsOtp` not previously documented — noted inline; no wiki page rewrite needed.
+  - RN 01-2026 Safe Reach report (PB-61094) and DigiPass auto-send (PB-61094) share the same PB number in source — source text artifact; both features distinct.
+  - RN 05-2026 Room Name Filter (slide 16–17) and RN 01-2026 RFID column fix (slide 16–17): source deck text truncated at "ana…" / "inco…" — enablement/PB not extractable; raw .pptx linked in Linked Raw Evidence table.
+  - RN 05-2026 NDA Scroll-Gated (DPDPA): appears in RN 04-2026 source deck (slide 18–19, after PB-64462), not RN 05 — placed under RN 04-2026 entry accordingly.
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses, or secrets in output.

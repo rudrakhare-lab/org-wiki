@@ -437,6 +437,40 @@ raw_path: raw/...              # exact path to the source doc in raw/
 
 ---
 
+### 2k. Release-Notes History Page — `wiki/history/release-notes-<YYYY>.md` (+ index `wiki/history/release-notes.md`)
+
+The product **release notes** (sales/PM source-of-truth) are ingested as a **chronological
+history layer**, one page per year, plus a single index/overview page. Release notes are a
+**dated changelog**, not authoritative current behavior — newer notes may supersede older
+ones, and a note's screenshots are NOT ingested (they often contain stale/bug-state UI).
+
+**Frontmatter (per-year page):**
+```yaml
+---
+type: release-notes
+year: YYYY
+last_updated: YYYY-MM-DD
+source: "[[sources/<...>]]"          # the SE-crawl release-note source page(s), if created
+---
+```
+
+**Per-year page structure:** newest-first list of release notes. Each entry:
+```markdown
+### RN <NN-YYYY> — <date if known>
+- **<Feature name>** (<module>) — 1–2 sentence distilled description. Enablement: <property / SE-ticket / PB-####> if stated. → [[modules/<module>]]
+- ⚠️ Supersedes / changes prior behavior: <what changed vs which earlier RN or module claim> (only if applicable)
+```
+
+**Rules:**
+1. **Distil, don't dump.** One bullet per feature: what shipped + enablement (property/ticket) + module wikilink. Do NOT paste full Problem/Solution prose or screenshots.
+2. **Link history → modules**, never the reverse-bloat. Per §10 Rule 3, module pages do NOT enumerate release notes; they may carry at most ONE "Release History" link to the history layer (added during the graph step, not per-RN).
+3. **Recency & contradiction (Conflict & Recency policy):** if a release note changes a default, config behavior, or a claim documented on a module/config page, flag it inline with ⚠️ and note which is newer. If it contradicts a curated page, add a one-line ⚠️ note on that page pointing to the RN — do NOT silently rewrite curation.
+4. **Config/property mentions** use backticks and, where the property already has a config page, link it.
+5. **index page** (`wiki/history/release-notes.md`) lists all years (with links), a short "how to read this layer" + recency caveat, and a feature→RN quick map if useful.
+6. Each per-year page gets a row in `wiki/index.md` under a `## Release Notes (History)` section. Count per-year + index pages in the header total.
+
+---
+
 ## Section 3 — Index & Log Conventions
 
 ### index.md Format

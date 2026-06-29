@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
 _Last updated: 2026-06-29_
-_Total pages: 151 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 30 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 53 | Cross-module: 8_
+_Total pages: 153 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 30 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 53 | Cross-module: 8 | Release Notes: 2_
 
 ---
 
@@ -60,6 +60,12 @@ _Total pages: 151 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[runbooks/slack-workspace-install]] | Slack workspace install + per-user account connection (self-service / CS-assisted; admin approval if restricted) | [[modules/third-party]] | [[sources/se-runbook-third-party]] |
 | [[runbooks/configurable-sender-email-setup]] | Set per-BUID outbound sender ("from") email via emp-exp API + Stratus/wisBuEnabled fallback precedence (PB-22330) | [[modules/employee-experience]] | [[sources/se-runbook-employee-experience]] |
 | [[runbooks/sso-integration-setup]] | End-to-end SE SSO onboarding — TechOps intake, SAML/OAuth protocol selection, SP metadata exchange (4 site types), IdP-specific setup (Okta/Azure AD), OAuth credential wiring, mobile enablement, cert rotation | [[modules/sso]] | [[sources/se-runbook-sso]] |
+
+## Release Notes (History)
+| Page | Summary | Years |
+|------|---------|-------|
+| [[history/release-notes]] | Index + recency caveat + feature→module quick map | all |
+| [[history/release-notes-2026]] | RN 01-2026 through RN 05-2026 — 33 features across visitor, meeting-rooms, parking, meal, emp-exp, floor-kiosk, safe-reach, access-management | 2026 |
 
 ## Concepts
 | Page | Summary | Used By |
