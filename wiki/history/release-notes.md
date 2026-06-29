@@ -23,7 +23,7 @@ The release-notes history layer is a **dated changelog** ingested from the PM/sa
 | 2026 | [[history/release-notes-2026]] | Done — RN 01-2026 through RN 05-2026 |
 | 2025 | [[history/release-notes-2025]] | Done — RN 01-2025 through RN 15-2025 (incl. 09&10 combined) |
 | 2024 | [[history/release-notes-2024]] | Done — RN 01-2024 through RN 16-2024 (excl. RN 09 — absent from crawl; RN 03&04 combined) |
-| 2023 | — | Pending ingest |
+| 2023 | [[history/release-notes-2023]] | Done — RN 01-2023 through RN 15-2023 (incl. 09&10 combined) |
 | 2022 | — | Pending ingest |
 
 ## 2025 Feature → Module Quick Map
@@ -142,6 +142,87 @@ The release-notes history layer is a **dated changelog** ingested from the PM/sa
 | Set Favourite Rooms | RN 05-2026 | [[modules/meeting-rooms]] |
 | Show `beginHour`/`endHour` on MR Timeline | RN 05-2026 | [[modules/meeting-rooms]] |
 | Meeting Rooms Reports: Room Name Filter | RN 05-2026 | [[modules/meeting-rooms]] |
+
+## 2023 Feature → Module Quick Map
+
+| Feature | RN | Module(s) |
+|---------|----|-----------|
+| Contextual Error Messages | RN 01-2023 | [[modules/employee-experience]] |
+| Privacy Settings on Mobile App | RN 01-2023 | [[modules/mobile-app]] |
+| Parking Slot Allocation (Teams / Employees / Block) | RN 01-2023 | [[modules/parking-management]] |
+| ETS Shift-Pairing for WiS-ETS Clients | RN 02-2023 | [[modules/ets]] |
+| Host Notifications for Visitor Check-in | RN 02-2023 | [[modules/visitor-management]] |
+| VMS — Time Zone Awareness | RN 02-2023 | [[modules/visitor-management]] |
+| Meeting Room Catering — Availability Windows | RN 02-2023 | [[modules/meal-management]] |
+| Meeting Room Catering — Booking Deadlines | RN 02-2023 | [[modules/meal-management]] |
+| Catering Dashboard | RN 02-2023 | [[modules/meal-management]] |
+| Delegation | RN 03-2023 | [[modules/delegation]] |
+| Kiosk — Configurable Background Image & Overlay | RN 03-2023 | [[modules/meeting-rooms]], [[modules/floor-kiosk]] |
+| Visitor Additional Information Field | RN 03-2023 | [[modules/visitor-management]] |
+| Bulk Upload of Visitors | RN 03-2023 | [[modules/visitor-management]] |
+| Team Calendar Fixes and Rename | RN 04-2023 | [[modules/employee-experience]], [[modules/desk-management]] |
+| Kiosk Provisioning — Secure Link/Delink | RN 04-2023 | [[modules/meeting-rooms]], [[modules/floor-kiosk]] |
+| Mobile SSO for Stratus Sites | RN 04-2023 | [[modules/sso]] |
+| Client Logo on WorkInSync Pages | RN 04-2023 | [[modules/employee-experience]] |
+| Multi-Office Visitor Management | RN 04-2023 | [[modules/visitor-management]] |
+| Catering Order Progress Email | RN 04-2023 | [[modules/meal-management]] |
+| Customizable Kiosk UI Components | RN 05-2023 | [[modules/meeting-rooms]], [[modules/floor-kiosk]] |
+| Visitor Email Revamp | RN 05-2023 | [[modules/visitor-management]] |
+| Printed Visitor Badges | RN 05-2023 | [[modules/visitor-management]] |
+| WiS+ETS Office Creation with Special Characters | RN 05-2023 | [[modules/ets]] |
+| MS Teams Chatbot Booking Form Customization | RN 05-2023 | [[modules/ms-teams-integration]] |
+| Service Partners — External Employee Access | RN 05-2023 | [[modules/visitor-management]], [[modules/meal-management]] |
+| Meeting ID on Meeting Booking Card | RN 05-2023 | [[modules/meeting-rooms]] |
+| Women's Safety Handbook — Mobile App | RN 06-2023 | [[modules/safe-reach]], [[modules/mobile-app]] |
+| SFTP Check-in Flow Enhancement | RN 06-2023 | [[modules/access-management]] |
+| Desk Booking — Override Allocated Desk | RN 06-2023 | [[modules/desk-management]] |
+| Walk-in Visitor Registration UX Redesign | RN 06-2023 | [[modules/visitor-management]] |
+| Tenant Logo in Visitor Registration Screens | RN 06-2023 | [[modules/visitor-management]] |
+| Visitor Photo Retake | RN 06-2023 | [[modules/visitor-management]] |
+| Customisable Visitor Profile ID Document Types | RN 06-2023 | [[modules/visitor-management]] |
+| Extended Booking History (30-day chunks, 90-day range) | RN 06-2023 | [[modules/employee-experience]] |
+| Customizable Checkout Message on Front Desk | RN 07-2023 | [[modules/visitor-management]] |
+| Default Office Pre-filled in Visitor Invite Form | RN 07-2023 | [[modules/visitor-management]] |
+| Workspace Manager Role | RN 07-2023 | [[modules/desk-management]] |
+| Visitor Parking Integration | RN 08-2023 | [[modules/visitor-management]], [[modules/parking-management]] |
+| ETS — Flexible Office Naming | RN 08-2023 | [[modules/ets]] |
+| Kiosk — Configurable UI Components | RN 08-2023 | [[modules/floor-kiosk]], [[modules/meeting-rooms]] |
+| "Teams" Meeting Option in Room Booking | RN 08-2023 | [[modules/meeting-rooms]], [[modules/ms-teams-integration]] |
+| Meeting Rooms API — GraphQL Migration | RN 08-2023 | [[modules/meeting-rooms]] |
+| RBAC for Meeting Rooms | RN 08-2023 | [[modules/meeting-rooms]] |
+| SSO Display Name Customization | RN 09&10-2023 | [[modules/sso]] |
+| Mobile SSO Configuration Enhancements | RN 09&10-2023 | [[modules/sso]] |
+| "Not Ready" Widget Deprecated | RN 09&10-2023 | [[modules/employee-experience]] |
+| Check-in / Sign-in Verbiage Standardised | RN 09&10-2023 | [[modules/employee-experience]] |
+| Team Calendar — Time Zone Handling | RN 09&10-2023 | [[modules/employee-experience]] |
+| Team Color-Coding on Employee Booking View | RN 09&10-2023 | [[modules/desk-management]] |
+| RBAC for Dashboard, Premises, VMS, Catering | RN 09&10-2023 | [[modules/visitor-management]], [[modules/meal-management]] |
+| Real-Time Meal Availability Count | RN 11-2023 | [[modules/meal-management]] |
+| Dynamic Fields for VMS | RN 11-2023 | [[modules/tags-desk-parking]], [[modules/visitor-management]] |
+| Optional Visitor Profile Photo | RN 11-2023 | [[modules/visitor-management]] |
+| VMS Persistence Error Fix | RN 11-2023 | [[modules/visitor-management]] |
+| Kiosk Application Consolidation | RN 11-2023 | [[modules/meeting-rooms]], [[modules/floor-kiosk]] |
+| Manage Premises — Alphabetical Sorting | RN 11-2023 | [[modules/admin-experience]] |
+| Dynamic Fields for Office Booking Form | RN 12-2023 | [[modules/tags-desk-parking]], [[modules/desk-management]] |
+| Booking Nudge Notification | RN 12-2023 | [[modules/employee-experience]] |
+| Separate Web and App Check-in Modes | RN 12-2023 | [[modules/desk-management]] |
+| VMS Reporting Enhancements | RN 12-2023 | [[modules/visitor-management]] |
+| VMS Front Desk Identification Protocol Fix | RN 12-2023 | [[modules/visitor-management]] |
+| Team and Organisation Management — Unified View | RN 12-2023 | [[modules/admin-experience]] |
+| Checkout Confirmation Prompt | RN 13-2023 | [[modules/desk-management]] |
+| Swipe-to-Type / Auto-Complete on Mobile | RN 13-2023 | [[modules/mobile-app]] |
+| Outlook Add-in Performance — Edit with Catering | RN 13-2023 | [[modules/meeting-rooms]] |
+| VMS Configurations at Office Level | RN 13-2023 | [[modules/visitor-management]] |
+| VMS UX Enhancements | RN 13-2023 | [[modules/visitor-management]] |
+| Wayfinding — Office-Level Configuration | RN 14-2023 | [[modules/digital-wayfinding]] |
+| Configurable Parking Disclaimer Message | RN 14-2023 | [[modules/parking-management]] |
+| Booking Disclaimer for Desk Bookings | RN 14-2023 | [[modules/desk-management]] |
+| Cost Centres for Meeting Room Catering | RN 14-2023 | [[modules/meeting-rooms]] |
+| User Group Sync via Azure AD (SCIM) | RN 15-2023 | [[modules/employee-provisioning]] |
+| Visitor Management Experience Enhancers | RN 15-2023 | [[modules/visitor-management]] |
+| Search Room API Performance | RN 15-2023 | [[modules/meeting-rooms]] |
+| Handling Bookings When Deactivating Meeting Rooms | RN 15-2023 | [[modules/meeting-rooms]] |
+| Download Meeting Room Details | RN 15-2023 | [[modules/meeting-rooms]] |
 
 ## 2024 Feature → Module Quick Map
 

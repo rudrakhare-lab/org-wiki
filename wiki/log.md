@@ -444,3 +444,22 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
   - RN 13-2024 carbon footprint / ESG tracking (`enableCarbonFootprintTrackingInParking`): no dedicated esg-dashboard module page currently; mapped to parking-management per config scope. Consider stub for esg-dashboard if usage confirms standalone module.
   - Several slides in source decks truncated mid-text — where PB or enablement was cut, noted as "(see raw evidence)" rather than guessing.
 - Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, `client_secret`, or `eyJ...` JWT prefixes in output.
+
+## [2026-06-30 03:00] ingest | Release Notes 2023 — RN 01-2023 through RN 15-2023 (Phase D history layer, batch 4)
+- Created: [[history/release-notes-2023]]
+- Updated: [[index]] (total 155→156, Release Notes counter 4→5, added row for release-notes-2023), [[history/release-notes]] (2023 row marked Done with link; 2023 Feature→Module Quick Map section added before 2024 map)
+- Sources: 14 raw .pptx files (RN 01-2023 through RN 08-2023, RN 09&10-2023 combined, RN 11-2023 through RN 15-2023) via /tmp/rn2023_inputs.md — no per-RN source-summary pages created; raw_paths cited inline in the year page.
+- All 14 decks present in crawl — no gaps (unlike 2024 which was missing RN 09).
+- Normalization: "09-2023 & 10-2023" combined as a single `### RN 09&10-2023` heading. "14-2023 WORKSPACE" and "15-2023 WORKSPACE" — WORKSPACE suffix dropped from heading per task instructions.
+- Features ingested: 57 total across visitor-management (20), meeting-rooms (11), desk-management (9), meal-management (6), employee-experience (6), ets (4), sso (3), floor-kiosk (5), parking-management (3), mobile-app (3), ms-teams-integration (2), delegation (1), digital-wayfinding (1), safe-reach (1), access-management (1), tags-desk-parking (2), employee-provisioning (1), admin-experience (3).
+- ⚠️ Flags:
+  - RN 01-2023 Parking Allocation: initial ship (no tags support); superseded by RN 03-2025 (RBAC for Parking Booking) and RN 04-2025 (Parking Allocation Report) — flagged with ⚠️ inline.
+  - RN 03-2023 Delegation (`isDelegationEnabled`, PB-16556): initial 2023 ship (Meeting Rooms, Work Planner, Employee Web only); Admin View for Delegation added RN 05-2025 — flagged with ⚠️ inline.
+  - RN 06-2023 Desk Booking Override Allocated Desk: initial ship; extended by RN 01-2025 Flexible Desk Allocation and RN 05-2025 Showing Unallocated Desks — flagged with ⚠️ inline.
+  - RN 12-2023 `officeCheckInModeWeb` / `officeCheckInModeApp`: origin of check-in mode split; superseded/extended by RN 03-2025 and RN 05-2025 — flagged with ⚠️ inline.
+  - RN 13-2023 Checkout Confirmation Prompt: flagged as potentially affected by 2025 check-in/out UX evolution.
+  - RN 04-2023 Multi-Office VMS: early multi-office capability; further extended in RN 13-2023 VMS office-level config — noted inline.
+  - admin-experience module referenced (Workspace Manager Role RN 07-2023, Manage Premises RN 11-2023, Org Management RN 12-2023, RBAC RN 09&10-2023): known in CLAUDE.md module list but NO wiki page exists — flagged in deliverable; not auto-created (Rule 6).
+  - No ESG/carbon feature encountered in 2023 decks — esg-dashboard trap does not fire.
+  - Several slides partially truncated in extracted source; where PB/property was cut, noted as "(enablement in source deck — see raw evidence)".
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, `client_secret`, or `eyJ...` JWT prefixes in output.
