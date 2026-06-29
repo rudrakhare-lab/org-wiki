@@ -3,9 +3,6 @@
  *
  *   Deep Search   → mode='api'    — Anthropic API key, 9 backend tools, shows trace.
  *   Claude Code   → mode='agent'  — Server's Claude Code session (admin), live agent stream.
- *
- * The legacy 'claude-code' single-shot mode still exists in the backend for
- * backwards compatibility but is intentionally not exposed in the UI.
  */
 import { Component, input, output } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -115,7 +112,6 @@ export class ModeSelector {
 
   selectMode(mode: QueryMode) {
     if (mode === 'agent' && !this.claudeCodeAvailable()) return;
-    if (mode === 'claude-code') return; // hidden mode — never emitted from the picker
     this.modeChanged.emit(mode);
   }
 }
