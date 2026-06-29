@@ -49,3 +49,18 @@ def test_wiki_only_agent_assembled_prompt_one_of_each():
     assert prompt.count("## Required answer format") == 1
     assert prompt.count("**Confidence calibration:**") == 1
     assert "## Hard rules" in prompt
+
+
+def test_jira_pms_prompt_has_ported_accuracy_rules():
+    prompt = load_deep_system_prompt(_conwo())
+    assert "Corroborate across sources" in prompt          # G1+G2
+    assert "Shape the body to the question's intent" in prompt  # G3
+    assert "Release-notes history pages" in prompt          # history rule
+
+
+def test_wiki_only_prompt_has_history_rule():
+    # A wiki-only agent (no jira, no pms). Build a minimal stand-in if no such
+    # agent is registered: load conwo's assembler path is jira/pms; for wiki-only
+    # use any registered agent with has_jira == has_pms == False, else skip.
+    from backend.deep_system_prompt import _EVIDENCE_BLOCK_WIKI_ONLY
+    assert "Release-notes history pages" in _EVIDENCE_BLOCK_WIKI_ONLY
