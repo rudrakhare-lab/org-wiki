@@ -41,7 +41,8 @@ False). See [[modules/delegation]] for the full delegation config set.
 
 ## Used By
 - [[modules/delegation]] — delegation feature and its config flags live in the `emp-exp` service
-- [[modules/digital-wayfinding]] — filed under employee-experience in Drive. ⚠️ Filing-based link only: digital-wayfinding's module dependencies are `mobile-app` + `parking-management`, not emp-exp. Flagged for the graph-reconciliation sweep to resolve (drop the link, or establish a real dependency).
+
+_Note (graph sweep 2026-06-29): [[modules/digital-wayfinding]] is **filed under employee-experience in Drive** but its real module dependencies are `mobile-app` + `parking-management`, not emp-exp. This is an organizational filing relationship, not an architectural dependency, so it is **not** modelled as a graph edge (no reciprocal `depends_on`/`used_by`). Documented here for traceability only._
 
 ## Data Entities Used
 - [[entities/employee]] — employee identity record (identity, entitlements, relationships)

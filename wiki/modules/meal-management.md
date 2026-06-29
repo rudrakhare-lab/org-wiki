@@ -2,7 +2,7 @@
 type: module
 status: active
 owner: Aditya Dutta / Ujjwal Trivedi
-depends_on: [access-management, floor-kiosk, desk-management, meeting-rooms]
+depends_on: [access-management, floor-kiosk, desk-management, meeting-rooms, ets]
 used_by: [access-management]
 last_updated: 2025-05-05
 source: "[[sources/meal-checkin-prd]]"
@@ -44,6 +44,7 @@ Only one active meal booking per employee per day. WFO booking with meals and st
 - [[modules/access-management]] — RFID/HID access card reader infrastructure for meal check-in
 - [[modules/floor-kiosk]] — tablet device at cafeteria (Android/iOS kiosk showing booking details)
 - [[modules/desk-management]] — WFO booking is the parent of integrated meal bookings
+- [[modules/ets]] — _(setup-time)_ the ETS-issued office premise is the parent entity under which the cafeteria/meal-booking premise is created
 
 ## Used By
 - [[modules/desk-management]] — WFO booking can include a meal add-on

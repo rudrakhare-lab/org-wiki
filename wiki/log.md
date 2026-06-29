@@ -387,3 +387,13 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - Source: 1 doc — PB-22330 Configurable sender email (emp-exp API + TC_1..TC_4 sender-resolution precedence). Service: EMAIL-EMP-EXPERIENCE.
 - Secrets redacted: 1 HS512 x-wis-token JWT → <HS512 JWT — redacted>. Sender addresses (noreply@workinsync.io / transport@moveinsync.com) kept — documented system addresses, not credentials.
 - Flags: PB-22330 note undated — confirm current behavior. ⚠️ Module phase of Phase D now COMPLETE (all clean-active + merge-review + stub modules ingested). Remaining: 65 release-notes history layer + graph-consistency/recency sweep.
+
+## [2026-06-29 22:40] graph-sweep | Phase D bidirectional-link & recency consistency pass
+- Tooling: /tmp/graph_sweep.py parses all 25 module frontmatter depends_on/used_by → flags asymmetries. Before: 7 asymmetries. After: 0.
+- ETS reciprocity (added `ets` to depends_on + body Dependencies, tagged _(setup-time)_): [[modules/desk-management]], [[modules/guard-app-kiosks]], [[modules/parking-management]], [[modules/meal-management]], [[modules/floor-kiosk]] (floor-kiosk: added a new ## Dependencies section). Updated [[modules/ets]] deferred-sweep note → resolved.
+- Sanitization reciprocity (added `sanitization` to used_by + body Used By): [[modules/desk-management]], [[modules/guard-app-kiosks]].
+- Entity reciprocity: [[entities/room-tag]] used_by += desk-management, parking-management (+ body Used By lines; bumped last_updated; added se-runbook-tags-desk-parking source).
+- Recency resolution: [[modules/sso]] Integration Surfaces username line → "Email ID or Employee ID" (2024 Complete Guide supersedes 2023 Azure doc); resolved the ⚠️ open-question note.
+- Declined edges (per §10 Rule 6 — no invented dependencies): `BOOKING-RULE-ENGINE` (config-only, no module page) on [[modules/guard-app-kiosks]] — documented as cross-cutting, not a depends_on; digital-wayfinding↔employee-experience (Drive filing only, not architectural) — converted to a non-edge traceability note on [[modules/employee-experience]].
+- Verification: re-ran graph_sweep.py → 0 asymmetries; all new wikilink targets confirmed present. No new pages (counts unchanged: 151/30/53).
+- Still open (content/freshness, NOT graph edges — deferred): ETS setup-vs-runtime dependency nature; ms-teams→desk/emp-exp soft surfacing (no confirmed dependency); personalGuest dynamic-field schema gap; Outlook-2021 + PB-22330 freshness; several `.com`-only configs.

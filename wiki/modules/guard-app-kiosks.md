@@ -2,8 +2,8 @@
 type: module
 status: active
 owner: unknown
-depends_on: []
-used_by: [visitor-management]
+depends_on: [ets]
+used_by: [visitor-management, sanitization]
 last_updated: 2026-06-29
 source: "[[sources/se-runbook-ets-office-premise]], [[sources/se-runbook-kiosk]]"
 ---
@@ -45,11 +45,13 @@ _(SE-confirmed via [[sources/se-runbook-kiosk]])_
 - Guard user (`userId`, phoneNumber), Premise (`premiseType: "2"` office), Premise-user mapping, Amenity set
 
 ## Dependencies on Other Modules
+- [[modules/ets]] — _(setup-time)_ guard premises + guard-user mappings are built on top of the ETS-issued office premise (office must exist in ETS first).
 - `mis-security-guard` backend service (`mis-security.moveinsync.com`); EU host `mis-security.eu.moveinsync.com`.
-- Cache eviction for guard shifts routes through the **Booking Rule Engine** (see runbook Useful Links). ⚠️ Whether this is a modelled `depends_on` is pending the §7 graph sweep.
+- Cache eviction for guard shifts routes through the **Booking Rule Engine**. _Graph sweep (2026-06-29): `BOOKING-RULE-ENGINE` is a cross-cutting config-only service with no standalone module page (see [[configs/booking-rule-engine]]) — per §10 Rule 6 it is NOT modelled as a module `depends_on`._
 
 ## Used By
 - [[modules/visitor-management]] — Guard App scans the visitor digipass at the gate (see [[cross-module/vms-guard-app]]).
+- [[modules/sanitization]] — sanitization is built on the guard/premise infrastructure provisioned here (HOUSEKEEPER user creation + premise mapping use the same `mis-security-guard` service).
 
 ## API Endpoints
 | Method | Path | Description | Auth Required |

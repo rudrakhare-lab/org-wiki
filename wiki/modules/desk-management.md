@@ -2,8 +2,8 @@
 type: module
 status: active
 owner: unknown
-depends_on: [tags-desk-parking]
-used_by: [access-management, delegation, implementation, meal-management, parking-management]
+depends_on: [tags-desk-parking, ets]
+used_by: [access-management, delegation, implementation, meal-management, parking-management, sanitization]
 last_updated: 2026-06-29
 source: "[[sources/se-runbook-desk-management]]"
 ---
@@ -77,6 +77,7 @@ _Source: [[sources/se-runbook-desk-management]]_
 ## Dependencies on Other Modules
 
 - [[modules/tags-desk-parking]] — desk tags and employee tags drive allocation rules, booking eligibility restrictions, and approval-flow tag checks.
+- [[modules/ets]] — _(setup-time)_ ETS owns the canonical office/shift/premise records; the WorkInSync office premise + capacity that seat booking operates on are created referencing the ETS-issued office GUID.
 
 **Cross-cutting services referenced (no standalone module page):**
 - `BOOKING-RULE-ENGINE` — evaluates booking rules (weekly/monthly caps, shift eligibility, WFO/WFH constraints). Config reference: [[configs/booking-rule-engine]].
@@ -90,6 +91,7 @@ _Source: [[sources/se-runbook-desk-management]]_
 - [[modules/implementation]] — client-onboarding SOPs include desk-booking configuration steps (capacity, shifts, allocation setup) as part of initial site activation.
 - [[modules/meal-management]] — meal booking is optionally linked to a WFO desk booking; meal cutoff and booking-mandate rules reference the desk booking record.
 - [[modules/parking-management]] — parking is offered as a WFO add-on alongside a desk booking; the parking module reads the desk booking context to validate combined WFO eligibility.
+- [[modules/sanitization]] — seat sanitization operates on desks/seats owned here; the HOUSEKEEPER QR-scan cleaning cycle and sanitize cut-off reference the desk/seat records.
 
 _Source: [[sources/se-runbook-desk-management]]_
 

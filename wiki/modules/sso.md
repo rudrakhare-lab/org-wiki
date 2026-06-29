@@ -52,7 +52,7 @@ WorkInSync is the Service Provider in all SSO flows. Two protocol surfaces:
 - **SP metadata exchange**: WorkInSync and the IdP exchange metadata to establish trust
 - **Client provides**: Issuer ID / Entity ID, Redirect URLs (login + logout), X509 Certificate, and which IdP tool (ADFS / Pingdom / Shibboleth / etc.) — OR, for ADFS / Azure AD, just the `FederationMetadata.xml` file (shortcut)
 - **WorkInSync provides**: Relay URL (client site URL), Target URL (SAML response endpoint), Redirect URL (post-auth landing = Relay URL), Relay State (= the client's WorkInSync tenantID)
-- **Username type**: Email ID (see Open Questions — the Azure doc states only Email ID is supported)
+- **Username type**: Email ID **or Employee ID** (per the 2024 Web SSO Complete Guide v1.2; the older 2023 Azure doc stated Email-ID-only — superseded. See Open Questions for the recency note)
 - **Network whitelist**: `code.jquery.com`
 - IdP setup guides: Okta (App Integration Wizard → SAML 2.0) and Azure AD (Enterprise Applications → SAML → upload SP metadata)
 
@@ -74,7 +74,7 @@ _Note: OAuth ClientId and Client Secret are shown as placeholders — the source
   - **Current (2024):** the MoveInSync Web SSO Complete Guide (v1.2, 2024-04-30) explicitly supports **both Email ID and Employee ID** as username types. _Source: [[sources/se-runbook-sso]]._
   - **Previously (2023):** the Azure SAML doc stated *"WorkInSync currently supports only one username type: i.e. Email ID (Other username type e.g. employee ID are not supported as of now)"* — superseded by the newer 2024 guide.
   - The SOP's TO-ticket intake field *"UserName Type: Email ID or Employee ID?"* is consistent with the current (both-supported) behavior.
-  - ⚠️ The Integration Surfaces section above still reads `Username type: Email ID` (from the older 2023 doc) — flagged for the graph/recency sweep to update the SAML surface line to reflect both types.
+  - ✅ Resolved in the graph/recency sweep (2026-06-29): the Integration Surfaces SAML line now reads `Username type: Email ID or Employee ID`, matching the 2024 Complete Guide. Final confirmation with the owning team still welcome.
 - ⚠️ **Okta doc "SCIM" misnomer** — the Okta SAML doc's Document-Name field reads "SSO with SCIM to WorkInSync (OKTA)", but its content is unambiguously SAML 2.0 SSO. SCIM is the *provisioning* protocol (covered by [[modules/employee-provisioning]]), not SSO. Template residue; do not conflate.
 - **OAuth-vs-SAML protocol coexistence** — WorkInSync SSO supports BOTH SAML 2.0 (workinsync.io SP) and OAuth 2.0/OIDC (auth.moveinsync.com/mis-auth). The sources do not rank one as "standard" vs "alternate"; both are offered. Implementers must pick the protocol matching their IdP and use the correct service surface.
 - **OAuth doc is undated** — MIS_OAuth_OnBoarding.pdf has no version/date/control table. Freshness unknown; treat as a bare integration guide. Note: a 2024 Complete Guide now exists (v1.2, 30/04/2024) — see [[sources/se-runbook-sso]] — but it covers SAML/Azure AD only and does not address the OAuth surface, so this question remains open.

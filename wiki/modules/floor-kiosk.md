@@ -2,7 +2,7 @@
 type: module
 status: active
 owner: Aditya Dutta / Ujjwal Trivedi
-depends_on: []
+depends_on: [ets]
 used_by: [meeting-rooms, digital-wayfinding, visitor-management, implementation, meal-management]
 last_updated: 2026-02-02
 source: "[[sources/diy-floor-planner-prd]], [[sources/floor-kiosk-device-spec]], [[sources/floor-plan-sop]], [[sources/se-runbook-floor-kiosk]]"
@@ -197,6 +197,9 @@ The source doc shows a `visitorFormsMetaData` example with:
 _Source: [[sources/se-runbook-floor-kiosk]]_
 
 ---
+
+## Dependencies on Other Modules
+- [[modules/ets]] — _(setup-time)_ floor premises (`premiseType: 4`) are created under the ETS-issued office premise; the office must exist in ETS before floor plans can be uploaded.
 
 ## Used By
 - [[modules/meeting-rooms]] — room-level kiosk (status, booking, check-in, extend/cancel) uses this hardware + MDM + pairing infrastructure

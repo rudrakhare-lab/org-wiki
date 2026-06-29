@@ -96,7 +96,7 @@ _Source: [[sources/se-runbook-ets]]_
 - [[modules/meal-management]] — office premise is the parent entity for meal booking location
 - [[modules/floor-kiosk]] — floor premises are created under the office premise (premiseType: 4)
 
-> ⚠️ Reciprocal `depends_on` links on the above module pages are **pending the graph-consistency sweep** — do not edit those pages now.
+> ✅ Reciprocal `depends_on: [..., ets]` links were added to all 5 module pages in the graph-consistency sweep (2026-06-29), each tagged _(setup-time)_ per the dependency-nature note below.
 
 > ⚠️ **Setup-time vs runtime dependency (Open Question):** ETS office/shift records are needed at setup time (SE configuration) before WorkInSync modules can operate. Whether ETS is also queried at booking runtime (e.g. live shift lookup) is not confirmed by current sources. The dependency direction above reflects the setup-time relationship. See Open Questions.
 

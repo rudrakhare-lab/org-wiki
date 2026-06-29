@@ -2,7 +2,7 @@
 type: module
 status: active
 owner: unknown
-depends_on: [tags-desk-parking, mobile-app, desk-management]
+depends_on: [tags-desk-parking, mobile-app, desk-management, ets]
 used_by: [access-management, digital-wayfinding, implementation, visitor-management]
 last_updated: 2025-10-22
 source: "[[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]], [[sources/se-runbook-parking]]"
@@ -61,6 +61,7 @@ _Source: Dynamic Policy for Parking v1.3 (2025-10-22)._
 - [[modules/tags-desk-parking]] — tag engine for dynamic policy (vehicle-type-based slot access, BLOCK_HOTSEAT); same engine as desks and meeting rooms
 - [[modules/mobile-app]] — booking card, Digipass check-in, QR scan check-in surface
 - [[modules/desk-management]] — WFO booking form is the entry point; parking booking is an add-on to the WFO/desk booking record
+- [[modules/ets]] — _(setup-time)_ parking premises are created under the ETS-issued office premise; `showCabs` (Booking Rule Engine) ties to ETS cab availability
 
 ## Used By
 - [[modules/desk-management]] — WFO booking parent record contains parking booking reference
