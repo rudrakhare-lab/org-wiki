@@ -5,7 +5,7 @@ owner: unknown
 depends_on: []
 used_by: [delegation]
 last_updated: 2024-02-27
-source: "[[sources/delegation-prd]], [[sources/digital-wayfinding-sop]]"
+source: "[[sources/delegation-prd]], [[sources/digital-wayfinding-sop]], [[sources/se-runbook-employee-experience]]"
 ---
 
 # Employee Experience Module (emp-exp)
@@ -24,6 +24,7 @@ distinct emp-exp service doc (beyond the hosted features) is ingested.
 ## Known Features
 - Delegation workflow (Profile switcher, delegatee rights management) — see [[modules/delegation]]
 - Digital Wayfinding / Indoor Navigation — see [[modules/digital-wayfinding]]
+- **Configurable sender email** (per-BUID outbound "from" address) — the `emp-exp` service sets the sender address used for a BUID's WorkInSync emails; resolves by precedence (Stratus-enabled → `noreply@workinsync.io`; non-Stratus + `wisBuEnabled` + table entry → configurable email; else default `transport@moveinsync.com`). Ref PB-22330. See [[runbooks/configurable-sender-email-setup]]. _Source: [[sources/se-runbook-employee-experience]]_
 
 ## Configuration
 The emp-exp service exposes three PMS config surfaces (dual-server `.in` / `.com`):
@@ -45,8 +46,11 @@ False). See [[modules/delegation]] for the full delegation config set.
 ## Data Entities Used
 - [[entities/employee]] — employee identity record (identity, entitlements, relationships)
 
+## Related Runbooks
+- [[runbooks/configurable-sender-email-setup]] — set the per-BUID outbound sender ("from") email address (PB-22330)
+
 ## Open Questions
-- What other features live in the emp-exp service (beyond delegation + wayfinding)?
+- What other features live in the emp-exp service (beyond delegation, wayfinding, and the configurable sender email documented above)? Partially answered as more SE material is ingested.
 - Is "Employee Web" (mentioned as a delegatable resource in the Delegation PRD) a distinct module or part of emp-exp?
 
 ## Last Updated

@@ -380,3 +380,10 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - Sources: 1 doc — WorkInSync Slack Integration (v1.0, 2022-03-10), the docx variant of the same doc the module already sources as a PDF ([[sources/wis-slack-integration]]). Same content; no new facts. Added the missing operational install runbook + homed the crawl docx.
 - Secrets redacted: none (no Slack tokens / JWTs / client_secret in source).
 - Flags: carried forward — ⚠️ 4-way data-storage contradiction in the 2022 doc (do not cite for compliance); unnamed backing modules for booking/check-in; missing Slack OAuth scope names; 2022 source freshness. No new evidence resolves these.
+
+## [2026-06-29 22:05] ingest | SE Runbook — Employee Experience topic (Phase D) — closes module phase
+- Created: [[runbooks/configurable-sender-email-setup]], [[sources/se-runbook-employee-experience]]
+- Updated: [[modules/employee-experience]] (added configurable-sender-email capability to Known Features + Related Runbooks section; appended source; partially resolved Open Question #1; last_updated preserved 2024-02-27), [[index]] (counts 149→151, Runbooks 29→30, Sources 52→53)
+- Source: 1 doc — PB-22330 Configurable sender email (emp-exp API + TC_1..TC_4 sender-resolution precedence). Service: EMAIL-EMP-EXPERIENCE.
+- Secrets redacted: 1 HS512 x-wis-token JWT → <HS512 JWT — redacted>. Sender addresses (noreply@workinsync.io / transport@moveinsync.com) kept — documented system addresses, not credentials.
+- Flags: PB-22330 note undated — confirm current behavior. ⚠️ Module phase of Phase D now COMPLETE (all clean-active + merge-review + stub modules ingested). Remaining: 65 release-notes history layer + graph-consistency/recency sweep.
