@@ -318,3 +318,11 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - Updated: [[modules/digital-wayfinding]] (enriched 75→214 lines: value/use-case, product-architecture ASCII reconstruction w/ caveat, DIY Floorplanner table, API endpoints), [[index]] (counts 124→126, Runbooks 13→14, Sources 43→44)
 - Source docs: Digital Wayfinding SOP + SE-runbook crawl (Conwo WorkInSync Docs Drive)
 - Flags: product-architecture diagram is a reconstruction from SOP screenshots/text — marked with caveat. `ENABLE_INDOOR_NAVIGATION` default not stated in source (left blank pending confirm). Token scan: CLEAN (no secrets in source).
+
+## [2026-06-29 17:35] ingest | SE Runbook — Desk Management topic (Phase D) — STUB → ACTIVE
+- Created: [[runbooks/desk-booking-setup]], [[runbooks/recurring-booking-setup]], [[runbooks/booking-approval-camunda]], [[sources/se-runbook-desk-management]]
+- Updated: [[modules/desk-management]] (stub→active, 69→141 lines; all §2a sections filled; depends_on: [tags-desk-parking]; used_by preserved; 4 API endpoints from 2024 Booking API doc), [[index]] (added missing desk-management Modules row; counts 126→130, Runbooks 14→17, Sources 44→45)
+- Sources: 6 docs (Booking API 2024, Recurring Booking, MODULE 2 Desk Booking overview, Desk Allocation xlsx, Booking Approval Camunda, Perpetual Digi Pass 2021 pptx)
+- Config properties: 19 documented (BOOKING-RULE-ENGINE ×3, EMP-EXP-COMMON-CONFIG ×1, WIS-SEAT-BOOKING ×15) — no defaults stated in source; captured as open questions
+- Secrets redacted: 2 RS256 JWTs (pre-redacted), Basic-auth base64 credential → `<base64(username:password)>`, internal email userId → `<userId>`, Camunda demo creds omitted; controller also scrubbed credential fragment + real email from source-summary disclosure prose
+- Flags: ⚠️ Perpetual Digi Pass doc is 2021 historical only (current enablement unverified) — Previously-note + open question. Graph sweep TODO: `sanitization` lists desk-management in depends_on but desk-management used_by omits it; `implementation` reciprocal unconfirmed; consider new [[entities/desk]] page; `booking-rule-engine` has no module page (config-only).

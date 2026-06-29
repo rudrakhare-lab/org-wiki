@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
 _Last updated: 2026-06-29_
-_Total pages: 126 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 14 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 44 | Cross-module: 8_
+_Total pages: 130 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 17 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 45 | Cross-module: 8_
 
 ---
 
@@ -11,6 +11,7 @@ _Total pages: 126 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[modules/parking-management]] | Parking slot booking (WFO add-on), dynamic policy, waitlist, check-in | active | unknown | tags-desk-parking, mobile-app, desk-management |
 | [[modules/visitor-management]] | Visitor invite, digipass, 2-step check-in, badge printing, visitor parking | active | unknown | parking-management, guard-app-kiosks |
 | [[modules/delegation]] | Delegate resource booking rights to other employees (profile switcher) | active | Aditya Dutta | employee-experience, meeting-rooms, desk-management |
+| [[modules/desk-management]] | Desk/seat booking, floor allocation, recurring bookings, Camunda approval workflow, external Booking API (WIS-SEAT-BOOKING) | active | unknown | tags-desk-parking |
 | [[modules/digital-wayfinding]] | Indoor navigation on mobile app — floor plan amenities + path routing | active | Aditya Dutta | mobile-app, parking-management |
 | [[modules/employee-experience]] | emp-exp service — hosts delegation, wayfinding, and cross-cutting emp features | active | unknown | — |
 | [[modules/floor-kiosk]] | Device hardware spec, DIY Floor Planner tool, floor plan pipeline | active | Aditya Dutta | — |
@@ -42,6 +43,9 @@ _Total pages: 126 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[runbooks/employee-data-sync-scim]] | SCIM provisioning setup (Azure AD / Okta) + SFTP CSV mode + troubleshooting | [[modules/employee-provisioning]] | [[sources/se-runbook-employee-provisioning]] |
 | [[runbooks/floor-kiosk-device-setup]] | Android/iPad kiosk enrollment in Scalefusion MDM + employee-flow / self-checkin setup | [[modules/floor-kiosk]] | [[sources/se-runbook-floor-kiosk]] |
 | [[runbooks/digital-wayfinding-setup]] | Upload floor-plan JSON+SVG via Postman + enable `ENABLE_INDOOR_NAVIGATION` + URL check | [[modules/digital-wayfinding]] | [[sources/se-runbook-digital-wayfinding]] |
+| [[runbooks/desk-booking-setup]] | End-to-end desk booking / space-management setup (discovery, floor plan, desk allocation, bulk upload, config) | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
+| [[runbooks/recurring-booking-setup]] | Enable recurring / WorkPlanner bookings via Booking Rule Engine properties | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
+| [[runbooks/booking-approval-camunda]] | Add BUID to Camunda DMN decision table + set booking-approval properties | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -140,3 +144,4 @@ _Total pages: 126 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[sources/se-runbook-employee-provisioning]] | misc | 2026-06-29 | modules/employee-provisioning, runbooks/employee-data-sync-scim |
 | [[sources/se-runbook-floor-kiosk]] | misc | 2026-06-29 | modules/floor-kiosk, runbooks/floor-kiosk-device-setup, configs/visitor-management |
 | [[sources/se-runbook-digital-wayfinding]] | misc | 2026-06-29 | modules/digital-wayfinding, runbooks/digital-wayfinding-setup |
+| [[sources/se-runbook-desk-management]] | misc | 2026-06-29 | modules/desk-management, runbooks/desk-booking-setup, runbooks/recurring-booking-setup, runbooks/booking-approval-camunda |
