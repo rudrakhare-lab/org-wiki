@@ -37,18 +37,16 @@ def test_wiki_only_assembly_has_exactly_one_answer_format():
 
 
 def test_wiki_only_agent_assembled_prompt_one_of_each():
-    import pytest
-    from backend import agent_registry
+    """Exercise the wiki-only assembly branch deterministically with a duck-typed
+    agent (has_jira == has_pms == False), independent of which agents are registered."""
+    import types
     from backend.deep_system_prompt import load_deep_system_prompt
-    accessor = getattr(agent_registry, "all", None)
-    agents = accessor() if callable(accessor) else []
-    wiki_only = next((a for a in agents if not a.has_jira and not a.has_pms), None)
-    if wiki_only is None:
-        pytest.skip("no wiki-only agent registered in this environment")
+    wiki_only = types.SimpleNamespace(identity="Test agent.", has_jira=False, has_pms=False)
     prompt = load_deep_system_prompt(wiki_only)
     assert prompt.count("## Required answer format") == 1
     assert prompt.count("**Confidence calibration:**") == 1
     assert "## Hard rules" in prompt
+    assert "Release-notes history pages" in prompt
 
 
 def test_jira_pms_prompt_has_ported_accuracy_rules():
