@@ -52,10 +52,10 @@ Auto-generated on 2026-06-09. Total configs: **188**.
 | `checkTransportCutoffForBookingEdit` | - | BOOLEAN |  | .com only |
 | `countBookingBySomeOneElseAsEmployeeBooking` | - | BOOLEAN |  | both |
 | `createBookingAfterSignedOut` | - | BOOLEAN |  | .com only |
-| `createBookingWhenCheckinReceived` | - | BOOLEAN |  | .com only |
+| `createBookingWhenCheckinReceived` | When enabled, auto-creates a booking for employees who check in via access card but have no existing booking. Works with `defaulBookingHoursIfExtCheckin` for booking duration. | BOOLEAN | false | .com only |
 | `customPlannerViewEnabled` | - | BOOLEAN |  | .com only |
 | `CutOffTimeBetweenBookingsOnSeatInMinute` | - | INTEGER |  | .com only |
-| `defaulBookingHoursIfExtCheckin` | - | DOUBLE |  | .com only |
+| `defaulBookingHoursIfExtCheckin` | Default booking duration (in hours) when a booking is auto-created via external (access card) check-in. Used with `createBookingWhenCheckinReceived`. Note: property name is intentionally misspelled (`defaul` not `default`) — this is the real property name. | DOUBLE | not documented | .com only |
 | `defaultLogoutShiftMinutes` | - | INTEGER |  | .com only |
 | `defLogoutDuration` | - | DOUBLE |  | .com only |
 | `defOnCallLogoutDurationInMinute` | - | INTEGER |  | .com only |
@@ -88,8 +88,8 @@ Auto-generated on 2026-06-09. Total configs: **188**.
 | `expiredRequestNotificationEnabled` | - | BOOLEAN |  | .com only |
 | `expiryCutOffInMinutes` | - | INTEGER |  | both |
 | `expiryNotificationCutOffInMinutes` | - | INTEGER |  | .com only |
-| `extCheckinToBookingBuffer` | - | DOUBLE |  | both |
-| `externalChannelCheckIn` | - | BOOLEAN |  | .com only |
+| `extCheckinToBookingBuffer` | Buffer window (in hours) around an existing booking within which an external (access card) check-in event is accepted and matched to that booking. | DOUBLE | not documented | both |
+| `externalChannelCheckIn` | Enables SFTP file-based access card check-in mode. When set, WorkInSync accepts employee swipe data pushed via SFTP CSV files instead of (or in addition to) real-time REST API calls. | BOOLEAN | false | .com only |
 | `filterNoAvailableSeatInFloor` | - | BOOLEAN |  | .com only |
 | `floorKioskCheckInOutEmails` | Conditions to send check-in/checkout mail on, values should be of type [CHECKIN, CHECKOUT]. | LIST |  | .com only |
 | `gatepassDelaycutoff` | - | DOUBLE |  | .com only |
@@ -130,8 +130,8 @@ Auto-generated on 2026-06-09. Total configs: **188**.
 | `nextDayLogoutEnabled` | - | BOOLEAN |  | both |
 | `noResourceBookingConfirmation` | Defines if there is no resource then the popup to confirm booking without resource should be displayed or not. | BOOLEAN |  | .com only |
 | `numOfDays` | - | INTEGER |  | .com only |
-| `officeCheckInModeApp` | - | STRING |  | .com only |
-| `officeCheckInModeWeb` | - | STRING |  | .com only |
+| `officeCheckInModeApp` | Check-in mode for the mobile app at a given office. Values: `directCheckIn` (simple button), `digiPass` (QR displayed to reception scanner), `scanQR` (employee scans office/floor/desk QR), `noCheckIn` (no manual check-in; used for access-card-only deployments). Set per-office by SE team. | STRING | not documented | .com only |
+| `officeCheckInModeWeb` | Check-in mode for the web app at a given office. Values: `directCheckIn` (simple button), `digiPass` (QR displayed to reception scanner), `scanQR` (employee scans office/floor/desk QR), `noCheckIn` (no manual check-in; used for access-card-only deployments). Set per-office by SE team. | STRING | not documented | .com only |
 | `onCallMaxShiftDurationInMinute` | - | INTEGER |  | .com only |
 | `onCallMinShiftDurationInMinute` | - | INTEGER |  | .com only |
 | `otpOverIvrForVisitor` | - | BOOLEAN |  | .com only |
@@ -141,7 +141,7 @@ Auto-generated on 2026-06-09. Total configs: **188**.
 | `pendingRequestsNotificationEnabled` | - | BOOLEAN |  | .com only |
 | `qRScannerEndCutOffInMinute` | - | INTEGER |  | both |
 | `qRScannerStartCutOffInMinute` | - | INTEGER |  | both |
-| `recordCheckInOutViaAccessCardAPI` | - | BOOLEAN |  | .com only |
+| `recordCheckInOutViaAccessCardAPI` | Enables recording of check-in/out events received via the access card REST API integration (`POST /integration/bookings/ci-co`). Must be enabled for API-based access card integrations. | BOOLEAN | false | .com only |
 | `rejectBookingIfNoDesk` | - | BOOLEAN |  | both |
 | `rejectedRequestNotificationEnabled` | - | BOOLEAN |  | .com only |
 | `remoteSignInAllowed` | - | BOOLEAN |  | .com only |
@@ -166,7 +166,7 @@ Auto-generated on 2026-06-09. Total configs: **188**.
 | `shouldAllowCustomTimingWhileEdit` | STRICTLY TO BE UPDATED ONLY FROM CONFIG PAGE IN THE UI. Defines if employee will be allowed to select custom timing while editing a booking. | BOOLEAN |  | .com only |
 | `showCabs` | - | BOOLEAN |  | .com only |
 | `showDigipassOptionForDedicatedSeat` | - | BOOLEAN |  | .com only |
-| `showFirstCheckInRecord` | - | BOOLEAN |  | .com only |
+| `showFirstCheckInRecord` | When enabled, only the first check-in is honoured across bookings, audits, and reports. The UI (web + mobile) shows only the first check-in. Applicable for access card integrations (PB-48998). Checkout via SFTP access card was added subsequently (PB-48425). | BOOLEAN | false | .com only |
 | `showMealOrderStatus` | - | BOOLEAN |  | .com only |
 | `showParking` | - | BOOLEAN |  | .com only |
 | `showQRScanner` | - | BOOLEAN |  | .com only |

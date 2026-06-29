@@ -222,7 +222,7 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `isZedaReleaseNoteEnabled` | Displays Zeda widget showcasing new features and feedback. | BOOLEAN |  | both |
 | `jobTitleWiseCalenderInDays` | - | JSON |  | both |
 | `landmark` | Controls visibility of Landmark field during registration. | STRING |  | both |
-| `lastSwipeAsCheckoutTimeForBUID` | Uses the last swipe checkout time as final checkout instead of auto-checkout for access card integration clients. | LIST |  | both |
+| `lastSwipeAsCheckoutTimeForBUID` | Uses the last swipe checkout time as final checkout instead of auto-checkout for access card integration clients. LIST of BUIDs for which this behavior is enabled. | LIST | not documented | both |
 | `listOfEligibleBuidsForAutoClockout` | Defines BUs eligible for auto clock-out. | LIST |  | both |
 | `listOfEligibleBuidsForBusNotification` | - | LIST |  | both |
 | `listOfExcludedBuidsForCheckin` | Defines BUs excluded from check-in. | LIST |  | .com only |

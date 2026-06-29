@@ -287,3 +287,11 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - Cross-linked (NOT duplicated): SCIM/employee-sync → [[modules/employee-provisioning]]; meeting docs → [[modules/meeting-rooms]]; SSO → [[modules/sso]]; face-recognition → floor-kiosk/guard. Filtered heavy "data sync" keyword noise.
 - Flags: ⚠️ ETS setup-time vs runtime dependency direction unresolved — reciprocal depends_on on the 5 consuming modules deferred to graph-consistency sweep. ⚠️ owner unknown; indemnify/commute/showCabs defaults not documented (Jira-only). Example values (office GUIDs, BUIDs) flagged as placeholders.
 - Verification: token scan clean; stub-fill preserved+expanded original facts (office API, GUID reference retained); source provenance restored.
+
+## [2026-06-29 17:45] ingest | SE Runbook Phase D — ACCESS-MANAGEMENT topic
+- Created: [[runbooks/access-card-integration]] (SE setup — REST vendor onboarding + auth/token flow + endpoints; SFTP file-based mode; check-in-mode value reference; troubleshooting), [[sources/se-runbook-access-card]].
+- Updated: [[modules/access-management]] (enriched Key Features + SE Setup Workflow + config table + Related Runbooks; existing API/SFTP content reworded+expanded, NOT lost; all 3 original sources preserved + se-runbook-access-card added), [[configs/booking-rule-engine]] (8 check-in props filled), [[configs/emp-experience-common]] (`lastSwipeAsCheckoutTimeForBUID` default-filled), [[index]] (Runbooks 10→11, Sources 40→41, total 118→120).
+- 🔴 Secrets: redacted 3 credentials (1 base64 client_id:client_secret + 2 JWT samples) → `<bearer-token>`/`<base64(...)>`. Confirmed 0 `eyJ…` in any page.
+- Config notes: `defaulBookingHoursIfExtCheckin` typo preserved verbatim. Defaults `false` where source documents opt-in flags; `defaulBookingHoursIfExtCheckin`/`extCheckinToBookingBuffer`/`officeCheckInModeWeb/App`/`lastSwipeAsCheckoutTimeForBUID` marked "not documented" (source states no default).
+- Flags: no conflicts (officeCheckInMode values had no prior wiki entry). Open Qs: SFTP swipe-CSV column schema not in source; `lastSwipeAsCheckoutTimeForBUID` LIST syntax unconfirmed; pre-existing premiseId semantic open-question preserved.
+- Verification: augment confirmed (reworded-not-lost; sources preserved); token scan clean; config fills in-place (meal rows untouched).
