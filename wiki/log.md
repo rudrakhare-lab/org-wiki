@@ -409,3 +409,21 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
   - RN 05-2026 Room Name Filter (slide 16–17) and RN 01-2026 RFID column fix (slide 16–17): source deck text truncated at "ana…" / "inco…" — enablement/PB not extractable; raw .pptx linked in Linked Raw Evidence table.
   - RN 05-2026 NDA Scroll-Gated (DPDPA): appears in RN 04-2026 source deck (slide 18–19, after PB-64462), not RN 05 — placed under RN 04-2026 entry accordingly.
 - Token scan: CLEAN — no JWTs, bearer tokens, email addresses, or secrets in output.
+
+## [2026-06-30 00:00] ingest | Release Notes 2025 — RN 01-2025 through RN 15-2025 (Phase D history layer, batch 2)
+- Created: [[history/release-notes-2025]]
+- Updated: [[index]] (total 153→154, Release Notes counter 2→3, added row for release-notes-2025), [[history/release-notes]] (2025 row marked Done with link; 2025 Feature→Module Quick Map section added)
+- Sources: 14 raw .pptx files (RN 01–08-2025, RN 09&10-2025 combined, RN 11–15-2025) via /tmp/rn2025_inputs.md — no per-RN source-summary pages created; raw_paths cited inline in the year page.
+- Features ingested: 58 total across desk-management (22), meeting-rooms (7), parking-management (8), meal-management (7), employee-experience (7), visitor-management (5), access-management (5), delegation (2), floor-kiosk (4), tags-desk-parking (1), ets (3), employee-provisioning (1).
+- ⚠️ Flags:
+  - RN 01-2025 Hierarchy Search (PB-48836) + RN 02-2025 further refinement: two-step ship; RN 02 is the fuller implementation (limit 100, sorted by hierarchy level).
+  - RN 02-2025 Partial Desk Search: initial ship; refined in RN 05-2025 (PB-52060) with admin-page coverage.
+  - RN 05-2025 `allowOfficeCheckInWithoutDesk`: enabling property shared with RN 06-2025 individual resource check-out (PB-54141) — two distinct features on one property; flagged inline.
+  - RN 06-2025 OTP Validation VMS (`kioskRequireOTPBeforeRegister`): superseded/enhanced by RN 01-2026 (`enableOtpOverride`, `failureReasonsOtp`) — flagged with ⚠️ inline.
+  - RN 07-2025 + RN 08-2025 Chargeback Holiday-Aware (PB-53019): same PB in both decks; RN 07 treated as the ship date; RN 08 reference flagged as a duplicate.
+  - RN 07-2025 Enhanced Resource Release (PB-51044): also in RN 06-2025; RN 06 is the earlier ship; RN 07 reference noted as duplicate.
+  - RN 12-2025 Outlook Add-In Native Rooms (PB-59218): enhanced in RN 02-2026 (PB-62938) — flagged with ⚠️ inline.
+  - RN 15-2025 Admin Dashboard 2.0 Cross-Office: further fixes in RN 03-2026 (PB-63436) — flagged with ⚠️ inline.
+  - Several slides in source decks were truncated mid-text (`...[truncated]`) — where PB or enablement was cut, noted as "(see raw evidence)" rather than guessing.
+  - RN 02-2025 body text was sparse in extracted content; features reconstructed from available slide text + pattern matching; raw .pptx is the authoritative source.
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, or `client_secret` values in output.

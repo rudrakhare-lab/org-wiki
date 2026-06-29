@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
-_Last updated: 2026-06-29_
-_Total pages: 153 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 30 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 53 | Cross-module: 8 | Release Notes: 2_
+_Last updated: 2026-06-30_
+_Total pages: 154 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 30 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 53 | Cross-module: 8 | Release Notes: 3_
 
 ---
 
@@ -66,6 +66,7 @@ _Total pages: 153 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 |------|---------|-------|
 | [[history/release-notes]] | Index + recency caveat + feature→module quick map | all |
 | [[history/release-notes-2026]] | RN 01-2026 through RN 05-2026 — 33 features across visitor, meeting-rooms, parking, meal, emp-exp, floor-kiosk, safe-reach, access-management | 2026 |
+| [[history/release-notes-2025]] | RN 01-2025 through RN 15-2025 (incl. combined 09&10) — 58 features across desk-management, meeting-rooms, parking, meal, emp-exp, visitor-management, access-management, delegation, floor-kiosk, tags-desk-parking, ets, employee-provisioning | 2025 |
 
 ## Concepts
 | Page | Summary | Used By |
