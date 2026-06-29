@@ -334,3 +334,10 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - Config properties: 3 Consul-backed dynamicFields (DynamicData, transport, licenseNo on wisSeatBooking) — NOT PMS xlsx props; no defaults stated
 - Secrets redacted: HS512 x-wis-token JWTs (pre-redacted), example BUID UUID → <BUID>
 - Flags: ⚠️ Doc 4 (businessGuests/contractor/deliveryPersonnel) is VISITOR-management dynamic-fields config bundled by mistake — needs separate visitor ingest (NOT modelled here). SeatTypeMapping upload mechanism undocumented. Beta host wis-seat-beta.moveinsync.com in source — confirm prod URL. Graph sweep: room-tag entity used_by should add desk-management + parking-management.
+
+## [2026-06-29 12:45] ingest | SE Runbook — Meeting Rooms (Phase D)
+- Created: [[runbooks/meeting-room-setup]], [[runbooks/meeting-room-catering-setup]], [[runbooks/outlook-room-integration]], [[sources/se-runbook-meeting-rooms]]
+- Updated: [[modules/meeting-rooms]] (appended [[sources/se-runbook-meeting-rooms]] to source: frontmatter; added ## Related Runbooks section before ## Open Questions — no other prose changed), [[index]] (counts 132→136, Runbooks 18→21, Sources 46→47; added 3 runbook rows + 1 source row)
+- Config properties confirmed by SE sources: MEETING_ROOM_RELEASE_IF_NO_CHECKIN recommended=15min (module page already had this — SE doc confirms operational recommendation); new surface: ALLOW_ONLY_ONE_MEETING_ROOM_AT_ONCE, BOOK_MEETING_ROOM_BY_EMPLOYEES, SHOW_SPECIAL_REQUEST_ON_MEETING, ENABLE_REMINDER_NOTIFCATION (typo preserved), RELEASE_MR_NOTIFICATION, ENABLE_NEXT_MEETING_REMINDER
+- Secrets redacted: none (source material scanned clean)
+- Flags: ⚠️ Outlook Pre-Impl Discovery is a 2021 document — outlook-room-integration.md marked stale; all consent-URL/endpoint details need verification against current wis-integration service before client engagement. ⚠️ cateringLimits is .com-only — .in clients cannot configure participant-count cut-offs. ⚠️ Control doc is 52k chars; only first ~13k captured in SE crawl input — exhaustive acceptance criteria not modelled.

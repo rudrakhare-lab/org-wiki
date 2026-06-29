@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
 _Last updated: 2026-06-29_
-_Total pages: 132 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 18 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 46 | Cross-module: 8_
+_Total pages: 136 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 21 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 47 | Cross-module: 8_
 
 ---
 
@@ -48,6 +48,9 @@ _Total pages: 132 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[runbooks/recurring-booking-setup]] | Enable recurring / WorkPlanner bookings via Booking Rule Engine properties | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
 | [[runbooks/booking-approval-camunda]] | Add BUID to Camunda DMN decision table + set booking-approval properties | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
 | [[runbooks/tag-and-dynamic-fields-setup]] | GET/PUT Consul `dynamicFields` config + SeatTypeMapping structure | [[modules/tags-desk-parking]] | [[sources/se-runbook-tags-desk-parking]] |
+| [[runbooks/meeting-room-setup]] | Room resource creation (UI + bulk upload) + booking config (auto-release, check-in, notifications) | [[modules/meeting-rooms]] | [[sources/se-runbook-meeting-rooms]] |
+| [[runbooks/meeting-room-catering-setup]] | Cafeteria creation → menus/categories/items → delivery slots → cut-off policy → dashboard access | [[modules/meeting-rooms]] | [[sources/se-runbook-meeting-rooms]] |
+| [[runbooks/outlook-room-integration]] | Outlook/Exchange pre-impl discovery checklist + CONSENT_TYPE + WIS-side config keys (⚠️ 2021 source) | [[modules/meeting-rooms]] | [[sources/se-runbook-meeting-rooms]] |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -148,3 +151,4 @@ _Total pages: 132 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[sources/se-runbook-digital-wayfinding]] | misc | 2026-06-29 | modules/digital-wayfinding, runbooks/digital-wayfinding-setup |
 | [[sources/se-runbook-desk-management]] | misc | 2026-06-29 | modules/desk-management, runbooks/desk-booking-setup, runbooks/recurring-booking-setup, runbooks/booking-approval-camunda |
 | [[sources/se-runbook-tags-desk-parking]] | misc | 2026-06-29 | modules/tags-desk-parking, runbooks/tag-and-dynamic-fields-setup |
+| [[sources/se-runbook-meeting-rooms]] | misc | 2026-06-29 | modules/meeting-rooms, runbooks/meeting-room-setup, runbooks/meeting-room-catering-setup, runbooks/outlook-room-integration |
