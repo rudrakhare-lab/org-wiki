@@ -4,8 +4,8 @@ status: active
 owner: unknown
 depends_on: []
 used_by: [visitor-management]
-last_updated: 2026-06-25
-source: "[[sources/se-runbook-ets-office-premise]]"
+last_updated: 2026-06-29
+source: "[[sources/se-runbook-ets-office-premise]], [[sources/se-runbook-kiosk]]"
 ---
 
 # Guard App + Kiosks
@@ -19,8 +19,24 @@ The Guard App is the security-gate application guards use for visitor/employee c
 - Configure **amenities** per premise.
 - Boundary: premise *creation* itself is the ETS/office-premise flow ([[runbooks/ets-office-premise-setup]]); this module covers guard users, mappings, the app, and amenities.
 
+## Production vs Beta Backend Endpoints
+
+The `mis-security-guard` **backend service** runs on the following hosts:
+
+| Environment | Host |
+|-------------|------|
+| Production | `wis-premise.workinsync.io/mis-security-guard/` |
+| Beta | `mis-security-beta1.moveinsync.com/mis-security-guard/` |
+| EU-Green | `mis-security-green.eu.moveinsync.com/mis-security-guard/` |
+
+> ⚠️ These are **backend service** endpoints (used for API calls, Postman, premise operations).
+> They are NOT the Guard App front-end UI URL. The front-end IOT app URL question remains open
+> — see Open Questions below.
+
+_(SE-confirmed via [[sources/se-runbook-kiosk]])_
+
 ## Key Features
-- **Two deployment modes:** non-IOT (manual temperature entry, app at `https://wis-reception.workinsync.io/`) and IOT (temperature auto-captured, app at `https://mis-security-beta.moveinsync.com/`). ⚠️ The IOT URL carries a `-beta` hostname — confirm it is the production IOT app (Open Questions).
+- **Two deployment modes:** non-IOT (manual temperature entry, app at `https://wis-reception.workinsync.io/`) and IOT (temperature auto-captured, app at `https://mis-security-beta.moveinsync.com/`). ⚠️ The IOT URL carries a `-beta` hostname — confirm it is the production IOT front-end app (Open Questions). Note: the **backend service** production host is now confirmed as `wis-premise.workinsync.io/mis-security-guard/` (see §Production vs Beta Backend Endpoints).
 - **Guard user creation + premise-user mapping** via the WIS-Configurations Google sheet SE tool (`Service/Feature = User Creation`, then premise-user mapping with `userId`/`premiseId`).
 - **Office QR code** generation via `generate-qr-string`.
 - **Amenities** configuration (DESKTOP, CABIN, Standing Desk, …) per premise; surfaced in Employee Experience when `isAmenitiesFilter=true`.
@@ -52,10 +68,10 @@ The Guard App is the security-gate application guards use for visitor/employee c
 - [[runbooks/guard-app-setup]] — app links (non-IOT/IOT), amenities, useful links
 
 ## Open Questions
-- Which URL is the **production IOT** Guard App? Source labels `mis-security-beta.moveinsync.com` as IOT, but `-beta` is ambiguous. ⚠️
+- Which URL is the **production IOT Guard App front-end**? Source labels `mis-security-beta.moveinsync.com` as the IOT front-end app, but `-beta` is ambiguous. ⚠️ Note: the **backend service** host is now confirmed as `wis-premise.workinsync.io/mis-security-guard/` (SE-confirmed 2026-06-29) — the remaining question is the front-end UI URL only.
 - Is the **OLD Guard App link** (`mis-security.moveinsync.com` front-end root) fully decommissioned, or still serving some clients? ⚠️
 - The bulk amenities template is served from a **staging** URL (`staging2.moveinsync.com:9095/...`) — confirm the production template source. ⚠️
 - Owner team unknown.
 
 ## Last Updated
-2026-06-25 — source: [[sources/se-runbook-ets-office-premise]] (guard-user-creation + guard-app-setup runbooks). _Replaces the 2026-05-26 stub._
+2026-06-29 — source: [[sources/se-runbook-ets-office-premise]] (guard-user-creation + guard-app-setup runbooks), [[sources/se-runbook-kiosk]] (production backend endpoint confirmed). _Previous: 2026-06-25._
