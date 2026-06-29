@@ -18,7 +18,7 @@ Auto-generated on 2026-06-09. Total configs: **188**.
 | `allocationChangeCommunicationEnabled` | - | BOOLEAN |  | .com only |
 | `allowBookingAfterSignOut` | - | BOOLEAN |  | .com only |
 | `allowedBookingForContainmentZone` | - | BOOLEAN |  | .com only |
-| `allowedMealBookingPerEmployee` | Decides how many separate meal bookings the system should allow per user per day. | INTEGER |  | .com only |
+| `allowedMealBookingPerEmployee` | Decides how many separate meal bookings the system should allow per user per day. | INTEGER | 1 | .com only |
 | `allowOfficeCheckInWithoutDesk` | Controls the separate checkin for office and desk checkin. | BOOLEAN |  | .com only |
 | `approvalFlowEnabled` | - | BOOLEAN |  | both |
 | `approvalFlowInInWfhEnabled` | - | BOOLEAN |  | .com only |
@@ -75,15 +75,15 @@ Auto-generated on 2026-06-09. Total configs: **188**.
 | `enableBookingsOnHolidays` | - | BOOLEAN |  | both |
 | `enableDynamicFields` | Defines if dynamic field is enabled. | BOOLEAN |  | .com only |
 | `enableIndoorNavigation` | - | BOOLEAN |  | .com only |
-| `enableMealBookingNudge` | - | BOOLEAN |  | both |
-| `enableMealConfigureKiosk` | To enable 'Configure Kiosk' button on meal dashboard. | BOOLEAN |  | .com only |
+| `enableMealBookingNudge` | Enables meal booking nudge notifications for employees. | BOOLEAN | false | both |
+| `enableMealConfigureKiosk` | To enable 'Configure Kiosk' button on meal dashboard. | BOOLEAN | false | .com only |
 | `enableMealOnlyBulkUpload` | - | BOOLEAN |  | .com only |
 | `enableOfficeCheckInWithParkingCheckIn` | - | BOOLEAN |  | .com only |
 | `enableParkingAvailabilityWidgetWithoutBooking` | When the parking booking module is not enabled for the client, but they only want to consume the available slot numbers. | BOOLEAN |  | .com only |
 | `enablePriorityWiseAutoSlotAllocate` | When enabled, slot is assigned in priority order based on display order value. | BOOLEAN |  | .com only |
 | `enablePrivilegeOnApp` | To show resources while booking based on privilege. | BOOLEAN |  | .com only |
 | `enableRecurrenceOnTeamPlanner` | - | BOOLEAN |  | .com only |
-| `enableSeparateMealOption` | Enable meal-only booking (coupled with existing property to enable meals). | BOOLEAN |  | .com only |
+| `enableSeparateMealOption` | Enable meal-only booking (coupled with existing property to enable meals). | BOOLEAN | false | .com only |
 | `enableWeeklyOffBookings` | - | BOOLEAN |  | .com only |
 | `expiredRequestNotificationEnabled` | - | BOOLEAN |  | .com only |
 | `expiryCutOffInMinutes` | - | INTEGER |  | both |
@@ -119,8 +119,8 @@ Auto-generated on 2026-06-09. Total configs: **188**.
 | `maxShiftDuration` | - | DOUBLE |  | both |
 | `maxTimeAfterClockin` | - | BOOLEAN |  | .com only |
 | `maxTimeBeforeClockin` | - | BOOLEAN |  | .com only |
-| `mealCancelCutoffInMinutes` | Property to enable/disable booking cancellation option if created with meal and 'enableSeparateMealOption' is enabled. | INTEGER |  | .com only |
-| `mealFinalStage` | Defines the final status of a meal booking. | LIST |  | .com only |
+| `mealCancelCutoffInMinutes` | Property to enable/disable booking cancellation option if created with meal and 'enableSeparateMealOption' is enabled. | INTEGER | -1440 | .com only |
+| `mealFinalStage` | Defines the final status of a meal booking. | LIST | ['delivered', 'DELIVERED'] | .com only |
 | `mealPlanningEnabled` | - | BOOLEAN |  | .com only |
 | `minHoursAllowedForCheckin` | - | DOUBLE |  | .com only |
 | `minShiftDuration` | - | DOUBLE |  | .com only |

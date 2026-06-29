@@ -169,7 +169,7 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `enableWisThemeColors` | Enables dynamic theming using wisThemeColors property. | BOOLEAN |  | .com only |
 | `enforceReAuthentication` | Enables enforcement of re-authentication. | BOOLEAN |  | both |
 | `enforceReAuthenticationDurationInMinutes` | Defines re-authentication validity duration in minutes. | DOUBLE |  | both |
-| `excludeMealOnlyBookingsFromActiveBookingCount` | Decides whether to exclude meal booking from web/app/bulk from active booking count for any user. | BOOLEAN |  | .com only |
+| `excludeMealOnlyBookingsFromActiveBookingCount` | Decides whether to exclude meal booking from web/app/bulk from active booking count for any user. | BOOLEAN | false | .com only |
 | `externalStaffUi` | Defines External Staff UI URL. | STRING |  | both |
 | `fabDisplayNames` | Defines FAB display names. | LIST |  | both |
 | `FEATURE_MEDICAL_EMERGENCY_EMAIL_RM` | - | BOOLEAN |  | .com only |
@@ -233,7 +233,7 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `maxEmployeeSelectionWorkplanner` | Defines maximum number of employees allowed for recurring bookings. | INTEGER |  | .com only |
 | `maximumCharacterLimit` | - | DOUBLE |  | both |
 | `maxTripLevelNonComplianceEventsAllowed` | - | INTEGER |  | both |
-| `mealCutoffInMinutes` | Defines meal booking cutoff calculated from 00:00 of booked date. | DOUBLE |  | both |
+| `mealCutoffInMinutes` | Defines meal booking cutoff calculated from 00:00 of booked date. | DOUBLE | default not documented | both |
 | `mealFeedbackEnabled` | Enables meal feedback feature and reporting. | BOOLEAN |  | both |
 | `mealFeedbackOptions` | Configures meal feedback options. | JSON |  | .com only |
 | `mealNotifications` | Enable e-mails related to meal bookings for QR. | BOOLEAN |  | .com only |

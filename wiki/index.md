@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
-_Last updated: 2026-06-25_
-_Total pages: 108 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 5 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 36 | Cross-module: 8_
+_Last updated: 2026-06-29_
+_Total pages: 110 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 6 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 37 | Cross-module: 8_
 
 ---
 
@@ -32,6 +32,7 @@ _Total pages: 108 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[runbooks/floor-plan-upload]] | Floor premise + floor-plan upload (file / background-image / DIY JSON+SVG) | [[modules/floor-kiosk]] | [[sources/se-runbook-ets-office-premise]] |
 | [[runbooks/guard-user-creation]] | Guard user creation, premise-user mapping, QR code, update/delete premise | [[modules/guard-app-kiosks]] | [[sources/se-runbook-ets-office-premise]] |
 | [[runbooks/guard-app-setup]] | Guard app links (non-IOT/IOT), amenities, useful links | [[modules/guard-app-kiosks]] | [[sources/se-runbook-ets-office-premise]] |
+| [[runbooks/meal-booking]] | Cafeteria premise → office map → meal Consul config → counters → QR (mis-security-guard + meal-booking-app) | [[modules/meal-management]] | [[sources/se-runbook-meal-booking]] |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -122,3 +123,4 @@ _Total pages: 108 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 
 | [[sources/launch-ets-sop]] | spec | 2026-04-28 | modules/implementation |
 | [[sources/se-runbook-ets-office-premise]] | misc | 2026-06-25 | runbooks/ets-office-premise-setup, modules/ets |
+| [[sources/se-runbook-meal-booking]] | misc | 2026-06-29 | runbooks/meal-booking, modules/meal-management, configs/booking-rule-engine, configs/emp-experience-common |
