@@ -185,4 +185,14 @@ The following properties were enriched based on SE runbook source docs (`se-runb
 | `visitorKioskConfigs` | JSON blob that contains `isEmployeeFlowEnabled` and `employeeDescriptionHeaderText` as sub-keys. Source: Employee Flow Setup doc. |
 
 _Source: [[sources/se-runbook-floor-kiosk]]_
+
+## Notification Setup Notes (hand-curated 2026-06-29)
+
+The following property was identified in SE runbook docs (`se-runbook-visitor-management` ingest, 2026-06-29) as required for VMS notification panel access but is **not** a PMS property — it lives in the Stratus privilege service.
+
+| Item | Note |
+|------|------|
+| `PrivilegeConfigurations_Visitor_Management_Notifications` | **Privilege (not a PMS property).** Add to each role (e.g. RECEPTIONIST, ADMIN) that should access the notification settings panel in the VMS UI. Not in the auto-generated config table. See [[runbooks/visitor-notifications-setup]] §Step 4. |
+
+_SE-confirmed via [[sources/se-runbook-visitor-management]]_
 <!-- END MANUAL NOTES -->

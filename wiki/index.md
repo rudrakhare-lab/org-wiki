@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
 _Last updated: 2026-06-29_
-_Total pages: 136 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 21 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 47 | Cross-module: 8_
+_Total pages: 141 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 25 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 48 | Cross-module: 8_
 
 ---
 
@@ -51,6 +51,10 @@ _Total pages: 136 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[runbooks/meeting-room-setup]] | Room resource creation (UI + bulk upload) + booking config (auto-release, check-in, notifications) | [[modules/meeting-rooms]] | [[sources/se-runbook-meeting-rooms]] |
 | [[runbooks/meeting-room-catering-setup]] | Cafeteria creation → menus/categories/items → delivery slots → cut-off policy → dashboard access | [[modules/meeting-rooms]] | [[sources/se-runbook-meeting-rooms]] |
 | [[runbooks/outlook-room-integration]] | Outlook/Exchange pre-impl discovery checklist + CONSENT_TYPE + WIS-side config keys (⚠️ 2021 source) | [[modules/meeting-rooms]] | [[sources/se-runbook-meeting-rooms]] |
+| [[runbooks/visitor-badge-printer-setup]] | Brother QL-820NWB badge printer setup (model, connectivity, rolls); office-config screenshots in raw doc | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
+| [[runbooks/visitor-bulk-upload]] | Enable visitor bulk upload (Consul flag + role_access + profile/custom field template config, 100-visitor max) | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
+| [[runbooks/visitor-notifications-setup]] | Property-controlled notifications (opt-in BUID, per-persona routing, notification panel, privilege) | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
+| [[runbooks/visitor-custom-fields-setup]] | Walk-in custom fields + Belongings consistency + per-visitor-type dynamic field schema | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -152,3 +156,4 @@ _Total pages: 136 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[sources/se-runbook-desk-management]] | misc | 2026-06-29 | modules/desk-management, runbooks/desk-booking-setup, runbooks/recurring-booking-setup, runbooks/booking-approval-camunda |
 | [[sources/se-runbook-tags-desk-parking]] | misc | 2026-06-29 | modules/tags-desk-parking, runbooks/tag-and-dynamic-fields-setup |
 | [[sources/se-runbook-meeting-rooms]] | misc | 2026-06-29 | modules/meeting-rooms, runbooks/meeting-room-setup, runbooks/meeting-room-catering-setup, runbooks/outlook-room-integration |
+| [[sources/se-runbook-visitor-management]] | misc | 2026-06-29 | modules/visitor-management, runbooks/visitor-badge-printer-setup, runbooks/visitor-bulk-upload, runbooks/visitor-notifications-setup, runbooks/visitor-custom-fields-setup, configs/visitor-management |
