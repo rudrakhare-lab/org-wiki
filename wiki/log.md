@@ -427,3 +427,20 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
   - Several slides in source decks were truncated mid-text (`...[truncated]`) — where PB or enablement was cut, noted as "(see raw evidence)" rather than guessing.
   - RN 02-2025 body text was sparse in extracted content; features reconstructed from available slide text + pattern matching; raw .pptx is the authoritative source.
 - Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, or `client_secret` values in output.
+
+## [2026-06-30 02:00] ingest | Release Notes 2024 — RN 01-2024 through RN 16-2024 (Phase D history layer, batch 3)
+- Created: [[history/release-notes-2024]]
+- Updated: [[index]] (total 154→155, Release Notes counter 3→4, added row for release-notes-2024), [[history/release-notes]] (2024 row marked Done with link; 2024 Feature→Module Quick Map section added)
+- Sources: 14 raw .pptx files (RN 01-2024, RN 02-2024, RN 03&04-2024, RN 05-2024, RN 06-2024, RN 07-2024, RN 08-2024, RN 10-2024, RN 11-2024, RN 12-2024, RN 13-2024, RN 14-2024, RN 15-2024, RN 16-2024) via /tmp/rn2024_inputs.md — no per-RN source-summary pages created; raw_paths cited inline in the year page.
+- RN 09-2024 absent from crawl — gap noted in page intro and index.
+- Normalization: "Release Notes 1 2 -2024" treated as RN 12-2024 (source typo); "03 -2024 and 04-2024" combined as RN 03&04-2024.
+- Features ingested: 63 total across visitor-management (16), meeting-rooms (11), desk-management (13), parking-management (9), meal-management (6), employee-experience (8), delegation (2), ets (4), ms-teams-integration (2), access-management (4), tags-desk-parking (1), employee-provisioning (1), mobile-app (3).
+- ⚠️ Flags:
+  - RN 06-2024 `allowOfficeBookingForOthers` (PB-39288): same property re-shipped/extended in RN 08-2024 (PB-41536) with broader Stratus/ETS + web/app/MS Teams scope — both entries retained; RN 08 noted as the fuller ship.
+  - RN 08-2024 `showSeparateDigipassFor` (PB-40516): this property also in RN 07-2024 (PB-37554); RN 07 is the original ship for meals DigiPass; RN 08 re-announces with refined scope — flagged inline.
+  - RN 16-2024 Flexible Desk Multi-Allocation (PB-40526): same PB appears in RN 08-2024 N-Level Allocation (PB-40525 adjacent) — these are distinct features; RN 16 is the multi-allocation ship for floor-view.
+  - RN 03&04-2024 slide 16 "First Integration" feature: slide text truncated in crawl; feature identity and enablement not extractable — noted "(see raw evidence)" with raw .pptx link.
+  - RN 14-2024 `overlappingTimeInMinutes` (PB-46012): 2024-era feature; check whether RN 15-2025+ desk-management changes affect this config.
+  - RN 13-2024 carbon footprint / ESG tracking (`enableCarbonFootprintTrackingInParking`): no dedicated esg-dashboard module page currently; mapped to parking-management per config scope. Consider stub for esg-dashboard if usage confirms standalone module.
+  - Several slides in source decks truncated mid-text — where PB or enablement was cut, noted as "(see raw evidence)" rather than guessing.
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, `client_secret`, or `eyJ...` JWT prefixes in output.

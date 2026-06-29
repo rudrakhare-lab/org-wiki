@@ -22,7 +22,7 @@ The release-notes history layer is a **dated changelog** ingested from the PM/sa
 |------|------|--------|
 | 2026 | [[history/release-notes-2026]] | Done — RN 01-2026 through RN 05-2026 |
 | 2025 | [[history/release-notes-2025]] | Done — RN 01-2025 through RN 15-2025 (incl. 09&10 combined) |
-| 2024 | — | Pending ingest |
+| 2024 | [[history/release-notes-2024]] | Done — RN 01-2024 through RN 16-2024 (excl. RN 09 — absent from crawl; RN 03&04 combined) |
 | 2023 | — | Pending ingest |
 | 2022 | — | Pending ingest |
 
@@ -142,3 +142,84 @@ The release-notes history layer is a **dated changelog** ingested from the PM/sa
 | Set Favourite Rooms | RN 05-2026 | [[modules/meeting-rooms]] |
 | Show `beginHour`/`endHour` on MR Timeline | RN 05-2026 | [[modules/meeting-rooms]] |
 | Meeting Rooms Reports: Room Name Filter | RN 05-2026 | [[modules/meeting-rooms]] |
+
+## 2024 Feature → Module Quick Map
+
+| Feature | RN | Module(s) |
+|---------|----|-----------|
+| Admin-Configurable Holidays/Non-Working Days | RN 01-2024 | [[modules/desk-management]], [[modules/employee-experience]] |
+| Meal QR Scan Enhancements | RN 01-2024 | [[modules/meal-management]] |
+| Parking Booking Mandatory | RN 01-2024 | [[modules/parking-management]] |
+| Buffer Time for Parking Booking | RN 01-2024 | [[modules/parking-management]] |
+| Multi-Day Visitor Invitations | RN 01-2024 | [[modules/visitor-management]] |
+| Team Calendar Custom Hierarchy Views | RN 02-2024 | [[modules/employee-experience]] |
+| Parking as Standalone Feature | RN 02-2024 | [[modules/parking-management]] |
+| VMS on Outlook Add-In | RN 02-2024 | [[modules/visitor-management]], [[modules/ms-teams-integration]] |
+| Meeting Rooms + Catering: Default Catering Order Status | RN 02-2024 | [[modules/meeting-rooms]] |
+| Meeting Rooms + Catering: Preserve Items on Delivery-Time Change | RN 02-2024 | [[modules/meeting-rooms]] |
+| Meeting Rooms + Catering: Edit Flow Status Stability | RN 02-2024 | [[modules/meeting-rooms]] |
+| Advance Booking Window — Configurable Opening Time | RN 03&04-2024 | [[modules/desk-management]] |
+| Remote Booking Enhancements: Auto-Cancellation + Check-in Buffer | RN 03&04-2024 | [[modules/desk-management]], [[modules/employee-experience]] |
+| Meal Feedback | RN 03&04-2024 | [[modules/meal-management]] |
+| Host Approval Workflow for Walk-in Visitors | RN 03&04-2024 | [[modules/visitor-management]] |
+| Standard Guest Form for Walk-in Visitors (OTP-less) | RN 03&04-2024 | [[modules/visitor-management]] |
+| N Bookings per Period (Quota Limit) | RN 05-2024 | [[modules/desk-management]] |
+| Project Code Field on Booking Form | RN 05-2024 | [[modules/desk-management]], [[modules/meeting-rooms]] |
+| VMS Self Check-in / Checkout Kiosk Workflow | RN 05-2024 | [[modules/visitor-management]] |
+| Cisco Integration for Guest Wi-Fi (VMS) | RN 05-2024 | [[modules/visitor-management]] |
+| Host Calendar Invite for Visitor Invitation | RN 05-2024 | [[modules/visitor-management]] |
+| Release Room: Cancel Associated Meeting | RN 05-2024 | [[modules/meeting-rooms]] |
+| Bookings for Someone Else | RN 06-2024 | [[modules/desk-management]], [[modules/employee-experience]] |
+| Meeting Rooms + Catering: Email on Order Update | RN 06-2024 | [[modules/meeting-rooms]] |
+| Meeting Rooms: Block Calendar for X Minutes | RN 06-2024 | [[modules/meeting-rooms]] |
+| VMS: Email to Host on Security Check-in | RN 06-2024 | [[modules/visitor-management]] |
+| VMS: Allow Entry for Pending-Status Visitors | RN 06-2024 | [[modules/visitor-management]] |
+| Meeting Rooms + Catering: Participant List in Dashboard | RN 06-2024 | [[modules/meeting-rooms]] |
+| DigiPass for Meals | RN 07-2024 | [[modules/meal-management]] |
+| Meal Bookings via Work Planner | RN 07-2024 | [[modules/meal-management]] |
+| Remove Meal Selection on Holiday/Weekly Off | RN 07-2024 | [[modules/meal-management]] |
+| Delegation Email Notifications | RN 07-2024 | [[modules/delegation]] |
+| Time-Based Desk Allocation | RN 07-2024 | [[modules/desk-management]] |
+| Commute Mandatory (Anti Ghost-Booking) | RN 08-2024 | [[modules/ets]], [[modules/employee-experience]] |
+| DigiPass Configurable to Specific Resource Types | RN 08-2024 | [[modules/visitor-management]], [[modules/meal-management]], [[modules/parking-management]] |
+| Bookings for Someone Else (extended) | RN 08-2024 | [[modules/desk-management]], [[modules/employee-experience]] |
+| N-Level Desk Allocation Hierarchy | RN 08-2024 | [[modules/desk-management]] |
+| Parking — Prevent Vehicle Info Editing + RBAC | RN 10-2024 | [[modules/parking-management]] |
+| Parking — Slot Count in Booking Form Filter | RN 10-2024 | [[modules/parking-management]] |
+| Transport Info on Employee Profile — Configurable | RN 10-2024 | [[modules/ets]], [[modules/mobile-app]] |
+| Post-Start-Time Booking Cancellation | RN 10-2024 | [[modules/desk-management]], [[modules/meeting-rooms]] |
+| Report Scheduling Experience Improvement | RN 10-2024 | [[modules/employee-experience]] |
+| Audit for Meeting Rooms | RN 10-2024 | [[modules/meeting-rooms]] |
+| Indemnification Support for WiS-ETS Sites | RN 11-2024 | [[modules/ets]], [[modules/employee-experience]] |
+| Booking Cancellation Reason Capture | RN 11-2024 | [[modules/desk-management]], [[modules/meeting-rooms]] |
+| Limit Meals During Booking Creation | RN 11-2024 | [[modules/meal-management]] |
+| Auto Tag Assignment Mapping | RN 11-2024 | [[modules/tags-desk-parking]], [[modules/employee-provisioning]] |
+| Delegation on Mobile App | RN 12-2024 | [[modules/delegation]], [[modules/mobile-app]] |
+| Accessibility Improvements for Visually-Impaired Users | RN 12-2024 | [[modules/employee-experience]], [[modules/mobile-app]] |
+| Team/Hierarchy Legends — Enhanced Visibility | RN 12-2024 | [[modules/desk-management]] |
+| VMS Report Enhancements — Column Additions | RN 12-2024 | [[modules/visitor-management]] |
+| Invite Visitors on Behalf of Someone Else | RN 12-2024 | [[modules/visitor-management]] |
+| Allow Front Desk to Edit Invite End Time | RN 12-2024 | [[modules/visitor-management]] |
+| Carbon Footprint Tracking for Parking Commute | RN 13-2024 | [[modules/parking-management]] |
+| Office-Level Check-In Mode Configuration | RN 13-2024 | [[modules/desk-management]], [[modules/employee-experience]] |
+| Access Card Device-to-Floor Mapping (SFTP) | RN 13-2024 | [[modules/access-management]] |
+| Badge Number Field on Front Desk | RN 13-2024 | [[modules/visitor-management]] |
+| Front Desk Approval/Rejection of Visitor Entry | RN 13-2024 | [[modules/visitor-management]] |
+| Type of Visitor & Flow Info on Front Desk Dashboard | RN 13-2024 | [[modules/visitor-management]] |
+| Hide Parking Slot Visibility from Employees | RN 14-2024 | [[modules/parking-management]] |
+| Multi and Recurring Booking Enhancements | RN 14-2024 | [[modules/desk-management]] |
+| Support for Overlapping Desk Bookings | RN 14-2024 | [[modules/desk-management]] |
+| Streamlined Check-in Workflow | RN 14-2024 | [[modules/desk-management]], [[modules/employee-experience]] |
+| Client-Configurable Check-In Reminder Templates on MS Teams | RN 14-2024 | [[modules/ms-teams-integration]] |
+| Timezone Abbreviations in Booking Emails | RN 14-2024 | [[modules/employee-experience]] |
+| External Office and Team-Wise Desk Utilisation APIs | RN 14-2024 | [[modules/desk-management]] |
+| RFID Number on Stratus Sites | RN 15-2024 | [[modules/access-management]] |
+| API-Based Access Card Integration Enhancements | RN 15-2024 | [[modules/access-management]] |
+| Parking ANPR (Automatic Number Plate Recognition) | RN 15-2024 | [[modules/parking-management]] |
+| Parking Vehicle Overstay Notifications | RN 15-2024 | [[modules/parking-management]] |
+| Office Eligibility Mapping — Transport Restriction | RN 16-2024 | [[modules/ets]], [[modules/employee-experience]] |
+| Ad-Hoc Shifts on WiS-ETS Sites (Web) | RN 16-2024 | [[modules/ets]] |
+| Admin Dashboard UI Improvements | RN 16-2024 | [[modules/desk-management]] |
+| Flexible Desk Allocation for Multi-Team Collaboration | RN 16-2024 | [[modules/desk-management]] |
+| Custom Fields in Walk-in Visitor Flow | RN 16-2024 | [[modules/visitor-management]] |
+| Invite Cancellation from Front Desk Dashboard | RN 16-2024 | [[modules/visitor-management]] |
