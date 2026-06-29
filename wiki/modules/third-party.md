@@ -5,7 +5,7 @@ owner: unknown
 depends_on: []
 used_by: []
 last_updated: 2022-03-10
-source: "[[sources/wis-slack-integration]]"
+source: "[[sources/wis-slack-integration]], [[sources/se-runbook-third-party]]"
 ---
 
 # Third-Party Integrations Module — Slack
@@ -69,6 +69,11 @@ This module does **not** expose WorkInSync HTTP endpoints. It consumes Slack API
 | **Bot channel ID** | Channel identifier for bot-context messaging |
 
 _Note: the source describes permissions **categorically** (what data is retrieved) rather than by Slack OAuth scope name. Specific Slack scopes (e.g., `users:read`, `users:read.email`, `chat:write`, `team:read`) are NOT named in this source. Update this table when an engineering reference or the Slack app manifest is ingested._
+
+## Related Runbooks
+- [[runbooks/slack-workspace-install]] — Slack workspace install + per-user "Connect your account" flow (self-service / CS-assisted; admin approval if third-party installs are restricted)
+
+_Source: [[sources/se-runbook-third-party]]_
 
 ## Open Questions
 - ⚠️ **DATA-STORAGE CONTRADICTION** — the source contains four mutually inconsistent statements about WIS's data handling via Slack:

@@ -373,3 +373,10 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 
 ## [2026-06-29 21:10] controller-edit | SSO username-type recency resolution
 - Updated: [[modules/sso]] — converted the "Username-type conflict" open question to a Current(2024)/Previously(2023) recency resolution. The 2024 Web SSO Complete Guide (v1.2, 2024-04-30) supports BOTH Email ID and Employee ID, superseding the older 2023 Azure doc's "Email-ID-only". Applied per Conflict & Recency ladder (newer dated source wins). Left a ⚠️ note that the Integration Surfaces SAML line still reads "Email ID" — deferred to graph/recency sweep.
+
+## [2026-06-29 21:40] ingest | SE Runbook — Third-Party (Slack) topic (Phase D)
+- Created: [[runbooks/slack-workspace-install]], [[sources/se-runbook-third-party]]
+- Updated: [[modules/third-party]] (appended [[sources/se-runbook-third-party]] to source:; added ## Related Runbooks section before ## Open Questions — no other prose changed; last_updated preserved 2022-03-10), [[index]] (counts 147→149, Runbooks 28→29, Sources 51→52)
+- Sources: 1 doc — WorkInSync Slack Integration (v1.0, 2022-03-10), the docx variant of the same doc the module already sources as a PDF ([[sources/wis-slack-integration]]). Same content; no new facts. Added the missing operational install runbook + homed the crawl docx.
+- Secrets redacted: none (no Slack tokens / JWTs / client_secret in source).
+- Flags: carried forward — ⚠️ 4-way data-storage contradiction in the 2022 doc (do not cite for compliance); unnamed backing modules for booking/check-in; missing Slack OAuth scope names; 2022 source freshness. No new evidence resolves these.
