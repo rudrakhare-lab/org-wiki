@@ -5,7 +5,7 @@ owner: unknown
 depends_on: []
 used_by: [ms-teams-integration]
 last_updated: 2024-09-25
-source: "[[sources/sso-oauth-onboarding]], [[sources/sso-integration-sop]], [[sources/sso-okta]], [[sources/sso-azure-ad]]"
+source: "[[sources/sso-oauth-onboarding]], [[sources/sso-integration-sop]], [[sources/sso-okta]], [[sources/sso-azure-ad]], [[sources/se-runbook-sso]]"
 ---
 
 # SSO Module
@@ -65,15 +65,19 @@ WorkInSync is the Service Provider in all SSO flows. Two protocol surfaces:
 
 _Note: OAuth ClientId and Client Secret are shown as placeholders — the source's "Sample Data" values look like real Google OAuth credentials and are not reproduced in the wiki._
 
+## Related Runbooks
+- [[runbooks/sso-integration-setup]] — end-to-end SE onboarding flow: TechOps intake, SAML/OAuth path selection, SP metadata exchange, IdP-specific steps (Okta, Azure AD), mobile SSO enablement, validation, cert rotation
+
 ## Open Questions
 - ⚠️ Bidirectional-link asymmetry — ms-teams-integration declares depends_on: [sso] (grounded in the Teams doc's explicit Azure AD identity reference), but the SSO source docs do not reciprocally mention MS Teams. Source-fidelity prevails over mechanical bidirectionality. The link is real; the SSO docs simply predate or don't address the Teams integration. Tier 2.5 endgame should reconcile all such one-sided links (including visitor-management ↔ safe-reach noted from Wave A.3).
-- ⚠️ **Username-type conflict** between two SSO source docs:
-  - Azure SAML doc: *"WorkInSync currently supports only one username type: i.e. Email ID (Other username type e.g. employee ID are not supported as of now)"*
-  - SOP doc lists as a TO-ticket intake field: *"UserName Type: Email ID or Employee ID?"*
-  The technical doc (Azure SAML) is more authoritative for current behavior (Email ID only); the SOP is asking the intake question. Confirm whether Employee ID is supported in any flow.
+- **Username-type — resolved by recency (both Email ID and Employee ID supported):**
+  - **Current (2024):** the MoveInSync Web SSO Complete Guide (v1.2, 2024-04-30) explicitly supports **both Email ID and Employee ID** as username types. _Source: [[sources/se-runbook-sso]]._
+  - **Previously (2023):** the Azure SAML doc stated *"WorkInSync currently supports only one username type: i.e. Email ID (Other username type e.g. employee ID are not supported as of now)"* — superseded by the newer 2024 guide.
+  - The SOP's TO-ticket intake field *"UserName Type: Email ID or Employee ID?"* is consistent with the current (both-supported) behavior.
+  - ⚠️ The Integration Surfaces section above still reads `Username type: Email ID` (from the older 2023 doc) — flagged for the graph/recency sweep to update the SAML surface line to reflect both types.
 - ⚠️ **Okta doc "SCIM" misnomer** — the Okta SAML doc's Document-Name field reads "SSO with SCIM to WorkInSync (OKTA)", but its content is unambiguously SAML 2.0 SSO. SCIM is the *provisioning* protocol (covered by [[modules/employee-provisioning]]), not SSO. Template residue; do not conflate.
 - **OAuth-vs-SAML protocol coexistence** — WorkInSync SSO supports BOTH SAML 2.0 (workinsync.io SP) and OAuth 2.0/OIDC (auth.moveinsync.com/mis-auth). The sources do not rank one as "standard" vs "alternate"; both are offered. Implementers must pick the protocol matching their IdP and use the correct service surface.
-- **OAuth doc is undated** — MIS_OAuth_OnBoarding.pdf has no version/date/control table. Freshness unknown; treat as a bare integration guide.
+- **OAuth doc is undated** — MIS_OAuth_OnBoarding.pdf has no version/date/control table. Freshness unknown; treat as a bare integration guide. Note: a 2024 Complete Guide now exists (v1.2, 30/04/2024) — see [[sources/se-runbook-sso]] — but it covers SAML/Azure AD only and does not address the OAuth surface, so this question remains open.
 - **Regional site types** — the SOP names Production SG and Production Mumbai (plus POC/UAT) with distinct SP metadata files per site (parallels the .com/.in split elsewhere). Clients must use the SP metadata matching their site.
 - **Duplicate filing** — "WorkInSync SSO integration - Azure AD.pdf" exists identically in both `raw/modules/sso/` and `raw/modules/employee-provisioning/`. The `sso/` copy is canonical (ingested here). The `employee-provisioning/` copy is left in place (documentation-hygiene item for a future pass; not deleted).
 - **Module owner not named** — authors across docs: Manvi, Nitin Awasthi, Aditya Dutt (SAML); Rishabh (Okta); Shruthi Naik (SOP). Approvers: Nitin Awasthi, Akash M, Ujjwal Trivedi, Dheeraj. The SOP names Emp-exp as the owning POD, but no single owner team is stated for the module.
