@@ -36,7 +36,7 @@ Auto-generated on 2026-06-09. Total configs: **157**.
 | `consentCheckboxContentSafeReach` | Defines consent checkbox content for Safe Reach kiosk. | STRING |  | .com only |
 | `controlSearchSections` | Controls visibility of sections in Front Desk search dropdown. | LIST |  | both |
 | `creatorNotifications` | Controls creator notifications (backend property). | JSON |  | both |
-| `DefaultEndTimeOfEmployeeBooking` | Defines default end time for employee booking. | INTEGER |  | .com only |
+| `DefaultEndTimeOfEmployeeBooking` | Defines default end time for employee booking created via floor kiosk employee flow. Value `1439` = 23:59 (end of day). Set alongside `isEmployeeFlowEnabled`. | INTEGER |  | .com only |
 | `defaultInviteTitle` | Defines default title for Invite Form. | STRING |  | both |
 | `defaultKioskBookingDurationInMinutes` | Defines fixed visit duration for each visitor check-in. | INTEGER |  | both |
 | `defaultVisitTypeSelection` | Controls default selection behavior for Type of Visit field. | BOOLEAN |  | both |
@@ -95,7 +95,7 @@ Auto-generated on 2026-06-09. Total configs: **157**.
 | `inviteFormDefaultOfficeSelection` | Defines default office selection in Invite Visitor form. | BOOLEAN |  | both |
 | `is2StepCheckInEnabled` | Enables 2-step check-in and check-out process. | BOOLEAN |  | both |
 | `isEditEndTimeOnFrontDeskEnabled` | Enables editing of invite end time on Front Desk. | BOOLEAN |  | both |
-| `isEmployeeFlowEnabled` | Enables employee check-in flow on kiosk. | BOOLEAN |  | both |
+| `isEmployeeFlowEnabled` | Enables employee check-in flow on kiosk. Sub-key of `visitorKioskConfigs` JSON blob. Set `true` to activate; pair with `employeeDescriptionHeaderText` (multilingual header) and `DefaultEndTimeOfEmployeeBooking = 1439`. See [[modules/floor-kiosk]] §Employee Flow Kiosk. | BOOLEAN |  | both |
 | `IsGuestWifiEnabled` | Enables or disables Guest Wi-Fi. | BOOLEAN |  | both |
 | `isTemporaryCheckoutEnabled` | Enables temporary checkout option on Front Desk. | BOOLEAN |  | both |
 | `isVisitorCheckinMsTeamsNotificationEnabled` | Enables visitor check-in notifications via email and MS Teams. | BOOLEAN |  | both |
@@ -160,9 +160,9 @@ Auto-generated on 2026-06-09. Total configs: **157**.
 | `visitorCheckinMsTeamsHeaderTemplate` | Defines salutation header for MS Teams visitor check-in notification. | STRING |  | .com only |
 | `visitorCheckinMsTeamsTemplate` | Defines visitor check-in email template. | JSON |  | both |
 | `visitorCheckoutMsTeamsTemplate` | Defines MS Teams template for visitor check-out notification. | JSON |  | both |
-| `visitorFormsMetaData` | Not in use. | LIST |  | .com only |
+| `visitorFormsMetaData` | Consul JSON array of custom form field definitions for self-checkin tablet flow. Each entry has: `fieldType`, `fieldInputType`, `title`, `configName`, `subFieldValue`, `backedFieldType`, `validators`, `parentConfigValue` (scopes field to visitor type e.g. `businessGuest`, `contractor`, `employee`). See [[modules/floor-kiosk]] §Self-Checkin Tablet Flow. Note: auto-gen says "Not in use" but SE runbook doc shows active usage for self-checkin — status unconfirmed; verify with owning team. ⚠️ Conflict with auto-gen "Not in use" label. | LIST |  | .com only |
 | `visitorFormsMetaDataPWC` | Handles profile and custom fields in VMS self check-in flow (PWC). | LIST |  | both |
-| `visitorKioskConfigs` | Handles UI formatting for VMS self check-in flow. | JSON |  | both |
+| `visitorKioskConfigs` | Handles UI formatting for VMS self check-in flow. Contains sub-keys including `isEmployeeFlowEnabled` (employee flow toggle) and `employeeDescriptionHeaderText` (multilingual header). See [[modules/floor-kiosk]] §Employee Flow Kiosk. | JSON |  | both |
 | `visitorNotifications` | Controls visitor notifications. | JSON |  | .com only |
 | `visitorProfileFields` | Controls visitor profile fields for Walk-in flow. | JSON |  | both |
 | `visitorProfilePhotoUpload` | Controls whether profile photo is mandatory in invited flow. | BOOLEAN |  | both |
@@ -171,3 +171,28 @@ Auto-generated on 2026-06-09. Total configs: **157**.
 | `vmsInviteTrigger` | Triggers visitor invite based on configured list. | LIST |  | both |
 | `vmsQrCodeTrigger` | Controls sending DigiPass and checkout QR via SMS or email. | LIST |  | both |
 | `walkInEnabled` | Not in use. | BOOLEAN |  | .com only |
+
+<!-- BEGIN MANUAL NOTES — do not overwrite on auto-regen -->
+## Floor Kiosk / Self-Checkin Notes (hand-curated 2026-06-29)
+
+The following properties were enriched based on SE runbook source docs (`se-runbook-floor-kiosk` ingest, 2026-06-29). The auto-generated descriptions above were augmented — re-running the config generator may revert these to shorter descriptions. Preserve these notes manually on regen.
+
+| Property | Additional context |
+|----------|--------------------|
+| `isEmployeeFlowEnabled` | Sub-key of `visitorKioskConfigs`; not standalone. Must be paired with `employeeDescriptionHeaderText` and `DefaultEndTimeOfEmployeeBooking = 1439`. See [[modules/floor-kiosk]] §Employee Flow Kiosk. |
+| `DefaultEndTimeOfEmployeeBooking` | Value `1439` = 23:59 end-of-day. Auto-gen server = `.com only` — source doc does not specify server; verify whether `.in` also supports this. |
+| `visitorFormsMetaData` | Auto-gen marks "Not in use" but SE runbook (2026-06-29) shows active JSON schema usage for self-checkin tablet flow. ⚠️ Conflict — verify current status with owning team. |
+| `visitorKioskConfigs` | JSON blob that contains `isEmployeeFlowEnabled` and `employeeDescriptionHeaderText` as sub-keys. Source: Employee Flow Setup doc. |
+
+_Source: [[sources/se-runbook-floor-kiosk]]_
+
+## Notification Setup Notes (hand-curated 2026-06-29)
+
+The following property was identified in SE runbook docs (`se-runbook-visitor-management` ingest, 2026-06-29) as required for VMS notification panel access but is **not** a PMS property — it lives in the Stratus privilege service.
+
+| Item | Note |
+|------|------|
+| `PrivilegeConfigurations_Visitor_Management_Notifications` | **Privilege (not a PMS property).** Add to each role (e.g. RECEPTIONIST, ADMIN) that should access the notification settings panel in the VMS UI. Not in the auto-generated config table. See [[runbooks/visitor-notifications-setup]] §Step 4. |
+
+_SE-confirmed via [[sources/se-runbook-visitor-management]]_
+<!-- END MANUAL NOTES -->

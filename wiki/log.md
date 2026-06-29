@@ -255,3 +255,235 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
   - Guard IOT app URL has `-beta` hostname; "OLD Guard App link" still present; amenities bulk template on a staging URL.
   - `floorBackgroungImage` body key misspelling preserved verbatim.
 - Tracer hardened this wave: tiered corpus + checks space-free identifiers/URLs only (multi-word prose spans skipped) → trustworthy low-noise NOT-IN-DOC counts.
+
+## [2026-06-29 15:30] ingest | SE Runbook Phase D — MEAL pilot (first crawled-corpus topic)
+- Context: Phase D of the SE-runbook plan (Rev 4). Crawler ran (325 done / 210 unique docs, in gitignored `raw/se-runbook/crawl/`, merged PR #28). This is the first per-topic ingest of the crawled corpus + release-note history, on clean branch `feat/se-runbook-ingest`.
+- Created: [[runbooks/meal-booking]] (7-step SE setup: cafeteria premise → office map → meal Consul config → enable mealPlanningEnabled → counters → counter-mapping upload → QR), [[sources/se-runbook-meal-booking]].
+- Updated: [[modules/meal-management]] (added SE Setup Workflow + Key Config Properties table + Related Runbooks; existing curation preserved per §4 diff-and-decide; prior 2025-05-05 last_updated retained as provenance), [[configs/booking-rule-engine]] (filled 6 blank meal defaults: allowedMealBookingPerEmployee=1, enableMealBookingNudge=false, enableMealConfigureKiosk=false, enableSeparateMealOption=false, mealCancelCutoffInMinutes=-1440, mealFinalStage=['delivered','DELIVERED']), [[configs/emp-experience-common]] (excludeMealOnlyBookingsFromActiveBookingCount=false; mealCutoffInMinutes="default not documented"), [[index]] (Runbooks 5→6, Sources 36→37, total 108→110).
+- 🔴 Secrets: redacted JWT bearer tokens in the meal API/curl source (Create Counter etc.) to `<token>` placeholders before authoring; verified 0 real tokens in committed pages.
+- Flags: ⚠️ 4 new properties (`mealBookingEnabled`, `mealCheckinOptions`, `enableMealFallbackFlow`, `enableMealQrPrintButtonenableMealQrPrint`) not in config catalog — flagged in meal-management Open Questions to confirm with Meal team (NOT asserted as fact). ⚠️ `enableMealQrPrintButtonenableMealQrPrint` is a likely source/OCR concatenation of two names — flagged for verification. No date-conflicts (all additions / blank-default fills). Example values (premiseType, BUIDs, GUIDs, tenantIds) flagged as placeholders throughout.
+- Verification: safety review passed (no leaked secrets; augment-not-overwrite confirmed via diff). Per-topic review approved by user.
+
+## [2026-06-29 16:05] ingest | SE Runbook Phase D — PARKING topic
+- Created: [[runbooks/parking-tag-and-vehicle-setup]] (vehicle sub-types SEDAN/SUV…, BUID mapping, parking-tag creation, QR level/slot), [[runbooks/parking-dynamic-policy]] (dynamic-policy tag rules, employee/slot bulk-upload, BLOCK_HOTSEAT), [[sources/se-runbook-parking]].
+- Updated: [[modules/parking-management]] (added vehicle sub-type / tag / QR / integration-API sections + Related Runbooks; existing curation + all original sources preserved), [[runbooks/parking-premise-setup]] (forward cross-links only), [[configs/emp-experience-common]] (`vehicleCreationDuringParkingFor` description enriched; default left blank — not stated in source), [[index]] (Runbooks 6→8, Sources 37→38, total 110→113).
+- 🔴 Secrets: redacted 5 JWT `x-wis-token` occurrences across vehicle-creation + QR docs to `<token>`; redacted 2 token-prefix fragments in the source-summary audit note.
+- Flags: no conflicts (all additive). Runbook Open Qs: prod-hostname ambiguity (`wis-premise-beta` vs `wis-premise.workinsync.io`); `vehicleCreationDuringParkingFor` default not documented; several parking docs undated. Correctly skipped visitor-service noise (the "Discovery questions" doc's props are VISITOR, not parking).
+- Verification: token scan clean after redaction; augment confirmed (original parking sources retained on the module page).
+
+## [2026-06-29 16:40] ingest | SE Runbook Phase D — SANITIZATION topic (NEW module)
+- Created: [[modules/sanitization]] (NEW module — seat sanitization: HOUSEKEEPER QR-scan cleaning, cut-off; + a Vaccination Status section; status active; depends_on [desk-management, guard-app-kiosks]), [[runbooks/seat-sanitization]] (NEW runbook — HOUSEKEEPER user creation, QR-scan enable/disable, sanitize cut-off, from the main-doc SE sections), [[sources/se-runbook-sanitization]].
+- Updated: [[index]] (Modules 23→24, Runbooks 8→9, Sources 38→39, total 113→116).
+- Sources: 12 main-doc sanitization sections (core SE procedure) + 9 crawled docs. 7 sanitization/vaccination config props documented in the module's config table (`SANITISATION_STATUS_ENABLED`, `enableQrCodeForSeatSanitize`, `seatSanitizeCuttoffInMinute`, `vaccinationBookingEnabled`, `showVaccinationOptionInSideMenu`, `blockUserIfNotVaccinated`, `vaccinationMaxApprovalDays`).
+- 🔴 Secrets: subagent EXCLUDED a live JWT in main-doc section 59 (a meeting-room onboarding curl, not sanitization) rather than import-then-redact → 0 tokens in deliverables (verified).
+- Flags: ⚠️ module-placement (standalone `sanitization` vs fold into desk-management/guard-app-kiosks) flagged in Open Questions — not forced. ⚠️ reciprocal `used_by` on desk-management/guard-app-kiosks pending graph-consistency sweep. ⚠️ `seatSanitizeCuttoffInMinute` name implies DOUBLE but source shows boolean — flagged for the team. ⚠️ vaccination may warrant its own module — flagged. Example values (BUID `eu-TestBed`, HOUSEKEEPER `Jovil`/phone, role:"3"→WORKER) flagged as placeholders.
+- Verification: token scan clean; all-new content (no overwrite); per-topic review pending user.
+
+## [2026-06-29 17:10] ingest | SE Runbook Phase D — ETS topic (filled the central stub)
+- Updated: [[modules/ets]] (**stub → active**: full Overview/Purpose/Key Features/Data Entities/API Endpoints/ETS Configs/Open Questions; used_by extended desk+guard+parking → +meal +floor-kiosk; original office-premise facts preserved + expanded; **source frontmatter restored to cite BOTH se-runbook-ets + se-runbook-ets-office-premise** after author had replaced it). [[index]] (ets row stub→active; Runbooks 9→10; Sources 39→40; total 116→118).
+- Created: [[runbooks/ets-data-sync]] (ETS→WIS employee data sync — SFTP/API channels, TechOps ticket fields, SLA tiers, P0 escalation), [[sources/se-runbook-ets]].
+- ETS configs captured: `indemnifyOfficeBookingTransport` (BOOLEAN, default false, Jira-only PB-52960), `commuteMandatory` (example true), `showCabs` (correctly attributed to BookingRuleEngine, NOT ETS service) + indemnification-feature flags. Closes part of the CLAUDE.md §1 "ETS configs are Jira-only" gap.
+- 🔴 Secrets: redacted 1 RS256 JWT in the API auth doc → `<token>`. 0 tokens in deliverables.
+- Cross-linked (NOT duplicated): SCIM/employee-sync → [[modules/employee-provisioning]]; meeting docs → [[modules/meeting-rooms]]; SSO → [[modules/sso]]; face-recognition → floor-kiosk/guard. Filtered heavy "data sync" keyword noise.
+- Flags: ⚠️ ETS setup-time vs runtime dependency direction unresolved — reciprocal depends_on on the 5 consuming modules deferred to graph-consistency sweep. ⚠️ owner unknown; indemnify/commute/showCabs defaults not documented (Jira-only). Example values (office GUIDs, BUIDs) flagged as placeholders.
+- Verification: token scan clean; stub-fill preserved+expanded original facts (office API, GUID reference retained); source provenance restored.
+
+## [2026-06-29 17:45] ingest | SE Runbook Phase D — ACCESS-MANAGEMENT topic
+- Created: [[runbooks/access-card-integration]] (SE setup — REST vendor onboarding + auth/token flow + endpoints; SFTP file-based mode; check-in-mode value reference; troubleshooting), [[sources/se-runbook-access-card]].
+- Updated: [[modules/access-management]] (enriched Key Features + SE Setup Workflow + config table + Related Runbooks; existing API/SFTP content reworded+expanded, NOT lost; all 3 original sources preserved + se-runbook-access-card added), [[configs/booking-rule-engine]] (8 check-in props filled), [[configs/emp-experience-common]] (`lastSwipeAsCheckoutTimeForBUID` default-filled), [[index]] (Runbooks 10→11, Sources 40→41, total 118→120).
+- 🔴 Secrets: redacted 3 credentials (1 base64 client_id:client_secret + 2 JWT samples) → `<bearer-token>`/`<base64(...)>`. Confirmed 0 `eyJ…` in any page.
+- Config notes: `defaulBookingHoursIfExtCheckin` typo preserved verbatim. Defaults `false` where source documents opt-in flags; `defaulBookingHoursIfExtCheckin`/`extCheckinToBookingBuffer`/`officeCheckInModeWeb/App`/`lastSwipeAsCheckoutTimeForBUID` marked "not documented" (source states no default).
+- Flags: no conflicts (officeCheckInMode values had no prior wiki entry). Open Qs: SFTP swipe-CSV column schema not in source; `lastSwipeAsCheckoutTimeForBUID` LIST syntax unconfirmed; pre-existing premiseId semantic open-question preserved.
+- Verification: augment confirmed (reworded-not-lost; sources preserved); token scan clean; config fills in-place (meal rows untouched).
+
+## [2026-06-29 18:15] ingest | SE Runbook Phase D — EMPLOYEE-PROVISIONING topic
+- Created: [[runbooks/employee-data-sync-scim]] (SCIM provisioning setup for Azure AD / Okta + SFTP CSV mode + troubleshooting from the Internal guide; scoped to protocol/IdP, cross-links ets-data-sync for the ETS process), [[sources/se-runbook-employee-provisioning]].
+- Updated: [[modules/employee-provisioning]] (enriched SCIM 2.0 detail, IdP attribute mapping, Stratus data-sync API, role/privilege mgmt; 129→227 lines; 3 original sources preserved + new appended; last_updated → 2025-03-06 = newest source doc date per diff-and-decide), [[index]] (Runbooks 11→12, Sources 41→42, total 120→122).
+- Overlap handling: ets-data-sync (ETS TechOps process) vs this (SCIM/SFTP protocol + IdP setup) — cross-linked 5×, not duplicated; ambiguity (2025 Stratus Direct API vs older ETS API) flagged in Open Questions.
+- 🔴 Secrets: the 1 doc with a real JWT (PB-22330 sender-email) was off-topic noise → excluded entirely (not ingested). 0 `eyJ…` in any page.
+- Config: provisioning is protocol-level — no PMS config properties documented (none filled).
+- Flags: Open Qs — SCIM secret-token expiry not documented; IdP group→WIS-group mapping not supported; Stratus role API endpoints not in provisioning docs. Cross-linked noise: visitor-bulk-upload→visitor, meeting→meeting-rooms, MS-Teams→ms-teams, SSO→sso.
+- Verification: token scan clean; augment (+98 lines, sources preserved).
+
+## [2026-06-29 18:45] ingest | SE Runbook Phase D — FLOOR-KIOSK topic
+- Created: [[runbooks/floor-kiosk-device-setup]] (Android/iPad kiosk enrollment in Scalefusion MDM — afw#mobilock + APK methods, iPad variants, RemoteCast, post-enrollment checklist; cross-links floor-plan-upload + meeting-rooms), [[sources/se-runbook-floor-kiosk]].
+- Updated: [[modules/floor-kiosk]] (dual-source Hardware Specs comparison + Unsupported-HW table, Scalefusion MDM section, Employee-Flow kiosk, Self-Checkin tablet flow; 3 original sources preserved + new appended; last_updated → 2026-02-02 = Spec Sheet date), [[configs/visitor-management]] (augmented `isEmployeeFlowEnabled`, `DefaultEndTimeOfEmployeeBooking`=1439, `visitorFormsMetaData`, `visitorKioskConfigs` — these live in VISITOR service; manual-notes marker block added), [[index]] (Runbooks 12→13, Sources 42→43, total 122→124).
+- Conflicts (dual-claimed ⚠️, not silently resolved): GPU min Adreno 619 vs 640; CPU freq spec mismatch; `visitorFormsMetaData` "Not in use" (auto-gen) vs active SE usage; `isEmployeeFlowEnabled` standalone-PMS-row vs sub-key of `visitorKioskConfigs`.
+- 🔴 Secrets: 0 (none in source; enrollment codes/QRs were blank placeholders).
+- Flags: device naming convention only has an MR-kiosk example (flagged); meeting-room-kiosk Scalefusion content cross-linked to meeting-rooms, not duplicated.
+- Verification: token scan clean; augment (sources preserved; config fills in-place, other props untouched).
+
+## [2026-06-29 17:05] ingest | SE Runbook — Digital Wayfinding topic (Phase D)
+- Created: [[runbooks/digital-wayfinding-setup]], [[sources/se-runbook-digital-wayfinding]]
+- Updated: [[modules/digital-wayfinding]] (enriched 75→214 lines: value/use-case, product-architecture ASCII reconstruction w/ caveat, DIY Floorplanner table, API endpoints), [[index]] (counts 124→126, Runbooks 13→14, Sources 43→44)
+- Source docs: Digital Wayfinding SOP + SE-runbook crawl (Conwo WorkInSync Docs Drive)
+- Flags: product-architecture diagram is a reconstruction from SOP screenshots/text — marked with caveat. `ENABLE_INDOOR_NAVIGATION` default not stated in source (left blank pending confirm). Token scan: CLEAN (no secrets in source).
+
+## [2026-06-29 17:35] ingest | SE Runbook — Desk Management topic (Phase D) — STUB → ACTIVE
+- Created: [[runbooks/desk-booking-setup]], [[runbooks/recurring-booking-setup]], [[runbooks/booking-approval-camunda]], [[sources/se-runbook-desk-management]]
+- Updated: [[modules/desk-management]] (stub→active, 69→141 lines; all §2a sections filled; depends_on: [tags-desk-parking]; used_by preserved; 4 API endpoints from 2024 Booking API doc), [[index]] (added missing desk-management Modules row; counts 126→130, Runbooks 14→17, Sources 44→45)
+- Sources: 6 docs (Booking API 2024, Recurring Booking, MODULE 2 Desk Booking overview, Desk Allocation xlsx, Booking Approval Camunda, Perpetual Digi Pass 2021 pptx)
+- Config properties: 19 documented (BOOKING-RULE-ENGINE ×3, EMP-EXP-COMMON-CONFIG ×1, WIS-SEAT-BOOKING ×15) — no defaults stated in source; captured as open questions
+- Secrets redacted: 2 RS256 JWTs (pre-redacted), Basic-auth base64 credential → `<base64(username:password)>`, internal email userId → `<userId>`, Camunda demo creds omitted; controller also scrubbed credential fragment + real email from source-summary disclosure prose
+- Flags: ⚠️ Perpetual Digi Pass doc is 2021 historical only (current enablement unverified) — Previously-note + open question. Graph sweep TODO: `sanitization` lists desk-management in depends_on but desk-management used_by omits it; `implementation` reciprocal unconfirmed; consider new [[entities/desk]] page; `booking-rule-engine` has no module page (config-only).
+
+## [2026-06-29 18:05] ingest | SE Runbook — Tags-Desk-Parking topic (Phase D) — STUB → ACTIVE
+- Created: [[runbooks/tag-and-dynamic-fields-setup]], [[sources/se-runbook-tags-desk-parking]]
+- Updated: [[modules/tags-desk-parking]] (stub→active; all §2a sections filled; depends_on: []; used_by += desk-management → [meeting-rooms, parking-management, desk-management] — closes desk-management reciprocity), [[index]] (added missing tags-desk-parking Modules row; counts 130→132, Runbooks 17→18, Sources 45→46)
+- Sources: 4 docs (Parking Tag Creation, Tagging&DynamicFields curl, SeatTypeMapping xlsx, + 1 bundled visitor doc EXCLUDED). Existing parking runbooks (parking-tag-and-vehicle-setup, parking-dynamic-policy) linked, not duplicated.
+- Config properties: 3 Consul-backed dynamicFields (DynamicData, transport, licenseNo on wisSeatBooking) — NOT PMS xlsx props; no defaults stated
+- Secrets redacted: HS512 x-wis-token JWTs (pre-redacted), example BUID UUID → <BUID>
+- Flags: ⚠️ Doc 4 (businessGuests/contractor/deliveryPersonnel) is VISITOR-management dynamic-fields config bundled by mistake — needs separate visitor ingest (NOT modelled here). SeatTypeMapping upload mechanism undocumented. Beta host wis-seat-beta.moveinsync.com in source — confirm prod URL. Graph sweep: room-tag entity used_by should add desk-management + parking-management.
+
+## [2026-06-29 12:45] ingest | SE Runbook — Meeting Rooms (Phase D)
+- Created: [[runbooks/meeting-room-setup]], [[runbooks/meeting-room-catering-setup]], [[runbooks/outlook-room-integration]], [[sources/se-runbook-meeting-rooms]]
+- Updated: [[modules/meeting-rooms]] (appended [[sources/se-runbook-meeting-rooms]] to source: frontmatter; added ## Related Runbooks section before ## Open Questions — no other prose changed), [[index]] (counts 132→136, Runbooks 18→21, Sources 46→47; added 3 runbook rows + 1 source row)
+- Config properties confirmed by SE sources: MEETING_ROOM_RELEASE_IF_NO_CHECKIN recommended=15min (module page already had this — SE doc confirms operational recommendation); new surface: ALLOW_ONLY_ONE_MEETING_ROOM_AT_ONCE, BOOK_MEETING_ROOM_BY_EMPLOYEES, SHOW_SPECIAL_REQUEST_ON_MEETING, ENABLE_REMINDER_NOTIFCATION (typo preserved), RELEASE_MR_NOTIFICATION, ENABLE_NEXT_MEETING_REMINDER
+- Secrets redacted: none (source material scanned clean)
+- Flags: ⚠️ Outlook Pre-Impl Discovery is a 2021 document — outlook-room-integration.md marked stale; all consent-URL/endpoint details need verification against current wis-integration service before client engagement. ⚠️ cateringLimits is .com-only — .in clients cannot configure participant-count cut-offs. ⚠️ Control doc is 52k chars; only first ~13k captured in SE crawl input — exhaustive acceptance criteria not modelled.
+
+## [2026-06-29 19:15] ingest | SE Runbook Phase D — VISITOR-MANAGEMENT (VMS) topic
+- Created: [[runbooks/visitor-badge-printer-setup]], [[runbooks/visitor-bulk-upload]], [[runbooks/visitor-notifications-setup]], [[runbooks/visitor-custom-fields-setup]], [[sources/se-runbook-visitor-management]]
+- Updated: [[modules/visitor-management]] (appended [[sources/se-runbook-visitor-management]] to `source:` frontmatter string; added `## Related Runbooks` section before `## Open Questions` — no other prose changed; `last_updated` NOT changed, preserved as 2023-07-11), [[configs/visitor-management]] (added "Notification Setup Notes" subsection in MANUAL NOTES block with `PrivilegeConfigurations_Visitor_Management_Notifications` — only genuinely-missing property from SE docs; all other SE-referenced properties already exist in auto-gen table), [[index]] (header counts 136→141; Runbooks 21→25; Sources 47→48; added 4 runbook rows + 1 source row — no new Modules row, visitor-management already present)
+- Config properties confirmed by SE sources: `BULK_OPERATION_VISITOR_BOOKING` (Consul-backed); `enabledBuidForVisitorConfigs` (master opt-in for property-controlled notifications); `notificationMetaData` / `notificationConfigs` (grouping+ID consistency rule confirmed); `hostNotifications` / `creatorNotifications` / `externalNotifications` (per-persona routing, externalNotifications=.com only); `formsMetaDataForWalkIn` (walk-in custom fields + Belongings cross-flow rule); `formsMetaDataForHostPWC` (invited-flow host fields + bulk-upload custom columns); `profileFieldsMetaData` ↔ `visitorBulkUploadData` key-matching gotcha confirmed; `visitorFormsMetaData`/`dynamicFields` per-visitor-type schema (hideOnWalkin, enableStandardWalkinVisitorForm)
+- Secrets redacted: none (source material scanned clean; `agilos.workinsync.io` is a tenant URL, not a credential)
+- Flags: ⚠️ Doc 1 (Visitor Management — Configuration 2024) text extract captured badge-printer specs only — full office-config enablement steps are in screenshots not captured by SE crawl. Runbook 1 faithfully covers printer hardware; see raw file for visual SOP. ⚠️ Doc 5 (DynamicFields JSON) is truncated at ~12.5k of 14.7k chars — `personalGuest` visitor type not captured; verify complete schema with owning team. ⚠️ Doc 5 was misfiled in tags-desk-parking batch (excluded there per 2026-06-29 18:05 log entry) — now correctly re-homed under visitor-management. ⚠️ `visitorFormsMetaData` auto-gen "Not in use" conflict (pre-existing, from floor-kiosk ingest) carried forward — SE custom-fields doc confirms active use; owning-team verification still needed.
+
+## [2026-06-29 20:30] ingest | SE Runbook — KIOSK topic (Phase D)
+- Created: [[runbooks/meeting-room-kiosk-setup]], [[sources/se-runbook-kiosk]]
+- Updated: [[modules/guard-app-kiosks]] (added §Production vs Beta Backend Endpoints table; updated Key Features note to clarify backend host confirmed; updated Open Questions to distinguish backend (confirmed) from front-end IOT URL (still open); appended `[[sources/se-runbook-kiosk]]` to `source:` frontmatter; bumped `last_updated` to 2026-06-29), [[modules/meeting-rooms]] (appended `[[sources/se-runbook-kiosk]]` to `source:` frontmatter; added `[[runbooks/meeting-room-kiosk-setup]]` bullet to §Related Runbooks — no other changes, `last_updated` NOT changed, preserved as 2024-03-12), [[index]] (header counts 141→143; Runbooks 25→26; Sources 48→49; added 1 runbook row + 1 source row — no new Modules row)
+- Source docs: 3 docs — Prod URL reference (backend service endpoints), Meeting Room Kiosk Setup Control Document (v1.1, 2022-10-21), Meeting Room Kiosk Scalefusion Prerequisites
+- Endpoint confirmed: `mis-security-guard` PROD = `wis-premise.workinsync.io/mis-security-guard/`; Beta = `mis-security-beta1.moveinsync.com/mis-security-guard/`; EU-Green = `mis-security-green.eu.moveinsync.com/mis-security-guard/`
+- Secrets redacted: none (source material scanned clean; all URLs are service hostnames, not credentials)
+- Flags: ⚠️ Doc 1 confirms BACKEND service host only — front-end IOT Guard App URL question (the `-beta` hostname ambiguity) remains open. ⚠️ Control Document (Doc 2) is dated 2022-10-21 v1.1 but referenced in the SE crawl batch as "2025" — content treated as current SE procedure; verify kiosk URLs per-client as the team may have updated them. ⚠️ Scalefusion QR codes for meeting-room kiosk vs floor kiosk are different — must not be mixed; this gotcha is documented in the runbook. Graph sweep TODO: confirm bidirectionality — [[modules/floor-kiosk]] does not have `used_by: [meeting-rooms]` but meeting-room-kiosk-setup references the floor-kiosk runbook as a shared procedure; assess whether a `depends_on` relationship is warranted.
+
+## [2026-06-29 00:00] ingest | MS Teams Integration — Control Document (v1.1, 2022-06-20) + CS/Sales Universe Index
+- Created: [[runbooks/ms-teams-integration-setup]], [[sources/se-runbook-ms-teams]]
+- Updated: [[modules/ms-teams-integration]] (AUGMENTED — added `## Onboarding Pathways` section; added `## Features Exposed in Teams` section covering employee features, people-manager features, bot commands table, and personal+team tabs; updated Open Question #1 from fully-open to partially-resolved with ⚠️ staleness caveat; appended `[[sources/se-runbook-ms-teams]]` to frontmatter `source:` string; `last_updated` preserved at `2024-01-08` — NOT changed), [[index]] (header counts 143→145; Runbooks 26→27; Sources 49→50; added 1 Runbooks row + 1 Sources row — no new Modules row, no new Entities/Configs/Decisions rows)
+- Source docs: 2 docs — (1) CS/Sales App Universe index (navigation/index only, low content; treated as sales source-of-truth pointer); (2) MS Teams Integration Control Document v1.1 (2022-06-20, rich operational doc covering prerequisites, two onboarding pathways, install/consent flows, license management, feature set, bot commands, tabs)
+- Secrets redacted: NONE — source material scanned clean. `xyz@workinsync.io` is a placeholder example in the doc, not a credential.
+- Flags: ⚠️ Primary source is dated 2022 (v1.1, 2022-06-20) — feature list, bot commands, tab structure, pricing plans, consent UX, and onboarding landing-page flow should be verified against current product before client-facing use. ⚠️ Open Question #1 on ms-teams-integration partially resolved (features/bot/tabs now documented) but staleness of 2022 content means current feature set is still unverified. ⚠️ Free plan cap (≤50 users) and Standard/Professional feature-gating detail still defers to "WiS Pricing Page" — not reproduced in source. Graph sweep TODO: [[modules/desk-management]] and [[modules/employee-experience]] are implicitly involved (desk booking + WFH check-in via Teams) — assess whether a cross-module or `used_by` link is warranted.
+
+## [2026-06-29 21:00] ingest | SE Runbook Phase D — SSO topic
+- Created: [[runbooks/sso-integration-setup]], [[sources/se-runbook-sso]]
+- Updated: [[modules/sso]] (AUGMENTED — added `## Related Runbooks` section before `## Open Questions`; appended `[[sources/se-runbook-sso]]` to frontmatter `source:` string; softened "OAuth doc is undated" open question with note that 2024 Complete Guide exists but is SAML-only; `last_updated` preserved at `2024-09-25` — NOT changed; all other prose, Integration Surfaces section, and prior open questions untouched), [[index]] (header counts 145→147; Runbooks 27→28; Sources 50→51; added 1 Runbooks row + 1 Sources row — no new Modules row, no new Entities/Configs/Decisions rows)
+- Source docs: 2 docs — (1) MoveInSync Web Single Sign-On Complete Guide v1.2 (30/04/2024, SAML/Azure AD; authors: Arun/Nitin Awasthi/Shruthi Naik; approved Bhargav G); (2) Login seamlessly on MoveInSync app via SSO (mobile pptx, undated)
+- Secrets redacted: NONE — both source documents scanned clean. No OAuth client_secret, no GOCSPX-* tokens, no X509 cert blocks, no JWT/Bearer tokens, no real email addresses. Existing [[modules/sso]] OAuth section already uses <client_id>/<client_secret> placeholders from prior ingest.
+- Flags: ⚠️ USERNAME-TYPE EVOLUTION — 2024 Complete Guide (v1.2) explicitly lists BOTH "Email ID" and "Employee ID" as supported username types. This contradicts the older Azure AD PDF ("Email ID only, Employee ID not supported") that underlies the existing username-type open conflict in [[modules/sso]]. The 2024 guide is the newer and more authoritative source. Module page open question updated to note this; Integration Surfaces line ("Username type: Email ID") should be reviewed by module owner. The runbook captures this as a gotcha and defers winner selection to the TO team. ⚠️ last_updated rationale: 2024 Complete Guide is dated April 2024 (30/04/2024 = DD/MM/YYYY confirmed by v1.0 date 24/02/2022) which is OLDER than the module's current 2024-09-25 — KEPT. ⚠️ OAuth-undated question NOT resolved — the 2024 guide is SAML/Azure AD only; MIS_OAuth_OnBoarding.pdf freshness still unknown. ⚠️ SP metadata ACS URLs in the runbook (accounts.moveinsync.com) may differ in role from the module's Integration Surfaces `<client>.workinsync.io` per-client SP domain — not contradicted, but the relationship between the two URL patterns was not explained in the 2024 source; flagged as potential open question for graph sweep.
+
+## [2026-06-29 21:10] controller-edit | SSO username-type recency resolution
+- Updated: [[modules/sso]] — converted the "Username-type conflict" open question to a Current(2024)/Previously(2023) recency resolution. The 2024 Web SSO Complete Guide (v1.2, 2024-04-30) supports BOTH Email ID and Employee ID, superseding the older 2023 Azure doc's "Email-ID-only". Applied per Conflict & Recency ladder (newer dated source wins). Left a ⚠️ note that the Integration Surfaces SAML line still reads "Email ID" — deferred to graph/recency sweep.
+
+## [2026-06-29 21:40] ingest | SE Runbook — Third-Party (Slack) topic (Phase D)
+- Created: [[runbooks/slack-workspace-install]], [[sources/se-runbook-third-party]]
+- Updated: [[modules/third-party]] (appended [[sources/se-runbook-third-party]] to source:; added ## Related Runbooks section before ## Open Questions — no other prose changed; last_updated preserved 2022-03-10), [[index]] (counts 147→149, Runbooks 28→29, Sources 51→52)
+- Sources: 1 doc — WorkInSync Slack Integration (v1.0, 2022-03-10), the docx variant of the same doc the module already sources as a PDF ([[sources/wis-slack-integration]]). Same content; no new facts. Added the missing operational install runbook + homed the crawl docx.
+- Secrets redacted: none (no Slack tokens / JWTs / client_secret in source).
+- Flags: carried forward — ⚠️ 4-way data-storage contradiction in the 2022 doc (do not cite for compliance); unnamed backing modules for booking/check-in; missing Slack OAuth scope names; 2022 source freshness. No new evidence resolves these.
+
+## [2026-06-29 22:05] ingest | SE Runbook — Employee Experience topic (Phase D) — closes module phase
+- Created: [[runbooks/configurable-sender-email-setup]], [[sources/se-runbook-employee-experience]]
+- Updated: [[modules/employee-experience]] (added configurable-sender-email capability to Known Features + Related Runbooks section; appended source; partially resolved Open Question #1; last_updated preserved 2024-02-27), [[index]] (counts 149→151, Runbooks 29→30, Sources 52→53)
+- Source: 1 doc — PB-22330 Configurable sender email (emp-exp API + TC_1..TC_4 sender-resolution precedence). Service: EMAIL-EMP-EXPERIENCE.
+- Secrets redacted: 1 HS512 x-wis-token JWT → <HS512 JWT — redacted>. Sender addresses (noreply@workinsync.io / transport@moveinsync.com) kept — documented system addresses, not credentials.
+- Flags: PB-22330 note undated — confirm current behavior. ⚠️ Module phase of Phase D now COMPLETE (all clean-active + merge-review + stub modules ingested). Remaining: 65 release-notes history layer + graph-consistency/recency sweep.
+
+## [2026-06-29 22:40] graph-sweep | Phase D bidirectional-link & recency consistency pass
+- Tooling: /tmp/graph_sweep.py parses all 25 module frontmatter depends_on/used_by → flags asymmetries. Before: 7 asymmetries. After: 0.
+- ETS reciprocity (added `ets` to depends_on + body Dependencies, tagged _(setup-time)_): [[modules/desk-management]], [[modules/guard-app-kiosks]], [[modules/parking-management]], [[modules/meal-management]], [[modules/floor-kiosk]] (floor-kiosk: added a new ## Dependencies section). Updated [[modules/ets]] deferred-sweep note → resolved.
+- Sanitization reciprocity (added `sanitization` to used_by + body Used By): [[modules/desk-management]], [[modules/guard-app-kiosks]].
+- Entity reciprocity: [[entities/room-tag]] used_by += desk-management, parking-management (+ body Used By lines; bumped last_updated; added se-runbook-tags-desk-parking source).
+- Recency resolution: [[modules/sso]] Integration Surfaces username line → "Email ID or Employee ID" (2024 Complete Guide supersedes 2023 Azure doc); resolved the ⚠️ open-question note.
+- Declined edges (per §10 Rule 6 — no invented dependencies): `BOOKING-RULE-ENGINE` (config-only, no module page) on [[modules/guard-app-kiosks]] — documented as cross-cutting, not a depends_on; digital-wayfinding↔employee-experience (Drive filing only, not architectural) — converted to a non-edge traceability note on [[modules/employee-experience]].
+- Verification: re-ran graph_sweep.py → 0 asymmetries; all new wikilink targets confirmed present. No new pages (counts unchanged: 151/30/53).
+- Still open (content/freshness, NOT graph edges — deferred): ETS setup-vs-runtime dependency nature; ms-teams→desk/emp-exp soft surfacing (no confirmed dependency); personalGuest dynamic-field schema gap; Outlook-2021 + PB-22330 freshness; several `.com`-only configs.
+
+## [2026-06-29 18:30] ingest | Release Notes 2026 — RN 01-2026 through RN 05-2026 (Phase D history layer)
+- Created: [[history/release-notes-2026]], [[history/release-notes]]
+- Updated: [[index]] (total 151→153, added Release Notes: 2 counter, new ## Release Notes (History) section)
+- Sources: 5 × raw .pptx files (RN 01–05-2026) via /tmp/rn2026_inputs.md — no per-RN source-summary pages created in this batch; raw_paths cited inline in the year page.
+- Features ingested: 33 total across visitor-management (9), meeting-rooms (12), parking-management (3), meal-management (2), employee-experience (2), floor-kiosk (3), safe-reach (2), access-management (1), desk-management (3).
+- ⚠️ Flags:
+  - RN 01-2026 `enableOtpOverride`: consistent with existing [[modules/visitor-management]] curation. New companion property `failureReasonsOtp` not previously documented — noted inline; no wiki page rewrite needed.
+  - RN 01-2026 Safe Reach report (PB-61094) and DigiPass auto-send (PB-61094) share the same PB number in source — source text artifact; both features distinct.
+  - RN 05-2026 Room Name Filter (slide 16–17) and RN 01-2026 RFID column fix (slide 16–17): source deck text truncated at "ana…" / "inco…" — enablement/PB not extractable; raw .pptx linked in Linked Raw Evidence table.
+  - RN 05-2026 NDA Scroll-Gated (DPDPA): appears in RN 04-2026 source deck (slide 18–19, after PB-64462), not RN 05 — placed under RN 04-2026 entry accordingly.
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses, or secrets in output.
+
+## [2026-06-30 00:00] ingest | Release Notes 2025 — RN 01-2025 through RN 15-2025 (Phase D history layer, batch 2)
+- Created: [[history/release-notes-2025]]
+- Updated: [[index]] (total 153→154, Release Notes counter 2→3, added row for release-notes-2025), [[history/release-notes]] (2025 row marked Done with link; 2025 Feature→Module Quick Map section added)
+- Sources: 14 raw .pptx files (RN 01–08-2025, RN 09&10-2025 combined, RN 11–15-2025) via /tmp/rn2025_inputs.md — no per-RN source-summary pages created; raw_paths cited inline in the year page.
+- Features ingested: 58 total across desk-management (22), meeting-rooms (7), parking-management (8), meal-management (7), employee-experience (7), visitor-management (5), access-management (5), delegation (2), floor-kiosk (4), tags-desk-parking (1), ets (3), employee-provisioning (1).
+- ⚠️ Flags:
+  - RN 01-2025 Hierarchy Search (PB-48836) + RN 02-2025 further refinement: two-step ship; RN 02 is the fuller implementation (limit 100, sorted by hierarchy level).
+  - RN 02-2025 Partial Desk Search: initial ship; refined in RN 05-2025 (PB-52060) with admin-page coverage.
+  - RN 05-2025 `allowOfficeCheckInWithoutDesk`: enabling property shared with RN 06-2025 individual resource check-out (PB-54141) — two distinct features on one property; flagged inline.
+  - RN 06-2025 OTP Validation VMS (`kioskRequireOTPBeforeRegister`): superseded/enhanced by RN 01-2026 (`enableOtpOverride`, `failureReasonsOtp`) — flagged with ⚠️ inline.
+  - RN 07-2025 + RN 08-2025 Chargeback Holiday-Aware (PB-53019): same PB in both decks; RN 07 treated as the ship date; RN 08 reference flagged as a duplicate.
+  - RN 07-2025 Enhanced Resource Release (PB-51044): also in RN 06-2025; RN 06 is the earlier ship; RN 07 reference noted as duplicate.
+  - RN 12-2025 Outlook Add-In Native Rooms (PB-59218): enhanced in RN 02-2026 (PB-62938) — flagged with ⚠️ inline.
+  - RN 15-2025 Admin Dashboard 2.0 Cross-Office: further fixes in RN 03-2026 (PB-63436) — flagged with ⚠️ inline.
+  - Several slides in source decks were truncated mid-text (`...[truncated]`) — where PB or enablement was cut, noted as "(see raw evidence)" rather than guessing.
+  - RN 02-2025 body text was sparse in extracted content; features reconstructed from available slide text + pattern matching; raw .pptx is the authoritative source.
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, or `client_secret` values in output.
+
+## [2026-06-30 02:00] ingest | Release Notes 2024 — RN 01-2024 through RN 16-2024 (Phase D history layer, batch 3)
+- Created: [[history/release-notes-2024]]
+- Updated: [[index]] (total 154→155, Release Notes counter 3→4, added row for release-notes-2024), [[history/release-notes]] (2024 row marked Done with link; 2024 Feature→Module Quick Map section added)
+- Sources: 14 raw .pptx files (RN 01-2024, RN 02-2024, RN 03&04-2024, RN 05-2024, RN 06-2024, RN 07-2024, RN 08-2024, RN 10-2024, RN 11-2024, RN 12-2024, RN 13-2024, RN 14-2024, RN 15-2024, RN 16-2024) via /tmp/rn2024_inputs.md — no per-RN source-summary pages created; raw_paths cited inline in the year page.
+- RN 09-2024 absent from crawl — gap noted in page intro and index.
+- Normalization: "Release Notes 1 2 -2024" treated as RN 12-2024 (source typo); "03 -2024 and 04-2024" combined as RN 03&04-2024.
+- Features ingested: 63 total across visitor-management (16), meeting-rooms (11), desk-management (13), parking-management (9), meal-management (6), employee-experience (8), delegation (2), ets (4), ms-teams-integration (2), access-management (4), tags-desk-parking (1), employee-provisioning (1), mobile-app (3).
+- ⚠️ Flags:
+  - RN 06-2024 `allowOfficeBookingForOthers` (PB-39288): same property re-shipped/extended in RN 08-2024 (PB-41536) with broader Stratus/ETS + web/app/MS Teams scope — both entries retained; RN 08 noted as the fuller ship.
+  - RN 08-2024 `showSeparateDigipassFor` (PB-40516): this property also in RN 07-2024 (PB-37554); RN 07 is the original ship for meals DigiPass; RN 08 re-announces with refined scope — flagged inline.
+  - RN 16-2024 Flexible Desk Multi-Allocation (PB-40526): same PB appears in RN 08-2024 N-Level Allocation (PB-40525 adjacent) — these are distinct features; RN 16 is the multi-allocation ship for floor-view.
+  - RN 03&04-2024 slide 16 "First Integration" feature: slide text truncated in crawl; feature identity and enablement not extractable — noted "(see raw evidence)" with raw .pptx link.
+  - RN 14-2024 `overlappingTimeInMinutes` (PB-46012): 2024-era feature; check whether RN 15-2025+ desk-management changes affect this config.
+  - RN 13-2024 carbon footprint / ESG tracking (`enableCarbonFootprintTrackingInParking`): no dedicated esg-dashboard module page currently; mapped to parking-management per config scope. Consider stub for esg-dashboard if usage confirms standalone module.
+  - Several slides in source decks truncated mid-text — where PB or enablement was cut, noted as "(see raw evidence)" rather than guessing.
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, `client_secret`, or `eyJ...` JWT prefixes in output.
+
+## [2026-06-30 03:00] ingest | Release Notes 2023 — RN 01-2023 through RN 15-2023 (Phase D history layer, batch 4)
+- Created: [[history/release-notes-2023]]
+- Updated: [[index]] (total 155→156, Release Notes counter 4→5, added row for release-notes-2023), [[history/release-notes]] (2023 row marked Done with link; 2023 Feature→Module Quick Map section added before 2024 map)
+- Sources: 14 raw .pptx files (RN 01-2023 through RN 08-2023, RN 09&10-2023 combined, RN 11-2023 through RN 15-2023) via /tmp/rn2023_inputs.md — no per-RN source-summary pages created; raw_paths cited inline in the year page.
+- All 14 decks present in crawl — no gaps (unlike 2024 which was missing RN 09).
+- Normalization: "09-2023 & 10-2023" combined as a single `### RN 09&10-2023` heading. "14-2023 WORKSPACE" and "15-2023 WORKSPACE" — WORKSPACE suffix dropped from heading per task instructions.
+- Features ingested: 57 total across visitor-management (20), meeting-rooms (11), desk-management (9), meal-management (6), employee-experience (6), ets (4), sso (3), floor-kiosk (5), parking-management (3), mobile-app (3), ms-teams-integration (2), delegation (1), digital-wayfinding (1), safe-reach (1), access-management (1), tags-desk-parking (2), employee-provisioning (1), admin-experience (3).
+- ⚠️ Flags:
+  - RN 01-2023 Parking Allocation: initial ship (no tags support); superseded by RN 03-2025 (RBAC for Parking Booking) and RN 04-2025 (Parking Allocation Report) — flagged with ⚠️ inline.
+  - RN 03-2023 Delegation (`isDelegationEnabled`, PB-16556): initial 2023 ship (Meeting Rooms, Work Planner, Employee Web only); Admin View for Delegation added RN 05-2025 — flagged with ⚠️ inline.
+  - RN 06-2023 Desk Booking Override Allocated Desk: initial ship; extended by RN 01-2025 Flexible Desk Allocation and RN 05-2025 Showing Unallocated Desks — flagged with ⚠️ inline.
+  - RN 12-2023 `officeCheckInModeWeb` / `officeCheckInModeApp`: origin of check-in mode split; superseded/extended by RN 03-2025 and RN 05-2025 — flagged with ⚠️ inline.
+  - RN 13-2023 Checkout Confirmation Prompt: flagged as potentially affected by 2025 check-in/out UX evolution.
+  - RN 04-2023 Multi-Office VMS: early multi-office capability; further extended in RN 13-2023 VMS office-level config — noted inline.
+  - admin-experience module referenced (Workspace Manager Role RN 07-2023, Manage Premises RN 11-2023, Org Management RN 12-2023, RBAC RN 09&10-2023): known in CLAUDE.md module list but NO wiki page exists — flagged in deliverable; not auto-created (Rule 6).
+  - No ESG/carbon feature encountered in 2023 decks — esg-dashboard trap does not fire.
+  - Several slides partially truncated in extracted source; where PB/property was cut, noted as "(enablement in source deck — see raw evidence)".
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, `client_secret`, or `eyJ...` JWT prefixes in output.
+
+## [2026-06-30 05:00] ingest | Release Notes 2022 + named/undated (FINAL batch — release-notes layer complete)
+- Created: [[history/release-notes-2022]]
+- Updated: [[index]] (total 156→157, Release Notes counter 5→6, added row for release-notes-2022), [[history/release-notes]] (2022 row marked Done with link; layer-complete note added to intro; 2022 Feature→Module Quick Map section added before 2025 map; `last_updated` bumped to 2026-06-30)
+- Sources: 14 entries from /tmp/rn_misc_inputs.md — no per-note source-summary pages created; raw_paths cited inline in Linked Raw Evidence table on the year page.
+- **Classification decisions:**
+  - Dated 2022 (2 notes): "Release Notes Nov (2022)", "Release Notes Dec (2022)" — year explicit in title.
+  - Monthly undated (7 notes): Apr.1&May.1, Jun.1, Jun.2, Jul.1, Aug.1, Oct.1, Oct.2 — grouped as 2022 by inference from pre-numbering scheme; year not stated in source; caveat stated prominently in page intro.
+  - Named/feature undated (5 notes): N-Level Hierarchy, Parking–Vehicle Creation, Recurring Bookings, Indemnification Form, Seat Assignment — no date in title or content; listed in separate section tagged "(undated)".
+  - **Skipped (1 entry):** "tabs Setup URLs Demo Script Release Notes Repo Copy of Release Notes …" — Google Drive navigation/tab index entry with no `raw_path` and no release-note content; not a release note. Excluded and noted at end of page.
+- Features ingested: ~57 total across desk-management (15), employee-experience (14), parking-management (9), meal-management (6), mobile-app (6), meeting-rooms (5), visitor-management (3), employee-provisioning (4), ms-teams-integration (2), sso (2), ets (3), safe-reach (1), tags-desk-parking (1), third-party (1), admin-experience (4), floor-kiosk (1).
+- ⚠️ Flags:
+  - **Indemnification Form** (Named/undated): this is the original ship of the indemnification feature; extended in RN 11-2024 (WiS-ETS Sites, PB-42901) — flagged inline with ⚠️. Maps to [[modules/safe-reach]] + [[modules/ets]] (women's-safety + transport).
+  - **N-Level Hierarchy** (Named/undated): original ship; extended in RN 02-2024 (Team Calendar Custom Hierarchy Views) and RN 08-2024 (N-Level Desk Allocation Hierarchy, PB-40525) — flagged inline.
+  - **SSO on Mobile App** (RN Nov-2022): original ship; extended in RN 04-2023 (Stratus) and RN 09&10-2023 (config enhancements) — flagged inline.
+  - **Parking Waitlist** (RN Oct.1): original ship; waitlist expiry added in RN 01-2026 — flagged inline.
+  - **Check-in Modes** (RN Nov-2022): original ship (`officeCheckInMode`); split into web/app in RN 12-2023, refined in RN 03-2025/RN 05-2025 — flagged inline.
+  - **Walk-in Visitor Entry** (RN Oct.1): original ship; significantly extended in RN 03&04-2024 and RN 05-2024 — flagged inline.
+  - **Vehicle Creation for Parking** (Named/undated): prevent-editing control re-shipped in RN 10-2024 (PB-42733) — flagged inline.
+  - **admin-experience** module: referenced by Office Admin Role (Jun.1), Workplace Insights Dashboard (Apr.May), Admin Configuration UI (Apr.May), and Restrict Manager (Jun.1). Module listed in CLAUDE.md but NO wiki page exists — flagged inline, not auto-created (Rule 6).
+  - **esg-dashboard** module: no ESG/carbon feature encountered in 2022 notes — trap does not fire.
+  - Dating inference caveat for monthly notes stated prominently in page intro and at each `### RN` heading tag.
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, `client_secret`, or `eyJ...` JWT prefixes in output.
+- Token scan: CLEAN — no JWTs, bearer tokens, email addresses (`*@moveinsync.com`/`*@workinsync.io`), `Basic <base64>`, `client_secret`, or `eyJ...` JWT prefixes in output.

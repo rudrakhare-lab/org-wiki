@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
-_Last updated: 2026-06-25_
-_Total pages: 108 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 5 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 36 | Cross-module: 8_
+_Last updated: 2026-06-30_
+_Total pages: 157 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 30 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 53 | Cross-module: 8 | Release Notes: 6_
 
 ---
 
@@ -11,6 +11,7 @@ _Total pages: 108 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[modules/parking-management]] | Parking slot booking (WFO add-on), dynamic policy, waitlist, check-in | active | unknown | tags-desk-parking, mobile-app, desk-management |
 | [[modules/visitor-management]] | Visitor invite, digipass, 2-step check-in, badge printing, visitor parking | active | unknown | parking-management, guard-app-kiosks |
 | [[modules/delegation]] | Delegate resource booking rights to other employees (profile switcher) | active | Aditya Dutta | employee-experience, meeting-rooms, desk-management |
+| [[modules/desk-management]] | Desk/seat booking, floor allocation, recurring bookings, Camunda approval workflow, external Booking API (WIS-SEAT-BOOKING) | active | unknown | tags-desk-parking |
 | [[modules/digital-wayfinding]] | Indoor navigation on mobile app — floor plan amenities + path routing | active | Aditya Dutta | mobile-app, parking-management |
 | [[modules/employee-experience]] | emp-exp service — hosts delegation, wayfinding, and cross-cutting emp features | active | unknown | — |
 | [[modules/floor-kiosk]] | Device hardware spec, DIY Floor Planner tool, floor plan pipeline | active | Aditya Dutta | — |
@@ -18,11 +19,13 @@ _Total pages: 108 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[modules/implementation]] | Internal SOPs for client onboarding and ETS migration | internal | unknown | — |
 | [[modules/ms-teams-integration]] | WorkInSync app on Microsoft Teams — Azure AD SSO, Graph API permissions, license/install flows | active | unknown | sso |
 | [[modules/third-party]] | WorkInSync's Slack integration — workspace install, WFO/WFH booking from Home tab, check-in notifications, Slack status updates | active | unknown | — |
+| [[modules/tags-desk-parking]] | Shared tag + dynamic-fields engine for desk, parking & meeting-rooms (seat-type mapping, Consul dynamicFields) | active | unknown | — |
 | [[modules/safe-reach]] | Late-departure employee safety workflow — VMS kiosk-initiated, configurable form, gender-trigger, ETA, IVR/mobile/email notification chain, WIS dashboard, reports | active | unknown | visitor-management |
 | [[modules/access-management]] | External access-card vendor integration — REST API (.com/.in) + SFTP file-based modes; card swipe → booking check-in/out | active | unknown | desk-management, meeting-rooms, parking-management, meal-management |
 | [[modules/employee-provisioning]] | Inbound employee data sync — SCIM 2.0 (Azure AD / Okta / any IdP) + SFTP CSV modes; users-only, 40-min cadence | active | unknown | — |
 | [[modules/sso]] | Single Sign-On — SAML 2.0 (workinsync.io SP) + OAuth 2.0/OIDC (mis-auth); IdP-agnostic (Azure AD / Okta / ADFS / Google); TechOps integration process | active | unknown | — |
-| [[modules/ets]] | Employee Transport Service — upstream office/shift/premise source; feeds WorkInSync premise + capacity creation (SE runbook) | stub | unknown | — |
+| [[modules/ets]] | Employee Transport Service — upstream office/shift/premise + employee-data-sync source; feeds WorkInSync premise/capacity + 5 modules | active | unknown | — |
+| [[modules/sanitization]] | Seat sanitization — HOUSEKEEPER QR-scan cleaning, cut-off; + vaccination status | active | unknown | desk-management, guard-app-kiosks |
 
 ## Runbooks
 | Page | Topic | Module | Source |
@@ -32,6 +35,41 @@ _Total pages: 108 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[runbooks/floor-plan-upload]] | Floor premise + floor-plan upload (file / background-image / DIY JSON+SVG) | [[modules/floor-kiosk]] | [[sources/se-runbook-ets-office-premise]] |
 | [[runbooks/guard-user-creation]] | Guard user creation, premise-user mapping, QR code, update/delete premise | [[modules/guard-app-kiosks]] | [[sources/se-runbook-ets-office-premise]] |
 | [[runbooks/guard-app-setup]] | Guard app links (non-IOT/IOT), amenities, useful links | [[modules/guard-app-kiosks]] | [[sources/se-runbook-ets-office-premise]] |
+| [[runbooks/meal-booking]] | Cafeteria premise → office map → meal Consul config → counters → QR (mis-security-guard + meal-booking-app) | [[modules/meal-management]] | [[sources/se-runbook-meal-booking]] |
+| [[runbooks/parking-tag-and-vehicle-setup]] | Vehicle sub-types (SEDAN/SUV…), BUID mapping, parking-tag creation, QR (level/slot) | [[modules/parking-management]] | [[sources/se-runbook-parking]] |
+| [[runbooks/parking-dynamic-policy]] | Dynamic parking policy — tag rules, employee/slot bulk-upload, BLOCK_HOTSEAT | [[modules/parking-management]] | [[sources/se-runbook-parking]] |
+| [[runbooks/seat-sanitization]] | HOUSEKEEPER user creation, QR-scan enable/disable, sanitize cut-off | [[modules/sanitization]] | [[sources/se-runbook-sanitization]] |
+| [[runbooks/ets-data-sync]] | ETS→WIS employee data sync (SFTP/API channels) — TechOps request procedure + SLAs | [[modules/ets]] | [[sources/se-runbook-ets]] |
+| [[runbooks/access-card-integration]] | Access-card vendor integration — REST auth/token + endpoints, SFTP file-based mode, check-in config | [[modules/access-management]] | [[sources/se-runbook-access-card]] |
+| [[runbooks/employee-data-sync-scim]] | SCIM provisioning setup (Azure AD / Okta) + SFTP CSV mode + troubleshooting | [[modules/employee-provisioning]] | [[sources/se-runbook-employee-provisioning]] |
+| [[runbooks/floor-kiosk-device-setup]] | Android/iPad kiosk enrollment in Scalefusion MDM + employee-flow / self-checkin setup | [[modules/floor-kiosk]] | [[sources/se-runbook-floor-kiosk]] |
+| [[runbooks/digital-wayfinding-setup]] | Upload floor-plan JSON+SVG via Postman + enable `ENABLE_INDOOR_NAVIGATION` + URL check | [[modules/digital-wayfinding]] | [[sources/se-runbook-digital-wayfinding]] |
+| [[runbooks/desk-booking-setup]] | End-to-end desk booking / space-management setup (discovery, floor plan, desk allocation, bulk upload, config) | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
+| [[runbooks/recurring-booking-setup]] | Enable recurring / WorkPlanner bookings via Booking Rule Engine properties | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
+| [[runbooks/booking-approval-camunda]] | Add BUID to Camunda DMN decision table + set booking-approval properties | [[modules/desk-management]] | [[sources/se-runbook-desk-management]] |
+| [[runbooks/tag-and-dynamic-fields-setup]] | GET/PUT Consul `dynamicFields` config + SeatTypeMapping structure | [[modules/tags-desk-parking]] | [[sources/se-runbook-tags-desk-parking]] |
+| [[runbooks/meeting-room-setup]] | Room resource creation (UI + bulk upload) + booking config (auto-release, check-in, notifications) | [[modules/meeting-rooms]] | [[sources/se-runbook-meeting-rooms]] |
+| [[runbooks/meeting-room-catering-setup]] | Cafeteria creation → menus/categories/items → delivery slots → cut-off policy → dashboard access | [[modules/meeting-rooms]] | [[sources/se-runbook-meeting-rooms]] |
+| [[runbooks/outlook-room-integration]] | Outlook/Exchange pre-impl discovery checklist + CONSENT_TYPE + WIS-side config keys (⚠️ 2021 source) | [[modules/meeting-rooms]] | [[sources/se-runbook-meeting-rooms]] |
+| [[runbooks/meeting-room-kiosk-setup]] | Tablet kiosk device setup (with/without Scalefusion MDM), room pairing via 6-digit pin, kiosk config keys | [[modules/meeting-rooms]] | [[sources/se-runbook-kiosk]] |
+| [[runbooks/visitor-badge-printer-setup]] | Brother QL-820NWB badge printer setup (model, connectivity, rolls); office-config screenshots in raw doc | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
+| [[runbooks/visitor-bulk-upload]] | Enable visitor bulk upload (Consul flag + role_access + profile/custom field template config, 100-visitor max) | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
+| [[runbooks/visitor-notifications-setup]] | Property-controlled notifications (opt-in BUID, per-persona routing, notification panel, privilege) | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
+| [[runbooks/visitor-custom-fields-setup]] | Walk-in custom fields + Belongings consistency + per-visitor-type dynamic field schema | [[modules/visitor-management]] | [[sources/se-runbook-visitor-management]] |
+| [[runbooks/ms-teams-integration-setup]] | IT-admin onboarding — both pathways (existing Stratus / new Teams client), admin/per-user consent, license management (WIS portal + MS Admin Center) | [[modules/ms-teams-integration]] | [[sources/se-runbook-ms-teams]] |
+| [[runbooks/slack-workspace-install]] | Slack workspace install + per-user account connection (self-service / CS-assisted; admin approval if restricted) | [[modules/third-party]] | [[sources/se-runbook-third-party]] |
+| [[runbooks/configurable-sender-email-setup]] | Set per-BUID outbound sender ("from") email via emp-exp API + Stratus/wisBuEnabled fallback precedence (PB-22330) | [[modules/employee-experience]] | [[sources/se-runbook-employee-experience]] |
+| [[runbooks/sso-integration-setup]] | End-to-end SE SSO onboarding — TechOps intake, SAML/OAuth protocol selection, SP metadata exchange (4 site types), IdP-specific setup (Okta/Azure AD), OAuth credential wiring, mobile enablement, cert rotation | [[modules/sso]] | [[sources/se-runbook-sso]] |
+
+## Release Notes (History)
+| Page | Summary | Years |
+|------|---------|-------|
+| [[history/release-notes]] | Index + recency caveat + feature→module quick map | all |
+| [[history/release-notes-2026]] | RN 01-2026 through RN 05-2026 — 33 features across visitor, meeting-rooms, parking, meal, emp-exp, floor-kiosk, safe-reach, access-management | 2026 |
+| [[history/release-notes-2025]] | RN 01-2025 through RN 15-2025 (incl. combined 09&10) — 58 features across desk-management, meeting-rooms, parking, meal, emp-exp, visitor-management, access-management, delegation, floor-kiosk, tags-desk-parking, ets, employee-provisioning | 2025 |
+| [[history/release-notes-2024]] | RN 01-2024 through RN 16-2024 (excl. RN 09 — absent from crawl; RN 03&04 combined) — 63 features across visitor-management, meeting-rooms, desk-management, parking-management, meal-management, employee-experience, delegation, ets, ms-teams-integration, access-management, tags-desk-parking, employee-provisioning, mobile-app | 2024 |
+| [[history/release-notes-2023]] | RN 01-2023 through RN 15-2023 (incl. combined 09&10) — 57 features across visitor-management, meeting-rooms, desk-management, parking-management, meal-management, employee-experience, ets, sso, delegation, mobile-app, ms-teams-integration, digital-wayfinding, safe-reach, access-management, tags-desk-parking, employee-provisioning, floor-kiosk, admin-experience | 2023 |
+| [[history/release-notes-2022]] | 2 dated 2022 notes (Nov, Dec) + 7 monthly undated (Apr–Oct, 2022 inferred) + 5 named/undated feature notes — ~57 features across desk-management, employee-experience, parking-management, meeting-rooms, meal-management, visitor-management, mobile-app, ms-teams-integration, safe-reach, ets, sso, tags-desk-parking, third-party, employee-provisioning, admin-experience | 2022 |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -122,3 +160,20 @@ _Total pages: 108 | Modules: 23 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 
 | [[sources/launch-ets-sop]] | spec | 2026-04-28 | modules/implementation |
 | [[sources/se-runbook-ets-office-premise]] | misc | 2026-06-25 | runbooks/ets-office-premise-setup, modules/ets |
+| [[sources/se-runbook-meal-booking]] | misc | 2026-06-29 | runbooks/meal-booking, modules/meal-management, configs/booking-rule-engine, configs/emp-experience-common |
+| [[sources/se-runbook-parking]] | misc | 2026-06-29 | runbooks/parking-tag-and-vehicle-setup, runbooks/parking-dynamic-policy, modules/parking-management |
+| [[sources/se-runbook-sanitization]] | misc | 2026-06-29 | modules/sanitization, runbooks/seat-sanitization |
+| [[sources/se-runbook-ets]] | misc | 2026-06-29 | modules/ets, runbooks/ets-data-sync |
+| [[sources/se-runbook-access-card]] | misc | 2026-06-29 | modules/access-management, runbooks/access-card-integration, configs/booking-rule-engine |
+| [[sources/se-runbook-employee-provisioning]] | misc | 2026-06-29 | modules/employee-provisioning, runbooks/employee-data-sync-scim |
+| [[sources/se-runbook-floor-kiosk]] | misc | 2026-06-29 | modules/floor-kiosk, runbooks/floor-kiosk-device-setup, configs/visitor-management |
+| [[sources/se-runbook-digital-wayfinding]] | misc | 2026-06-29 | modules/digital-wayfinding, runbooks/digital-wayfinding-setup |
+| [[sources/se-runbook-desk-management]] | misc | 2026-06-29 | modules/desk-management, runbooks/desk-booking-setup, runbooks/recurring-booking-setup, runbooks/booking-approval-camunda |
+| [[sources/se-runbook-tags-desk-parking]] | misc | 2026-06-29 | modules/tags-desk-parking, runbooks/tag-and-dynamic-fields-setup |
+| [[sources/se-runbook-meeting-rooms]] | misc | 2026-06-29 | modules/meeting-rooms, runbooks/meeting-room-setup, runbooks/meeting-room-catering-setup, runbooks/outlook-room-integration |
+| [[sources/se-runbook-kiosk]] | misc | 2026-06-29 | runbooks/meeting-room-kiosk-setup, modules/guard-app-kiosks, modules/meeting-rooms |
+| [[sources/se-runbook-visitor-management]] | misc | 2026-06-29 | modules/visitor-management, runbooks/visitor-badge-printer-setup, runbooks/visitor-bulk-upload, runbooks/visitor-notifications-setup, runbooks/visitor-custom-fields-setup, configs/visitor-management |
+| [[sources/se-runbook-ms-teams]] | misc | 2026-06-29 | modules/ms-teams-integration, runbooks/ms-teams-integration-setup |
+| [[sources/se-runbook-sso]] | misc | 2026-06-29 | runbooks/sso-integration-setup, modules/sso |
+| [[sources/se-runbook-third-party]] | misc | 2026-06-29 | modules/third-party, runbooks/slack-workspace-install |
+| [[sources/se-runbook-employee-experience]] | misc | 2026-06-29 | modules/employee-experience, runbooks/configurable-sender-email-setup |

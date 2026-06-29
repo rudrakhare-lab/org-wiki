@@ -1,9 +1,9 @@
 ---
 type: entity
 owned_by: tags-desk-parking
-used_by: [meeting-rooms, tags-desk-parking]
-last_updated: 2026-04-27
-source: "[[sources/dynamic-policy-meeting-rooms]]"
+used_by: [meeting-rooms, tags-desk-parking, desk-management, parking-management]
+last_updated: 2026-06-29
+source: "[[sources/dynamic-policy-meeting-rooms]], [[sources/se-runbook-tags-desk-parking]]"
 ---
 
 # RoomTag / EmployeeTag
@@ -29,10 +29,12 @@ can be reused in meeting rooms"*).
 ## Used By
 - [[modules/tags-desk-parking]] — creates, manages, and owns the tag engine
 - [[modules/meeting-rooms]] — consumes tags via Dynamic Policy to restrict room access
+- [[modules/desk-management]] — consumes desk/employee tags for seat-allocation and booking-eligibility rules
+- [[modules/parking-management]] — consumes vehicle/employee tags for slot access + `BLOCK_HOTSEAT` dynamic-policy rules
 
 ## Relationships to Other Entities
 - [[entities/room]] — RoomTags are applied to Rooms
-- (future) Desk and Parking entities — EmployeeTags and resource tags also apply there
+- Desk and Parking resources — EmployeeTags and resource tags also apply there (`target_type` ∈ `DESK`, `PARKING`)
 
 ## Source of Truth
 [[modules/tags-desk-parking]] is the canonical owner of the tag engine and RoomTag/EmployeeTag entity.

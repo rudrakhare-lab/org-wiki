@@ -169,7 +169,7 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `enableWisThemeColors` | Enables dynamic theming using wisThemeColors property. | BOOLEAN |  | .com only |
 | `enforceReAuthentication` | Enables enforcement of re-authentication. | BOOLEAN |  | both |
 | `enforceReAuthenticationDurationInMinutes` | Defines re-authentication validity duration in minutes. | DOUBLE |  | both |
-| `excludeMealOnlyBookingsFromActiveBookingCount` | Decides whether to exclude meal booking from web/app/bulk from active booking count for any user. | BOOLEAN |  | .com only |
+| `excludeMealOnlyBookingsFromActiveBookingCount` | Decides whether to exclude meal booking from web/app/bulk from active booking count for any user. | BOOLEAN | false | .com only |
 | `externalStaffUi` | Defines External Staff UI URL. | STRING |  | both |
 | `fabDisplayNames` | Defines FAB display names. | LIST |  | both |
 | `FEATURE_MEDICAL_EMERGENCY_EMAIL_RM` | - | BOOLEAN |  | .com only |
@@ -222,7 +222,7 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `isZedaReleaseNoteEnabled` | Displays Zeda widget showcasing new features and feedback. | BOOLEAN |  | both |
 | `jobTitleWiseCalenderInDays` | - | JSON |  | both |
 | `landmark` | Controls visibility of Landmark field during registration. | STRING |  | both |
-| `lastSwipeAsCheckoutTimeForBUID` | Uses the last swipe checkout time as final checkout instead of auto-checkout for access card integration clients. | LIST |  | both |
+| `lastSwipeAsCheckoutTimeForBUID` | Uses the last swipe checkout time as final checkout instead of auto-checkout for access card integration clients. LIST of BUIDs for which this behavior is enabled. | LIST | not documented | both |
 | `listOfEligibleBuidsForAutoClockout` | Defines BUs eligible for auto clock-out. | LIST |  | both |
 | `listOfEligibleBuidsForBusNotification` | - | LIST |  | both |
 | `listOfExcludedBuidsForCheckin` | Defines BUs excluded from check-in. | LIST |  | .com only |
@@ -233,7 +233,7 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `maxEmployeeSelectionWorkplanner` | Defines maximum number of employees allowed for recurring bookings. | INTEGER |  | .com only |
 | `maximumCharacterLimit` | - | DOUBLE |  | both |
 | `maxTripLevelNonComplianceEventsAllowed` | - | INTEGER |  | both |
-| `mealCutoffInMinutes` | Defines meal booking cutoff calculated from 00:00 of booked date. | DOUBLE |  | both |
+| `mealCutoffInMinutes` | Defines meal booking cutoff calculated from 00:00 of booked date. | DOUBLE | default not documented | both |
 | `mealFeedbackEnabled` | Enables meal feedback feature and reporting. | BOOLEAN |  | both |
 | `mealFeedbackOptions` | Configures meal feedback options. | JSON |  | .com only |
 | `mealNotifications` | Enable e-mails related to meal bookings for QR. | BOOLEAN |  | .com only |
@@ -405,7 +405,7 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `VAX_STATUS_CHECK_SEEK_RTPCR_EMP` | Allows or restricts RTPCR upload for non-fully vaccinated employees. | BOOLEAN |  | both |
 | `vaxEmailEnabled` | - | BOOLEAN |  | both |
 | `vehicleCreationDuringParkingEnabled` | Controls vehicle creation during parking booking. | BOOLEAN |  | both |
-| `vehicleCreationDuringParkingFor` | Controls vehicle creation by type (CAR etc.). | LIST |  | both |
+| `vehicleCreationDuringParkingFor` | Controls which vehicle types are offered during parking booking. Valid values: `["CAR","BIKE"]` (both), `["CAR"]` (cars only), `["BIKE"]` (bikes only), `[]` (none). Works together with `vehicleCreationDuringParkingEnabled`. | LIST |  | both |
 | `vehicleFuelTypes` | - | LIST |  | both |
 | `visitorWidgetEnabled` | Displays visitor management widget on Employee Home. | BOOLEAN |  | both |
 | `waitListBookingBufferTimeInMin` | Defines buffer time in minutes for waitlist bookings. | INTEGER |  | both |

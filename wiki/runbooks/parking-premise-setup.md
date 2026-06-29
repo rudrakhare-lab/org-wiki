@@ -126,7 +126,7 @@ Each uses **G-Tool and/or Postman**. **This runbook = Parking premise + capacity
 - Module: [[modules/parking-management]]
 - Upstream runbook: [[runbooks/ets-office-premise-setup]] (office premise must exist first; this runbook consumes the office `premiseId` as `parentPremise`)
 - Tool: WIS-Configurations sheet (`1FyWuDnS…`)
-- Downstream runbooks: `runbooks/floor-plan-upload`, `runbooks/guard-user-creation` (pending ingest)
+- Downstream runbooks: [[runbooks/parking-tag-and-vehicle-setup]] (vehicle sub-type + QR codes), [[runbooks/parking-dynamic-policy]] (tag-based access policy), `runbooks/floor-plan-upload`, `runbooks/guard-user-creation` (pending ingest)
 
 ## Related Jira
 

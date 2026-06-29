@@ -5,7 +5,7 @@ owner: unknown
 depends_on: [tags-desk-parking, floor-kiosk, mobile-app, ms-teams-integration]
 used_by: [meal-management, access-management, delegation]
 last_updated: 2024-03-12
-source: "[[sources/meeting-rooms-app-prd]], [[sources/kiosk-meeting-rooms-prd]], [[sources/meeting-rooms-catering-prd]], [[sources/dynamic-policy-meeting-rooms]], [[sources/meeting-rooms-room-maintenance]], [[sources/outlook-integration-permissions]], [[sources/outlook-addin-setup]], [[sources/meeting-rooms-resources]]"
+source: "[[sources/meeting-rooms-app-prd]], [[sources/kiosk-meeting-rooms-prd]], [[sources/meeting-rooms-catering-prd]], [[sources/dynamic-policy-meeting-rooms]], [[sources/meeting-rooms-room-maintenance]], [[sources/outlook-integration-permissions]], [[sources/outlook-addin-setup]], [[sources/meeting-rooms-resources]], [[sources/se-runbook-meeting-rooms]], [[sources/se-runbook-kiosk]]"
 ---
 
 # Meeting Rooms Module
@@ -119,6 +119,13 @@ _The configs below are a curated set. Operational defaults and granular settings
 | `roomMaintenceEmalList` † | list | [empty] | Email IDs that receive room-maintenance emails when schedules are created/deleted |
 
 † `roomMaintenceEmalList` — the source spells "Emal" (likely a typo); preserved **verbatim** because the PMS uses this exact key.
+
+## Related Runbooks
+
+- [[runbooks/meeting-room-setup]] — End-to-end room creation + booking configuration (master switch, bulk upload, auto-release, notifications)
+- [[runbooks/meeting-room-catering-setup]] — Cafeteria/menu/item setup + delivery slots, cut-off policy, dashboard access
+- [[runbooks/outlook-room-integration]] — Outlook/Exchange pre-implementation discovery checklist + WIS config keys _(⚠️ 2021 source — verify before client use)_
+- [[runbooks/meeting-room-kiosk-setup]] — Tablet kiosk device setup (with/without MDM), Scalefusion enrollment, room pairing, kiosk config keys
 
 ## Open Questions
 - Who is the **owner team** for Meeting Rooms? (Jovil Nazareth, Kavya S, Manvi Chandra mentioned as authors but team name not stated.)

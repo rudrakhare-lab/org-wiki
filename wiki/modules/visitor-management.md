@@ -5,7 +5,7 @@ owner: unknown
 depends_on: [parking-management, guard-app-kiosks, ms-teams-integration, floor-kiosk]
 used_by: [delegation, safe-reach]
 last_updated: 2023-07-11
-source: "[[sources/vms-prd]], [[sources/vms-implementation]]"
+source: "[[sources/vms-prd]], [[sources/vms-implementation]], [[sources/se-runbook-visitor-management]]"
 ---
 
 # Visitor Management Module (VMS)
@@ -110,6 +110,14 @@ reference (~92 properties including operational defaults and edge-case behavior)
 | `digipass` | Null | _Governance_: multi-value control of digipass visibility per surface — `INVITE_EMAIL` / `INVITE_BADGE` / `SELF_CHECK_OUT_EMAIL` / `SELF_CHECK_OUT_BADGE` |
 
 _Note on digipass: `VISITOR_DIGIPASS` (boolean — controls the invite-acceptance digipass email) and `digipass` (multi-value — controls digipass visibility on badges and self-check-out surfaces) **coexist**; they govern different scopes and are not a contradiction._
+
+## Related Runbooks
+- [[runbooks/visitor-badge-printer-setup]] — Brother QL-820NWB badge printer setup + connectivity (office-config screenshots in raw doc)
+- [[runbooks/visitor-bulk-upload]] — Enable bulk upload (Consul flag, role_access, profile/custom field column config, 100-visitor limit)
+- [[runbooks/visitor-notifications-setup]] — Property-controlled notification setup (opt-in BUID, per-persona routing, notification panel UI)
+- [[runbooks/visitor-custom-fields-setup]] — Walk-in custom fields, Belongings cross-flow consistency, per-visitor-type dynamic field schema
+
+_Source: [[sources/se-runbook-visitor-management]]_
 
 ## Open Questions
 - Who is the module owner team? (Authors include Jovil Nazareth, Kavya Sridharan, Vaishnavi Raghav; Ujjwal Trivedi is the recurring approver — but no single owner team is named.)

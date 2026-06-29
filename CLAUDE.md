@@ -397,6 +397,80 @@ page description, fall back in this order:
 
 ---
 
+### 2j. Runbook Page — `wiki/runbooks/<topic>.md`
+
+SE (Service Engineering) operational how-to: the step-by-step procedure to set up or
+configure a feature, distilled from the SE-runbook source docs + their linked/crawled
+evidence. (Established in the 2026-06-25 SE-runbook ingest; codified here per plan Phase C.)
+
+**Frontmatter:**
+```yaml
+---
+type: runbook
+module: <module slug>          # primary module; use modules: [a, b] if it spans two
+team: SE (Service Engineering)
+status: active | stub
+last_updated: YYYY-MM-DD
+source: "[[sources/<filename>]]"
+raw_path: raw/...              # exact path to the source doc in raw/
+---
+```
+
+**Required Sections:**
+1. `## Purpose` — what this procedure accomplishes and when an SE runs it
+2. `## Prerequisites` — access/tools/configs needed first (Postman, G-Tool, sheet IDs, BUID)
+3. `## Ordered Steps` — numbered; each: tool + action + endpoint/URL + payload, with every
+   concrete value flagged as an **example/placeholder** (never literal config)
+4. `## Screenshots` — transcription + one line on what each shows (link `raw/se-runbook/.../images`)
+5. `## Validation` — how to confirm the setup worked
+6. `## Notes & Gotchas` — loose-but-critical details that fit no single step
+7. `## Related Jira` — `PB-`/`SE-`/`TO-`/`TS-` ticket keys only (per §10 Rule 1)
+8. `## Linked Raw Evidence` — cite back to `raw/se-runbook/` source + fetched files
+
+**Rules:**
+- Flag every example value as a placeholder; preserve odd spellings verbatim.
+- Never present an example-only observation as a definitional rule (label "observed in
+  example — confirm with owning team").
+- Apply the **Conflict & Recency policy** (dates/tickets → live config → show-both →
+  route-to-team) to any fact that also touches an existing module/config page.
+- Runbooks get a row in `wiki/index.md` under its `## Runbooks` table.
+
+---
+
+### 2k. Release-Notes History Page — `wiki/history/release-notes-<YYYY>.md` (+ index `wiki/history/release-notes.md`)
+
+The product **release notes** (sales/PM source-of-truth) are ingested as a **chronological
+history layer**, one page per year, plus a single index/overview page. Release notes are a
+**dated changelog**, not authoritative current behavior — newer notes may supersede older
+ones, and a note's screenshots are NOT ingested (they often contain stale/bug-state UI).
+
+**Frontmatter (per-year page):**
+```yaml
+---
+type: release-notes
+year: YYYY
+last_updated: YYYY-MM-DD
+source: "[[sources/<...>]]"          # the SE-crawl release-note source page(s), if created
+---
+```
+
+**Per-year page structure:** newest-first list of release notes. Each entry:
+```markdown
+### RN <NN-YYYY> — <date if known>
+- **<Feature name>** (<module>) — 1–2 sentence distilled description. Enablement: <property / SE-ticket / PB-####> if stated. → [[modules/<module>]]
+- ⚠️ Supersedes / changes prior behavior: <what changed vs which earlier RN or module claim> (only if applicable)
+```
+
+**Rules:**
+1. **Distil, don't dump.** One bullet per feature: what shipped + enablement (property/ticket) + module wikilink. Do NOT paste full Problem/Solution prose or screenshots.
+2. **Link history → modules**, never the reverse-bloat. Per §10 Rule 3, module pages do NOT enumerate release notes; they may carry at most ONE "Release History" link to the history layer (added during the graph step, not per-RN).
+3. **Recency & contradiction (Conflict & Recency policy):** if a release note changes a default, config behavior, or a claim documented on a module/config page, flag it inline with ⚠️ and note which is newer. If it contradicts a curated page, add a one-line ⚠️ note on that page pointing to the RN — do NOT silently rewrite curation.
+4. **Config/property mentions** use backticks and, where the property already has a config page, link it.
+5. **index page** (`wiki/history/release-notes.md`) lists all years (with links), a short "how to read this layer" + recency caveat, and a feature→RN quick map if useful.
+6. Each per-year page gets a row in `wiki/index.md` under a `## Release Notes (History)` section. Count per-year + index pages in the header total.
+
+---
+
 ## Section 3 — Index & Log Conventions
 
 ### index.md Format
