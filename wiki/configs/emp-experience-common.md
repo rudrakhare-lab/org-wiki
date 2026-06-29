@@ -405,7 +405,7 @@ Auto-generated on 2026-06-09. Total configs: **408**.
 | `VAX_STATUS_CHECK_SEEK_RTPCR_EMP` | Allows or restricts RTPCR upload for non-fully vaccinated employees. | BOOLEAN |  | both |
 | `vaxEmailEnabled` | - | BOOLEAN |  | both |
 | `vehicleCreationDuringParkingEnabled` | Controls vehicle creation during parking booking. | BOOLEAN |  | both |
-| `vehicleCreationDuringParkingFor` | Controls vehicle creation by type (CAR etc.). | LIST |  | both |
+| `vehicleCreationDuringParkingFor` | Controls which vehicle types are offered during parking booking. Valid values: `["CAR","BIKE"]` (both), `["CAR"]` (cars only), `["BIKE"]` (bikes only), `[]` (none). Works together with `vehicleCreationDuringParkingEnabled`. | LIST |  | both |
 | `vehicleFuelTypes` | - | LIST |  | both |
 | `visitorWidgetEnabled` | Displays visitor management widget on Employee Home. | BOOLEAN |  | both |
 | `waitListBookingBufferTimeInMin` | Defines buffer time in minutes for waitlist bookings. | INTEGER |  | both |

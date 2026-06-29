@@ -5,7 +5,7 @@ owner: unknown
 depends_on: [tags-desk-parking, mobile-app, desk-management]
 used_by: [access-management, digital-wayfinding, implementation, visitor-management]
 last_updated: 2025-10-22
-source: "[[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]]"
+source: "[[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]], [[sources/se-runbook-parking]]"
 ---
 
 # Parking Management Module
@@ -88,6 +88,55 @@ Parking *premises* (distinct from the slot/grid admin above) are created at the 
 - Parking `premiseType` codes (read from the runbook example — ⚠️ confirm as the standard convention): `6` = 2-wheeler, `3` = 4-wheeler.
 - _Source: [[sources/se-runbook-ets-office-premise]]_
 
+### Vehicle sub-type setup (SE-only)
+When clients require slot differentiation beyond CAR/BIKE (e.g. Sedan, SUV, Hatchback),
+vehicle sub-types must be created via the `mis-floor-plan` API and mapped to the client BUID.
+Full procedure: [[runbooks/parking-tag-and-vehicle-setup]].
+
+- `GET /mis-floor-plan/seat/seat-types?entityType=PARKING&buid=<BUID>` — list existing sub-types
+- `POST /mis-floor-plan/seat/seat-types?entityType=PARKING` — create new sub-types (pass string array)
+- `POST /mis-floor-plan/seat/sub-types?buid=<BUID>` — map sub-type IDs to BUID
+- ⚠️ Duplicate `seatTypeName` values break floor plan creation in the CAD viewer — always check for existing sub-types first.
+- For BIKE slots in non-DIY floor plan files: use `SubType: -1` (fixed sentinel).
+- _Source: [[sources/se-runbook-parking]]_
+
+### Tag creation for dynamic policies (SE-only)
+Tags for dynamic policy (vehicle-build or category restrictions) are created via the
+`mis-floor-plan` API. SE raises an SE ticket to create tags; admin then uploads the tagging files.
+Full procedure: [[runbooks/parking-dynamic-policy]].
+
+- `POST /mis-floor-plan/api/<BUID>/tags` — create tags (entityType, tagName, tagType)
+- `POST /mis-floor-plan/api/<BUID>/tags/polygons` — map tag values (Yes/No) to each tag's `buTagId`
+- `GET /mis-floor-plan/api/<BUID>/tags?entityType=PARKING` — verify tags created
+- _Source: [[sources/se-runbook-parking]]_
+
+### QR code generation (SE-only)
+Physical QR codes are printed and affixed to parking slots for the "Scan QR" check-in mode.
+Generated via: `GET https://mis-security.moveinsync.com/mis-security-guard/seat/generate-qr-seat-bulk`
+
+- `entityType=LEVEL` + `floorPremiseId=<level-premise-id>` — bulk QR for all slots on a level
+- `entityType=PARKING` + `floorPremiseId=<slot-premise-id>` — QR for individual slots
+- Requires `x-wis-token: <token>` and `x-tenant-id: <tenant-id>`.
+- Full procedure: [[runbooks/parking-tag-and-vehicle-setup]].
+- _Source: [[sources/se-runbook-parking]]_
+
+### Third-party hardware integration (Parking Checkin API)
+When clients use boom barriers or access card systems, WorkInSync provides a check-in integration
+API. The vendor's system polls WIS to confirm booking existence and then performs check-in.
+
+- **Auth**: `POST {baseUrl}/auth/token` with Basic auth → returns Bearer token (expires in ~48h)
+- **GetParkingBookingDetails**: confirms whether an employee has a booking; keyed on `EmployeeNumber` + `Date` + `DetectorID` (maps to office/zone/level)
+- **ParkingCheckIn**: performs check-in; can create a new booking on-the-fly if no prior booking exists (via `EndTime` parameter)
+- _Source: [[sources/se-runbook-parking]] — "WorkInSync Parking Checkin Integration" v1.1 (2022-06-07)_
+
+## Related Runbooks
+
+| Runbook | Scope |
+|---------|-------|
+| [[runbooks/parking-premise-setup]] | SE: create parking premise (2WH/4WH), validate, add capacity |
+| [[runbooks/parking-dynamic-policy]] | SE + Admin: configure tag-based slot access policies; vehicle-build restrictions; BLOCK_HOTSEAT |
+| [[runbooks/parking-tag-and-vehicle-setup]] | SE: create vehicle sub-types, map to BUID, generate and download slot QR codes |
+
 ## Open Questions
 - Setup-time dependency on **ETS**: the parking premise is built under the office premise (created via [[runbooks/ets-office-premise-setup]] / [[modules/ets]]). Is this a `depends_on` (runtime) or a separate setup-time relationship? (Schema decision — affects desk/guard/parking/meal uniformly.)
 - Who is the module owner team?
@@ -96,4 +145,4 @@ Parking *premises* (distinct from the slot/grid admin above) are created at the 
 - Does the waitlist mechanism auto-assign slot or notify employee to book?
 
 ## Last Updated
-2026-06-25 — _Sources: [[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]], [[sources/se-runbook-ets-office-premise]] (SE backend premise setup)_
+2026-06-29 — _Sources: [[sources/parking-prd]], [[sources/dynamic-policy-parking]], [[sources/parking-waitlist]], [[sources/se-runbook-ets-office-premise]] (SE backend premise setup), [[sources/se-runbook-parking]] (SE vehicle sub-type, tag creation, QR, integration API)_
