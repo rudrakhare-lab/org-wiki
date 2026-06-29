@@ -4,8 +4,8 @@ status: active
 owner: Aditya Dutta / Ujjwal Trivedi
 depends_on: []
 used_by: [meeting-rooms, digital-wayfinding, visitor-management, implementation, meal-management]
-last_updated: 2022-08-26
-source: "[[sources/diy-floor-planner-prd]], [[sources/floor-kiosk-device-spec]], [[sources/floor-plan-sop]]"
+last_updated: 2026-02-02
+source: "[[sources/diy-floor-planner-prd]], [[sources/floor-kiosk-device-spec]], [[sources/floor-plan-sop]], [[sources/se-runbook-floor-kiosk]]"
 ---
 
 # Floor Kiosk Module
@@ -60,23 +60,143 @@ Client provides DWG/PNG/PDF
 - _Source: [[sources/se-runbook-ets-office-premise]]_
 
 ## Hardware Specifications
-| Parameter | Specification |
-|-----------|--------------|
-| Screen | 25"+ / 16:9 |
-| OS | Android 12.0+ |
-| Chipset | Qualcomm |
-| Core | Quad-core / ARM Cortex |
-| GPU | Adreno 619 / 642 / 650 / 730 |
-| Working frequency | ~2.1–3.7 GHz (Ryzen 5 baseline) |
-| RAM | 12 GB+ |
-| Storage (ROM) | 128 GB |
-| Wi-Fi | Wi-Fi 6 — 802.11 b/g/n/a/ac/ax (2.4 GHz + 5 GHz) |
-| Bluetooth | BT 5 (2.4 GHz, 0–10 m) |
-| Touch | Capacitive, 10-point |
-| Speakers | 2 × 5W (2 sound tracks) |
-| Ports | USB 3.0 ×1; USB-C ×1 (full-featured, no charging); Audio Out ×1; DC-IN ×1; LAN (to be supported) |
-| Patch updates | Supported without forced restarts (configurable) |
-| Kiosk mode | Guided lock mode — disables back button, restricts URL exit, locks to single app |
+
+Two source documents exist. Spec Sheet v1.0 (2026-02-02) and the Device Specification Datasheet are largely aligned; divergences are called out.
+
+| Parameter | Spec Sheet v1.0 (2026-02-02) | Device Datasheet |
+|-----------|------------------------------|------------------|
+| Screen size | 25"+ recommended | 25"–27" recommended; 32"+ not optimal (needs MIS testing) |
+| Aspect ratio | 16:9 | 16:9 |
+| OS | Android 12.0+ | Android 12.0+ |
+| Chipset | Qualcomm | Qualcomm Snapdragon 7-series / 8-series equivalent |
+| CPU architecture | Quad-core / ARM Cortex | Octa-core ARM Cortex (4× A76 + 4× A55) or higher |
+| Working frequency | ~2.1–3.7 GHz (Ryzen 5 baseline) | Up to 2.4 GHz (high-performance cores) ⚠️ values differ |
+| RAM | 12 GB+ | 12 GB optimal; 8 GB recommended; 6 GB minimum |
+| Storage (ROM) | 128 GB | 128 GB recommended; 64 GB minimum |
+| GPU min | Adreno 619 ⚠️ | Adreno 640 or equivalent (manageable); Adreno 650+ recommended ⚠️ values differ |
+| GPU requirements | — | Must support OpenGL ES 3.2, Vulkan 1.1, hardware-accelerated WebView rendering |
+| Recommended combination | — | CPU: Snapdragon 778G / 7 Gen1 / 8 Gen1; GPU: Adreno 642+ / 660 |
+| Wi-Fi | Wi-Fi 6 — 802.11 b/g/n/a/ac/ax (2.4 GHz + 5 GHz) | Same; built-in Wi-Fi 6 module |
+| Bluetooth | BT 5 (2.4 GHz, 0–10 m) | Not required for floor kiosk; okay to have |
+| LAN / Ethernet | To be supported | Gigabit Ethernet (10/100/1000 Mbps) — RJ45; 1 port |
+| Touch | Capacitive, 10-point | Capacitive, 10-point multi-touch |
+| Speakers | 2 × 5W (2 sound tracks) | — |
+| USB | USB 3.0 ×1; USB-C ×1 (full-featured, no charging) | USB 3.0 ×1; USB-C ×1 (full-featured, data only — no charging) |
+| Other ports | Audio Out ×1 (3.5 mm); DC-IN ×1 | Audio Out ×1 — 3.5 mm (Optional); DC Power Input ×1 |
+| Patch updates | Supported without forced restarts (configurable) | Same |
+| App support | — | Google Apps |
+| Kiosk mode | Guided lock mode — disables back button, restricts URL exit, locks to single app | Same |
+
+### Unsupported Hardware (from Device Datasheet)
+
+Do not procure devices with any of the following components:
+
+| Component | Disqualified values |
+|-----------|-------------------|
+| GPU | Mali-400, Mali-450, Mali-T720, Mali-T760, or older ARM GPUs |
+| Processor | Rockchip RK30xx series; older MediaTek MT65xx / MT67xx |
+| RAM | Less than 6 GB |
+| Android version | Android 10 or below |
+
+_Source: [[sources/floor-kiosk-device-spec]], [[sources/se-runbook-floor-kiosk]]_
+
+## Scalefusion MDM
+
+WorkInSync uses [Scalefusion](https://scalefusion.com/) as the MDM (Mobile Device Management) platform to enroll, lock, and remotely manage Android and iPad kiosk devices.
+
+### What Scalefusion manages
+- Enforces guided kiosk mode (single-app lock; disables back button, URL exit)
+- Pushes app updates without forced device restarts
+- Provides remote monitoring and screen-casting via the **RemoteCast** app (called "Remote Sharing" in the enrollment flow)
+- Manages permissions (overlay, accessibility, remote-sharing) centrally
+
+### Enrollment overview
+Two document types exist:
+- **"Setting Up Scalefusion on Android and iPad Devices"** — generic enrollment doc (authored by WorkInSync Implementation Team); example device names in the doc use meeting-room naming (`MR Kiosk`) — cross-reference [[modules/meeting-rooms]] for MR-specific details.
+- **"Meeting room kiosk Scalefusion"** — MR-specific variant; content is meeting-rooms noise, not duplicated here.
+
+For the floor kiosk device setup procedure (Android enrollment, permissions, device naming, remote sharing), see **[[runbooks/floor-kiosk-device-setup]]**.
+
+_Source: [[sources/se-runbook-floor-kiosk]]_
+
+---
+
+## Employee Flow Kiosk (`isEmployeeFlowEnabled`)
+
+The **employee flow** is a mode of the visitor/self-checkin kiosk that presents employees (rather than external visitors) with a separate landing screen and action set.
+
+### How to enable
+
+`isEmployeeFlowEnabled` is a sub-key within the **`visitorKioskConfigs`** JSON blob in the VISITOR service. It is not a standalone PMS row.
+
+```json
+// Within visitorKioskConfigs — set this to true to activate employee flow
+{ "isEmployeeFlowEnabled": true }
+```
+
+Alongside enabling the flag, configure the multilingual header text:
+
+```json
+"employeeDescriptionHeaderText": {
+  "en": "Employee, please select an action below",
+  "es": "Empleado, por favor seleccione una acción a continuación",
+  "fr": "Employé, veuillez sélectionner une action ci-dessous",
+  "nl": "Werknemer, selecteer alstublieft een actie hieronder"
+}
+```
+
+Also set `DefaultEndTimeOfEmployeeBooking = 1439` (represents 23:59 — end of day).
+
+### Custom fields in the employee flow
+
+The employee flow supports custom profile fields via the same `subfields` mechanism used by the visitor forms (see §Self-Checkin Custom Forms below). Key rules from the source:
+
+- Skip the first three sections of the `visitorFormsMetaData` config (those are profile fields: name, email, phone).
+- Add required custom fields under `subfields`.
+- Set `parentConfigValue` to `employee` for fields that should appear in the employee flow.
+- `itemList` must **not** contain `employee`.
+
+> ⚠️ `isEmployeeFlowEnabled` lives inside `visitorKioskConfigs` (VISITOR service), not as a top-level PMS property. See [[configs/visitor-management]] for the full VISITOR service config table. The `visitor-management.md` config page is auto-generated — if re-ingesting, this note should be preserved manually.
+
+_Source: [[sources/se-runbook-floor-kiosk]]_
+
+---
+
+## Self-Checkin Tablet Flow & Custom Forms
+
+The self-checkin tablet flow allows visitors to check themselves in at a kiosk (tablet device) without receptionist assistance. Custom fields are injected via the `visitorFormsMetaData` Consul JSON key in the VISITOR service.
+
+### Form field structure (`visitorFormsMetaData`)
+
+Each entry in the `visitorFormsMetaData` array defines one form field:
+
+| JSON key | Type | Description |
+|----------|------|-------------|
+| `fieldType` | string | UI widget type: `"input"`, `"singleselect"`, etc. |
+| `fieldInputType` | string | Input sub-type: `"text"`, `"number"`, `"email"`, etc. |
+| `title` | string | Label shown to the visitor on the form |
+| `configName` | string | Property name used internally (e.g. `"phoneNumber"`, `"emailId"`) |
+| `subFieldValue` | boolean | Whether this is a sub-field of a parent selector |
+| `backedFieldType` | string | Backend storage type: `"STRING"`, etc. |
+| `validators` | array | Validation rules — `Required`, `MinLength` (with `value`), `Email`, etc. |
+| `parentConfigValue` | string | Visitor type this field applies to (e.g. `"employee"`, `"businessGuest"`, `"contractor"`) |
+| `itemList` | array | For `singleselect` fields: list of selectable items (must not include `"employee"` if used with employee flow) |
+
+### Visitor type segmentation
+
+Fields can be scoped to a visitor type via `parentConfigValue`. Known visitor type values referenced in the source: `businessGuest`, `contractor`, `delivery`, `partner`, `internal`. The employee flow uses `employee` — see §Employee Flow above.
+
+### Example field types from source
+
+The source doc shows a `visitorFormsMetaData` example with:
+- Phone number — `fieldType: "input"`, `fieldInputType: "number"`, `configName: "phoneNumber"`, validators: Required + MinLength(10)
+- Email ID — `fieldType: "input"`, `fieldInputType: "text"`, `configName: "emailId"`, validators: Required + Email format
+
+> ⚠️ The full `visitorFormsMetaData` JSON lives in Consul/PMS under the VISITOR service (not in the floor-kiosk service). This is a cross-module integration point: the floor kiosk hardware renders the form, but the form schema is owned by the VISITOR service configuration.
+
+_Source: [[sources/se-runbook-floor-kiosk]]_
+
+---
 
 ## Used By
 - [[modules/meeting-rooms]] — room-level kiosk (status, booking, check-in, extend/cancel) uses this hardware + MDM + pairing infrastructure
@@ -86,6 +206,10 @@ Client provides DWG/PNG/PDF
 ## Open Questions
 - Is the DIY Floor Planner accessible as a self-serve feature for clients today (upsell), or still internal-only?
 - Has Phase 2 (version control + S3 storage) been shipped?
+- Working frequency discrepancy between Spec Sheet ("~2.1–3.7 GHz, Ryzen 5 baseline") and Device Datasheet ("up to 2.4 GHz") — confirm authoritative value with hardware team.
+- GPU minimum discrepancy: Spec Sheet lists Adreno 619; Datasheet lists Adreno 640 as minimum manageable — which is current?
+- Is `isEmployeeFlowEnabled` documented in the auto-generated `configs/visitor-management.md`? If not, it should be added manually and protected from regen overwrites.
+- The Scalefusion enrollment doc uses meeting-room device naming (`<OrgName> - <Room> MR Kiosk`) as its example — is there a separate naming convention for floor kiosk devices?
 
 ## Last Updated
-2026-06-25 — _Sources: [[sources/diy-floor-planner-prd]], [[sources/floor-kiosk-device-spec]], [[sources/floor-plan-sop]], [[sources/se-runbook-ets-office-premise]] (SE upload endpoints)_
+2026-06-29 — _Sources: [[sources/diy-floor-planner-prd]], [[sources/floor-kiosk-device-spec]], [[sources/floor-plan-sop]], [[sources/se-runbook-ets-office-premise]] (SE upload endpoints), [[sources/se-runbook-floor-kiosk]] (Scalefusion MDM, employee flow, self-checkin, device datasheet)_

@@ -304,3 +304,11 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - Config: provisioning is protocol-level — no PMS config properties documented (none filled).
 - Flags: Open Qs — SCIM secret-token expiry not documented; IdP group→WIS-group mapping not supported; Stratus role API endpoints not in provisioning docs. Cross-linked noise: visitor-bulk-upload→visitor, meeting→meeting-rooms, MS-Teams→ms-teams, SSO→sso.
 - Verification: token scan clean; augment (+98 lines, sources preserved).
+
+## [2026-06-29 18:45] ingest | SE Runbook Phase D — FLOOR-KIOSK topic
+- Created: [[runbooks/floor-kiosk-device-setup]] (Android/iPad kiosk enrollment in Scalefusion MDM — afw#mobilock + APK methods, iPad variants, RemoteCast, post-enrollment checklist; cross-links floor-plan-upload + meeting-rooms), [[sources/se-runbook-floor-kiosk]].
+- Updated: [[modules/floor-kiosk]] (dual-source Hardware Specs comparison + Unsupported-HW table, Scalefusion MDM section, Employee-Flow kiosk, Self-Checkin tablet flow; 3 original sources preserved + new appended; last_updated → 2026-02-02 = Spec Sheet date), [[configs/visitor-management]] (augmented `isEmployeeFlowEnabled`, `DefaultEndTimeOfEmployeeBooking`=1439, `visitorFormsMetaData`, `visitorKioskConfigs` — these live in VISITOR service; manual-notes marker block added), [[index]] (Runbooks 12→13, Sources 42→43, total 122→124).
+- Conflicts (dual-claimed ⚠️, not silently resolved): GPU min Adreno 619 vs 640; CPU freq spec mismatch; `visitorFormsMetaData` "Not in use" (auto-gen) vs active SE usage; `isEmployeeFlowEnabled` standalone-PMS-row vs sub-key of `visitorKioskConfigs`.
+- 🔴 Secrets: 0 (none in source; enrollment codes/QRs were blank placeholders).
+- Flags: device naming convention only has an MR-kiosk example (flagged); meeting-room-kiosk Scalefusion content cross-linked to meeting-rooms, not duplicated.
+- Verification: token scan clean; augment (sources preserved; config fills in-place, other props untouched).
