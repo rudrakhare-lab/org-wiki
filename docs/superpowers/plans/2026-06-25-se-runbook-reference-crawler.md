@@ -1374,3 +1374,21 @@ This beats both alternatives: full-context authoring (quality, no truncation) **
 
 ### R4 addendum — Claude reads screenshots in-context during authoring
 Beyond the bulk pre-OCR (the searchable coverage layer, logged in the manifest), Claude reads key screenshots directly (as a vision model) **while authoring the relevant runbook step**, interpreting them with the surrounding procedure in mind — higher fidelity than blind pre-OCR alone.
+
+---
+
+## Revision 4 (2026-06-29) — As-built + Phase D scope (supersedes where it conflicts)
+
+**Crawler: built, run, merged.** Tasks 1–9 + a resilience task (resumable OCR, requeue-interrupted-fetches, rclone timeout, `--max-depth`, progress logging) shipped on `feat/se-runbook-crawler`, **merged to main (PR #28)**. Phase B crawl ran to fixpoint: **325 done / 27 access_denied / 1171 terminal, depth 6, `complete: True`**. Verified clean (error bucket 0; root-image parity 80; the 6 ROOT-gated files accounted for — 5 denied + 1 fetched). Output in gitignored `raw/se-runbook/crawl/` (1.6 GB; **210 *unique* docs** — the 325 rows were duplicate link-paths).
+
+**Phase D scope — EXTENDED (PM decision, 2026-06-28).** Original Phase D scoped "~8 SE topics" from the main doc. Now: ingest the **full 210-doc crawl corpus**, **including the 65 release-notes** (PM: release notes are a sales source-of-truth for "what's new/changed"). Mechanism unchanged — per-topic 9-step INGEST + diff-and-decide + the **Conflict & Recency Policy** above. Release-notes slot in as the **historical / "what-changed" layer** (they are the dated evidence that powers the policy's Current/Previously formatting).
+
+**Triage findings (deep analysis of the 210):**
+- **Enrichment ≫ contradiction.** ~153 config properties already in the config KB get their **missing defaults filled** from the docs/release-notes; **165 new** properties added. Genuine conflicts are mostly **date-based release-note evolution** + minor enum drift — exactly what the policy surfaces transparently.
+- **Wiki impact:** enriches ~13 active modules, **fills 3 stubs** (`ets`, `desk-management`, `tags-desk-parking`), **creates 2 new** (`sanitization`, `booking-rule-engine`).
+- **🔴 Hard gate:** several API/curl docs contain **real JWT bearer tokens** (one token reused across ~6 docs) → **redact to `<token>` placeholders before any ingest** (as was done for the SSO docs).
+- Images: 2731 screenshots / 3485 OCR sidecars are mostly release-note feature shots + marketing-deck slides (only 5 bug/test docs) → staleness handled by **distill-not-dump** + per-doc dating, not by dropping.
+
+**Architecture (KB vs evidence):** authoritative KB (curated `.md` + graph) is what Conwo answers from; the raw crawl stays a searchable **evidence** layer. CORE distilled into KB; release-notes → historical layer; query-time transparency via §5 + the Conflict & Recency ladder. Trust-tagged hybrid retrieval (embed-all, tag authoritative-vs-evidence, authority dominates ranking) = a later enhancement; query the evidence layer manually for now.
+
+**Phase C done (2026-06-29):** `runbook` page type added at §2j. **Phase D execution:** per-topic on a clean `feat/se-runbook-ingest` worktree off `bitbucket/main` (reads the gitignored crawl vault by absolute path; writes wiki pages for a clean PR). **Pilot = `meal`.**

@@ -397,6 +397,46 @@ page description, fall back in this order:
 
 ---
 
+### 2j. Runbook Page — `wiki/runbooks/<topic>.md`
+
+SE (Service Engineering) operational how-to: the step-by-step procedure to set up or
+configure a feature, distilled from the SE-runbook source docs + their linked/crawled
+evidence. (Established in the 2026-06-25 SE-runbook ingest; codified here per plan Phase C.)
+
+**Frontmatter:**
+```yaml
+---
+type: runbook
+module: <module slug>          # primary module; use modules: [a, b] if it spans two
+team: SE (Service Engineering)
+status: active | stub
+last_updated: YYYY-MM-DD
+source: "[[sources/<filename>]]"
+raw_path: raw/...              # exact path to the source doc in raw/
+---
+```
+
+**Required Sections:**
+1. `## Purpose` — what this procedure accomplishes and when an SE runs it
+2. `## Prerequisites` — access/tools/configs needed first (Postman, G-Tool, sheet IDs, BUID)
+3. `## Ordered Steps` — numbered; each: tool + action + endpoint/URL + payload, with every
+   concrete value flagged as an **example/placeholder** (never literal config)
+4. `## Screenshots` — transcription + one line on what each shows (link `raw/se-runbook/.../images`)
+5. `## Validation` — how to confirm the setup worked
+6. `## Notes & Gotchas` — loose-but-critical details that fit no single step
+7. `## Related Jira` — `PB-`/`SE-`/`TO-`/`TS-` ticket keys only (per §10 Rule 1)
+8. `## Linked Raw Evidence` — cite back to `raw/se-runbook/` source + fetched files
+
+**Rules:**
+- Flag every example value as a placeholder; preserve odd spellings verbatim.
+- Never present an example-only observation as a definitional rule (label "observed in
+  example — confirm with owning team").
+- Apply the **Conflict & Recency policy** (dates/tickets → live config → show-both →
+  route-to-team) to any fact that also touches an existing module/config page.
+- Runbooks get a row in `wiki/index.md` under its `## Runbooks` table.
+
+---
+
 ## Section 3 — Index & Log Conventions
 
 ### index.md Format
