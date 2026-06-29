@@ -1,6 +1,6 @@
 # WorkInSync Feature Wiki — Index
 _Last updated: 2026-06-29_
-_Total pages: 120 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 11 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 41 | Cross-module: 8_
+_Total pages: 122 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Runbooks: 12 | Answers: 1 | Integrations: 0 | Decisions: 8 | Sources: 42 | Cross-module: 8_
 
 ---
 
@@ -39,6 +39,7 @@ _Total pages: 120 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[runbooks/seat-sanitization]] | HOUSEKEEPER user creation, QR-scan enable/disable, sanitize cut-off | [[modules/sanitization]] | [[sources/se-runbook-sanitization]] |
 | [[runbooks/ets-data-sync]] | ETS→WIS employee data sync (SFTP/API channels) — TechOps request procedure + SLAs | [[modules/ets]] | [[sources/se-runbook-ets]] |
 | [[runbooks/access-card-integration]] | Access-card vendor integration — REST auth/token + endpoints, SFTP file-based mode, check-in config | [[modules/access-management]] | [[sources/se-runbook-access-card]] |
+| [[runbooks/employee-data-sync-scim]] | SCIM provisioning setup (Azure AD / Okta) + SFTP CSV mode + troubleshooting | [[modules/employee-provisioning]] | [[sources/se-runbook-employee-provisioning]] |
 
 ## Concepts
 | Page | Summary | Used By |
@@ -134,3 +135,4 @@ _Total pages: 120 | Modules: 24 | Configs: 11 | Entities: 12 | Concepts: 0 | Run
 | [[sources/se-runbook-sanitization]] | misc | 2026-06-29 | modules/sanitization, runbooks/seat-sanitization |
 | [[sources/se-runbook-ets]] | misc | 2026-06-29 | modules/ets, runbooks/ets-data-sync |
 | [[sources/se-runbook-access-card]] | misc | 2026-06-29 | modules/access-management, runbooks/access-card-integration, configs/booking-rule-engine |
+| [[sources/se-runbook-employee-provisioning]] | misc | 2026-06-29 | modules/employee-provisioning, runbooks/employee-data-sync-scim |

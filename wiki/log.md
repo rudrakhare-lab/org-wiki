@@ -295,3 +295,12 @@ Append-only. Format: `## [YYYY-MM-DD HH:MM] <operation> | <title>`
 - Config notes: `defaulBookingHoursIfExtCheckin` typo preserved verbatim. Defaults `false` where source documents opt-in flags; `defaulBookingHoursIfExtCheckin`/`extCheckinToBookingBuffer`/`officeCheckInModeWeb/App`/`lastSwipeAsCheckoutTimeForBUID` marked "not documented" (source states no default).
 - Flags: no conflicts (officeCheckInMode values had no prior wiki entry). Open Qs: SFTP swipe-CSV column schema not in source; `lastSwipeAsCheckoutTimeForBUID` LIST syntax unconfirmed; pre-existing premiseId semantic open-question preserved.
 - Verification: augment confirmed (reworded-not-lost; sources preserved); token scan clean; config fills in-place (meal rows untouched).
+
+## [2026-06-29 18:15] ingest | SE Runbook Phase D — EMPLOYEE-PROVISIONING topic
+- Created: [[runbooks/employee-data-sync-scim]] (SCIM provisioning setup for Azure AD / Okta + SFTP CSV mode + troubleshooting from the Internal guide; scoped to protocol/IdP, cross-links ets-data-sync for the ETS process), [[sources/se-runbook-employee-provisioning]].
+- Updated: [[modules/employee-provisioning]] (enriched SCIM 2.0 detail, IdP attribute mapping, Stratus data-sync API, role/privilege mgmt; 129→227 lines; 3 original sources preserved + new appended; last_updated → 2025-03-06 = newest source doc date per diff-and-decide), [[index]] (Runbooks 11→12, Sources 41→42, total 120→122).
+- Overlap handling: ets-data-sync (ETS TechOps process) vs this (SCIM/SFTP protocol + IdP setup) — cross-linked 5×, not duplicated; ambiguity (2025 Stratus Direct API vs older ETS API) flagged in Open Questions.
+- 🔴 Secrets: the 1 doc with a real JWT (PB-22330 sender-email) was off-topic noise → excluded entirely (not ingested). 0 `eyJ…` in any page.
+- Config: provisioning is protocol-level — no PMS config properties documented (none filled).
+- Flags: Open Qs — SCIM secret-token expiry not documented; IdP group→WIS-group mapping not supported; Stratus role API endpoints not in provisioning docs. Cross-linked noise: visitor-bulk-upload→visitor, meeting→meeting-rooms, MS-Teams→ms-teams, SSO→sso.
+- Verification: token scan clean; augment (+98 lines, sources preserved).
