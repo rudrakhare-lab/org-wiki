@@ -1,7 +1,7 @@
-"""Tests for backend.wiki_seed.sync_wiki_baseline — the deploy-time wiki merge."""
+"""Tests for backend.wiki_seed — the deploy-time wiki merge + CLAUDE.md file sync."""
 from pathlib import Path
 
-from backend.wiki_seed import sync_wiki_baseline, STAMP_NAME
+from backend.wiki_seed import sync_wiki_baseline, sync_file, STAMP_NAME
 
 
 def _write(d: Path, rel: str, content: str) -> None:
@@ -66,3 +66,45 @@ def test_noop_local_when_same_path(tmp_path):
 
 def test_no_seed_dir(tmp_path):
     assert sync_wiki_baseline(tmp_path / "missing", tmp_path / "vol")["action"] == "no-seed"
+
+
+# --- sync_file (CLAUDE.md image→volume refresh) ---
+
+def test_sync_file_creates_when_missing(tmp_path):
+    src = tmp_path / "img" / "CLAUDE.md"
+    dst = tmp_path / "vol" / "CLAUDE.md"
+    src.parent.mkdir(parents=True)
+    src.write_text("v1", encoding="utf-8")
+    r = sync_file(src, dst)
+    assert r["action"] == "created" and dst.read_text(encoding="utf-8") == "v1"
+
+
+def test_sync_file_updates_when_differs(tmp_path):
+    src = tmp_path / "img" / "CLAUDE.md"
+    dst = tmp_path / "vol" / "CLAUDE.md"
+    src.parent.mkdir(parents=True)
+    dst.parent.mkdir(parents=True)
+    src.write_text("v2-new", encoding="utf-8")
+    dst.write_text("v1-old", encoding="utf-8")
+    r = sync_file(src, dst)
+    assert r["action"] == "updated" and dst.read_text(encoding="utf-8") == "v2-new"
+
+
+def test_sync_file_skips_when_identical(tmp_path):
+    src = tmp_path / "img" / "CLAUDE.md"
+    dst = tmp_path / "vol" / "CLAUDE.md"
+    src.parent.mkdir(parents=True)
+    dst.parent.mkdir(parents=True)
+    src.write_text("same", encoding="utf-8")
+    dst.write_text("same", encoding="utf-8")
+    assert sync_file(src, dst)["action"] == "skip"
+
+
+def test_sync_file_noop_local_when_same_path(tmp_path):
+    f = tmp_path / "CLAUDE.md"
+    f.write_text("x", encoding="utf-8")
+    assert sync_file(f, f)["action"] == "noop-local"
+
+
+def test_sync_file_no_source(tmp_path):
+    assert sync_file(tmp_path / "missing.md", tmp_path / "vol" / "CLAUDE.md")["action"] == "no-source"

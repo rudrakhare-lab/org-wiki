@@ -71,3 +71,25 @@ def sync_wiki_baseline(seed_dir: Path, volume_dir: Path) -> dict:
     stamp.write_text(digest, encoding="utf-8")
     pages = sum(1 for _ in volume_dir.rglob("*.md"))
     return {"action": action, "pages": pages}
+
+
+def sync_file(src: Path, dst: Path) -> dict:
+    """Copy a single git-owned file from the image baseline onto the runtime volume
+    when it is missing or differs. No-op when src == dst (local dev) or src absent.
+
+    Used for CLAUDE.md: the answering agent reads it from the PVC (_BASE/CLAUDE.md),
+    but the wiki sync only covers wiki/ — so prompt/schema edits to CLAUDE.md never
+    reached prod. CLAUDE.md is git-owned (no runtime writes), so overwrite-from-image
+    is correct. Actions: noop-local | no-source | skip | created | updated.
+    """
+    if src.resolve() == dst.resolve():
+        return {"action": "noop-local"}
+    if not src.is_file():
+        return {"action": "no-source", "src": str(src)}
+    new = src.read_bytes()
+    if dst.exists() and dst.read_bytes() == new:
+        return {"action": "skip"}
+    action = "updated" if dst.exists() else "created"
+    dst.parent.mkdir(parents=True, exist_ok=True)
+    dst.write_bytes(new)
+    return {"action": action}
