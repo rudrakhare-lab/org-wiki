@@ -12,11 +12,6 @@ import google.generativeai as genai
 _MODEL = "models/text-embedding-004"
 _BATCH = 100  # Gemini accepts batches; 100 is comfortably under the limit.
 
-# Test seam: tests patch `_client.embed_content`.
-class _GeminiClient:
-    def embed_content(self, *, model: str, content: Any, task_type: str) -> dict:
-        return genai.embed_content(model=model, content=content, task_type=task_type)
-
 def _ensure_configured() -> None:
     key = os.getenv("GOOGLE_GENAI_API_KEY")
     if not key:
