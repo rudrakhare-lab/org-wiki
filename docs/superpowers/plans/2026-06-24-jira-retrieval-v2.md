@@ -75,9 +75,9 @@ def by_module(module_slug: str, query: str, limit: int = 5) -> list[Candidate]: 
 ## Task 1: Migration — `pgvector`, `tsvector`, `ticket_links`, shadow log
 
 **Files:**
-- Create: `migrations/postgres/050_retrieval_v2.sql`
+- Create: `migrations/postgres/150_retrieval_v2.sql`
 - Modify: `requirements.txt`
-- Test: `tests/test_migration_050.py`
+- Test: `tests/test_migration_150.py`
 
 **Interfaces:**
 - Consumes: existing `tickets` table from `migrations/postgres/040_tickets.sql`
@@ -85,9 +85,9 @@ def by_module(module_slug: str, query: str, limit: int = 5) -> list[Candidate]: 
 
 - [ ] **Step 1: Write the failing test**
 
-`tests/test_migration_050.py`:
+`tests/test_migration_150.py`:
 ```python
-"""Verifies migration 050 creates expected schema. Skipped if no Postgres available."""
+"""Verifies migration 150 creates expected schema. Skipped if no Postgres available."""
 import os
 import pytest
 import psycopg
@@ -95,7 +95,7 @@ import psycopg
 PG_DSN = os.getenv("CONWO_TEST_DSN")
 pytestmark = pytest.mark.skipif(not PG_DSN, reason="requires CONWO_TEST_DSN")
 
-def test_migration_050_creates_tsvector_column():
+def test_migration_150_creates_tsvector_column():
     with psycopg.connect(PG_DSN) as conn, conn.cursor() as cur:
         cur.execute("""
             SELECT data_type FROM information_schema.columns
@@ -104,7 +104,7 @@ def test_migration_050_creates_tsvector_column():
         row = cur.fetchone()
         assert row and row[0] == 'tsvector'
 
-def test_migration_050_creates_embedding_column():
+def test_migration_150_creates_embedding_column():
     with psycopg.connect(PG_DSN) as conn, conn.cursor() as cur:
         cur.execute("""
             SELECT udt_name FROM information_schema.columns
@@ -113,17 +113,17 @@ def test_migration_050_creates_embedding_column():
         row = cur.fetchone()
         assert row and row[0] == 'vector'
 
-def test_migration_050_creates_ticket_links_table():
+def test_migration_150_creates_ticket_links_table():
     with psycopg.connect(PG_DSN) as conn, conn.cursor() as cur:
         cur.execute("SELECT to_regclass('ticket_links')")
         assert cur.fetchone()[0] == 'ticket_links'
 
-def test_migration_050_creates_shadow_log_table():
+def test_migration_150_creates_shadow_log_table():
     with psycopg.connect(PG_DSN) as conn, conn.cursor() as cur:
         cur.execute("SELECT to_regclass('retrieval_shadow_log')")
         assert cur.fetchone()[0] == 'retrieval_shadow_log'
 
-def test_migration_050_creates_hnsw_index():
+def test_migration_150_creates_hnsw_index():
     with psycopg.connect(PG_DSN) as conn, conn.cursor() as cur:
         cur.execute("""
             SELECT indexdef FROM pg_indexes
@@ -136,15 +136,15 @@ def test_migration_050_creates_hnsw_index():
 - [ ] **Step 2: Run test to verify it fails**
 
 ```bash
-CONWO_TEST_DSN="$CONWO_DSN" venv/bin/pytest tests/test_migration_050.py -v
+CONWO_TEST_DSN="$CONWO_DSN" venv/bin/pytest tests/test_migration_150.py -v
 ```
 Expected: 5 failures (columns/tables don't exist yet). If `CONWO_TEST_DSN` is unset, all skip — that's fine; we'll run the test after migration lands.
 
 - [ ] **Step 3: Write the migration**
 
-`migrations/postgres/050_retrieval_v2.sql`:
+`migrations/postgres/150_retrieval_v2.sql`:
 ```sql
--- 050_retrieval_v2.sql — hybrid retrieval schema for Jira Retrieval v2.
+-- 150_retrieval_v2.sql — hybrid retrieval schema for Jira Retrieval v2.
 -- Idempotent. Applied at startup by db.init_db().
 
 -- ── 1. BM25 / lexical search ──────────────────────────────────────────────
@@ -200,16 +200,16 @@ pgvector>=0.3.0
 - [ ] **Step 4: Apply migration and run tests**
 
 ```bash
-psql "$CONWO_DSN" -f migrations/postgres/050_retrieval_v2.sql
-CONWO_TEST_DSN="$CONWO_DSN" venv/bin/pytest tests/test_migration_050.py -v
+psql "$CONWO_DSN" -f migrations/postgres/150_retrieval_v2.sql
+CONWO_TEST_DSN="$CONWO_DSN" venv/bin/pytest tests/test_migration_150.py -v
 ```
 Expected: 5 PASS.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add migrations/postgres/050_retrieval_v2.sql requirements.txt tests/test_migration_050.py
-git commit -m "feat(retrieval-v2): migration 050 — tsvector + pgvector + ticket_links + shadow log"
+git add migrations/postgres/150_retrieval_v2.sql requirements.txt tests/test_migration_150.py
+git commit -m "feat(retrieval-v2): migration 150 — tsvector + pgvector + ticket_links + shadow log"
 ```
 
 ---
@@ -2089,7 +2089,7 @@ git commit -m "test(retrieval-v2): e2e integration + eval harness scaffolding"
 These are not tasks — they're the operational steps to take after the 14 implementation tasks land.
 
 1. **Confirm `pgvector` on prod RDS** — `CREATE EXTENSION vector` works.
-2. **Apply migration 050** in staging, then prod. (Will run automatically at backend startup via `db.init_db()`; manual `psql` apply is a faster path for the first deploy.)
+2. **Apply migration 150** in staging, then prod. (Will run automatically at backend startup via `db.init_db()`; manual `psql` apply is a faster path for the first deploy.)
 3. **Confirm Gemini API approval for internal customer data** (Jira tickets contain BUIDs and incident details). If approval is restricted, set `RETRIEVER_EMBED_FALLBACK_LOCAL=1` and host `bge-large-en-v1.5` instead. (Out of scope for v1 plan; design preserves the option.)
 4. **Run one-time backfills:**
    ```bash
