@@ -1,0 +1,6 @@
+[
+  {"q": "what does kioskRequireOTPBeforeRegister do?", "intent": "CONFIGURATION", "expected_any_of": []},
+  {"q": "recently resolved tickets in WF-empexp", "intent": "STATUS", "expected_any_of": []},
+  {"q": "how does meal scan work for overnight bookings?", "intent": "HOW_TO", "expected_any_of": []},
+  {"q": "tickets blocked by TS-1234", "intent": "GENERAL", "expected_any_of": []}
+]

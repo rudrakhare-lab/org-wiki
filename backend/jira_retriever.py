@@ -6,8 +6,11 @@ Extracts a search keyword from the user's free-text question.
 """
 from __future__ import annotations
 
+import os
+import random
 import re
 import sys
+import time
 from pathlib import Path
 
 # Make scripts/ importable without installing as a package
@@ -18,6 +21,7 @@ if str(_SCRIPTS) not in sys.path:
 from query_jira_ranked import fetch_ranked, render_markdown  # noqa: E402
 
 from backend import db
+from backend.retrieval.v2 import shadow as _shadow_mod
 
 # Common English stop-words to strip before keyword extraction
 _STOPWORDS = {
@@ -31,6 +35,93 @@ _STOPWORDS = {
 # Read access goes through the shared Postgres pool (backend.db.connection()).
 # The old _open_readonly() SQLite helper is gone; tickets live in Postgres now.
 
+
+# ── v2 dispatch ───────────────────────────────────────────────────────────────
+
+def _v2_search(question: str, *, functional_area: str | None = None,
+               limit: int = 10, **kwargs):
+    # kwargs (e.g. include_stale, trace_id) are v1-only and intentionally not
+    # passed to the v2 pipeline yet. Callers (e.g. jira_tools.py) may pass
+    # include_stale=True; v2 always returns all recency buckets via its own
+    # reranker, so the flag has no v2 equivalent. This is a known behaviour
+    # delta — callers should expect it when CONWO_RETRIEVAL_V2 flips to 'on'.
+    from backend.retrieval.v2.pipeline import search as _p
+    return _p(question, functional_area=functional_area, limit=limit)
+
+
+def _v2_by_module(module_slug: str, query: str, limit: int = 5, **kwargs):
+    from backend.retrieval.v2.pipeline import by_module as _bm
+    return _bm(module_slug, query, limit=limit)
+
+
+_shadow_log = _shadow_mod.log  # test seam
+
+
+def _mode() -> str:
+    return (os.getenv("CONWO_RETRIEVAL_V2") or "off").lower()
+
+
+def _ab_serve_v2() -> bool:
+    try:
+        pct = int(os.getenv("CONWO_RETRIEVAL_V2_PCT", "0"))
+    except ValueError:
+        pct = 0
+    return random.randint(1, 100) <= pct
+
+
+def search(question: str, *, functional_area: str | None = None,
+           limit: int = 10, **kwargs):
+    mode = _mode()
+    if mode == "off":
+        return _v1_search(question, functional_area=functional_area, limit=limit, **kwargs)
+    if mode == "on":
+        return _v2_search(question, functional_area=functional_area, limit=limit, **kwargs)
+    if mode == "ab":
+        if _ab_serve_v2():
+            return _v2_search(question, functional_area=functional_area, limit=limit, **kwargs)
+        return _v1_search(question, functional_area=functional_area, limit=limit, **kwargs)
+    # shadow: serve v1, run v2 alongside, log both
+    v1_result = _v1_search(question, functional_area=functional_area, limit=limit, **kwargs)
+    t0 = time.perf_counter()
+    try:
+        v2_result = _v2_search(question, functional_area=functional_area, limit=limit, **kwargs)
+        dt = int((time.perf_counter() - t0) * 1000)
+        v1_keys = _extract_v1_keys(v1_result)
+        _shadow_log(trace_id=kwargs.get("trace_id"), question=question,
+                    v1_keys=v1_keys, v2_result=v2_result,
+                    v2_latency_ms=dt, served_v2=False)
+    except Exception:
+        pass
+    return v1_result
+
+
+def by_module(module_slug: str, query: str, limit: int = 5, **kwargs):
+    mode = _mode()
+    if mode == "off":
+        return _v1_by_module(module_slug, query, limit=limit, **kwargs)
+    if mode == "on":
+        return _v2_by_module(module_slug, query, limit=limit, **kwargs)
+    if mode == "ab" and _ab_serve_v2():
+        return _v2_by_module(module_slug, query, limit=limit, **kwargs)
+    return _v1_by_module(module_slug, query, limit=limit, **kwargs)
+
+
+def _extract_v1_keys(v1_result) -> list[str]:
+    """Best-effort extraction of ticket keys from a v1 retrieval result."""
+    if v1_result is None:
+        return []
+    rows = getattr(v1_result, "rows", None) or getattr(v1_result, "results", None) or v1_result
+    out = []
+    try:
+        for r in rows:
+            if isinstance(r, dict) and "key" in r:
+                out.append(r["key"])
+    except Exception:
+        pass
+    return out
+
+
+# ─────────────────────────────────────────────────────────────────────────────
 
 def extract_keywords(question: str, max_terms: int = 3) -> list[str]:
     """
@@ -64,12 +155,13 @@ def extract_keywords(question: str, max_terms: int = 3) -> list[str]:
     return result or plain[:1] or [question[:40]]
 
 
-def search(
+def _v1_search(
     question: str,
     functional_area: str | None = None,
     module: str | None = None,
     limit: int = 25,
     include_stale: bool = False,
+    **kwargs,
 ) -> dict:
     """
     Run ranked Jira search for a question. Returns a dict with:
@@ -175,11 +267,12 @@ def _fetch_modules_for_keys(
     return out
 
 
-def by_module(
+def _v1_by_module(
     module_slug: str,
     query: str | None = None,
     limit: int = 5,
     confidence_floor: float = 0.5,
+    **kwargs,
 ) -> list[dict]:
     """
     Query-aware retrieval scoped to a single module.

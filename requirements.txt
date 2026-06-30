@@ -16,3 +16,6 @@ python-pptx==1.0.2
 # sqlite-vec==0.1.6
 # hdbscan==0.8.38
 # numpy==1.26.4
+google-genai>=2.10.0
+sentence-transformers>=3.0.0
+pgvector>=0.3.0
