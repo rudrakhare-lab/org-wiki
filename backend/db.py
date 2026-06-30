@@ -221,6 +221,17 @@ def cursor() -> Iterator[psycopg.Cursor]:
             yield cur
 
 
+def get_conn() -> psycopg.Connection:
+    """Return a raw pooled connection for callers that manage their own lifecycle.
+
+    The caller is responsible for returning the connection to the pool.
+    Prefer the ``connection()`` context manager for most use-cases.
+    Exposed primarily so the retrieval pipeline can pass a connection through
+    the hybrid → links → rerank chain without opening multiple pool slots.
+    """
+    return _get_pool().getconn()
+
+
 # ── Migration runner ────────────────────────────────────────────────────────
 def init_db() -> None:
     """Apply all migrations/*.sql in sorted order. Idempotent.
