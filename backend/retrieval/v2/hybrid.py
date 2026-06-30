@@ -45,7 +45,7 @@ fused AS (
 SELECT t.key, t.summary, t.description_text, t.comments_text,
        t.status_category, t.priority, t.updated_at, t.resolved_at,
        t.functional_area, t.links_json,
-       f.rrf
+       f.rrf AS fused_score
 FROM fused f
 JOIN tickets t USING (key)
 ORDER BY f.rrf DESC
@@ -92,11 +92,11 @@ def _rrf_fuse(per_subquery_results: list[list[dict]]) -> list[dict]:
         for row in batch:
             k = row["key"]
             if k in by_key:
-                by_key[k]["rrf"] += row["rrf"]
+                by_key[k]["fused_score"] += row["fused_score"]
             else:
                 by_key[k] = {**row}
     out = list(by_key.values())
-    out.sort(key=lambda r: r["rrf"], reverse=True)
+    out.sort(key=lambda r: r["fused_score"], reverse=True)
     return out
 
 
@@ -122,7 +122,7 @@ def hybrid_search(conn, sub_queries: list[str], query_vecs: list[list[float]],
             }
             cur.execute(sql, params)
             rows = list(cur.fetchall())
-            per_sub.append([{"key": r["key"], "rrf": float(r["rrf"]), **r} for r in rows])
+            per_sub.append([{"key": r["key"], "fused_score": float(r["fused_score"]), **r} for r in rows])
 
     fused = _rrf_fuse(per_sub)
     return fused[:limit]

@@ -4,8 +4,8 @@ test in Task 14; here we test the in-memory fusion across sub-queries)."""
 
 def test_rrf_fuse_combines_two_lists_by_rank():
     from backend.retrieval.v2.hybrid import _rrf_fuse
-    a = [{"key": "TS-1", "rrf": 0.04}, {"key": "TS-2", "rrf": 0.03}]
-    b = [{"key": "TS-2", "rrf": 0.04}, {"key": "TS-3", "rrf": 0.03}]
+    a = [{"key": "TS-1", "fused_score": 0.04}, {"key": "TS-2", "fused_score": 0.03}]
+    b = [{"key": "TS-2", "fused_score": 0.04}, {"key": "TS-3", "fused_score": 0.03}]
     out = _rrf_fuse([a, b])
     keys = [c["key"] for c in out]
     assert "TS-2" in keys and "TS-1" in keys and "TS-3" in keys
@@ -15,8 +15,8 @@ def test_rrf_fuse_combines_two_lists_by_rank():
 
 def test_rrf_fuse_dedupes_same_key():
     from backend.retrieval.v2.hybrid import _rrf_fuse
-    a = [{"key": "TS-1", "rrf": 0.04}]
-    b = [{"key": "TS-1", "rrf": 0.03}]
+    a = [{"key": "TS-1", "fused_score": 0.04}]
+    b = [{"key": "TS-1", "fused_score": 0.03}]
     out = _rrf_fuse([a, b])
     assert len(out) == 1 and out[0]["key"] == "TS-1"
 
