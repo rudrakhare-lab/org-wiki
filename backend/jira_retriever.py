@@ -40,6 +40,11 @@ _STOPWORDS = {
 
 def _v2_search(question: str, *, functional_area: str | None = None,
                limit: int = 10, **kwargs):
+    # kwargs (e.g. include_stale, trace_id) are v1-only and intentionally not
+    # passed to the v2 pipeline yet. Callers (e.g. jira_tools.py) may pass
+    # include_stale=True; v2 always returns all recency buckets via its own
+    # reranker, so the flag has no v2 equivalent. This is a known behaviour
+    # delta — callers should expect it when CONWO_RETRIEVAL_V2 flips to 'on'.
     from backend.retrieval.v2.pipeline import search as _p
     return _p(question, functional_area=functional_area, limit=limit)
 

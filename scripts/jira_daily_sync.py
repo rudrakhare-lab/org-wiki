@@ -333,6 +333,15 @@ def main() -> int:
     # a prior partial run that we can still process. Idempotent skip handles it.
     classify_ok, classify_summary = run_classify_stage(args.classification_days, verbose=args.verbose)
 
+    # ── Stage 3 & 4: v2 embed + links deltas (env-gated) ──────────────────────
+    if (os.getenv("CONWO_RETRIEVAL_V2") or "off").lower() != "off":
+        rc = _run_embed_delta()
+        if rc != 0:
+            log(f"WARNING: embed delta exited {rc}", verbose=args.verbose)
+        rc = _run_links_delta()
+        if rc != 0:
+            log(f"WARNING: links delta exited {rc}", verbose=args.verbose)
+
     elapsed = time.time() - start
     cost = "?"
     m_cost = re.search(r"\$([0-9.]+)", classify_summary)
