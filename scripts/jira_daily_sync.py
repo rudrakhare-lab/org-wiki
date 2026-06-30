@@ -214,6 +214,66 @@ def run_classify_stage(days: int, verbose: bool) -> tuple[bool, str]:
     return True, summary
 
 
+# ── V2 subprocess helpers ─────────────────────────────────────────────────────
+
+EMBED_TIMEOUT_S = 900    # 15 minutes — generous for 37k-ticket backfill; delta is ~seconds
+LINKS_TIMEOUT_S = 600    # 10 minutes
+
+
+def _run_incremental() -> int:
+    """Stage 1: run jira_sync.py --incremental. Returns subprocess exit code."""
+    if not SYNC_SCRIPT.exists():
+        print("WARNING: scripts/jira_sync.py not found — skipping incremental sync", flush=True)
+        return 1
+    return subprocess.call([str(VENV_PY), str(SYNC_SCRIPT), "--incremental"],
+                           cwd=str(REPO), timeout=SYNC_TIMEOUT_S)
+
+
+def _run_classify_delta() -> int:
+    """Stage 2: run classify_jira.py --delta 2 --yes. Returns subprocess exit code."""
+    if not CLASSIFY_SCRIPT.exists():
+        print("WARNING: scripts/classify_jira.py not found — skipping classify delta", flush=True)
+        return 1
+    return subprocess.call([str(VENV_PY), str(CLASSIFY_SCRIPT), "--delta", "2", "--yes"],
+                           cwd=str(REPO), timeout=CLASSIFY_TIMEOUT_S)
+
+
+def _run_embed_delta() -> int:
+    """Stage 3 (v2): embed new/updated tickets via Gemini. Returns subprocess exit code."""
+    return subprocess.call([sys.executable, "scripts/embed_tickets.py", "--mode", "delta"],
+                           timeout=EMBED_TIMEOUT_S)
+
+
+def _run_links_delta() -> int:
+    """Stage 4 (v2): backfill ticket_links for new/updated tickets. Returns subprocess exit code."""
+    return subprocess.call([sys.executable, "scripts/backfill_ticket_links.py", "--mode", "delta"],
+                           timeout=LINKS_TIMEOUT_S)
+
+
+def run() -> None:
+    """Core orchestration logic — called by main() and directly by tests.
+
+    Runs stages 1 & 2 unconditionally (existing nightly behavior).
+    Runs stages 3 & 4 (embed + links) only when CONWO_RETRIEVAL_V2 != 'off'.
+    V2 stages are best-effort: a non-zero exit logs a WARNING but never crashes the job.
+    """
+    rc = _run_incremental()
+    if rc != 0:
+        print(f"WARNING: incremental sync exited {rc}", flush=True)
+
+    rc = _run_classify_delta()
+    if rc != 0:
+        print(f"WARNING: classify delta exited {rc}", flush=True)
+
+    if (os.getenv("CONWO_RETRIEVAL_V2") or "off").lower() != "off":
+        rc = _run_embed_delta()
+        if rc != 0:
+            print(f"WARNING: embed delta exited {rc}", flush=True)
+        rc = _run_links_delta()
+        if rc != 0:
+            print(f"WARNING: links delta exited {rc}", flush=True)
+
+
 # ── Main ──────────────────────────────────────────────────────────────────────
 
 def main() -> int:
