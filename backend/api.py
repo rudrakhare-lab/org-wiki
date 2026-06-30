@@ -71,33 +71,32 @@ from backend.google_auth import verify_google_credential
 # Lifespan — build the wiki index once at startup
 # ---------------------------------------------------------------------------
 
-def _seed_wiki_if_empty() -> None:
-    """Seed the wiki/ volume from the image's baked baseline on first boot.
+def _sync_wiki_baseline() -> None:
+    """Merge the image's baked wiki baseline onto the runtime volume, once per deploy.
 
-    In prod, wiki/ lives on a mounted PVC (CONWO_DATA_DIR=/app/data) that starts
-    empty. The image bakes a wiki/ baseline at config.SEED_WIKI_DIR (the repo
-    copy). If the volume has no markdown yet, copy the baseline in. Never
-    overwrites an already-populated volume (later deploys / ingested pages).
-    No-op in local dev (data dir == repo root). Fail-open — a seed problem must
-    not block startup.
+    In prod, wiki/ lives on a mounted PVC (CONWO_DATA_DIR=/app/data) that PERSISTS
+    across deploys. The image bakes the current wiki/ at config.SEED_WIKI_DIR. We
+    merge the baked baseline onto the volume whenever the baked content changes
+    (content-hash stamped on the volume) — ADDING new pages and UPDATING changed
+    ones, NEVER deleting volume-only files, exactly once per new image. Ordinary
+    restarts (unchanged content) are no-ops. No-op in local dev (data dir == repo
+    root). Fail-open — a sync problem must not block startup.
+
+    Replaces the old "seed only if the volume is empty" rule, under which a new
+    image's ingested pages never reached an already-populated PVC.
     """
-    import shutil
     from backend.config import WIKI_DIR, SEED_WIKI_DIR
+    from backend import wiki_seed
     log = logging.getLogger("uvicorn.error")
     try:
-        if SEED_WIKI_DIR.resolve() == WIKI_DIR.resolve():
-            return  # local dev: nothing to seed (same path)
-        if not SEED_WIKI_DIR.is_dir():
-            log.warning("wiki seed skipped: no baked baseline at %s", SEED_WIKI_DIR)
-            return
-        if WIKI_DIR.exists() and any(WIKI_DIR.rglob("*.md")):
-            return  # volume already populated — do not clobber
-        WIKI_DIR.mkdir(parents=True, exist_ok=True)
-        shutil.copytree(SEED_WIKI_DIR, WIKI_DIR, dirs_exist_ok=True)
-        n = sum(1 for _ in WIKI_DIR.rglob("*.md"))
-        log.info("seeded wiki/ from image baseline into %s (%d pages)", WIKI_DIR, n)
+        result = wiki_seed.sync_wiki_baseline(SEED_WIKI_DIR, WIKI_DIR)
+        action = result.get("action")
+        if action in {"seeded", "merged"}:
+            log.info("wiki baseline %s onto %s (%d pages)", action, WIKI_DIR, result.get("pages", -1))
+        elif action == "no-seed":
+            log.warning("wiki sync skipped: no baked baseline at %s", SEED_WIKI_DIR)
     except Exception as exc:
-        log.warning("wiki seed skipped (non-fatal): %s", exc)
+        log.warning("wiki baseline sync skipped (non-fatal): %s", exc)
 
 
 @asynccontextmanager
@@ -115,9 +114,10 @@ async def lifespan(app: FastAPI):
     trace_store.reconcile_orphans()
     from backend import ingest_batch
     ingest_batch.reconcile_interrupted()
-    # If wiki/ lives on a mounted volume (CONWO_DATA_DIR) that's still empty,
-    # seed it from the image's baked baseline so the knowledge base is present.
-    _seed_wiki_if_empty()
+    # If wiki/ lives on a mounted volume (CONWO_DATA_DIR), merge the image's baked
+    # baseline onto it once per deploy (adds/updates pages, keeps volume-only files)
+    # so newly-ingested pages from a fresh image actually reach the running app.
+    _sync_wiki_baseline()
     from backend import agent_registry as _agent_registry
     for _a in _agent_registry.all():
         wiki_retriever.build_index(_a.id)
