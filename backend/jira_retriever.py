@@ -38,10 +38,10 @@ _STOPWORDS = {
 
 # ── v2 dispatch ───────────────────────────────────────────────────────────────
 
-def _v2_search(query: str, *, functional_area: str | None = None,
+def _v2_search(question: str, *, functional_area: str | None = None,
                limit: int = 10, **kwargs):
     from backend.retrieval.v2.pipeline import search as _p
-    return _p(query, functional_area=functional_area, limit=limit)
+    return _p(question, functional_area=functional_area, limit=limit)
 
 
 def _v2_by_module(module_slug: str, query: str, limit: int = 5, **kwargs):
@@ -64,25 +64,25 @@ def _ab_serve_v2() -> bool:
     return random.randint(1, 100) <= pct
 
 
-def search(query: str, *, functional_area: str | None = None,
+def search(question: str, *, functional_area: str | None = None,
            limit: int = 10, **kwargs):
     mode = _mode()
     if mode == "off":
-        return _v1_search(query, functional_area=functional_area, limit=limit, **kwargs)
+        return _v1_search(question, functional_area=functional_area, limit=limit, **kwargs)
     if mode == "on":
-        return _v2_search(query, functional_area=functional_area, limit=limit, **kwargs)
+        return _v2_search(question, functional_area=functional_area, limit=limit, **kwargs)
     if mode == "ab":
         if _ab_serve_v2():
-            return _v2_search(query, functional_area=functional_area, limit=limit, **kwargs)
-        return _v1_search(query, functional_area=functional_area, limit=limit, **kwargs)
+            return _v2_search(question, functional_area=functional_area, limit=limit, **kwargs)
+        return _v1_search(question, functional_area=functional_area, limit=limit, **kwargs)
     # shadow: serve v1, run v2 alongside, log both
-    v1_result = _v1_search(query, functional_area=functional_area, limit=limit, **kwargs)
+    v1_result = _v1_search(question, functional_area=functional_area, limit=limit, **kwargs)
     t0 = time.perf_counter()
     try:
-        v2_result = _v2_search(query, functional_area=functional_area, limit=limit, **kwargs)
+        v2_result = _v2_search(question, functional_area=functional_area, limit=limit, **kwargs)
         dt = int((time.perf_counter() - t0) * 1000)
         v1_keys = _extract_v1_keys(v1_result)
-        _shadow_log(trace_id=kwargs.get("trace_id"), question=query,
+        _shadow_log(trace_id=kwargs.get("trace_id"), question=question,
                     v1_keys=v1_keys, v2_result=v2_result,
                     v2_latency_ms=dt, served_v2=False)
     except Exception:

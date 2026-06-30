@@ -1,6 +1,5 @@
 """Write retrieval-v2 results to retrieval_shadow_log for offline comparison."""
 from __future__ import annotations
-import time
 from backend import db
 
 _INSERT = """
