@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
-export type QueryMode = 'api' | 'claude-code' | 'agent';
+export type QueryMode = 'api' | 'agent';
 
 export interface QueryRequest {
   question: string;
@@ -358,7 +358,7 @@ export interface TraceSessionSummary {
   started_at: string;
   ended_at: string | null;
   duration_ms: number | null;
-  mode: string;            // api | claude-code
+  mode: string;            // api | agent
   status: string;          // success | error | rejected | client_disconnect | orphaned
   question: string | null;
   user_email: string | null;
@@ -644,8 +644,8 @@ export class ApiService {
 
   getStoredMode(): QueryMode {
     const v = localStorage.getItem(MODE_STORAGE);
-    if (v === 'claude-code' || v === 'agent') return v;
-    return 'api';
+    if (v === 'agent') return v;
+    return 'api';   // any other/stale value (incl. legacy 'claude-code') → api
   }
 
   setMode(mode: QueryMode): void {

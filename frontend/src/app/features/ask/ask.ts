@@ -449,9 +449,8 @@ export class Ask implements OnInit {
   private readonly STALE_THRESHOLD_HOURS = 36;
 
   ngOnInit() {
-    const stored = this.api.getStoredMode();
-    // Migrate any user previously on the legacy single-shot mode to Deep Search.
-    this.mode.set(stored === 'claude-code' ? 'api' : stored);
+    const stored = this.api.getStoredMode();   // already 'api' | 'agent' (legacy coerced in getStoredMode)
+    this.mode.set(stored);
     if (this.mode() === 'agent' && !this.agentSupportsAgentMode()) {
       this.mode.set('api');
     }
