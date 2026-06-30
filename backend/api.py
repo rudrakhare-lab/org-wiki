@@ -99,6 +99,26 @@ def _sync_wiki_baseline() -> None:
         log.warning("wiki baseline sync skipped (non-fatal): %s", exc)
 
 
+def _sync_claude_md() -> None:
+    """Refresh CLAUDE.md on the runtime volume from the image baseline, every deploy.
+
+    The answering agent reads CLAUDE.md from the PVC (agent_registry resolves it under
+    config._BASE), but _sync_wiki_baseline only covers wiki/ — so edits to CLAUDE.md
+    (the query-rule sections shipped to the model, page-type schemas) never reached
+    prod. It is a single git-owned file with no runtime writes, so overwrite-from-image
+    is correct. No-op in local dev (src == dst). Fail-open.
+    """
+    from backend.config import CLAUDE_MD, _BASE
+    from backend import wiki_seed
+    log = logging.getLogger("uvicorn.error")
+    try:
+        result = wiki_seed.sync_file(CLAUDE_MD, _BASE / "CLAUDE.md")
+        if result.get("action") in {"created", "updated"}:
+            log.info("CLAUDE.md %s on the volume from image baseline", result["action"])
+    except Exception as exc:
+        log.warning("CLAUDE.md sync skipped (non-fatal): %s", exc)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Open the PostgreSQL pool first — auth, conversations, traces, and all
@@ -118,6 +138,9 @@ async def lifespan(app: FastAPI):
     # baseline onto it once per deploy (adds/updates pages, keeps volume-only files)
     # so newly-ingested pages from a fresh image actually reach the running app.
     _sync_wiki_baseline()
+    # CLAUDE.md is also read from the volume (agent_registry resolves it under _BASE);
+    # refresh it from the image baseline too, so shipped query-rule edits reach prod.
+    _sync_claude_md()
     from backend import agent_registry as _agent_registry
     for _a in _agent_registry.all():
         wiki_retriever.build_index(_a.id)

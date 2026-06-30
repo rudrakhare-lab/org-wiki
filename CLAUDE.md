@@ -676,6 +676,15 @@ result from any single step does NOT let you skip the rest.
 
 **Golden rule: never stop after the first good hit.** If wiki gave a clear answer, still run Jira. If SQLite gave a precise definition, still run `jira_search_ranked`. Combining all applicable sources always produces a more accurate answer than any single source alone.
 
+### Release-notes history pages are dated changelog, not current truth
+`wiki/history/release-notes-*` pages are a dated product changelog (sales/PM source-of-truth),
+**not** current-state documentation. Use them ONLY for historical / "when did X change?" questions —
+never answer a current-state question ("how do I set up X?" / "what is the value of X?") from a
+release note. If a history page disagrees with a current `modules/` or `configs/` page, **the
+module/config page wins** and the release note is historical context — surface the difference
+with ⚠️ (current vs. historical). For current-state intents, rank `history/` pages below
+`modules/` / `configs/`.
+
 ### Step 1 — Read the wiki
 Read `wiki/index.md` to identify relevant pages. Then read those specific wiki pages
 (NOT raw/ source files — the wiki is the authoritative documented view).
