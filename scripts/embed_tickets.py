@@ -77,15 +77,44 @@ def run(dsn: str, mode: str) -> int:
     print(f"done: {total} rows embedded.", flush=True)
     return 0
 
+def _resolve_dsn(cli_dsn: str | None) -> str | None:
+    """Resolve the DSN in this order:
+      1. --dsn CLI flag
+      2. CONWO_DSN env var
+      3. DATABASE_URL env var (prod platform convention)
+      4. If CONWO_SECRET_ID is set, load AWS Secrets Manager into os.environ
+         (via backend.secrets_loader) and retry (2) + (3).
+    Also loads GOOGLE_GENAI_API_KEY into os.environ as a side effect of step 4,
+    which the embedder (via backend.retrieval.v2.embed) requires at runtime.
+    """
+    if cli_dsn:
+        return cli_dsn
+    dsn = os.getenv("CONWO_DSN") or os.getenv("DATABASE_URL")
+    if dsn:
+        return dsn
+    if os.getenv("CONWO_SECRET_ID"):
+        try:
+            from backend.secrets_loader import load_aws_secrets
+            load_aws_secrets()
+            return os.getenv("CONWO_DSN") or os.getenv("DATABASE_URL")
+        except Exception as exc:  # noqa: BLE001
+            print(f"secrets_loader.load_aws_secrets() failed: {exc}", file=sys.stderr)
+    return None
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["full", "delta"], required=True)
-    ap.add_argument("--dsn", default=os.getenv("CONWO_DSN"))
+    ap.add_argument("--dsn", default=None)
     args = ap.parse_args()
-    if not args.dsn:
-        print("CONWO_DSN env var or --dsn required", file=sys.stderr)
+    dsn = _resolve_dsn(args.dsn)
+    if not dsn:
+        print(
+            "DSN required. Set one of: --dsn, CONWO_DSN, DATABASE_URL, or "
+            "CONWO_SECRET_ID (for AWS Secrets Manager auto-load).",
+            file=sys.stderr,
+        )
         return 2
-    return run(args.dsn, args.mode)
+    return run(dsn, args.mode)
 
 if __name__ == "__main__":
     sys.exit(main())

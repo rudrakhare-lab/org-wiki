@@ -1,7 +1,12 @@
-"""Cross-encoder rerank step. Loads bge-reranker-v2-m3 once at import.
+"""Cross-encoder rerank step. Loads bge-reranker-v2-m3 lazily on first score()
+call (via _model_or_load + @lru_cache) — not at module import.
 
 CPU inference is sufficient for Conwo's internal QPS (~200 ms for 50 candidates).
-The model is baked into the Docker image; see scripts/download_reranker_model.py.
+The model is baked into the Docker image at /app/models/bge-reranker-v2-m3 by
+scripts/download_reranker_model.py; RERANKER_MODEL_DIR env var picks it up.
+If neither the env var nor the baked directory is present, sentence-transformers
+falls back to downloading BAAI/bge-reranker-v2-m3 from HuggingFace on first use
+(one-time ~30-60s per pod restart, then cached in the pod's memory).
 """
 from __future__ import annotations
 import os

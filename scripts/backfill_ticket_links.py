@@ -65,15 +65,20 @@ def run(dsn: str, mode: str) -> int:
     sql = SELECT_FULL if mode == "full" else SELECT_DELTA
     n_rows = 0
     n_links = 0
+    # Note: uses a plain client-side cursor (fetchall) rather than a server-side
+    # named cursor. Prod connections may go through PgBouncer in transaction
+    # mode, which does not preserve named cursors between statements. The full
+    # ticket set at ~40k rows × two small columns is comfortably in-memory.
     with psycopg.connect(dsn) as conn:
-        with conn.cursor(name="cur") as cur:  # server-side cursor for streaming
-            cur.execute(sql)
-            for src_key, links_json in cur:
+        with conn.cursor() as rcur:
+            rcur.execute(sql)
+            rows = rcur.fetchall()
+        with conn.cursor() as wcur:
+            for i, (src_key, links_json) in enumerate(rows):
                 pairs = parse_links(src_key, links_json or "")
-                with conn.cursor() as wcur:
-                    wcur.execute(DELETE_FOR_SRC, (src_key,))
-                    for p in pairs:
-                        wcur.execute(UPSERT, p)
+                wcur.execute(DELETE_FOR_SRC, (src_key,))
+                for p in pairs:
+                    wcur.execute(UPSERT, p)
                 n_rows += 1
                 n_links += len(pairs)
                 if n_rows % 1000 == 0:
@@ -88,15 +93,45 @@ def run(dsn: str, mode: str) -> int:
     print(f"done: {n_rows} tickets processed, {n_links} links written.", flush=True)
     return 0
 
+def _resolve_dsn(cli_dsn: str | None) -> str | None:
+    """Resolve the DSN in this order:
+      1. --dsn CLI flag
+      2. CONWO_DSN env var
+      3. DATABASE_URL env var (prod platform convention)
+      4. If CONWO_SECRET_ID is set, load AWS Secrets Manager into os.environ
+         (via backend.secrets_loader) and retry (2) + (3).
+    """
+    if cli_dsn:
+        return cli_dsn
+    dsn = os.getenv("CONWO_DSN") or os.getenv("DATABASE_URL")
+    if dsn:
+        return dsn
+    if os.getenv("CONWO_SECRET_ID"):
+        try:
+            # Add repo root to sys.path so backend.* is importable when this
+            # script is run standalone from anywhere.
+            sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+            from backend.secrets_loader import load_aws_secrets
+            load_aws_secrets()
+            return os.getenv("CONWO_DSN") or os.getenv("DATABASE_URL")
+        except Exception as exc:  # noqa: BLE001
+            print(f"secrets_loader.load_aws_secrets() failed: {exc}", file=sys.stderr)
+    return None
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--mode", choices=["full", "delta"], required=True)
-    ap.add_argument("--dsn", default=os.getenv("CONWO_DSN"))
+    ap.add_argument("--dsn", default=None)
     args = ap.parse_args()
-    if not args.dsn:
-        print("CONWO_DSN env var or --dsn required", file=sys.stderr)
+    dsn = _resolve_dsn(args.dsn)
+    if not dsn:
+        print(
+            "DSN required. Set one of: --dsn, CONWO_DSN, DATABASE_URL, or "
+            "CONWO_SECRET_ID (for AWS Secrets Manager auto-load).",
+            file=sys.stderr,
+        )
         return 2
-    return run(args.dsn, args.mode)
+    return run(dsn, args.mode)
 
 if __name__ == "__main__":
     sys.exit(main())

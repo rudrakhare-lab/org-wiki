@@ -11,11 +11,13 @@ python-pptx==1.0.2
 # Phase 3 — Triage classifier (uncomment when needed)
 # anthropic==0.39.0
 
-# Phase 5 — Embeddings + clustering (uncomment when needed)
-# sentence-transformers==3.0.1
-# sqlite-vec==0.1.6
-# hdbscan==0.8.38
-# numpy==1.26.4
+# Retrieval v2 — semantic + hybrid search (retrieval-v2 landed 2026-07)
+# Live: Gemini embeddings + bge-reranker (via sentence-transformers) + pgvector.
 google-genai>=2.10.0
 sentence-transformers>=3.0.0
 pgvector>=0.3.0
+
+# Phase-5 clustering / synthesis stubs (unused; keep as reference for future work)
+# sqlite-vec==0.1.6
+# hdbscan==0.8.38
+# numpy==1.26.4
