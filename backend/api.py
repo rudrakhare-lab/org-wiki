@@ -30,6 +30,7 @@ Auth (Phase 1):
 from __future__ import annotations
 
 import asyncio
+import functools
 import json
 import logging
 import os
@@ -824,23 +825,34 @@ async def query(
                 detail="This deployment is missing an API key. Contact your admin.",
             ) from e
 
-        result = orchestrator.run(
-            question=req.question,
-            mode=req.mode,
-            claude_api_key=resolved_key,
-            server=req.server,
-            buid=req.buid,
-            functional_area=req.functional_area,
-            service=req.service,
-            officeid=req.officeid,
-            roomid=req.roomid,
-            role=req.role,
-            user_role=user_role,
-            conversation_id=conversation_id,
-            image_data=image_bytes,
-            image_media_type=image_media_type,
-            trace_id=trace_id,
-            agent=agent,
+        # orchestrator.run is a sync function that internally invokes the
+        # retrieval pipeline (embed → hybrid → reranker.predict → gate) plus
+        # LLM tool loops. On CPU the reranker's predict() call blocks for
+        # several seconds; running it inline in this async handler starves
+        # the event loop and causes /health liveness probes to time out
+        # (SIGKILL 137). Offload the whole call to a worker thread so the
+        # event loop stays free to answer probes. This is the seam DevOps
+        # identified: `await asyncio.to_thread(sync_cpu_work)`.
+        result = await asyncio.to_thread(
+            functools.partial(
+                orchestrator.run,
+                question=req.question,
+                mode=req.mode,
+                claude_api_key=resolved_key,
+                server=req.server,
+                buid=req.buid,
+                functional_area=req.functional_area,
+                service=req.service,
+                officeid=req.officeid,
+                roomid=req.roomid,
+                role=req.role,
+                user_role=user_role,
+                conversation_id=conversation_id,
+                image_data=image_bytes,
+                image_media_type=image_media_type,
+                trace_id=trace_id,
+                agent=agent,
+            )
         )
 
         # Per-query cost (₹) for the chat footer. The LLM usage events are already
@@ -1064,7 +1076,12 @@ async def query_stream(
         "0", "false", "no", "off"
     }
     if preflight_enabled:
-        bundle = run_preflight(req.question, trace_id=trace_id, agent=agent)
+        # Same event-loop-blocking concern as /query: run_preflight() runs
+        # the sync retrieval pipeline (incl. reranker.predict()). Offload to
+        # a worker thread so /health probes stay responsive during preflight.
+        bundle = await asyncio.to_thread(
+            run_preflight, req.question, trace_id=trace_id, agent=agent
+        )
         augmented_question = build_agent_preamble(bundle) + f"**User question:** {req.question}"
         preflight_keys = [t.get("key") for t in bundle.preflight_tickets if t.get("key")]
     else:
