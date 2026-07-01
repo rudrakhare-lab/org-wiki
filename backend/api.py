@@ -176,6 +176,29 @@ async def lifespan(app: FastAPI):
             "Server is starting anyway; the proposal queue may need manual inspection.",
             exc,
         )
+    # Preload the retrieval-v2 reranker model into RAM at startup so the first
+    # user query doesn't pay the ~5 sec load cost mid-request. The load is
+    # dispatched via asyncio.to_thread so it does not block the event loop —
+    # /health liveness probes continue answering while the model loads. Gated
+    # on CONWO_RETRIEVAL_V2 (off|shadow|ab|on): only preload when v2 will
+    # actually be used. Fail-open — a preload error must not prevent boot.
+    _rv2_mode = (os.getenv("CONWO_RETRIEVAL_V2") or "off").strip().lower()
+    if _rv2_mode in {"shadow", "ab", "on"}:
+        async def _preload_reranker() -> None:
+            import time
+            log = logging.getLogger("uvicorn.error")
+            t0 = time.perf_counter()
+            try:
+                from backend.retrieval.v2 import rerank
+                await asyncio.to_thread(rerank.preload)
+                log.info("reranker preloaded in %.2fs", time.perf_counter() - t0)
+            except Exception as exc:  # noqa: BLE001
+                log.warning(
+                    "reranker preload failed (%s) — first query will lazy-load; "
+                    "this may cause a slow first response but should not crash.",
+                    exc,
+                )
+        asyncio.create_task(_preload_reranker())
     # In-app nightly Jira sync (alternative to a k8s CronJob). No-ops unless
     # CONWO_ENABLE_JIRA_CRON is set AND this is the StatefulSet leader pod (-0).
     from backend import jira_scheduler
