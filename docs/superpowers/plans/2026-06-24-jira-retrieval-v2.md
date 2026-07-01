@@ -307,7 +307,7 @@ def test_embed_query_uses_retrieval_query_task_type():
         embed.embed_query("test question")
         kwargs = client.embed_content.call_args.kwargs
         assert kwargs["task_type"] == "RETRIEVAL_QUERY"
-        assert kwargs["model"].endswith("text-embedding-004")
+        assert kwargs["model"].endswith("gemini-embedding-001")
 
 def test_embed_documents_uses_retrieval_document_task_type():
     from backend.retrieval.v2 import embed
@@ -362,7 +362,7 @@ from typing import Any
 
 import google.generativeai as genai
 
-_MODEL = "models/text-embedding-004"
+_MODEL = "models/gemini-embedding-001"
 _BATCH = 100  # Gemini accepts batches; 100 is comfortably under the limit.
 
 # Test seam: tests patch `_client.embed_content`.

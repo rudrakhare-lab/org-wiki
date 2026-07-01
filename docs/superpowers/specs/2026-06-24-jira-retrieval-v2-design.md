@@ -118,7 +118,7 @@ A single Claude Haiku call (cheap, fast) before retrieval:
 
 ### 4.2 Embedding — `backend/retrieval/v2/embed.py`
 
-Thin wrapper around Google's Gemini embeddings (`text-embedding-004`, 768-dim).
+Thin wrapper around Google's Gemini embeddings (`gemini-embedding-001`, 768-dim).
 
 - **For documents** (sync time): `task_type="RETRIEVAL_DOCUMENT"`, input = `summary + "\n\n" + description_text` truncated to model max.
 - **For queries** (query time): `task_type="RETRIEVAL_QUERY"`, input = the sub-query string.
@@ -225,7 +225,7 @@ def by_module(module_slug: str, query: str, limit: int = 5) -> list[dict]: ...
 (from the wiki module page) and uses semantic similarity as a soft boost. **This single change
 makes 19,660 previously-untagged tickets reachable again.**
 
-## 5. Schema changes — migration `migrations/postgres/050_retrieval_v2.sql`
+## 5. Schema changes — migration `migrations/postgres/150_retrieval_v2.sql`
 
 ```sql
 -- ── BM25 / lexical ─────────────────────────────────────────────
@@ -300,7 +300,7 @@ Both jobs are idempotent and resumable. They write progress to `sync_runs`.
 | `backend/retrieval/v2/pipeline.py` | Orchestrates all of the above | 150 |
 | `scripts/embed_tickets.py` | Full + delta embed job | 120 |
 | `scripts/backfill_ticket_links.py` | Full + delta link normalizer | 80 |
-| `migrations/postgres/050_retrieval_v2.sql` | Schema | 40 |
+| `migrations/postgres/150_retrieval_v2.sql` | Schema | 40 |
 | Updated `scripts/jira_daily_sync.py` | Call new sub-steps | +20 |
 
 Total new code: ~1,100 LOC + 1 migration. No changes to `backend/preflight.py`, no changes to
@@ -358,7 +358,7 @@ Controlled by env var `CONWO_RETRIEVAL_V2`:
 
 ## 12. Open questions (to resolve during implementation)
 
-1. Confirm Gemini `text-embedding-004` is approved for internal customer data (Jira tickets contain customer BUIDs, support incident details).
+1. Confirm Gemini `gemini-embedding-001` is approved for internal customer data (Jira tickets contain customer BUIDs, support incident details).
 2. Final RRF constant `k` (60 is standard but worth a small ablation on the eval set).
 3. Whether to embed `comments_text` in addition to `summary + description_text` for documents. Comments are large; the marginal recall gain may not justify the embedding cost.
 4. Whether "top-3 agree" should consider `ticket_module_tags` confidence when present, or stay purely structural.
