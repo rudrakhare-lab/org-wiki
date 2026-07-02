@@ -122,7 +122,7 @@ def apply_timeline(candidates: list[dict]) -> list[dict]:
         c["bucket"] = assign_bucket(c)
         c["timeline_score"] = timeline_score(c)
     candidates.sort(
-        key=lambda c: (c.get("fused_score") or 0.0) * c["timeline_score"],
+        key=lambda c: float(c.get("fused_score") or 0.0) * c["timeline_score"],
         reverse=True,
     )
     return candidates
