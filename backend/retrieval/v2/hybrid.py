@@ -45,7 +45,7 @@ fused AS (
 )
 SELECT t.key, t.summary, t.description_text, t.comments_text,
        t.status_category, t.priority, t.updated_at, t.resolved_at,
-       t.functional_area, t.links_json,
+       t.functional_area, t.links_json, t.comment_count,
        f.rrf AS fused_score
 FROM fused f
 JOIN tickets t USING (key)
