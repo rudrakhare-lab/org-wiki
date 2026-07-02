@@ -51,13 +51,14 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 
-from fastapi import Depends, FastAPI, HTTPException, Header, Request, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Header, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
 from backend import trace_store
+from backend import quality_judge
 from backend import agent_registry, agent_context, agent_provisioning, agent_access
 from backend.trace_middleware import TraceMiddleware
 from backend import config as _config
@@ -586,6 +587,7 @@ def _sniff_media_type(data: bytes) -> str | None:
 @app.post("/query", response_model=QueryResponse)
 async def query(
     request: Request,
+    background_tasks: BackgroundTasks,
     user: dict | None = Depends(_get_user),
     agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
@@ -931,6 +933,8 @@ async def query(
         raise
     finally:
         trace_store.end_session(trace_id, status=trace_status)
+        if trace_status == "success" and req.mode == "api":
+            background_tasks.add_task(quality_judge.judge_trace, trace_id)
 
 
 @app.post("/query/stream")
@@ -1136,7 +1140,11 @@ async def query_stream(
 
 
 @app.post("/agent/log-answer")
-def log_agent_answer(req: AgentLogRequest, user: dict = Depends(_require_admin)):
+def log_agent_answer(
+    req: AgentLogRequest,
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(_require_admin),
+):
     """
     Log a Claude Code agent answer for feedback linkage.
 
@@ -1177,6 +1185,8 @@ def log_agent_answer(req: AgentLogRequest, user: dict = Depends(_require_admin))
         retrieval_notes=f"agent_mode tools={len(req.tool_calls)}",
         trace_id=req.trace_id,
     )
+    if req.trace_id:
+        background_tasks.add_task(quality_judge.judge_trace, req.trace_id)
 
     # Persist the assistant message into the conversation if one was supplied.
     # The user message was already persisted at /query/stream open.
