@@ -16,7 +16,7 @@ TEST_DB_NAME = "wis_conwo_test"
 _APP_TABLES = [
     "tokens", "users",
     "messages", "conversations",
-    "trace_events", "trace_metrics", "trace_sessions",
+    "quality_judgments", "trace_events", "trace_metrics", "trace_sessions",
     "ticket_module_tags", "ticket_classifications", "sync_runs",
     "custom_field_map", "tickets",
     "jira_links", "module_links", "dependencies", "configs",
