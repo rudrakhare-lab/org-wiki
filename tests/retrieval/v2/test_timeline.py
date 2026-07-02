@@ -114,3 +114,68 @@ def test_bucket_counts_aggregates_labels():
     ]
     counts = timeline.bucket_counts(cands)
     assert counts == {"latest": 2, "historical": 1, "stale_open": 1}
+
+
+# ── Regression: production crash — updated_at/resolved_at arrived as ISO
+# strings instead of datetime objects, and _days_since unconditionally
+# accessed dt.tzinfo, raising AttributeError on every /query request that
+# reached this path. ─────────────────────────────────────────────────────
+
+def test_days_since_accepts_iso_string_with_offset(monkeypatch):
+    from backend.retrieval.v2 import timeline
+    monkeypatch.setattr(timeline, "_utcnow", _now)
+    row = {"updated_at": "2026-06-02T00:00:00+00:00", "resolved_at": None,
+           "status_category": "done", "comment_count": 0}
+    # Reproduces the exact production crash path (assign_bucket -> _days_since).
+    assert timeline.assign_bucket(row) == "latest"
+
+
+def test_days_since_accepts_iso_string_with_z_suffix(monkeypatch):
+    from backend.retrieval.v2 import timeline
+    monkeypatch.setattr(timeline, "_utcnow", _now)
+    row = {"updated_at": "2026-06-02T00:00:00Z", "resolved_at": None,
+           "status_category": "done", "comment_count": 0}
+    assert timeline.assign_bucket(row) == "latest"
+
+
+def test_days_since_accepts_date_only_string(monkeypatch):
+    from backend.retrieval.v2 import timeline
+    monkeypatch.setattr(timeline, "_utcnow", _now)
+    row = {"updated_at": "2026-06-02", "resolved_at": None,
+           "status_category": "done", "comment_count": 0}
+    assert timeline.assign_bucket(row) == "latest"
+
+
+def test_days_since_unparseable_string_treated_as_absent(monkeypatch):
+    """Malformed date strings must not crash — fail-open like a missing date."""
+    from backend.retrieval.v2 import timeline
+    monkeypatch.setattr(timeline, "_utcnow", _now)
+    row = {"updated_at": "not-a-date", "resolved_at": None,
+           "status_category": "done", "comment_count": 0}
+    # Neither updated_at nor resolved_at parse -> falls through to HISTORICAL,
+    # not a crash.
+    assert timeline.assign_bucket(row) == "historical"
+
+
+def test_timeline_score_accepts_iso_string(monkeypatch):
+    from backend.retrieval.v2 import timeline
+    monkeypatch.setattr(timeline, "_utcnow", _now)
+    row = {"updated_at": "2026-06-02T00:00:00+00:00", "resolved_at": None,
+           "status_category": "done"}
+    score = timeline.timeline_score(row)
+    assert 0.05 <= score <= 1.0
+
+
+def test_apply_timeline_end_to_end_with_string_dates(monkeypatch):
+    """The exact production call path: apply_timeline -> assign_bucket ->
+    _days_since, fed candidates whose dates are strings, as hybrid_search's
+    real-world rows apparently are in at least one deployment."""
+    from backend.retrieval.v2 import timeline
+    monkeypatch.setattr(timeline, "_utcnow", _now)
+    cands = [
+        {"key": "TS-1", "fused_score": 0.04,
+         "updated_at": "2026-06-02T00:00:00+00:00", "resolved_at": None,
+         "status_category": "done", "comment_count": 0},
+    ]
+    out = timeline.apply_timeline(cands)
+    assert out[0]["bucket"] == "latest"
