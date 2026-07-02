@@ -77,3 +77,40 @@ def test_hybrid_search_result_carries_bucket_and_timeline_score():
         assert "timeline_score" in r
     # Same fused_score, but apply_timeline must re-sort to put recent first.
     assert keys[0] == "TS-recent"
+
+
+def test_base_sql_selects_comment_count():
+    """comment_count must be selected — timeline.assign_bucket's substantive-
+    resolution branch (resolved + comment_count>=2 -> latest) reads it, but
+    was silently always None because this column was missing from the SELECT."""
+    from backend.retrieval.v2.hybrid import _BASE_SQL
+    assert "comment_count" in _BASE_SQL
+
+
+def test_hybrid_search_passes_through_comment_count():
+    """End-to-end: a fake row with comment_count reaches the returned candidate
+    dict, and apply_timeline's substantive-resolution override actually fires."""
+    from datetime import datetime, timezone, timedelta
+    from backend.retrieval.v2 import hybrid
+
+    now = datetime.now(timezone.utc)
+    fake_rows = [
+        {"key": "TS-old-but-substantive", "fused_score": 0.03,
+         "updated_at": now - timedelta(days=800),
+         "resolved_at": now - timedelta(days=800),
+         "status_category": "done", "comment_count": 5},
+    ]
+
+    class FakeCur:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def execute(self, *a, **k): pass
+        def fetchall(self): return fake_rows
+    class FakeConn:
+        def cursor(self, **k): return FakeCur()
+
+    out = hybrid.hybrid_search(FakeConn(), ["q"], [[0.0] * 768], {}, limit=5)
+    assert out[0]["comment_count"] == 5
+    # Substantive-resolution override: resolved + comment_count>=2 -> latest,
+    # even though updated_at/resolved_at are 800 days old.
+    assert out[0]["bucket"] == "latest"
