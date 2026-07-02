@@ -162,3 +162,101 @@ class TestDateNormalization:
         out = _v2_search("some question")
 
         assert out["rows"][0]["resolved"] == "2026-01-02"
+
+
+"""_v2_by_module tests — confidence-floor parity with _v1_by_module."""
+from unittest.mock import patch
+
+
+def _fake_candidate(key, **overrides):
+    base = {
+        "key": key, "summary": "s", "status_category": "done",
+        "priority": "P2", "bucket": "latest",
+        "updated_at": None, "resolved_at": None,
+    }
+    base.update(overrides)
+    return base
+
+
+def test_v2_by_module_excludes_untagged_tickets(monkeypatch):
+    """A semantically-similar but untagged ticket must NOT appear in the
+    result — mirrors _v1_by_module's ticket_module_tags JOIN guarantee."""
+    from backend import jira_retriever
+
+    candidates = [_fake_candidate("TS-1"), _fake_candidate("TS-2")]
+    monkeypatch.setattr(
+        "backend.retrieval.v2.pipeline.by_module",
+        lambda module_slug, query, limit: candidates,
+    )
+
+    class FakeConn:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+
+    with patch.object(jira_retriever.db, "connection", return_value=FakeConn()):
+        with patch.object(
+            jira_retriever, "_fetch_modules_for_keys",
+            return_value={"TS-1": [{"slug": "desk-management", "confidence": 0.8}]},
+            # TS-2 absent -> not tagged to any module at the required floor
+        ):
+            out = jira_retriever._v2_by_module("desk-management", "booking", limit=5)
+
+    keys = [t["key"] for t in out]
+    assert keys == ["TS-1"]
+
+
+def test_v2_by_module_enriches_with_module_confidence_and_modules(monkeypatch):
+    from backend import jira_retriever
+
+    candidates = [_fake_candidate("TS-1")]
+    monkeypatch.setattr(
+        "backend.retrieval.v2.pipeline.by_module",
+        lambda module_slug, query, limit: candidates,
+    )
+
+    class FakeConn:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+
+    with patch.object(jira_retriever.db, "connection", return_value=FakeConn()):
+        with patch.object(
+            jira_retriever, "_fetch_modules_for_keys",
+            return_value={"TS-1": [{"slug": "desk-management", "confidence": 0.9}]},
+        ):
+            out = jira_retriever._v2_by_module("desk-management", "booking", limit=5)
+
+    assert out[0]["module_confidence"] == 0.9
+    assert out[0]["modules"] == [{"slug": "desk-management", "confidence": 0.9}]
+    assert "updated" in out[0]
+    assert "resolved" in out[0]
+
+
+def test_v2_by_module_respects_limit_after_filtering(monkeypatch):
+    from backend import jira_retriever
+
+    candidates = [_fake_candidate(f"TS-{i}") for i in range(10)]
+    monkeypatch.setattr(
+        "backend.retrieval.v2.pipeline.by_module",
+        lambda module_slug, query, limit: candidates,
+    )
+
+    class FakeConn:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+
+    tagged = {f"TS-{i}": [{"slug": "desk-management", "confidence": 0.7}] for i in range(10)}
+    with patch.object(jira_retriever.db, "connection", return_value=FakeConn()):
+        with patch.object(jira_retriever, "_fetch_modules_for_keys", return_value=tagged):
+            out = jira_retriever._v2_by_module("desk-management", "booking", limit=3)
+
+    assert len(out) == 3
+
+
+def test_v2_by_module_empty_candidates_returns_empty(monkeypatch):
+    from backend import jira_retriever
+    monkeypatch.setattr(
+        "backend.retrieval.v2.pipeline.by_module",
+        lambda module_slug, query, limit: [],
+    )
+    out = jira_retriever._v2_by_module("desk-management", "booking", limit=5)
+    assert out == []

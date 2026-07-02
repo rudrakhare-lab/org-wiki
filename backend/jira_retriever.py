@@ -94,9 +94,44 @@ def _v2_search(question: str, *, functional_area: str | None = None,
     }
 
 
-def _v2_by_module(module_slug: str, query: str, limit: int = 5, **kwargs):
+def _v2_by_module(module_slug: str, query: str, limit: int = 5,
+                   confidence_floor: float = 0.5, **kwargs):
+    """Query-aware, module-scoped v2 retrieval.
+
+    Mirrors _v1_by_module's guarantee: only tickets genuinely tagged to
+    `module_slug` in ticket_module_tags at or above `confidence_floor` are
+    returned — v2's underlying pipeline.by_module() does pure semantic
+    proximity-to-slug-name matching with no such guarantee on its own, so
+    we over-fetch candidates and filter+enrich here using the same
+    _fetch_modules_for_keys helper _v1_by_module already relies on.
+    """
     from backend.retrieval.v2.pipeline import by_module as _bm
-    return _bm(module_slug, query, limit=limit)
+    overfetch = max(limit * 4, 20)
+    candidates = _bm(module_slug, query, limit=overfetch)
+    if not candidates:
+        return []
+
+    with db.connection() as conn:
+        modules_map = _fetch_modules_for_keys(
+            conn, [c["key"] for c in candidates], confidence_floor=confidence_floor
+        )
+
+    out = []
+    for c in candidates:
+        mods = modules_map.get(c["key"], [])
+        match = next((m for m in mods if m["slug"] == module_slug), None)
+        if not match:
+            continue
+        c["modules"] = mods
+        c["module_confidence"] = match["confidence"]
+        if "updated" not in c:
+            c["updated"] = _date_str(c.get("updated_at")) or "?"
+        if "resolved" not in c:
+            c["resolved"] = _date_str(c.get("resolved_at"))
+        out.append(c)
+        if len(out) >= limit:
+            break
+    return out
 
 
 _shadow_log = _shadow_mod.log  # test seam
