@@ -57,13 +57,18 @@ def _status_tier(row: dict) -> str:
 def assign_bucket(row: dict) -> str:
     """Return the bucket for one candidate row.
 
-    CLAUDE.md §5 Step 2 semantics, verbatim:
+    CLAUDE.md §5 Step 2 semantics, simplified to the fields available on a
+    candidate row:
       LATEST     — updated_at OR resolved_at within LATEST_DAYS
                    OR resolved with substantive content
                    (resolved_at IS NOT NULL AND comment_count >= 2)
       STALE_OPEN — status_category IN {new, indeterminate}
                    AND days_since(updated_at) > STALE_DAYS
       HISTORICAL — everything else
+
+    Note: CLAUDE.md's "substantive resolution" also requires >=500 chars of
+    body+comments; that clause is dropped here because the candidate row has
+    no character-length field to check it against.
     """
     days_updated  = _days_since(row.get("updated_at"))
     days_resolved = _days_since(row.get("resolved_at"))
