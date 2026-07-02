@@ -38,6 +38,22 @@ _STOPWORDS = {
 
 # ── v2 dispatch ───────────────────────────────────────────────────────────────
 
+def _date_str(value) -> str | None:
+    """Format a datetime (or datetime-like) value as YYYY-MM-DD; falsy input -> None."""
+    if not value:
+        return None
+    if hasattr(value, "strftime"):
+        return value.strftime("%Y-%m-%d")
+    return str(value)[:10]
+
+
+# Maps the lowercase per-ticket `bucket` tag that timeline.apply_timeline()
+# attaches (inside hybrid_search(), upstream of gate.apply()) to the
+# uppercase top-level bucket key that preflight.format_jira_buckets_for_seed()
+# reads from.
+_BUCKET_TOP_KEY = {"latest": "LATEST", "historical": "HISTORICAL", "stale_open": "STALE-OPEN"}
+
+
 def _v2_search(question: str, *, functional_area: str | None = None,
                limit: int = 10, **kwargs):
     # kwargs (e.g. include_stale, trace_id) are v1-only and intentionally not
@@ -51,21 +67,30 @@ def _v2_search(question: str, *, functional_area: str | None = None,
 
     # Normalise field names to match v1's dict shape so preflight.py,
     # PreflightBundle, and build_seed_message work without modification.
-    # v2 hybrid SQL returns `updated_at`/`resolved_at`; v1 formatters expect
-    # `updated`/`resolved` (date-only strings) and `bucket`.
+    # v2 hybrid SQL returns `updated_at`/`resolved_at` as real datetime objects
+    # (psycopg maps timestamptz -> datetime); v1 formatters expect `updated`/
+    # `resolved` as date-only strings, so we go through _date_str() rather
+    # than naive string slicing. Each ticket also already carries a lowercase
+    # `bucket` tag (latest/historical/stale_open) set by timeline.apply_timeline()
+    # upstream — route each ticket into the matching uppercase top-level bucket
+    # that preflight.format_jira_buckets_for_seed() reads from, instead of
+    # dumping every ticket into LATEST regardless of its actual tag.
+    buckets: dict[str, list[dict]] = {"LATEST": [], "HISTORICAL": [], "STALE-OPEN": []}
     for t in tickets:
         if "updated" not in t:
-            t["updated"] = (t.get("updated_at") or "")[:10] or "?"
+            t["updated"] = _date_str(t.get("updated_at")) or "?"
         if "resolved" not in t:
-            raw = t.get("resolved_at") or ""
-            t["resolved"] = raw[:10] if raw else None
-        t.setdefault("bucket", "LATEST")
+            t["resolved"] = _date_str(t.get("resolved_at"))
+        bucket_val = t.get("bucket") or "latest"
+        t["bucket"] = bucket_val
+        top_key = _BUCKET_TOP_KEY.get(bucket_val, "LATEST")
+        buckets[top_key].append(t)
 
     return {
         "keywords": extract_keywords(question),
         "markdown": result.message,
         "rows": tickets,
-        "buckets": {"LATEST": tickets, "HISTORICAL": [], "STALE-OPEN": []},
+        "buckets": buckets,
     }
 
 

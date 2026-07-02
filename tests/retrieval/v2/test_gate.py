@@ -33,3 +33,61 @@ def test_diagnostics_includes_top_score_and_count():
     r = gate.apply(_scored(("TS-1","A",0.9),("TS-2","A",0.85)))
     assert r.diagnostics["top_score"] == 0.9
     assert r.diagnostics["candidate_count"] == 2
+
+
+def _scored_with_buckets(*items):
+    """items: (key, functional_area, bucket, score)"""
+    return [({"key": k, "summary": "s", "functional_area": fa, "bucket": b}, s)
+            for k, fa, b, s in items]
+
+
+def test_gate_downgrades_high_to_medium_when_top3_all_historical():
+    from backend.retrieval.v2 import gate
+    r = gate.apply(_scored_with_buckets(
+        ("TS-1", "A", "historical", 0.9),
+        ("TS-2", "A", "historical", 0.85),
+        ("TS-3", "A", "historical", 0.8),
+    ))
+    assert r.confidence == "Medium"
+    assert "historical" in r.message.lower()
+
+
+def test_gate_downgrades_medium_to_low_when_top3_all_historical():
+    from backend.retrieval.v2 import gate
+    r = gate.apply(_scored_with_buckets(
+        ("TS-1", "A", "historical", 0.65),
+        ("TS-2", "A", "historical", 0.60),
+        ("TS-3", "A", "historical", 0.55),
+    ))
+    assert r.confidence == "Low"
+
+
+def test_gate_downgrades_high_to_low_when_top3_all_stale_open():
+    from backend.retrieval.v2 import gate
+    r = gate.apply(_scored_with_buckets(
+        ("TS-1", "A", "stale_open", 0.9),
+        ("TS-2", "A", "stale_open", 0.85),
+        ("TS-3", "A", "stale_open", 0.8),
+    ))
+    assert r.confidence == "Low"
+    assert "stale" in r.message.lower()
+
+
+def test_gate_no_downgrade_when_top3_mixed_buckets():
+    from backend.retrieval.v2 import gate
+    r = gate.apply(_scored_with_buckets(
+        ("TS-1", "A", "latest",     0.9),
+        ("TS-2", "A", "historical", 0.85),
+        ("TS-3", "A", "latest",     0.8),
+    ))
+    assert r.confidence == "High"
+
+
+def test_gate_diagnostics_includes_bucket_counts():
+    from backend.retrieval.v2 import gate
+    r = gate.apply(_scored_with_buckets(
+        ("TS-1", "A", "latest",     0.9),
+        ("TS-2", "A", "historical", 0.85),
+        ("TS-3", "A", "latest",     0.8),
+    ))
+    assert r.diagnostics["bucket_counts"] == {"latest": 2, "historical": 1, "stale_open": 0}
