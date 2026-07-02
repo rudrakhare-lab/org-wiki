@@ -36,7 +36,23 @@ def _utcnow() -> datetime:
 
 
 def _days_since(dt) -> float | None:
+    """Days elapsed since `dt`, or None if `dt` is absent/unparseable.
+
+    `dt` is normally a datetime (psycopg maps timestamptz -> datetime), but
+    at least one deployment has returned an ISO-format string instead
+    (confirmed in production: AttributeError, 'str' object has no attribute
+    'tzinfo', on every /query request reaching this path). Parse defensively
+    rather than assume a type; an unparseable value degrades to "unknown"
+    (None) the same way a missing date already does, instead of crashing.
+    """
     if dt is None:
+        return None
+    if isinstance(dt, str):
+        try:
+            dt = datetime.fromisoformat(dt)
+        except ValueError:
+            return None
+    if not isinstance(dt, datetime):
         return None
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
