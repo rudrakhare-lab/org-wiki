@@ -46,7 +46,27 @@ def _v2_search(question: str, *, functional_area: str | None = None,
     # reranker, so the flag has no v2 equivalent. This is a known behaviour
     # delta — callers should expect it when CONWO_RETRIEVAL_V2 flips to 'on'.
     from backend.retrieval.v2.pipeline import search as _p
-    return _p(question, functional_area=functional_area, limit=limit)
+    result = _p(question, functional_area=functional_area, limit=limit)
+    tickets = result.tickets  # list[dict] with reranker_score
+
+    # Normalise field names to match v1's dict shape so preflight.py,
+    # PreflightBundle, and build_seed_message work without modification.
+    # v2 hybrid SQL returns `updated_at`/`resolved_at`; v1 formatters expect
+    # `updated`/`resolved` (date-only strings) and `bucket`.
+    for t in tickets:
+        if "updated" not in t:
+            t["updated"] = (t.get("updated_at") or "")[:10] or "?"
+        if "resolved" not in t:
+            raw = t.get("resolved_at") or ""
+            t["resolved"] = raw[:10] if raw else None
+        t.setdefault("bucket", "LATEST")
+
+    return {
+        "keywords": extract_keywords(question),
+        "markdown": result.message,
+        "rows": tickets,
+        "buckets": {"LATEST": tickets, "HISTORICAL": [], "STALE-OPEN": []},
+    }
 
 
 def _v2_by_module(module_slug: str, query: str, limit: int = 5, **kwargs):
