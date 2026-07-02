@@ -40,23 +40,24 @@ def test_filters_empty_when_no_filters():
     assert sql == "" and params == {}
 
 
-def test_hybrid_search_result_carries_bucket_and_timeline_score(monkeypatch):
+def test_hybrid_search_result_carries_bucket_and_timeline_score():
     """Verify hybrid_search wires timeline.apply_timeline into the return path.
 
-    Uses monkeypatch to swap the SQL layer for a fake fusion result — we're
-    testing the plumbing, not the SQL (SQL is covered by test_e2e_integration).
+    Reverse the input row order (TS-old first) to force apply_timeline to actually
+    re-sort by fused_score × timeline_score. Uses a hand-rolled FakeConn/FakeCur
+    to inject the fake fusion result — we're testing the plumbing, not the SQL
+    (SQL is covered by test_e2e_integration).
     """
     from datetime import datetime, timezone, timedelta
-    from unittest.mock import MagicMock
     from backend.retrieval.v2 import hybrid
 
     now = datetime.now(timezone.utc)
     fake_rows = [
-        {"key": "TS-recent", "fused_score": 0.03,
-         "updated_at": now - timedelta(days=10), "resolved_at": None,
-         "status_category": "indeterminate", "comment_count": 0},
         {"key": "TS-old", "fused_score": 0.03,
          "updated_at": now - timedelta(days=800), "resolved_at": None,
+         "status_category": "indeterminate", "comment_count": 0},
+        {"key": "TS-recent", "fused_score": 0.03,
+         "updated_at": now - timedelta(days=10), "resolved_at": None,
          "status_category": "indeterminate", "comment_count": 0},
     ]
 
@@ -74,5 +75,5 @@ def test_hybrid_search_result_carries_bucket_and_timeline_score(monkeypatch):
     for r in out:
         assert "bucket" in r
         assert "timeline_score" in r
-    # Same fused_score, but recent should rank first.
+    # Same fused_score, but apply_timeline must re-sort to put recent first.
     assert keys[0] == "TS-recent"
