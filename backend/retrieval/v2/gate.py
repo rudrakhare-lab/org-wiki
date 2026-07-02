@@ -5,6 +5,8 @@ import os
 from dataclasses import dataclass, field
 from typing import Any
 
+from backend.retrieval.v2 import timeline
+
 def _f(env: str, default: float) -> float:
     try:
         return float(os.getenv(env, str(default)))
@@ -36,6 +38,33 @@ def _top3_agree(scored: list[tuple[dict, float]]) -> bool:
         return True
     return False
 
+_TIER_ORDER = ["Abstain", "Low", "Medium", "High"]
+
+
+def _downgrade(conf: str, steps: int) -> str:
+    """Move `conf` down `steps` tiers in _TIER_ORDER, clamped at Low."""
+    if conf not in _TIER_ORDER:
+        return conf
+    idx = max(_TIER_ORDER.index(conf) - steps, _TIER_ORDER.index("Low"))
+    return _TIER_ORDER[idx]
+
+
+def _top3_bucket_penalty(scored: list) -> tuple[int, str]:
+    """Return (tier_steps_to_downgrade, reason_word).
+
+    - Top-3 all `stale_open`  → downgrade 2 tiers.
+    - Top-3 all `historical`  → downgrade 1 tier.
+    - Otherwise              → downgrade 0.
+    """
+    if len(scored) < 3:
+        return 0, ""
+    top_buckets = {c.get("bucket") for c, _ in scored[:3]}
+    if top_buckets == {"stale_open"}:
+        return 2, "stale-open"
+    if top_buckets == {"historical"}:
+        return 1, "historical"
+    return 0, ""
+
 def apply(scored: list[tuple[dict, float]]) -> RetrievalResult:
     abstain_t = ABSTAIN()
     high_t = HIGH()
@@ -46,7 +75,11 @@ def apply(scored: list[tuple[dict, float]]) -> RetrievalResult:
             diagnostics={"top_score": None, "candidate_count": 0},
         )
     top_score = scored[0][1]
-    diag = {"top_score": top_score, "candidate_count": len(scored)}
+    diag = {
+        "top_score": top_score,
+        "candidate_count": len(scored),
+        "bucket_counts": timeline.bucket_counts(c for c, _ in scored),
+    }
 
     if top_score < abstain_t:
         keys = [c["key"] for c, _ in scored[:5]]
@@ -65,23 +98,36 @@ def apply(scored: list[tuple[dict, float]]) -> RetrievalResult:
         out = {**c, "reranker_score": s}
         tickets.append(out)
 
+    # Compute base result.
     if len(scored) == 1:
-        return RetrievalResult(
+        result = RetrievalResult(
             tickets=tickets, confidence="Low", abstain=False,
             message="single-source evidence — only one ticket supports this.",
             diagnostics=diag,
         )
-
-    if top_score >= high_t:
+    elif top_score >= high_t:
         if _top3_agree(scored):
-            return RetrievalResult(tickets=tickets, confidence="High", abstain=False,
-                                   message="strong, agreeing evidence", diagnostics=diag)
-        return RetrievalResult(tickets=tickets, confidence="Medium", abstain=False,
-                               message="strong evidence but tickets do not fully agree",
-                               diagnostics=diag)
-    # abstain_t <= top_score < high_t
-    if _top3_agree(scored):
-        return RetrievalResult(tickets=tickets, confidence="Medium", abstain=False,
-                               message="moderate, agreeing evidence", diagnostics=diag)
-    return RetrievalResult(tickets=tickets, confidence="Low", abstain=False,
-                           message="moderate evidence, tickets disagree", diagnostics=diag)
+            result = RetrievalResult(tickets=tickets, confidence="High", abstain=False,
+                                     message="strong, agreeing evidence", diagnostics=diag)
+        else:
+            result = RetrievalResult(tickets=tickets, confidence="Medium", abstain=False,
+                                     message="strong evidence but tickets do not fully agree",
+                                     diagnostics=diag)
+    else:
+        # abstain_t <= top_score < high_t
+        if _top3_agree(scored):
+            result = RetrievalResult(tickets=tickets, confidence="Medium", abstain=False,
+                                     message="moderate, agreeing evidence", diagnostics=diag)
+        else:
+            result = RetrievalResult(tickets=tickets, confidence="Low", abstain=False,
+                                     message="moderate evidence, tickets disagree", diagnostics=diag)
+
+    # Bucket-mix penalty (CLAUDE.md §5 Step 2: HISTORICAL / STALE-OPEN evidence
+    # is weak; if top-3 are all in one of those buckets, downgrade confidence).
+    steps, reason = _top3_bucket_penalty(scored)
+    if steps:
+        new_conf = _downgrade(result.confidence, steps)
+        if new_conf != result.confidence:
+            result.confidence = new_conf
+            result.message += f" (downgraded: top candidates are {reason})"
+    return result
