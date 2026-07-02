@@ -110,3 +110,29 @@ def clear_pms_env(monkeypatch):
         "PMS_COOKIE_COM", "PMS_COOKIE_IN", "PMS_COOKIE",
     ):
         monkeypatch.delenv(var, raising=False)
+
+
+@pytest.fixture
+def admin_client(tmp_path, monkeypatch):
+    """TestClient authenticated as an admin — for endpoints gated by
+    _require_admin (/query, /agent/log-answer, /api/traces/*). Yields
+    (client, api_module, headers); api_module is the reloaded backend.api
+    module, so callers can patch.object(api_module, "some_symbol", ...)."""
+    import importlib
+    from unittest.mock import patch
+    from fastapi.testclient import TestClient
+    import backend.auth_store as auth_module
+
+    auth_dir = tmp_path / "raw" / "auth"
+    auth_dir.mkdir(parents=True)
+    importlib.reload(auth_module)
+    monkeypatch.setattr(auth_module, "AUTH_DB", auth_dir / "auth.sqlite", raising=False)
+    monkeypatch.setattr(auth_module, "AUTH_DIR", auth_dir, raising=False)
+
+    from backend import api as api_module
+    importlib.reload(api_module)
+    client = TestClient(api_module.app)
+    admin = {"email": "admin@example.com", "role": "admin", "token": "admin-tok", "approved": True}
+    with patch("backend.config.lookup_user_by_token",
+               side_effect=lambda t: admin if t == "admin-tok" else None):
+        yield client, api_module, {"Authorization": "Bearer admin-tok"}

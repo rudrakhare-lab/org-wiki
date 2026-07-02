@@ -422,6 +422,7 @@ class AgentLogRequest(BaseModel):
     mode: str = "claude-code-agent"
     server: str | None = None
     buid: str | None = None
+    trace_id: str | None = None
 
 
 class ConversationCreateRequest(BaseModel):
@@ -788,6 +789,7 @@ async def query(
                 jira_keys=[],
                 pms_configs=[],
                 retrieval_notes="guardrail_blocked",
+                trace_id=trace_id,
             )
             conversation_store.add_message(
                 conversation_id=conversation_id,
@@ -1036,6 +1038,7 @@ async def query_stream(
             question=req.question, answer_text=REFUSAL_MESSAGE,
             confidence="—", wiki_pages=[], jira_keys=[], pms_configs=[],
             retrieval_notes="guardrail_blocked",
+            trace_id=getattr(request.state, "trace_id", None),
         )
         conversation_store.add_message(
             conversation_id=conversation_id, role="assistant",
@@ -1172,6 +1175,7 @@ def log_agent_answer(req: AgentLogRequest, user: dict = Depends(_require_admin))
         jira_keys=jira_keys,
         pms_configs=[],
         retrieval_notes=f"agent_mode tools={len(req.tool_calls)}",
+        trace_id=req.trace_id,
     )
 
     # Persist the assistant message into the conversation if one was supplied.
