@@ -77,3 +77,40 @@ def test_timeline_score_has_floor(monkeypatch):
     monkeypatch.setattr(timeline, "_utcnow", _now)
     ancient = _row(days_ago_updated=5000, status_category="new")
     assert timeline.timeline_score(ancient) >= 0.05
+
+
+def test_apply_timeline_attaches_bucket_and_score(monkeypatch):
+    from backend.retrieval.v2 import timeline
+    monkeypatch.setattr(timeline, "_utcnow", _now)
+    cands = [
+        {"key": "TS-1", "fused_score": 0.04, **_row(days_ago_updated=10)},
+        {"key": "TS-2", "fused_score": 0.03, **_row(days_ago_updated=800)},
+    ]
+    out = timeline.apply_timeline(cands)
+    assert out is cands  # in-place mutation; same list returned
+    for c in out:
+        assert "bucket" in c and "timeline_score" in c
+
+
+def test_apply_timeline_sorts_by_fused_times_timeline(monkeypatch):
+    from backend.retrieval.v2 import timeline
+    monkeypatch.setattr(timeline, "_utcnow", _now)
+    cands = [
+        # Same fused_score, but TS-old is ancient.
+        {"key": "TS-old",    "fused_score": 0.04, **_row(days_ago_updated=800)},
+        {"key": "TS-recent", "fused_score": 0.04, **_row(days_ago_updated=1)},
+    ]
+    out = timeline.apply_timeline(cands)
+    assert out[0]["key"] == "TS-recent"
+
+
+def test_bucket_counts_aggregates_labels():
+    from backend.retrieval.v2 import timeline
+    cands = [
+        {"bucket": "latest"},
+        {"bucket": "latest"},
+        {"bucket": "historical"},
+        {"bucket": "stale_open"},
+    ]
+    counts = timeline.bucket_counts(cands)
+    assert counts == {"latest": 2, "historical": 1, "stale_open": 1}

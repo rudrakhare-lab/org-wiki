@@ -90,3 +90,28 @@ def timeline_score(row: dict) -> float:
     decay = 0.5 ** (days / HALFLIFE_DAYS) if math.isfinite(days) else 0.0
     status = STATUS_WEIGHTS[_status_tier(row)]
     return max(decay * status, _FLOOR)
+
+
+def apply_timeline(candidates: list[dict]) -> list[dict]:
+    """Attach `bucket` and `timeline_score` to each candidate (in-place) and
+    re-sort by `fused_score * timeline_score` descending. Returns the same
+    list (for chaining).
+    """
+    for c in candidates:
+        c["bucket"] = assign_bucket(c)
+        c["timeline_score"] = timeline_score(c)
+    candidates.sort(
+        key=lambda c: (c.get("fused_score") or 0.0) * c["timeline_score"],
+        reverse=True,
+    )
+    return candidates
+
+
+def bucket_counts(candidates: Iterable[dict]) -> dict[str, int]:
+    """Return {latest: N, historical: N, stale_open: N} counts."""
+    out = {"latest": 0, "historical": 0, "stale_open": 0}
+    for c in candidates:
+        b = c.get("bucket")
+        if b in out:
+            out[b] += 1
+    return out
