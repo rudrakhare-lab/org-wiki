@@ -37,7 +37,7 @@ def search(question: str, *, functional_area: str | None = None,
     sub_queries = rw.sub_queries or [question]
     query_vecs = [embed_query(q) for q in sub_queries]
     with get_conn() as conn:
-        candidates = hybrid_search(conn, sub_queries, query_vecs, filters, limit=50)
+        candidates = hybrid_search(conn, sub_queries, query_vecs, filters, limit=20)
         if not candidates:
             return gate_apply([])
         candidates = expand_links(conn, candidates)

@@ -30,10 +30,10 @@ COPY scripts/ scripts/
 COPY migrations/ migrations/
 COPY CLAUDE.md ./
 
-# ── retrieval-v2 reranker model (bge-reranker-v2-m3, ~560MB) ──
+# ── retrieval-v2 reranker model (ms-marco-MiniLM-L-6-v2, ~90MB) ──
 # Cached layer: only re-runs when requirements.txt or this script change.
 RUN python scripts/download_reranker_model.py
-ENV RERANKER_MODEL_DIR=/app/models/bge-reranker-v2-m3
+ENV RERANKER_MODEL_DIR=/app/models/ms-marco-MiniLM-L-6-v2
 
 # Bake the wiki/ knowledge-base baseline (~700KB) into the image. In prod, wiki/
 # lives on a mounted PVC (CONWO_DATA_DIR=/app/data) that starts empty; the app

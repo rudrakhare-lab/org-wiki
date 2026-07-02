@@ -1,16 +1,19 @@
 """Cross-encoder rerank step.
 
-The bge-reranker-v2-m3 model is preloaded at FastAPI startup (see
-`backend/api.py` lifespan → `rerank.preload()`) so the first user query never
-pays the ~5 sec model-load latency. If preload didn't run (unit tests, scripts,
-ad-hoc REPL), the first call to `score()` will lazy-load via `_model_or_load()`.
+Uses ms-marco-MiniLM-L-6-v2 (23M params, ~90MB) — a 24× smaller model than the
+previous bge-reranker-v2-m3 (568M, ~560MB). Inference is ~20-100ms on 1 CPU core
+vs 3-4 minutes under CPU throttle with the larger model.
 
-CPU inference is sufficient for Conwo's internal QPS (~200 ms for 50 candidates).
-The model is baked into the Docker image at /app/models/bge-reranker-v2-m3 by
+The model is preloaded at FastAPI startup (see `backend/api.py` lifespan →
+`rerank.preload()`) so the first user query never pays the model-load latency.
+If preload didn't run (unit tests, ad-hoc REPL), the first call to `score()`
+will lazy-load via `_model_or_load()`.
+
+The model is baked into the Docker image at /app/models/ms-marco-MiniLM-L-6-v2 by
 scripts/download_reranker_model.py; RERANKER_MODEL_DIR env var picks it up.
 If neither the env var nor the baked directory is present, sentence-transformers
-falls back to downloading BAAI/bge-reranker-v2-m3 from HuggingFace on first use
-(one-time ~30-60s per pod restart, then cached in the pod's memory).
+falls back to downloading cross-encoder/ms-marco-MiniLM-L-6-v2 from HuggingFace
+on first use (one-time ~5-10s per pod restart, then cached in pod memory).
 
 `score_async()` wraps the CPU-bound synchronous `predict()` in
 `asyncio.to_thread()` so the FastAPI event loop stays responsive while scoring
@@ -23,13 +26,15 @@ import asyncio
 import os
 from functools import lru_cache
 
-MODEL_DIR = os.getenv("RERANKER_MODEL_DIR", "BAAI/bge-reranker-v2-m3")
-MAX_DOC_CHARS = 1500  # Truncate ticket text; Jira tickets front-load the problem.
+MODEL_DIR = os.getenv("RERANKER_MODEL_DIR", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+MAX_DOC_CHARS = 1000  # MiniLM max_length=256 ≈ ~1000 chars; pre-truncate to avoid wasted tokenisation.
 
 @lru_cache(maxsize=1)
 def _load_model():
+    import torch
+    torch.set_num_threads(2)  # Cap intra-op parallelism — prevents torch from competing with uvicorn workers.
     from sentence_transformers import CrossEncoder
-    return CrossEncoder(MODEL_DIR, max_length=512)
+    return CrossEncoder(MODEL_DIR, max_length=256)
 
 # Test seam: tests patch `_model`.
 _model = None

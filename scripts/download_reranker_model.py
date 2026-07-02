@@ -1,4 +1,4 @@
-"""Download bge-reranker-v2-m3 weights to /app/models/. Run during Docker build.
+"""Download ms-marco-MiniLM-L-6-v2 weights to /app/models/. Run during Docker build.
 
 Idempotent: if the target directory already exists with the expected files, skip.
 """
@@ -6,8 +6,8 @@ import os
 import sys
 from pathlib import Path
 
-MODEL_ID = "BAAI/bge-reranker-v2-m3"
-TARGET = Path(os.getenv("RERANKER_MODEL_DIR", "/app/models/bge-reranker-v2-m3"))
+MODEL_ID = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+TARGET = Path(os.getenv("RERANKER_MODEL_DIR", "/app/models/ms-marco-MiniLM-L-6-v2"))
 
 def main() -> int:
     if (TARGET / "config.json").exists() and (TARGET / "tokenizer.json").exists():
