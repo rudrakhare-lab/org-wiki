@@ -15,6 +15,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 
@@ -164,9 +165,7 @@ class TestDateNormalization:
         assert out["rows"][0]["resolved"] == "2026-01-02"
 
 
-"""_v2_by_module tests — confidence-floor parity with _v1_by_module."""
-from unittest.mock import patch
-
+# ── _v2_by_module tests — confidence-floor parity with _v1_by_module ──────────
 
 def _fake_candidate(key, **overrides):
     base = {
@@ -229,6 +228,38 @@ def test_v2_by_module_enriches_with_module_confidence_and_modules(monkeypatch):
     assert out[0]["modules"] == [{"slug": "desk-management", "confidence": 0.9}]
     assert "updated" in out[0]
     assert "resolved" in out[0]
+
+
+def test_v2_by_module_modules_field_is_full_tag_list_not_just_the_match(monkeypatch):
+    """A ticket tagged to multiple modules must carry ALL of them in `modules`,
+    not just the entry matching the queried module_slug. A regression that
+    narrowed `modules` down to `[match]` would have passed the single-tag
+    test above but silently broken preflight.py's cross-module rendering."""
+    from backend import jira_retriever
+
+    candidates = [_fake_candidate("TS-1")]
+    monkeypatch.setattr(
+        "backend.retrieval.v2.pipeline.by_module",
+        lambda module_slug, query, limit: candidates,
+    )
+    full_tag_list = [
+        {"slug": "desk-management", "confidence": 0.9},
+        {"slug": "parking-management", "confidence": 0.6},
+    ]
+
+    class FakeConn:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+
+    with patch.object(jira_retriever.db, "connection", return_value=FakeConn()):
+        with patch.object(
+            jira_retriever, "_fetch_modules_for_keys",
+            return_value={"TS-1": full_tag_list},
+        ):
+            out = jira_retriever._v2_by_module("desk-management", "booking", limit=5)
+
+    assert out[0]["modules"] == full_tag_list
+    assert out[0]["module_confidence"] == 0.9
 
 
 def test_v2_by_module_respects_limit_after_filtering(monkeypatch):
