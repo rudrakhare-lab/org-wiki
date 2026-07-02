@@ -18,7 +18,7 @@ _SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from query_jira_ranked import fetch_ranked, render_markdown  # noqa: E402
+from query_jira_ranked import fetch_ranked, render_markdown, format_ticket_line  # noqa: E402
 
 from backend import db
 from backend.retrieval.v2 import shadow as _shadow_mod
@@ -54,8 +54,56 @@ def _date_str(value) -> str | None:
 _BUCKET_TOP_KEY = {"latest": "LATEST", "historical": "HISTORICAL", "stale_open": "STALE-OPEN"}
 
 
+def _render_v2_markdown(tickets: list[dict], *, confidence: str, message: str,
+                         include_stale: bool = False) -> str:
+    """Mirror query_jira_ranked.render_markdown()'s LATEST/HISTORICAL/
+    STALE-OPEN section structure for v2 tickets, keyed off each ticket's own
+    lowercase `bucket` tag (set by timeline.apply_timeline() upstream)
+    instead of v1's bucket column. This is the only place v2's evidence
+    reaches the LLM as prose — orchestrator.py's jira_context = jira_result
+    reads this field directly.
+    """
+    grouped: dict[str, list[dict]] = {"LATEST": [], "HISTORICAL": [], "STALE-OPEN": []}
+    for t in tickets:
+        top_key = _BUCKET_TOP_KEY.get(t.get("bucket") or "latest", "LATEST")
+        grouped[top_key].append(t)
+
+    out = [
+        f"### V2 ranked Jira evidence (confidence: {confidence})",
+        f"_{message}_",
+        "",
+        f"_Buckets: LATEST={len(grouped['LATEST'])} · "
+        f"HISTORICAL={len(grouped['HISTORICAL'])} · "
+        f"STALE-OPEN={len(grouped['STALE-OPEN'])}_",
+        "",
+        "**Latest evidence** (current behavior, last ~6 months):",
+    ]
+    if grouped["LATEST"]:
+        out.extend(format_ticket_line(r) for r in grouped["LATEST"])
+    else:
+        out.append("- —")
+    out.append("")
+
+    out.append("**Historical evidence** (older context, may be stale):")
+    if grouped["HISTORICAL"]:
+        out.extend(format_ticket_line(r) for r in grouped["HISTORICAL"])
+    else:
+        out.append("- —")
+    out.append("")
+
+    if include_stale:
+        out.append("**Stale-open** (open but no activity >180 days — usually noise):")
+        if grouped["STALE-OPEN"]:
+            out.extend(format_ticket_line(r) for r in grouped["STALE-OPEN"])
+        else:
+            out.append("- —")
+        out.append("")
+
+    return "\n".join(out)
+
+
 def _v2_search(question: str, *, functional_area: str | None = None,
-               limit: int = 10, **kwargs):
+               limit: int = 10, include_stale: bool = False, **kwargs):
     # kwargs (e.g. include_stale, trace_id) are v1-only and intentionally not
     # passed to the v2 pipeline yet. Callers (e.g. jira_tools.py) may pass
     # include_stale=True; v2 always returns all recency buckets via its own
@@ -88,7 +136,10 @@ def _v2_search(question: str, *, functional_area: str | None = None,
 
     return {
         "keywords": extract_keywords(question),
-        "markdown": result.message,
+        "markdown": _render_v2_markdown(
+            tickets, confidence=result.confidence, message=result.message,
+            include_stale=include_stale,
+        ),
         "rows": tickets,
         "buckets": buckets,
     }

@@ -260,3 +260,72 @@ def test_v2_by_module_empty_candidates_returns_empty(monkeypatch):
     )
     out = jira_retriever._v2_by_module("desk-management", "booking", limit=5)
     assert out == []
+
+
+def _md_ticket(key, bucket, **overrides):
+    base = {
+        "key": key, "bucket": bucket, "summary": "does a thing",
+        "status_category": "done", "priority": "P2",
+        "updated": "2026-06-01", "resolved": None, "comment_count": 1,
+    }
+    base.update(overrides)
+    return base
+
+
+def test_render_v2_markdown_always_shows_latest_and_historical():
+    from backend.jira_retriever import _render_v2_markdown
+    tickets = [_md_ticket("TS-1", "latest"), _md_ticket("TS-2", "historical")]
+    md = _render_v2_markdown(tickets, confidence="High", message="strong evidence")
+    assert "**Latest evidence**" in md
+    assert "**Historical evidence**" in md
+    assert "TS-1" in md
+    assert "TS-2" in md
+
+
+def test_render_v2_markdown_omits_stale_section_by_default():
+    from backend.jira_retriever import _render_v2_markdown
+    tickets = [_md_ticket("TS-3", "stale_open")]
+    md = _render_v2_markdown(tickets, confidence="Low", message="weak")
+    assert "Stale-open" not in md
+
+
+def test_render_v2_markdown_includes_stale_section_when_requested():
+    from backend.jira_retriever import _render_v2_markdown
+    tickets = [_md_ticket("TS-3", "stale_open")]
+    md = _render_v2_markdown(tickets, confidence="Low", message="weak", include_stale=True)
+    assert "**Stale-open**" in md
+    assert "TS-3" in md
+
+
+def test_render_v2_markdown_includes_confidence_header():
+    from backend.jira_retriever import _render_v2_markdown
+    md = _render_v2_markdown([], confidence="Medium", message="moderate evidence")
+    assert "Medium" in md
+    assert "moderate evidence" in md
+
+
+def test_v2_search_markdown_field_uses_renderer(monkeypatch):
+    """_v2_search's returned dict must use _render_v2_markdown, not the bare
+    gate message, for its 'markdown' field."""
+    from backend import jira_retriever
+    from dataclasses import dataclass, field
+
+    @dataclass
+    class _FakeResult:
+        tickets: list
+        confidence: str = "High"
+        abstain: bool = False
+        message: str = "strong evidence"
+        diagnostics: dict = field(default_factory=dict)
+
+    fake_result = _FakeResult(tickets=[
+        {"key": "TS-1", "summary": "s", "status_category": "done", "priority": "P1",
+         "bucket": "latest", "updated_at": None, "resolved_at": None, "comment_count": 0},
+    ])
+    monkeypatch.setattr(
+        "backend.retrieval.v2.pipeline.search",
+        lambda question, **kw: fake_result,
+    )
+    out = jira_retriever._v2_search("some question")
+    assert "**Latest evidence**" in out["markdown"]
+    assert out["markdown"] != fake_result.message
