@@ -143,7 +143,7 @@ def format_ticket_line(row, base_url="https://moveinsync.atlassian.net/browse/")
     if row["resolved"]:
         parts.append(f"resolved {row['resolved']}")
     parts.append(f"updated {row['updated']}")
-    parts.append(f"💬{row['comment_count']}")
+    parts.append(f"💬{row.get('comment_count', 0)}")
     if row.get("hit_summary"):
         parts.append("[summary-hit]")
     meta = " · ".join(parts)
