@@ -196,6 +196,7 @@ export class AgentTranscript implements OnDestroy {
   answerId = signal<string>('');
   wikiSources = signal<string[]>([]);
   conversationId = signal<string>('');
+  traceId = signal<string>('');
 
   /**
    * Parent assigns a request to trigger a stream. When the value changes
@@ -242,6 +243,7 @@ export class AgentTranscript implements OnDestroy {
     this.error.set('');
     this.answerId.set('');
     this.wikiSources.set([]);
+    this.traceId.set('');
     this.currentQuestion.set(opts.question);
     this.conversationId.set(opts.conversationId ?? '');
     this.serverScope = opts.server ?? 'com';
@@ -304,6 +306,7 @@ export class AgentTranscript implements OnDestroy {
         conversation_id: this.conversationId() || undefined,
         server: this.serverScope,
         buid: this.buidScope,
+        trace_id: this.traceId() || undefined,
       })
       .subscribe({
         next: r => {
@@ -376,6 +379,11 @@ export class AgentTranscript implements OnDestroy {
       case '__conversation': {
         const id = (evt as any).conversation_id;
         if (id) this.conversationId.set(String(id));
+        break;
+      }
+      case '__trace_id': {
+        const tid = (evt as any).trace_id;
+        if (tid) this.traceId.set(String(tid));
         break;
       }
       case '__done':
