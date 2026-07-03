@@ -367,3 +367,68 @@
   font-size: 0.875rem;
   padding: 16px 0;
 }
+
+// ── Dashboard shell (nested tab nav) ─────────────────────────────────────────
+
+.dashboard-shell {
+  display: flex;
+  gap: 20px;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 32px 16px;
+  align-items: flex-start;
+}
+
+.dash-nav {
+  flex-shrink: 0;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 8px;
+  background: var(--surface);
+}
+
+.dash-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+
+  &:hover { background: var(--surface-muted); color: var(--text); }
+  &.active { background: var(--accent); color: var(--text-on-accent); }
+}
+
+.dash-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.agent-select {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 10px;
+  font-size: 0.8rem;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.coming-soon {
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-subtle);
+  font-size: 0.9rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-lg);
+}
