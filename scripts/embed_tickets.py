@@ -18,8 +18,8 @@ from backend.retrieval.v2.embed import embed_documents  # noqa: E402
 
 BATCH = 100
 MAX_TEXT_CHARS = 8000  # Gemini handles more but trimming keeps embed cost predictable.
-MAX_COMMENTS_CHARS = 8000  # Larger than MAX_TEXT_CHARS? No, same — comments already
-                           # carry the answer for debugging queries; no need to bias larger.
+MAX_COMMENTS_CHARS = 8000  # Same cap as MAX_TEXT_CHARS; keeps embed cost predictable
+                           # for long comment threads.
 
 SELECT_FULL = """
     SELECT key, summary, description_text, comments_text
@@ -36,6 +36,9 @@ SELECT_DELTA = """
 
 # --comments-only backfill queries: filter on comments_embedding IS NULL so a
 # re-run after a Gemini quota trip skips rows already backfilled (resumable).
+# Accepted tradeoff: rows whose comments_text is permanently empty re-select on
+# every run, but they never reach the embedder (empty texts are skipped), so
+# they cost no quota.
 SELECT_FULL_COMMENTS_ONLY = """
     SELECT key, summary, description_text, comments_text
     FROM tickets
@@ -56,6 +59,17 @@ UPDATE_ROW = """
     SET embedding          = COALESCE(%(desc_vec)s::vector, embedding),
         comments_embedding = COALESCE(%(comm_vec)s::vector, comments_embedding),
         embedded_at        = now()
+    WHERE key = %(key)s
+"""
+
+# --comments-only path: touches ONLY comments_embedding. It must not reference
+# the embedding column (never-clobber) and must NOT bump the embedded_at
+# watermark — doing so would make a later delta run skip a description edit
+# that landed before the backfill (updated_at would no longer be > embedded_at,
+# so the edit would silently never be re-embedded).
+UPDATE_ROW_COMMENTS_ONLY = """
+    UPDATE tickets
+    SET comments_embedding = COALESCE(%(comm_vec)s::vector, comments_embedding)
     WHERE key = %(key)s
 """
 
@@ -121,13 +135,13 @@ def run(dsn: str, mode: str, comments_only: bool = False) -> int:
                     for (i, _), v in zip(non_empty, embedded):
                         comm_vecs[i] = v
 
+                update_sql = UPDATE_ROW_COMMENTS_ONLY if comments_only else UPDATE_ROW
                 with conn.cursor() as upd:
                     for r, dv, cv in zip(batch, desc_vecs, comm_vecs):
-                        upd.execute(UPDATE_ROW, {
-                            "key": r["key"],
-                            "desc_vec": dv,
-                            "comm_vec": cv,
-                        })
+                        params = {"key": r["key"], "comm_vec": cv}
+                        if not comments_only:
+                            params["desc_vec"] = dv
+                        upd.execute(update_sql, params)
                 conn.commit()
                 total += len(batch)
                 dt = time.perf_counter() - t0
