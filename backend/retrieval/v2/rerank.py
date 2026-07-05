@@ -58,15 +58,17 @@ _COMMENTS_MAX = 300
 
 
 def _doc_text(c: dict) -> str:
-    """Fixed-budget layout for reranker input — 1000 chars max total.
+    """Fixed-budget layout for reranker input — ~1013 chars max total.
 
     Layout (each field independently trimmed):
       summary            : 0..200 chars
       description_text   : 0..500 chars
       [comments] ...     : 0..300 chars (prefix omitted when empty)
 
-    Total <= 1000 chars, safe under MiniLM cross-encoder's 256-token limit
-    even at ~4 chars/token. Fields joined with '\\n'; empty fields skipped.
+    Max total is 200+500+300 plus the '[comments] ' prefix (11) and two '\\n'
+    separators = 1013 chars — safe under MiniLM cross-encoder's 256-token
+    limit even at ~4 chars/token. Fields joined with '\\n'; empty fields
+    skipped.
     """
     summary  = (c.get("summary")          or "").strip()[:_SUMMARY_MAX]
     desc     = (c.get("description_text") or "").strip()[:_DESC_MAX]
