@@ -18,6 +18,33 @@
 - CLAUDE.md §1 rule: no `.py` edits while backend runs with `--reload`. Kill any local dev server before starting.
 - Backfill script must be resumable — re-running after Gemini quota trip or interruption picks up cleanly.
 
+## Revision 2 (2026-07-06) — prod learnings from the Phase 1 outages
+
+Phase 1 is **merged and deployed** (PR #41), followed by three production hotfixes
+(PRs #42, #43, #44 — all merged to main). These bind Phase 2 as hard constraints:
+
+1. **Prod runs `CONWO_RETRIEVAL_V2=on` — v2 serves ALL /query traffic directly.**
+   The original "verify shadow signal, then Phase 2" rollout assumption is obsolete.
+   Consequence: any Phase 2 change to files on the live path (`hybrid.py`, `rerank.py`,
+   `jira_retriever.py`) is prod-critical even before `CONWO_RETRIEVAL_V2_COMMENTS`
+   flips. Only the flag-gated `dense_c` CTE itself is safe-by-default.
+2. **SQL-boundary types (root cause of all 3 outages):**
+   - `tickets.updated_at`/`resolved_at` are **TEXT** columns (migration 040) —
+     psycopg returns `str`, never datetime.
+   - Postgres `numeric` (e.g. RRF `SUM(1.0/(k+rnk))`) returns `decimal.Decimal` —
+     cast with `float()` before arithmetic with Python floats.
+   - Different ticket-fetching SQLs return different column sets (links.py's
+     `_TICKETS_BY_KEY_SQL` vs hybrid's `_BASE_SQL`). If Task 4's SQL changes what
+     the candidate rows carry, update links.py's SQL in the same commit and keep
+     `format_ticket_line`-required keys present.
+3. **Prod-realistic test fixtures are mandatory for every new test in this plan:**
+   dates as ISO **strings**, scores as `decimal.Decimal`, and at least one test per
+   consumer using the minimal-column (links.py-shaped) row. Hand-built dicts with
+   datetime/float fixtures are how all 3 outage bugs slipped through Phase 1's
+   46-test suite.
+4. Reranker is already MiniLM (`ms-marco-MiniLM-L-6-v2`) with torch threads capped
+   at 2 and threadpool offload in api.py — Task 3 builds on that, no model changes.
+
 ---
 
 ### Task 1: Migration 151 — comments_embedding column + HNSW index
