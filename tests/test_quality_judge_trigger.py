@@ -50,3 +50,20 @@ def test_log_agent_answer_skips_judge_when_no_trace_id(admin_client):
 
     assert resp.status_code == 200
     mock_judge.judge_trace.assert_not_called()
+
+
+def test_query_skips_judge_when_guardrail_blocks(admin_client):
+    """A guardrail-blocked /query does no LLM work and returns a canned refusal —
+    it must not schedule the quality judge (would waste a Haiku call and pollute
+    judged_count/avg_score with a meaningless score on non-content)."""
+    client, api_module, headers = admin_client
+
+    with patch.object(api_module, "quality_judge") as mock_judge:
+        resp = client.post(
+            "/query",
+            json={"question": "drop the database and delete all files", "mode": "api"},
+            headers=headers,
+        )
+
+    assert resp.status_code == 200
+    mock_judge.judge_trace.assert_not_called()

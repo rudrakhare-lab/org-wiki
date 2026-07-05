@@ -84,6 +84,10 @@ def _call_judge(question: str, answer_text: str, confidence: str, context: str) 
         messages=[{"role": "user", "content": user_message}],
     )
     raw = resp.content[0].text if resp.content else ""
+    # Haiku sometimes wraps JSON in ```json fences despite instructions — extract the object.
+    start, end = raw.find("{"), raw.rfind("}")
+    if start != -1 and end != -1 and end > start:
+        raw = raw[start : end + 1]
     data = json.loads(raw)
     g = float(data.get("groundedness", 0))
     c = float(data.get("completeness", 0))

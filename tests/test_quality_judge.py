@@ -110,6 +110,36 @@ def test_judge_trace_upserts_on_rerun(clean_db, tmp_path, monkeypatch):
     assert rows[0]["overall_score"] == 90.0
 
 
+def test_judge_trace_tolerates_markdown_fenced_json(clean_db, tmp_path, monkeypatch):
+    """Haiku occasionally wraps its JSON output in a ```json fence despite the
+    'Output JSON only' instruction. judge_trace must still extract and write
+    the judgment instead of silently failing closed on json.loads."""
+    answer_log = tmp_path / "answer_log.jsonl"
+    monkeypatch.setattr(feedback_service, "ANSWER_LOG", answer_log)
+    trace_store.start_session("t-judge-5", mode="api")
+    feedback_service.log_answer(
+        question="q", answer_text="a", confidence="Medium", trace_id="t-judge-5",
+    )
+
+    fenced_payload = json.dumps({
+        "groundedness": 60, "completeness": 70, "confidence_calibration": 80,
+        "source_usage": 90, "rationale": "fenced response",
+    })
+    fake = MagicMock()
+    fake.messages.create.return_value = MagicMock(
+        content=[MagicMock(text=f"```json\n{fenced_payload}\n```")]
+    )
+    with patch.object(quality_judge, "_client", fake):
+        quality_judge.judge_trace("t-judge-5")
+
+    with db.connection() as conn:
+        row = conn.execute(
+            "SELECT * FROM quality_judgments WHERE trace_id = %s", ("t-judge-5",)
+        ).fetchone()
+    assert row is not None
+    assert row["overall_score"] == 75.0  # (60+70+80+90)/4
+
+
 def test_fetch_cited_context_includes_wiki_and_jira(clean_db, monkeypatch):
     from backend.wiki_retriever import WikiPage
     fake_page = WikiPage(path="modules/sso.md", title="SSO", full_text="SSO uses SAML.")

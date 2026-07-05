@@ -242,6 +242,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Trace-ID"],
 )
 
 # Request-lifecycle tracing. Registered AFTER CORS so that — because FastAPI runs
@@ -777,6 +778,10 @@ async def query(
         from backend.guardrail import REFUSAL_MESSAGE, is_destructive_input, log_blocked
         _trigger = is_destructive_input(req.question)
         if _trigger:
+            # A guardrail-blocked request did no LLM work — bucket it with gateway
+            # rejections (excluded from latency/cost/error-rate) and, importantly,
+            # skip the quality judge below (it would score a canned refusal).
+            trace_status = "rejected"
             log_blocked(user_email=user_email, question=req.question,
                         trigger=_trigger, where="query_input")
             trace_store.record_event(

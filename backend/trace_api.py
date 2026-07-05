@@ -343,7 +343,14 @@ def dashboard_summary(
     """Overview tab KPI cards (design spec 2026-07-02-dashboard-overview-tab-design.md
     §4). Unlike the other dashboard/* routes, agent_id here is an explicit Query
     param (not Depends(_agent_id)) so the frontend's 'All Agents' dropdown can pass
-    agent_id=all to aggregate across every agent."""
+    agent_id=all to aggregate across every agent.
+
+    NOTE (scoping mismatch, latent): the four pre-existing dashboard/* endpoints
+    (overview/tools/errors/cost) use Depends(_agent_id) — header-scoped, single
+    agent, no "all" option. If a future tab surfaces those original charts under
+    the same shared agentFilter as this Overview tab, the two scoping models will
+    disagree and must be reconciled (either add "all" support to Depends(_agent_id)
+    or drop it here in favor of the header-based dependency)."""
     empty = {
         "conversations": 0, "queries": 0, "msgs_per_conversation": None,
         "quality": {"avg_score": None, "judged_count": 0},
@@ -428,6 +435,8 @@ def _escalation_stats(trace_ids_in_range: set[str]) -> tuple[int, int]:
 @router.get("/dashboard/daily-volume")
 def dashboard_daily_volume(
     time_range: str = Query("7d"),
+    # Explicit Query param (not Depends(_agent_id)) — same rationale and same
+    # future-reconciliation caveat as dashboard_summary above.
     agent_id: str = Query("conwo"),
 ):
     with _ro() as conn:
