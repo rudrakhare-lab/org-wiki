@@ -7,12 +7,19 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 from types import SimpleNamespace
+from typing import Any
 
 _SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 if str(_SCRIPTS) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS))
 
-from log_answer import cmd_log, make_answer_id, utc_now as _la_utc_now, append_record as _la_append
+from log_answer import (
+    cmd_log,
+    make_answer_id,
+    utc_now as _la_utc_now,
+    append_record as _la_append,
+    load_records as _la_load,
+)
 from record_feedback import (
     cmd_record,
     cmd_list,
@@ -50,12 +57,18 @@ def log_answer(
     answer_id: str | None = None,
     created_at: str | None = None,
     agent_id: str = "conwo",
+    trace_id: str | None = None,
 ) -> str:
     """Log an answer record and return the answer_id.
 
     If `answer_id` and `created_at` are provided (e.g. from prepare_answer_id),
     use them verbatim — useful when the answer_text was post-processed after
     id computation. Otherwise compute fresh.
+
+    trace_id links this record back to trace_sessions (design spec
+    2026-07-02-dashboard-overview-tab-design.md §7) so Escalation Rate and the
+    quality judge can resolve a trace's answer text/sources. None for records
+    logged outside a traced request (e.g. the CLI wiki-maintainer workflow).
     """
     if answer_id is None or created_at is None:
         answer_id, created_at = prepare_answer_id(question, answer_text)
@@ -72,10 +85,26 @@ def log_answer(
         },
         "retrieval_notes": retrieval_notes,
         "agent_id": agent_id,
+        "trace_id": trace_id,
     }
     ANSWER_LOG.parent.mkdir(parents=True, exist_ok=True)
     _la_append(ANSWER_LOG, record)
     return answer_id
+
+
+def find_answer_by_trace_id(trace_id: str) -> dict[str, Any] | None:
+    """Return the most recent ANSWER_LOG record linked to trace_id, or None.
+
+    Used by quality_judge.judge_trace() (Task 5) to resolve the answer text
+    and cited sources for a completed trace. O(n) linear scan of the JSONL
+    file — matches record_feedback.py's existing lookup_answer_log() pattern;
+    acceptable since this runs async in the background, never on the request
+    path.
+    """
+    for record in reversed(_la_load(ANSWER_LOG)):
+        if record.get("trace_id") == trace_id:
+            return record
+    return None
 
 
 def record_feedback(
@@ -120,6 +149,16 @@ def list_feedback(status: str = "pending", limit: int = 50, label: str | None = 
     if label:
         records = [r for r in records if r.get("label") == label]
     return sorted(records, key=lambda r: r.get("created_at", ""), reverse=True)[:limit]
+
+
+def load_all_feedback() -> list[dict[str, Any]]:
+    """Return every feedback record (all statuses), most recent first.
+
+    Used by trace_api.py's dashboard summary endpoint (Task 7) to compute
+    Escalation Rate — unlike list_feedback(), this is not filtered to
+    status='pending' and has no limit.
+    """
+    return sorted(_fb_load(FEEDBACK_LOG), key=lambda r: r.get("created_at", ""), reverse=True)
 
 
 def resolve_feedback(feedback_id: str, resolution: str, wiki_commit_ref: str = "") -> bool:

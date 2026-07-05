@@ -332,3 +332,126 @@ def dashboard_cost(
                 "cost_per_query": {"avg": avg, **cost_pct},
                 "tokens": {"input": ti, "output": to_, "cached_input": tc},
                 "cache_hit_rate": cache_hit}
+
+
+# ── 7. dashboard summary (Overview tab KPI cards) ────────────────────────────────
+@router.get("/dashboard/summary")
+def dashboard_summary(
+    time_range: str = Query("7d"),
+    agent_id: str = Query("conwo"),
+):
+    """Overview tab KPI cards (design spec 2026-07-02-dashboard-overview-tab-design.md
+    §4). Unlike the other dashboard/* routes, agent_id here is an explicit Query
+    param (not Depends(_agent_id)) so the frontend's 'All Agents' dropdown can pass
+    agent_id=all to aggregate across every agent.
+
+    NOTE (scoping mismatch, latent): the four pre-existing dashboard/* endpoints
+    (overview/tools/errors/cost) use Depends(_agent_id) — header-scoped, single
+    agent, no "all" option. If a future tab surfaces those original charts under
+    the same shared agentFilter as this Overview tab, the two scoping models will
+    disagree and must be reconciled (either add "all" support to Depends(_agent_id)
+    or drop it here in favor of the header-based dependency)."""
+    empty = {
+        "conversations": 0, "queries": 0, "msgs_per_conversation": None,
+        "quality": {"avg_score": None, "judged_count": 0},
+        "escalation": {"rate": None, "feedback_count": 0},
+        "latency_ms": {"avg": None, "p95": None},
+        "total_cost_usd": 0.0,
+    }
+    with _ro() as conn:
+        if conn is None:
+            return empty
+        cutoff = _cutoff_iso(time_range)
+        base, params = "FROM trace_sessions WHERE 1=1", []
+        if agent_id != "all":
+            base += " AND agent_id = %s"; params.append(agent_id)
+        if cutoff:
+            base += " AND started_at >= %s"; params.append(cutoff)
+        if True:  # matches dashboard_overview's convention of excluding orphaned
+            base += " AND status != 'orphaned'"
+
+        queries = conn.execute(f"SELECT COUNT(*) {base}", params).fetchone()[0]
+        conversations = conn.execute(
+            f"SELECT COUNT(DISTINCT conversation_id) {base}", params
+        ).fetchone()[0]
+        msgs_per_conversation = round(queries / conversations, 2) if conversations else None
+
+        durs = [r[0] for r in conn.execute(
+            f"SELECT duration_ms {base} AND duration_ms IS NOT NULL "
+            f"AND status IN ('success','error')", params).fetchall()]
+        avg_latency = round(sum(durs) / len(durs)) if durs else None
+        p95 = _percentiles(durs, ps=(95,))["p95"]
+
+        total_cost = conn.execute(
+            f"SELECT COALESCE(SUM(total_cost_usd),0) {base} AND status IN ('success','error')",
+            params).fetchone()[0]
+
+        qbase, qparams = "FROM quality_judgments q JOIN trace_sessions s ON s.trace_id=q.trace_id WHERE 1=1", []
+        if agent_id != "all":
+            qbase += " AND s.agent_id = %s"; qparams.append(agent_id)
+        if cutoff:
+            qbase += " AND s.started_at >= %s"; qparams.append(cutoff)
+        qrow = conn.execute(f"SELECT AVG(q.overall_score) avg_score, COUNT(*) n {qbase}", qparams).fetchone()
+        avg_score = round(qrow["avg_score"], 2) if qrow["avg_score"] is not None else None
+        judged_count = qrow["n"]
+
+        trace_ids_in_range = {r[0] for r in conn.execute(f"SELECT trace_id {base}", params).fetchall()}
+
+    negative, feedback_count = _escalation_stats(trace_ids_in_range)
+    escalation_rate = round(negative / queries, 4) if queries else None
+
+    return {
+        "conversations": conversations,
+        "queries": queries,
+        "msgs_per_conversation": msgs_per_conversation,
+        "quality": {"avg_score": avg_score, "judged_count": judged_count},
+        "escalation": {"rate": escalation_rate, "feedback_count": feedback_count},
+        "latency_ms": {"avg": avg_latency, "p95": p95},
+        "total_cost_usd": round(total_cost, 6),
+    }
+
+
+def _escalation_stats(trace_ids_in_range: set[str]) -> tuple[int, int]:
+    """Return (negative_feedback_count, feedback_count) for feedback whose
+    linked trace_id falls within trace_ids_in_range. Negative = score <= 3."""
+    from backend import feedback_service
+    negative = 0
+    total = 0
+    for rec in feedback_service.load_all_feedback():
+        linked = rec.get("answer_log") or {}
+        tid = linked.get("trace_id")
+        if not tid or tid not in trace_ids_in_range:
+            continue
+        total += 1
+        try:
+            if int(rec.get("score", 5)) <= 3:
+                negative += 1
+        except (TypeError, ValueError):
+            continue
+    return negative, total
+
+
+# ── 8. dashboard daily volume (Overview tab chart) ───────────────────────────────
+@router.get("/dashboard/daily-volume")
+def dashboard_daily_volume(
+    time_range: str = Query("7d"),
+    # Explicit Query param (not Depends(_agent_id)) — same rationale and same
+    # future-reconciliation caveat as dashboard_summary above.
+    agent_id: str = Query("conwo"),
+):
+    with _ro() as conn:
+        if conn is None:
+            return {"days": []}
+        cutoff = _cutoff_iso(time_range)
+        base, params = "FROM trace_sessions WHERE 1=1", []
+        if agent_id != "all":
+            base += " AND agent_id = %s"; params.append(agent_id)
+        if cutoff:
+            base += " AND started_at >= %s"; params.append(cutoff)
+        base += " AND status != 'orphaned'"
+        rows = conn.execute(
+            f"SELECT substr(started_at,1,10) AS \"day\", COUNT(*) queries, "
+            f"COUNT(DISTINCT conversation_id) conversations "
+            f"{base} GROUP BY substr(started_at,1,10) ORDER BY substr(started_at,1,10)",
+            params).fetchall()
+        return {"days": [dict(r) for r in rows]}

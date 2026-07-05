@@ -5,12 +5,15 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs';
 import { BaseChartDirective } from 'ng2-charts';
 import type { ChartConfiguration, ChartData } from 'chart.js';
+import { AgentService } from '../../core/agent.service';
 import {
   ApiService,
   TraceOverview,
   TraceToolsResponse,
   TraceErrorsResponse,
   TraceCostResponse,
+  DashboardSummary,
+  DashboardDailyVolume,
 } from '../../core/api.service';
 
 // Design-token colors (CSS vars read at build time; these match styles.scss)
@@ -28,218 +31,127 @@ const RANGES = [
   { value: 'all', label: 'All' },
 ];
 
+type TabId = 'overview' | 'tools' | 'conversations' | 'cost' | 'quality' | 'review' | 'failures';
+
+const TABS: { id: TabId; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'tools', label: 'Tool Performance' },
+  { id: 'conversations', label: 'Conversations' },
+  { id: 'cost', label: 'Tokens & Cost' },
+  { id: 'quality', label: 'Quality' },
+  { id: 'review', label: 'Review Queue' },
+  { id: 'failures', label: 'Failure Analysis' },
+];
+
 @Component({
   selector: 'app-trace-dashboard',
   imports: [CommonModule, BaseChartDirective],
   template: `
-    <div class="page">
-      <!-- Header -->
-      <header class="page-header">
-        <h1>Observability Dashboard</h1>
-        <div class="header-actions">
-          <div class="range-tabs">
-            @for (r of ranges; track r.value) {
-              <button
-                class="range-tab"
-                [class.active]="timeRange() === r.value"
-                (click)="setRange(r.value)"
-              >{{ r.label }}</button>
-            }
+    <div class="dashboard-shell">
+      <nav class="dash-nav">
+        @for (t of tabs; track t.id) {
+          <button
+            class="dash-nav-item"
+            [class.active]="activeTab() === t.id"
+            (click)="setTab(t.id)"
+          >{{ t.label }}</button>
+        }
+      </nav>
+
+      <div class="dash-main">
+        <header class="page-header">
+          <h1>Observability Dashboard</h1>
+          <div class="header-actions">
+            <select class="agent-select" [value]="agentFilter()" (change)="setAgentFilter($any($event.target).value)">
+              <option value="all">All Agents</option>
+              @for (a of agentSvc.agents(); track a.id) {
+                <option [value]="a.id">{{ a.display_name }}</option>
+              }
+            </select>
+            <div class="range-tabs">
+              @for (r of ranges; track r.value) {
+                <button
+                  class="range-tab"
+                  [class.active]="timeRange() === r.value"
+                  (click)="setRange(r.value)"
+                >{{ r.label }}</button>
+              }
+            </div>
+            <button class="refresh-btn" (click)="loadAll()">↻</button>
           </div>
-          <button class="refresh-btn" (click)="loadAll()">↻</button>
-        </div>
-      </header>
+        </header>
 
-      @if (loading()) {
-        <p class="loading-text">Loading…</p>
-      }
-
-      @if (!loading()) {
-
-        <!-- Section errors -->
-        @if (hasErrors()) {
-          <div class="section-errors">
-            @for (e of errorEntries(); track e[0]) {
-              <span class="section-error-badge">{{ e[0] }}: {{ e[1] }}</span>
-            }
-          </div>
+        @if (loading()) {
+          <p class="loading-text">Loading…</p>
         }
 
-        <!-- Metric cards -->
-        @if (overview()) {
-          <div class="metric-cards">
-            <div class="metric-card">
-              <div class="metric-label">Queries</div>
-              <div class="metric-value">{{ overview()!.total_queries | number }}</div>
-              <div class="metric-sub">in {{ timeRange() }}</div>
+        @if (!loading()) {
+          @if (hasErrors()) {
+            <div class="section-errors">
+              @for (e of errorEntries(); track e[0]) {
+                <span class="section-error-badge">{{ e[0] }}: {{ e[1] }}</span>
+              }
             </div>
-            <div class="metric-card">
-              <div class="metric-label">Success rate</div>
-              <div class="metric-value" [class.value-success]="successRateNum() >= 95" [class.value-warn]="successRateNum() < 80">
-                {{ successRate() }}
-              </div>
-              <div class="metric-sub">{{ statusCount('success') }} successful</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Avg latency</div>
-              <div class="metric-value">{{ formatDuration(overview()!.latency_ms.avg) }}</div>
-              <div class="metric-sub">p50 {{ formatDuration(overview()!.latency_ms.p50) }}</div>
-            </div>
-            <div class="metric-card">
-              <div class="metric-label">Total cost</div>
-              <div class="metric-value mono">{{ formatCost(overview()!.total_cost_usd) }}</div>
-              <div class="metric-sub">claude-code billed externally</div>
-            </div>
-          </div>
+          }
 
-          <!-- Latency gauges -->
-          <section class="section gauges-section">
-            <h2 class="section-heading">Latency Percentiles</h2>
-            <div class="gauges-row">
-              <div class="gauge">
-                <div class="gauge-label">p50</div>
-                <div class="gauge-value mono">{{ formatDuration(overview()!.latency_ms.p50) }}</div>
-              </div>
-              <div class="gauge-divider"></div>
-              <div class="gauge">
-                <div class="gauge-label">p95</div>
-                <div class="gauge-value mono" [class.gauge-warn]="isSlowP95()">{{ formatDuration(overview()!.latency_ms.p95) }}</div>
-              </div>
-              <div class="gauge-divider"></div>
-              <div class="gauge">
-                <div class="gauge-label">p99</div>
-                <div class="gauge-value mono" [class.gauge-warn]="isSlowP99()">{{ formatDuration(overview()!.latency_ms.p99) }}</div>
-              </div>
-            </div>
-          </section>
-        }
+          @switch (activeTab()) {
+            @case ('overview') {
+              @if (summary()) {
+                <div class="metric-cards">
+                  <div class="metric-card">
+                    <div class="metric-label">Conversations</div>
+                    <div class="metric-value">{{ summary()!.conversations | number }}</div>
+                    <div class="metric-sub">in {{ timeRange() }}</div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Queries</div>
+                    <div class="metric-value">{{ summary()!.queries | number }}</div>
+                    <div class="metric-sub">{{ summary()!.msgs_per_conversation ?? '—' }} msgs/conversation</div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Avg Quality Score</div>
+                    <div class="metric-value">{{ formatScore(summary()!.quality.avg_score) }}</div>
+                    <div class="metric-sub">{{ summary()!.quality.judged_count }} judged</div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Escalation Rate</div>
+                    <div class="metric-value">{{ formatRate(summary()!.escalation.rate) }}</div>
+                    <div class="metric-sub">{{ summary()!.escalation.feedback_count }} feedback received</div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Avg Latency</div>
+                    <div class="metric-value">{{ formatDuration(summary()!.latency_ms.avg) }}</div>
+                    <div class="metric-sub">p95 {{ formatDuration(summary()!.latency_ms.p95) }}</div>
+                  </div>
+                  <div class="metric-card">
+                    <div class="metric-label">Est. Cost</div>
+                    <div class="metric-value mono">{{ formatCost(summary()!.total_cost_usd) }}</div>
+                    <div class="metric-sub">claude-code billed externally</div>
+                  </div>
+                </div>
+              }
 
-        <!-- Charts grid: cost line + mode pie -->
-        <div class="charts-grid">
-          <!-- Cost by day -->
-          <section class="section chart-card">
-            <h2 class="section-heading">Cost by Day</h2>
-            @if (cost() && cost()!.cost_by_day.length > 0) {
-              <div class="chart-canvas-wrap">
-                <canvas baseChart
-                  [type]="'line'"
-                  [data]="costLineData()"
-                  [options]="costLineOptions"
-                  [legend]="false"
-                ></canvas>
-              </div>
-              <div class="cost-meta">
-                @if (cost()!.cache_hit_rate !== null) {
-                  <span class="meta-chip">Cache hit {{ (cost()!.cache_hit_rate! * 100).toFixed(1) }}%</span>
+              <section class="section chart-card">
+                <h2 class="section-heading">Daily Volume</h2>
+                @if (dailyVolume() && dailyVolume()!.days.length > 0) {
+                  <div class="chart-canvas-wrap">
+                    <canvas baseChart
+                      [type]="'line'"
+                      [data]="dailyVolumeChartData()"
+                      [options]="dailyVolumeOptions"
+                    ></canvas>
+                  </div>
+                } @else {
+                  <p class="empty-text">No query data for this period.</p>
                 }
-                <span class="meta-chip">{{ (cost()!.tokens.input / 1000).toFixed(0) }}k in / {{ (cost()!.tokens.output / 1000).toFixed(0) }}k out</span>
-              </div>
-            } @else {
-              <p class="empty-text">No cost data for this period.</p>
+              </section>
             }
-          </section>
-
-          <!-- Mode split pie -->
-          <section class="section chart-card chart-small">
-            <h2 class="section-heading">Mode Split</h2>
-            @if (overview() && hasModeSplit()) {
-              <div class="chart-canvas-wrap chart-canvas-pie">
-                <canvas baseChart
-                  [type]="'pie'"
-                  [data]="modePieData()"
-                  [options]="modePieOptions"
-                  [legend]="true"
-                ></canvas>
-              </div>
-            } @else {
-              <p class="empty-text">No mode data.</p>
+            @default {
+              <div class="coming-soon">This tab is coming soon.</div>
             }
-          </section>
-        </div>
-
-        <!-- Tool usage horizontal bar chart -->
-        @if (tools() && tools()!.tools.length > 0) {
-          <section class="section chart-card chart-full">
-            <h2 class="section-heading">Top Tools</h2>
-            <div class="chart-canvas-wrap chart-canvas-tall">
-              <canvas baseChart
-                [type]="'bar'"
-                [data]="toolBarData()"
-                [options]="toolBarOptions"
-                [legend]="false"
-              ></canvas>
-            </div>
-          </section>
+          }
         }
-
-        <!-- Tables row -->
-        <div class="tables-grid">
-          <!-- Per-tool stats -->
-          <section class="section">
-            <h2 class="section-heading">Tool Stats</h2>
-            @if (tools() && tools()!.tools.length > 0) {
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Tool</th>
-                    <th class="num-col">Calls</th>
-                    <th class="num-col">Avg dur.</th>
-                    <th class="num-col">Error %</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (tool of sortedTools(); track tool.tool_name) {
-                    <tr>
-                      <td><code class="tool-name">{{ tool.tool_name }}</code></td>
-                      <td class="num-col">{{ tool.call_count }}</td>
-                      <td class="num-col">{{ formatDuration(tool.avg_duration_ms) }}</td>
-                      <td class="num-col" [class.cell-error]="tool.error_rate_pct > 10">
-                        {{ tool.error_rate_pct.toFixed(1) }}%
-                      </td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            } @else {
-              <p class="empty-text">No tool data for this period.</p>
-            }
-          </section>
-
-          <!-- Recent errors -->
-          <section class="section">
-            <h2 class="section-heading">Recent Errors</h2>
-            @if (errors() && errors()!.recent_exceptions.length > 0) {
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>Time</th>
-                    <th>Type</th>
-                    <th>Where</th>
-                    <th>Message</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (ex of errors()!.recent_exceptions; track ex.trace_id + ex.timestamp) {
-                    <tr>
-                      <td class="col-date">
-                        <button class="trace-link" (click)="goToTrace(ex.trace_id)">
-                          {{ formatDate(ex.timestamp) }}
-                        </button>
-                      </td>
-                      <td><code class="exc-type">{{ ex.exception_type }}</code></td>
-                      <td class="col-where">{{ ex.where ?? '—' }}</td>
-                      <td class="col-message">{{ truncate(ex.exception_message, 80) }}</td>
-                    </tr>
-                  }
-                </tbody>
-              </table>
-            } @else {
-              <p class="empty-text">No recent errors. ✓</p>
-            }
-          </section>
-        </div>
-
-      } <!-- end !loading -->
+      </div>
     </div>
   `,
   styleUrl: './dashboard.scss',
@@ -247,8 +159,10 @@ const RANGES = [
 export class Dashboard implements OnInit {
   private api = inject(ApiService);
   private router = inject(Router);
+  agentSvc = inject(AgentService);
 
   readonly ranges = RANGES;
+  readonly tabs = TABS;
 
   // State
   loading = signal(true);
@@ -259,10 +173,17 @@ export class Dashboard implements OnInit {
   cost = signal<TraceCostResponse | null>(null);
   sectionErrors = signal<Record<string, string>>({});
 
+  activeTab = signal<TabId>('overview');
+  agentFilter = signal<string>('all');
+
+  summary = signal<DashboardSummary | null>(null);
+  dailyVolume = signal<DashboardDailyVolume | null>(null);
+
   // Chart data signals — new object references force ng2-charts ngOnChanges
   toolBarData = signal<ChartData<'bar'>>({ datasets: [] });
   modePieData = signal<ChartData<'pie'>>({ datasets: [] });
   costLineData = signal<ChartData<'line'>>({ datasets: [] });
+  dailyVolumeChartData = signal<ChartData<'line'>>({ datasets: [] });
 
   // ── Static chart options ──────────────────────────────────────────────────
 
@@ -306,6 +227,16 @@ export class Dashboard implements OnInit {
     },
   };
 
+  readonly dailyVolumeOptions: ChartConfiguration<'line'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { position: 'bottom' } },
+    scales: {
+      y: { beginAtZero: true, grid: { color: C_BORDER }, ticks: { color: C_MUTED } },
+      x: { grid: { display: false }, ticks: { color: C_MUTED } },
+    },
+  };
+
   ngOnInit() {
     this.loadAll();
   }
@@ -315,10 +246,20 @@ export class Dashboard implements OnInit {
     this.loadAll();
   }
 
+  setTab(id: TabId): void {
+    this.activeTab.set(id);
+  }
+
+  setAgentFilter(id: string): void {
+    this.agentFilter.set(id);
+    this.loadAll();
+  }
+
   loadAll() {
     this.loading.set(true);
     const errs: Record<string, string> = {};
     const range = this.timeRange();
+    const agentId = this.agentFilter();
 
     forkJoin({
       overview: this.api.traceOverview(range).pipe(
@@ -333,14 +274,34 @@ export class Dashboard implements OnInit {
       cost: this.api.traceCost(range).pipe(
         catchError(e => { errs['cost'] = e?.error?.detail ?? 'Load failed'; return of(null); })
       ),
-    }).subscribe(({ overview, tools, errors, cost }) => {
+      summary: this.api.dashboardSummary(range, agentId).pipe(
+        catchError(e => { errs['summary'] = e?.error?.detail ?? 'Load failed'; return of(null); })
+      ),
+      dailyVolume: this.api.dashboardDailyVolume(range, agentId).pipe(
+        catchError(e => { errs['dailyVolume'] = e?.error?.detail ?? 'Load failed'; return of(null); })
+      ),
+    }).subscribe(({ overview, tools, errors, cost, summary, dailyVolume }) => {
       this.overview.set(overview);
       this.tools.set(tools);
       this.errors.set(errors as TraceErrorsResponse | null);
       this.cost.set(cost);
+      this.summary.set(summary);
+      this.dailyVolume.set(dailyVolume);
       this.sectionErrors.set(errs);
       this.rebuildCharts(overview, tools, cost);
+      this.rebuildDailyVolumeChart(dailyVolume);
       this.loading.set(false);
+    });
+  }
+
+  private rebuildDailyVolumeChart(dv: DashboardDailyVolume | null): void {
+    if (!dv?.days.length) return;
+    this.dailyVolumeChartData.set({
+      labels: dv.days.map(d => d.day),
+      datasets: [
+        { data: dv.days.map(d => d.queries), label: 'Queries', borderColor: C_ACCENT, backgroundColor: 'transparent', tension: 0.3 },
+        { data: dv.days.map(d => d.conversations), label: 'Conversations', borderColor: C_INFO, backgroundColor: 'transparent', tension: 0.3 },
+      ],
     });
   }
 
@@ -457,6 +418,14 @@ export class Dashboard implements OnInit {
   formatCost(cost: number | null | undefined): string {
     if (cost === null || cost === undefined) return '—';
     return cost < 1 ? `$${cost.toFixed(4)}` : `$${cost.toFixed(2)}`;
+  }
+
+  formatScore(score: number | null | undefined): string {
+    return score === null || score === undefined ? '—' : score.toFixed(1);
+  }
+
+  formatRate(rate: number | null | undefined): string {
+    return rate === null || rate === undefined ? '—' : `${(rate * 100).toFixed(1)}%`;
   }
 
   formatDate(iso: string | null): string {

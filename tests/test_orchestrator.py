@@ -225,3 +225,29 @@ def test_load_conversation_context_image_message_becomes_blocks():
     assert user_msg["content"][0]["source"]["data"] == b64
     assert user_msg["content"][1]["type"] == "text"
     assert user_msg["content"][1]["text"] == "what is this?"
+
+
+def test_run_single_shot_passes_trace_id_to_log_answer(monkeypatch):
+    """run_single_shot must thread its trace_id param into log_answer() so the
+    ANSWER_LOG record is joinable to the trace (design spec §7)."""
+    from unittest.mock import MagicMock, patch
+    from backend import orchestrator
+
+    monkeypatch.setattr(orchestrator.wiki_retriever, "search", lambda *a, **kw: [])
+    monkeypatch.setattr(
+        orchestrator.jira_retriever, "search",
+        lambda *a, **kw: {"markdown": "", "rows": [], "buckets": {"LATEST": [], "HISTORICAL": []}, "keywords": []},
+    )
+    mock_provider = MagicMock()
+    mock_provider.generate.return_value = MagicMock(
+        ok=True, raw_answer="**Answer:** Test.\n\n**Confidence:** Medium\n\n**Sources:** —\n", error="",
+    )
+    monkeypatch.setattr(orchestrator, "_select_provider", lambda mode, key: mock_provider)
+
+    with patch.object(orchestrator, "log_answer", return_value="fake-id") as mock_log:
+        orchestrator.run_single_shot(
+            question="Test question", mode="api", claude_api_key="fake-key",
+            trace_id="trace-xyz",
+        )
+
+    assert mock_log.call_args.kwargs["trace_id"] == "trace-xyz"
