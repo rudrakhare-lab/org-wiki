@@ -27,7 +27,6 @@ import os
 from functools import lru_cache
 
 MODEL_DIR = os.getenv("RERANKER_MODEL_DIR", "cross-encoder/ms-marco-MiniLM-L-6-v2")
-MAX_DOC_CHARS = 1000  # MiniLM max_length=256 ≈ ~1000 chars; pre-truncate to avoid wasted tokenisation.
 
 @lru_cache(maxsize=1)
 def _load_model():
@@ -53,13 +52,30 @@ def preload() -> None:
     """
     _model_or_load()
 
+_SUMMARY_MAX  = 200
+_DESC_MAX     = 500
+_COMMENTS_MAX = 300
+
+
 def _doc_text(c: dict) -> str:
-    summary = (c.get("summary") or "").strip()
-    desc = (c.get("description_text") or "").strip()
-    text = f"{summary}\n{desc}" if desc else summary
-    if len(text) > MAX_DOC_CHARS:
-        text = text[:MAX_DOC_CHARS]
-    return text
+    """Fixed-budget layout for reranker input — 1000 chars max total.
+
+    Layout (each field independently trimmed):
+      summary            : 0..200 chars
+      description_text   : 0..500 chars
+      [comments] ...     : 0..300 chars (prefix omitted when empty)
+
+    Total <= 1000 chars, safe under MiniLM cross-encoder's 256-token limit
+    even at ~4 chars/token. Fields joined with '\\n'; empty fields skipped.
+    """
+    summary  = (c.get("summary")          or "").strip()[:_SUMMARY_MAX]
+    desc     = (c.get("description_text") or "").strip()[:_DESC_MAX]
+    comments = (c.get("comments_text")    or "").strip()[:_COMMENTS_MAX]
+    parts: list[str] = []
+    if summary:  parts.append(summary)
+    if desc:     parts.append(desc)
+    if comments: parts.append(f"[comments] {comments}")
+    return "\n".join(parts)
 
 def score(query: str, candidates: list[dict]) -> list[tuple[dict, float]]:
     if not candidates:

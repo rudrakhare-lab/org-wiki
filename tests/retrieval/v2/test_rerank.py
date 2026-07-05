@@ -1,3 +1,4 @@
+import decimal
 from unittest.mock import patch, MagicMock
 
 def test_score_returns_pairs_sorted_descending():
@@ -21,8 +22,117 @@ def test_score_truncates_long_text_for_speed():
     with patch.object(rerank, "_model", fake):
         rerank.score("q", cands)
     pair = fake.predict.call_args[0][0][0]
-    assert len(pair[1]) <= rerank.MAX_DOC_CHARS
+    # Budget changed from a single global MAX_DOC_CHARS to fixed per-field
+    # budgets (see rerank._SUMMARY_MAX / _DESC_MAX / _COMMENTS_MAX). This
+    # candidate has no comments, so worst case is summary + "\n" + desc.
+    max_len = rerank._SUMMARY_MAX + rerank._DESC_MAX + rerank._COMMENTS_MAX + len("[comments] ") + 2
+    assert len(pair[1]) <= max_len
 
 def test_score_handles_empty_candidates():
     from backend.retrieval.v2 import rerank
     assert rerank.score("q", []) == []
+
+
+def test_doc_text_truncates_summary_to_200():
+    from backend.retrieval.v2.rerank import _doc_text
+    long_summary = "s" * 500
+    out = _doc_text({"summary": long_summary, "description_text": "", "comments_text": ""})
+    assert out == "s" * 200
+
+
+def test_doc_text_truncates_description_to_500():
+    from backend.retrieval.v2.rerank import _doc_text
+    long_desc = "d" * 1200
+    out = _doc_text({"summary": "sum", "description_text": long_desc, "comments_text": ""})
+    # summary + "\n" + first 500 chars of desc
+    assert out == "sum\n" + ("d" * 500)
+
+
+def test_doc_text_truncates_comments_to_300_with_prefix():
+    from backend.retrieval.v2.rerank import _doc_text
+    long_comments = "c" * 1000
+    out = _doc_text({"summary": "sum", "description_text": "", "comments_text": long_comments})
+    assert "[comments] " + ("c" * 300) in out
+    assert out.endswith("c" * 300)
+
+
+def test_doc_text_omits_comments_prefix_when_empty():
+    from backend.retrieval.v2.rerank import _doc_text
+    out = _doc_text({"summary": "sum", "description_text": "desc", "comments_text": ""})
+    assert "[comments]" not in out
+    assert out == "sum\ndesc"
+
+
+def test_doc_text_full_layout_all_three_fields():
+    from backend.retrieval.v2.rerank import _doc_text
+    out = _doc_text({
+        "summary": "s" * 200,
+        "description_text": "d" * 500,
+        "comments_text": "c" * 300,
+    })
+    assert len(out) <= 1000 + len("[comments] \n\n")  # allow prefix + separators
+    assert ("s" * 200) in out
+    assert ("d" * 500) in out
+    assert ("[comments] " + "c" * 300) in out
+
+
+def test_doc_text_handles_none_fields_defensively():
+    from backend.retrieval.v2.rerank import _doc_text
+    out = _doc_text({"summary": None, "description_text": None, "comments_text": None})
+    assert out == ""
+
+
+def test_doc_text_handles_minimal_column_row_from_links_py():
+    """links.py's _TICKETS_BY_KEY_SQL selects only:
+    key, summary, description_text, comments_text, status_category, priority,
+    updated_at, resolved_at, functional_area, links_json, comment_count.
+    No tsvector/embedding fields. _doc_text must never KeyError on this shape,
+    which is exactly what one-hop-expansion / supersession candidates look like
+    when they reach the reranker."""
+    from backend.retrieval.v2.rerank import _doc_text
+    minimal_row = {
+        "key": "TS-100",
+        "summary": "Visitor OTP not sent",
+        "description_text": "OTP fails to send on kiosk registration.",
+        "comments_text": "Confirmed reproduced on office 42.",
+        "status_category": "done",
+        "priority": "P1",
+        "updated_at": "2026-06-01T10:00:00",
+        "resolved_at": "2026-06-02T09:00:00",
+        "functional_area": "WF-wis-meeting-vms",
+        "links_json": "[]",
+        "comment_count": 3,
+    }
+    out = _doc_text(minimal_row)
+    assert isinstance(out, str)
+    assert "Visitor OTP not sent" in out
+    assert "[comments] Confirmed reproduced on office 42." in out
+
+
+def test_score_handles_prod_realistic_types_without_crashing():
+    """Prod SQL boundary: updated_at/resolved_at are TEXT columns (ISO strings,
+    not datetime objects) and fused_score arrives as decimal.Decimal from
+    Postgres numeric aggregation. _doc_text/score must not crash when a
+    candidate carries these prod-realistic extra fields alongside the fields
+    it actually reads (summary/description_text/comments_text)."""
+    from backend.retrieval.v2 import rerank
+    cands = [{
+        "key": "TS-200",
+        "summary": "Meal cutoff wrong",
+        "description_text": "Cutoff time off by one hour for evening shift.",
+        "comments_text": "Reproduced; root cause is timezone offset.",
+        "status_category": "done",
+        "priority": "P2",
+        "updated_at": "2026-05-20T14:30:00",
+        "resolved_at": "2026-05-21T08:00:00",
+        "functional_area": "WF-empexp",
+        "links_json": "[]",
+        "comment_count": 2,
+        "fused_score": decimal.Decimal("0.8734"),
+    }]
+    fake = MagicMock()
+    fake.predict.return_value = [0.5]
+    with patch.object(rerank, "_model", fake):
+        out = rerank.score("meal cutoff", cands)
+    assert out[0][0]["key"] == "TS-200"
+    assert isinstance(out[0][1], float)
