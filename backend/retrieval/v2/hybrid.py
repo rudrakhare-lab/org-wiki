@@ -10,6 +10,7 @@ dense CTE).
 from __future__ import annotations
 from typing import Any
 from psycopg.rows import dict_row
+from backend.retrieval.v2 import timeline
 
 RRF_K = 60  # standard Reciprocal Rank Fusion constant.
 
@@ -44,7 +45,7 @@ fused AS (
 )
 SELECT t.key, t.summary, t.description_text, t.comments_text,
        t.status_category, t.priority, t.updated_at, t.resolved_at,
-       t.functional_area, t.links_json,
+       t.functional_area, t.links_json, t.comment_count,
        f.rrf AS fused_score
 FROM fused f
 JOIN tickets t USING (key)
@@ -125,4 +126,5 @@ def hybrid_search(conn, sub_queries: list[str], query_vecs: list[list[float]],
             per_sub.append([{"key": r["key"], "fused_score": float(r["fused_score"]), **r} for r in rows])
 
     fused = _rrf_fuse(per_sub)
+    fused = timeline.apply_timeline(fused)
     return fused[:limit]

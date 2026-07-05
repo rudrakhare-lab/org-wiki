@@ -18,7 +18,7 @@ _LINKS_FOR_SRC_SQL = """
 _TICKETS_BY_KEY_SQL = """
     SELECT key, summary, description_text, comments_text,
            status_category, priority, updated_at, resolved_at,
-           functional_area, links_json
+           functional_area, links_json, comment_count
     FROM tickets
     WHERE key = ANY(%s)
 """
