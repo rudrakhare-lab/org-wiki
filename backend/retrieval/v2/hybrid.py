@@ -8,6 +8,7 @@ ordering issues when filter clauses appear twice (once in lex CTE, once in
 dense CTE).
 """
 from __future__ import annotations
+import os
 from typing import Any
 from psycopg.rows import dict_row
 from backend.retrieval.v2 import timeline
@@ -52,6 +53,54 @@ JOIN tickets t USING (key)
 ORDER BY f.rrf DESC
 LIMIT %(limit)s
 """
+
+# --- Phase 2 (comments-aware) additions -------------------------------------
+# _BASE_SQL above is the untouched Phase 1 prod template — the zero-risk
+# guarantee (flag-off emits byte-identical SQL) holds structurally because
+# _build_base_sql(False) returns _BASE_SQL unchanged, not a re-derived copy.
+#
+# The dense_c CTE is spliced into _BASE_SQL at two anchor points: right after
+# the `dense` CTE's closing `),` (to insert the new CTE) and inside the
+# `fused` CTE's inner UNION ALL block (to add dense_c as a third RRF source).
+
+_DENSE_ANCHOR = "),\nfused AS ("
+_DENSE_C_CTE = """),
+dense_c AS (
+    SELECT key,
+           1 - (comments_embedding <=> %(q_vec)s::vector) AS dense_c_score,
+           ROW_NUMBER() OVER (ORDER BY comments_embedding <=> %(q_vec)s::vector) AS dense_c_rnk
+    FROM tickets
+    WHERE comments_embedding IS NOT NULL
+    {filter_sql_dense_c}
+    ORDER BY comments_embedding <=> %(q_vec)s::vector
+    LIMIT 100
+),
+fused AS ("""
+
+_UNION_ANCHOR = "        SELECT key, dense_rnk AS rnk FROM dense\n    ) u"
+_UNION_WITH_DENSE_C = """        SELECT key, dense_rnk AS rnk FROM dense
+        UNION ALL
+        SELECT key, dense_c_rnk AS rnk FROM dense_c
+    ) u"""
+
+
+def _build_base_sql(comments_enabled: bool) -> str:
+    """Return the base SQL template (still containing `{filter_sql_*}` slots
+    for `hybrid_search` to resolve at call-time).
+
+    When `comments_enabled` is False, returns `_BASE_SQL` unchanged — this is
+    the zero-risk guarantee: prod (flag off) emits byte-identical SQL to
+    today's Phase 1 rendering, by construction rather than by re-derivation.
+
+    When True, splices in a `dense_c` CTE (searching `comments_embedding`) as
+    a third RRF source, alongside a `{filter_sql_dense_c}` slot mirroring the
+    `{filter_sql_dense}` pattern used by the `dense` CTE.
+    """
+    if not comments_enabled:
+        return _BASE_SQL
+    sql = _BASE_SQL.replace(_DENSE_ANCHOR, _DENSE_C_CTE, 1)
+    sql = sql.replace(_UNION_ANCHOR, _UNION_WITH_DENSE_C, 1)
+    return sql
 
 
 def _build_filters_sql(filters: dict) -> tuple[str, dict]:
@@ -106,11 +155,20 @@ def hybrid_search(conn, sub_queries: list[str], query_vecs: list[list[float]],
     """Run hybrid retrieval per sub-query, fuse, return top-`limit` candidates."""
     if not sub_queries:
         return []
+    comments_enabled = os.getenv("CONWO_RETRIEVAL_V2_COMMENTS", "off").lower() == "on"
     filter_clause, filter_params = _build_filters_sql(filters or {})
-    sql = _BASE_SQL.format(
-        filter_sql_lex=filter_clause,
-        filter_sql_dense=filter_clause,
-    )
+    base_sql = _build_base_sql(comments_enabled)
+    if comments_enabled:
+        sql = base_sql.format(
+            filter_sql_lex=filter_clause,
+            filter_sql_dense=filter_clause,
+            filter_sql_dense_c=filter_clause,
+        )
+    else:
+        sql = base_sql.format(
+            filter_sql_lex=filter_clause,
+            filter_sql_dense=filter_clause,
+        )
     per_sub: list[list[dict]] = []
     with conn.cursor(row_factory=dict_row) as cur:
         for q_text, q_vec in zip(sub_queries, query_vecs):

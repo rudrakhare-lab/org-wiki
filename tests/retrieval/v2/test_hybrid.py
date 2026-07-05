@@ -114,3 +114,88 @@ def test_hybrid_search_passes_through_comment_count():
     # Substantive-resolution override: resolved + comment_count>=2 -> latest,
     # even though updated_at/resolved_at are 800 days old.
     assert out[0]["bucket"] == "latest"
+
+
+def test_build_base_sql_omits_dense_c_when_flag_off():
+    from backend.retrieval.v2.hybrid import _build_base_sql
+    sql = _build_base_sql(comments_enabled=False)
+    assert "dense_c" not in sql
+    assert "comments_embedding" not in sql
+
+
+def test_build_base_sql_flag_off_is_byte_identical_to_base_sql():
+    """Zero-risk guarantee: when the flag is off, the emitted SQL (after filter
+    interpolation) must be byte-identical to today's prod SQL. This is the
+    strictest constraint in the plan — prod runs with the flag off today."""
+    from backend.retrieval.v2.hybrid import _build_base_sql, _BASE_SQL
+    off_sql = _build_base_sql(comments_enabled=False).format(
+        filter_sql_lex="", filter_sql_dense="",
+    )
+    prod_sql = _BASE_SQL.format(filter_sql_lex="", filter_sql_dense="")
+    assert off_sql == prod_sql
+
+
+def test_build_base_sql_includes_dense_c_when_flag_on():
+    from backend.retrieval.v2.hybrid import _build_base_sql
+    sql = _build_base_sql(comments_enabled=True)
+    assert "dense_c AS" in sql
+    assert "comments_embedding IS NOT NULL" in sql
+    # The UNION ALL block must include the dense_c source.
+    assert "SELECT key, dense_c_rnk" in sql or "SELECT key, rnk FROM dense_c" in sql
+
+
+def test_hybrid_search_reads_env_flag(monkeypatch):
+    """hybrid_search picks up CONWO_RETRIEVAL_V2_COMMENTS at call time."""
+    from backend.retrieval.v2 import hybrid
+    captured_sql = []
+
+    class FakeCur:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def execute(self, sql, params): captured_sql.append(sql)
+        def fetchall(self): return []
+    class FakeConn:
+        def cursor(self, **k): return FakeCur()
+
+    monkeypatch.setenv("CONWO_RETRIEVAL_V2_COMMENTS", "on")
+    hybrid.hybrid_search(FakeConn(), ["q"], [[0.0]*768], {}, limit=5)
+    assert any("dense_c" in s for s in captured_sql)
+
+    captured_sql.clear()
+    monkeypatch.setenv("CONWO_RETRIEVAL_V2_COMMENTS", "off")
+    hybrid.hybrid_search(FakeConn(), ["q"], [[0.0]*768], {}, limit=5)
+    assert not any("dense_c" in s for s in captured_sql)
+
+
+def test_hybrid_search_with_comments_flag_on_handles_prod_realistic_row_types(monkeypatch):
+    """Prod-realistic fixture (plan Revision 2 mandate): ISO-string dates,
+    decimal.Decimal fused_score (what SUM(1.0/(k+rnk)) actually returns from
+    Postgres), and comment_count present. Exercised with the dense_c CTE
+    enabled to confirm the third RRF source doesn't introduce any new
+    SQL-boundary type assumptions on the Python side."""
+    from decimal import Decimal
+    from backend.retrieval.v2 import hybrid
+
+    fake_rows = [
+        {"key": "TS-1", "fused_score": Decimal("0.0421"),
+         "updated_at": "2026-06-20T10:00:00+00:00",
+         "resolved_at": "2026-06-21T10:00:00+00:00",
+         "status_category": "done", "comment_count": 3},
+    ]
+
+    class FakeCur:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def execute(self, *a, **k): pass
+        def fetchall(self): return fake_rows
+    class FakeConn:
+        def cursor(self, **k): return FakeCur()
+
+    monkeypatch.setenv("CONWO_RETRIEVAL_V2_COMMENTS", "on")
+    # Must not raise on Decimal fused_score + ISO-string dates + comment_count present.
+    out = hybrid.hybrid_search(FakeConn(), ["q"], [[0.0] * 768], {}, limit=5)
+    assert out[0]["key"] == "TS-1"
+    assert out[0]["comment_count"] == 3
+    # bucket/timeline_score attached proves apply_timeline consumed the Decimal
+    # fused_score + string dates without crashing (the real prod-boundary risk).
+    assert "bucket" in out[0] and "timeline_score" in out[0]
