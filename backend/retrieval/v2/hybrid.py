@@ -155,7 +155,12 @@ def hybrid_search(conn, sub_queries: list[str], query_vecs: list[list[float]],
     """Run hybrid retrieval per sub-query, fuse, return top-`limit` candidates."""
     if not sub_queries:
         return []
-    comments_enabled = os.getenv("CONWO_RETRIEVAL_V2_COMMENTS", "off").lower() == "on"
+    # Default ON in code — deliberate, so activating comments search needs no
+    # devops env change at deploy. The env var stays as an ops kill switch
+    # (set CONWO_RETRIEVAL_V2_COMMENTS=off to disable without a code change).
+    # With comments_embedding unpopulated the dense_c CTE matches nothing and
+    # fusion degrades gracefully to the two Phase-1 sources.
+    comments_enabled = os.getenv("CONWO_RETRIEVAL_V2_COMMENTS", "on").lower() == "on"
     filter_clause, filter_params = _build_filters_sql(filters or {})
     base_sql = _build_base_sql(comments_enabled)
     if comments_enabled:
@@ -181,7 +186,9 @@ def hybrid_search(conn, sub_queries: list[str], query_vecs: list[list[float]],
             }
             cur.execute(sql, params)
             rows = list(cur.fetchall())
-            per_sub.append([{"key": r["key"], "fused_score": float(r["fused_score"]), **r} for r in rows])
+            # **r first, cast last — the explicit float() must win over the
+            # raw decimal.Decimal that Postgres returns for the numeric SUM.
+            per_sub.append([{**r, "fused_score": float(r["fused_score"])} for r in rows])
 
     fused = _rrf_fuse(per_sub)
     fused = timeline.apply_timeline(fused)

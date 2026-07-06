@@ -199,3 +199,51 @@ def test_hybrid_search_with_comments_flag_on_handles_prod_realistic_row_types(mo
     # bucket/timeline_score attached proves apply_timeline consumed the Decimal
     # fused_score + string dates without crashing (the real prod-boundary risk).
     assert "bucket" in out[0] and "timeline_score" in out[0]
+
+
+def test_hybrid_search_casts_fused_score_to_float():
+    """Regression: the dict literal used to spread **r AFTER the explicit
+    float() cast, so the raw decimal.Decimal from Postgres (numeric SUM in
+    the fused CTE) silently overwrote the cast. Latent-safe only because
+    timeline.py re-casts in its sort key — any future consumer doing direct
+    arithmetic would hit the PR #43 outage class again."""
+    from decimal import Decimal
+    from backend.retrieval.v2 import hybrid
+
+    fake_rows = [
+        {"key": "TS-1", "fused_score": Decimal("0.0163"),
+         "summary": "s", "status_category": "done", "priority": "P2",
+         "updated_at": "2026-06-01T00:00:00+00:00", "resolved_at": None,
+         "comment_count": 0},
+    ]
+
+    class FakeCur:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def execute(self, *a, **k): pass
+        def fetchall(self): return fake_rows
+    class FakeConn:
+        def cursor(self, **k): return FakeCur()
+
+    out = hybrid.hybrid_search(FakeConn(), ["q"], [[0.0] * 768], {}, limit=5)
+    assert isinstance(out[0]["fused_score"], float)
+
+
+def test_comments_flag_defaults_on(monkeypatch):
+    """CONWO_RETRIEVAL_V2_COMMENTS defaults ON in code (deliberate: avoids a
+    devops env change at deploy). The env var remains as a kill switch."""
+    monkeypatch.delenv("CONWO_RETRIEVAL_V2_COMMENTS", raising=False)
+    from backend.retrieval.v2 import hybrid
+
+    captured = {}
+
+    class FakeCur:
+        def __enter__(self): return self
+        def __exit__(self, *a): pass
+        def execute(self, sql, params=None): captured["sql"] = sql
+        def fetchall(self): return []
+    class FakeConn:
+        def cursor(self, **k): return FakeCur()
+
+    hybrid.hybrid_search(FakeConn(), ["q"], [[0.0] * 768], {}, limit=5)
+    assert "dense_c" in captured["sql"]
