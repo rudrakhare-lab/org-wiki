@@ -51,13 +51,14 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
 
-from fastapi import Depends, FastAPI, HTTPException, Header, Request, status
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Header, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend import admin_api, conversation_store, orchestrator, wiki_proposals, wiki_retriever
 from backend import trace_store
+from backend import quality_judge
 from backend import agent_registry, agent_context, agent_provisioning, agent_access
 from backend.trace_middleware import TraceMiddleware
 from backend import config as _config
@@ -241,6 +242,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["X-Trace-ID"],
 )
 
 # Request-lifecycle tracing. Registered AFTER CORS so that — because FastAPI runs
@@ -422,6 +424,7 @@ class AgentLogRequest(BaseModel):
     mode: str = "claude-code-agent"
     server: str | None = None
     buid: str | None = None
+    trace_id: str | None = None
 
 
 class ConversationCreateRequest(BaseModel):
@@ -585,6 +588,7 @@ def _sniff_media_type(data: bytes) -> str | None:
 @app.post("/query", response_model=QueryResponse)
 async def query(
     request: Request,
+    background_tasks: BackgroundTasks,
     user: dict | None = Depends(_get_user),
     agent: agent_registry.AgentSpec = Depends(_get_agent),
 ):
@@ -774,6 +778,10 @@ async def query(
         from backend.guardrail import REFUSAL_MESSAGE, is_destructive_input, log_blocked
         _trigger = is_destructive_input(req.question)
         if _trigger:
+            # A guardrail-blocked request did no LLM work — bucket it with gateway
+            # rejections (excluded from latency/cost/error-rate) and, importantly,
+            # skip the quality judge below (it would score a canned refusal).
+            trace_status = "rejected"
             log_blocked(user_email=user_email, question=req.question,
                         trigger=_trigger, where="query_input")
             trace_store.record_event(
@@ -788,6 +796,7 @@ async def query(
                 jira_keys=[],
                 pms_configs=[],
                 retrieval_notes="guardrail_blocked",
+                trace_id=trace_id,
             )
             conversation_store.add_message(
                 conversation_id=conversation_id,
@@ -929,6 +938,8 @@ async def query(
         raise
     finally:
         trace_store.end_session(trace_id, status=trace_status)
+        if trace_status == "success" and req.mode == "api":
+            background_tasks.add_task(quality_judge.judge_trace, trace_id)
 
 
 @app.post("/query/stream")
@@ -1036,6 +1047,7 @@ async def query_stream(
             question=req.question, answer_text=REFUSAL_MESSAGE,
             confidence="—", wiki_pages=[], jira_keys=[], pms_configs=[],
             retrieval_notes="guardrail_blocked",
+            trace_id=getattr(request.state, "trace_id", None),
         )
         conversation_store.add_message(
             conversation_id=conversation_id, role="assistant",
@@ -1133,7 +1145,11 @@ async def query_stream(
 
 
 @app.post("/agent/log-answer")
-def log_agent_answer(req: AgentLogRequest, user: dict = Depends(_require_admin)):
+def log_agent_answer(
+    req: AgentLogRequest,
+    background_tasks: BackgroundTasks,
+    user: dict = Depends(_require_admin),
+):
     """
     Log a Claude Code agent answer for feedback linkage.
 
@@ -1172,7 +1188,10 @@ def log_agent_answer(req: AgentLogRequest, user: dict = Depends(_require_admin))
         jira_keys=jira_keys,
         pms_configs=[],
         retrieval_notes=f"agent_mode tools={len(req.tool_calls)}",
+        trace_id=req.trace_id,
     )
+    if req.trace_id:
+        background_tasks.add_task(quality_judge.judge_trace, req.trace_id)
 
     # Persist the assistant message into the conversation if one was supplied.
     # The user message was already persisted at /query/stream open.

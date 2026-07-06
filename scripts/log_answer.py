@@ -62,6 +62,11 @@ def parse_args() -> argparse.Namespace:
         help="Optional: keywords searched, buckets used, retrieval path",
     )
     log_cmd.add_argument(
+        "--trace-id",
+        default="",
+        help="Optional: trace_id linking this answer to a traced /query request",
+    )
+    log_cmd.add_argument(
         "--quiet",
         action="store_true",
         help="Suppress the 'Logged ...' confirmation line; print only the answer_id",
@@ -123,6 +128,7 @@ def cmd_log(args: argparse.Namespace) -> int:
             "pms": split_csv(args.pms),
         },
         "retrieval_notes": args.retrieval_notes,
+        "trace_id": args.trace_id or None,
     }
     append_record(args.store, record)
     if args.quiet:

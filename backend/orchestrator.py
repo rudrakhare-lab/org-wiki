@@ -328,6 +328,7 @@ def run_deep(
         answer_id=answer_id,
         created_at=created_at,
         agent_id=agent.id,
+        trace_id=trace_id,
     )
 
     return OrchestratorResult(
@@ -440,6 +441,7 @@ def run_single_shot(
         answer_id=answer_id,
         created_at=created_at,
         agent_id=agent.id,
+        trace_id=trace_id,
     )
 
     return OrchestratorResult(

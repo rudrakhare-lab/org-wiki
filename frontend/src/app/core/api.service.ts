@@ -300,6 +300,11 @@ export interface SseConversationSignal {
   conversation_id: string;
 }
 
+export interface SseTraceIdSignal {
+  type: '__trace_id';
+  trace_id: string;
+}
+
 export type AgentEvent =
   | SystemInitEvent
   | AssistantEvent
@@ -311,6 +316,7 @@ export type AgentEvent =
   | SseDoneSignal
   | SseErrorSignal
   | SseConversationSignal
+  | SseTraceIdSignal
   | { type: string; [k: string]: unknown };
 
 export interface SyncJob {
@@ -445,6 +451,20 @@ export interface TraceCostResponse {
   cost_per_query: { avg: number | null; p50: number | null; p95: number | null };
   tokens: { input: number; output: number; cached_input: number };
   cache_hit_rate: number | null;
+}
+
+export interface DashboardSummary {
+  conversations: number;
+  queries: number;
+  msgs_per_conversation: number | null;
+  quality: { avg_score: number | null; judged_count: number };
+  escalation: { rate: number | null; feedback_count: number };
+  latency_ms: { avg: number | null; p95: number | null };
+  total_cost_usd: number;
+}
+
+export interface DashboardDailyVolume {
+  days: { day: string; queries: number; conversations: number }[];
 }
 
 export interface TraceListParams {
@@ -737,6 +757,11 @@ export class ApiService {
             return;
           }
 
+          const traceId = resp.headers.get('X-Trace-ID');
+          if (traceId) {
+            subscriber.next({ type: '__trace_id', trace_id: traceId });
+          }
+
           const reader = resp.body.getReader();
           const decoder = new TextDecoder();
           let buffer = '';
@@ -778,6 +803,7 @@ export class ApiService {
     conversation_id?: string;
     server?: string;
     buid?: string;
+    trace_id?: string;
   }): Observable<{
     answer_id: string;
     confidence: string;
@@ -955,6 +981,18 @@ export class ApiService {
   traceCost(timeRange = '7d'): Observable<TraceCostResponse> {
     return this.http.get<TraceCostResponse>(
       `${API_BASE}/api/traces/dashboard/cost?time_range=${timeRange}`, { headers: this.adminHeaders() });
+  }
+
+  dashboardSummary(timeRange = '7d', agentId = 'conwo'): Observable<DashboardSummary> {
+    return this.http.get<DashboardSummary>(
+      `${API_BASE}/api/traces/dashboard/summary?time_range=${timeRange}&agent_id=${agentId}`,
+      { headers: this.adminHeaders() });
+  }
+
+  dashboardDailyVolume(timeRange = '7d', agentId = 'conwo'): Observable<DashboardDailyVolume> {
+    return this.http.get<DashboardDailyVolume>(
+      `${API_BASE}/api/traces/dashboard/daily-volume?time_range=${timeRange}&agent_id=${agentId}`,
+      { headers: this.adminHeaders() });
   }
 
   getSyncStatus(): Observable<SyncStatus> {
