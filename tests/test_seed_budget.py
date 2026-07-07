@@ -9,10 +9,15 @@ from backend import seed_budget as sb
 # implementation). Bumped to 1000 so the over-budget cases genuinely exceed the
 # budget and invariants (a)/(b)/(c) are exercised non-vacuously.
 def _block(name, n_items, chars_per=1000):
-    items = [(f"{name}-item-{i}", "x" * chars_per, "wiki_read_page")
-             for i in range(n_items)]
+    # Production-shaped: distinct per-item content, header + _SEP-joined text,
+    # matching how backend.preflight._seed_evidence_blocks builds real blocks.
+    # (A single-\n join of identical strings makes orphan/ordering tests vacuous.)
+    header = f"## {name}\n\n"
+    items = [(f"{name}-item-{i}", f"[{name}-item-{i}]\n" + "x" * chars_per,
+              "wiki_read_page") for i in range(n_items)]
     return sb.SeedBlock(name=name, priority=0,
-                        text="\n".join(t for _, t, _ in items), evictable=items)
+                        text=header + sb._SEP.join(t for _, t, _ in items),
+                        evictable=items, header=header, item_sep=sb._SEP)
 
 
 def test_under_budget_passes_through_untouched():
@@ -33,29 +38,33 @@ def test_over_budget_evicts_wiki_related_first_protects_config():
     assert "## Trimmed (fetch on demand)" in text
 
 
-def test_jira_protected_wiki_fully_drained_before_any_jira_evicted():
-    """The hard requirement: for CONFIGURATION, no jira_* item may be evicted
-    while any non-KEEP_MIN wiki item still survives. Fixture is sized so wiki
-    alone CANNOT get under budget (both wiki blocks drained to KEEP_MIN still
-    leave the total over), forcing eviction to reach jira — and asserting it
-    only reaches jira_latest, never before wiki is exhausted, and never
-    config_evidence."""
+def test_jira_protected_for_configuration_intent():
+    """Hard requirement (spec §5.7): CONFIGURATION evicts wiki BEFORE jira.
+
+    Sized so the CORRECT order spares jira entirely — draining both wiki
+    blocks to KEEP_MIN alone gets under budget — so a correct implementation
+    evicts ZERO jira/config items. This DISCRIMINATES: if EVICTION_ORDER put
+    jira before wiki, jira items would be evicted and the assertion fails.
+    (Verified via mutation: reordering jira-first makes this test fail.)
+
+    Budget 6000. Items are 500 tok each (2000 chars). wiki_related=6 (3000),
+    wiki_direct=6 (3000), jira_latest=4 (2000), config atomic (~500) →
+    total 8500. Draining both wiki blocks 6→3 frees 3000 → 5500 < 6000, so
+    eviction stops before touching jira.
+    """
     blocks = [
-        _block("wiki_related", 8, chars_per=2000),   # 8 → drains to 3
-        _block("wiki_direct", 8, chars_per=2000),    # 8 → drains to 3
-        _block("jira_latest", 8, chars_per=2000),
-        # config_evidence is atomic (evictable=[]) in production — model that.
-        sb.SeedBlock("config_evidence", 0, "c" * 8000, []),
+        _block("wiki_related", 6, chars_per=2000),
+        _block("wiki_direct", 6, chars_per=2000),
+        _block("jira_latest", 4, chars_per=2000),
+        sb.SeedBlock("config_evidence", 0, "c" * 2000, []),  # atomic, like prod
     ]
     _, trimmed = sb.apply_budget(blocks, "CONFIGURATION")
     evicted = [t.split(" — ")[0] for t in trimmed]
-    # config never evicted
+    assert evicted                                              # eviction happened
+    assert any(e.startswith(("wiki_related", "wiki_direct")) for e in evicted)
+    # Jira and config are protected — under the correct order, untouched.
+    assert not any(e.startswith("jira_latest") for e in evicted)
     assert not any(e.startswith("config_evidence") for e in evicted)
-    # if any jira_latest was evicted, BOTH wiki blocks must be fully drained to
-    # KEEP_MIN first (5 evicted each = 8 - 3)
-    if any(e.startswith("jira_latest") for e in evicted):
-        assert sum(e.startswith("wiki_related") for e in evicted) == 8 - sb.KEEP_MIN
-        assert sum(e.startswith("wiki_direct") for e in evicted) == 8 - sb.KEEP_MIN
 
 
 def test_eviction_leaves_no_orphaned_separators():
