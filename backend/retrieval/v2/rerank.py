@@ -23,6 +23,7 @@ change.
 """
 from __future__ import annotations
 import asyncio
+import math
 import os
 from functools import lru_cache
 
@@ -57,6 +58,18 @@ _DESC_MAX     = 500
 _COMMENTS_MAX = 300
 
 
+def _sigmoid(x: float) -> float:
+    """Numerically stable sigmoid: converts raw logits to [0,1] probabilities.
+
+    Uses a numerically stable formulation to avoid overflow on large positive
+    or negative values.
+    """
+    if x >= 0:
+        return 1.0 / (1.0 + math.exp(-x))
+    e = math.exp(x)
+    return e / (1.0 + e)
+
+
 def _doc_text(c: dict) -> str:
     """Fixed-budget layout for reranker input — ~1013 chars max total.
 
@@ -84,8 +97,11 @@ def score(query: str, candidates: list[dict]) -> list[tuple[dict, float]]:
         return []
     pairs = [(query, _doc_text(c)) for c in candidates]
     m = _model_or_load() if _model is None else _model
+    # ms-marco cross-encoders emit raw logits (no activation declared in
+    # their config). Sigmoid to [0,1] so gate.py's ABSTAIN/HIGH thresholds
+    # compare against probabilities, not an unbounded logit scale.
     scores = m.predict(pairs)
-    out = list(zip(candidates, (float(s) for s in scores)))
+    out = list(zip(candidates, (_sigmoid(float(s)) for s in scores)))
     out.sort(key=lambda x: x[1], reverse=True)
     return out
 

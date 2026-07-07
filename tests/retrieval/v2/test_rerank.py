@@ -136,3 +136,38 @@ def test_score_handles_prod_realistic_types_without_crashing():
         out = rerank.score("meal cutoff", cands)
     assert out[0][0]["key"] == "TS-200"
     assert isinstance(out[0][1], float)
+
+
+def test_score_returns_probabilities_not_logits(monkeypatch):
+    """ms-marco MiniLM predict() returns raw logits (≈ -11..+11). score()
+    must sigmoid them into [0,1] so gate thresholds (0.5/0.7) mean what
+    they say. Regression for audit Critical #1."""
+    from backend.retrieval.v2 import rerank
+
+    class FakeModel:
+        def predict(self, pairs):
+            return [7.3, -4.1, 0.0]  # raw logits
+
+    monkeypatch.setattr(rerank, "_model", FakeModel())
+    cands = [{"summary": f"c{i}", "description_text": "", "comments_text": ""}
+             for i in range(3)]
+    out = rerank.score("q", cands)
+    scores = sorted((s for _, s in out), reverse=True)
+    assert all(0.0 <= s <= 1.0 for s in scores)
+    assert scores[0] > 0.99      # sigmoid(7.3)
+    assert 0.49 < scores[1] < 0.51  # sigmoid(0.0)
+    assert scores[2] < 0.02      # sigmoid(-4.1)
+
+
+def test_score_ordering_preserved_after_sigmoid(monkeypatch):
+    from backend.retrieval.v2 import rerank
+
+    class FakeModel:
+        def predict(self, pairs):
+            return [2.0, 5.0, -1.0]
+
+    monkeypatch.setattr(rerank, "_model", FakeModel())
+    cands = [{"summary": s, "description_text": "", "comments_text": ""}
+             for s in ("a", "b", "c")]
+    out = rerank.score("q", cands)
+    assert [c["summary"] for c, _ in out] == ["b", "a", "c"]
