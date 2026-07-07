@@ -255,9 +255,21 @@ def _run_wiki_embed_delta() -> int:
 
     Covers any wiki write whose background re-embed (backend.retrieval.wiki_v2.reembed)
     failed or was never triggered (e.g. direct filesystem edits outside the wiki tools).
+
+    Runs per agent — wiki writes are multi-agent (conwo, infosec, ...), and
+    embed_wiki.py defaults to --agent conwo, so a single call would leave every
+    non-conwo agent with no backstop. Returns the last nonzero exit code (0 if all
+    succeeded) so the caller can log a WARNING without crashing the job.
     """
-    return subprocess.call([sys.executable, "scripts/embed_wiki.py", "--mode", "delta"],
-                           timeout=EMBED_TIMEOUT_S)
+    from backend import agent_registry
+    rc = 0
+    for spec in agent_registry.all():
+        r = subprocess.call([sys.executable, "scripts/embed_wiki.py",
+                             "--mode", "delta", "--agent", spec.id],
+                            timeout=EMBED_TIMEOUT_S)
+        if r != 0:
+            rc = r
+    return rc
 
 
 def run() -> None:

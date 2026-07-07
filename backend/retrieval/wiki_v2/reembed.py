@@ -43,5 +43,14 @@ def schedule_delta_reembed(agent_id: str) -> None:
             _pending[agent_id] = True   # coalesce
             return
         _running.add(agent_id)
-    threading.Thread(target=_worker, args=(agent_id,), daemon=True,
-                     name=f"wiki-reembed-{agent_id}").start()
+    try:
+        threading.Thread(target=_worker, args=(agent_id,), daemon=True,
+                         name=f"wiki-reembed-{agent_id}").start()
+    except Exception as exc:
+        # Thread/resource exhaustion: the worker never ran, so nothing will
+        # ever clear _running. Undo the claim here or the agent is wedged
+        # forever (every future call would just set _pending and return).
+        # Fail-open — the nightly backstop still covers it.
+        with _state_lock:
+            _running.discard(agent_id)
+        _log.warning("failed to start re-embed worker for %s: %s", agent_id, exc)
