@@ -71,17 +71,25 @@ _known_names_cache: set[str] | None = None
 def known_property_names() -> set[str]:
     """Return the set of all distinct property_name values in the config
     catalog. Cached per-process — the catalog only changes via re-ingest +
-    restart (see CLAUDE.md §1), so no invalidation is needed."""
+    restart (see CLAUDE.md §1), so no invalidation is needed.
+
+    Only NON-EMPTY results are cached: a transient DB error (or an empty
+    catalog) returns an empty set but leaves the cache unset, so the next
+    call retries instead of silently disabling config detection until
+    restart. The query is cheap, so re-running the empty path is fine.
+    """
     global _known_names_cache
     if _known_names_cache is not None:
         return _known_names_cache
     try:
         with db.connection() as con:
             rows = con.execute("SELECT DISTINCT property_name FROM configs").fetchall()
-            _known_names_cache = {r["property_name"] for r in rows}
+            names = {r["property_name"] for r in rows}
     except Exception:
-        _known_names_cache = set()
-    return _known_names_cache
+        return set()
+    if names:
+        _known_names_cache = names
+    return names
 
 
 def lookup_property(name: str) -> dict | None:

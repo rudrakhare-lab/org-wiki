@@ -73,9 +73,47 @@ def _dependent_names(row: dict) -> list[str]:
     return out
 
 
+# Service ID → wiki/configs/ page slug. Verified against the ACTUAL files in
+# wiki/configs/ (2026-07-08) and cross-checked with the two existing maps that
+# already encode this: scripts/build_config_db.py::SERVICE_META (which writes
+# those pages) and scripts/apply_feedback.py::SERVICE_TO_CONFIG_PAGE. The
+# brief's naive lowercase transform produced dead anchors for half the real
+# services (e.g. VISITOR → configs/visitor.md; real page is
+# configs/visitor-management.md).
+# NOTE: catalog rows do carry `module_pages`, but those are MODULE page paths
+# ("modules/visitor-management", per enrich_config_db.py::SERVICE_TO_MODULE_SLUG),
+# not configs/ slugs — unusable for this anchor, hence the explicit table.
+# tests/test_config_evidence.py pins every entry to an existing file.
+_SERVICE_TO_CONFIG_SLUG: dict[str, str] = {
+    "PROJECT-MANAGEMENT-SERVICE": "pms",
+    "PMS":                        "pms",
+    "VISITOR":                    "visitor-management",
+    "MEETING_ROOMS":              "meeting-rooms",
+    "BOOKING-RULE-ENGINE":        "booking-rule-engine",
+    "WIS-SEAT-BOOKING":           "wis-seat-booking",
+    "GUARD-APP":                  "guard-app",
+    "EMAIL-EMP-EXPERIENCE":       "emp-experience-email",
+    "EMP-EXP-INTERNAL-CONFIG":    "emp-experience-internal",
+    "EMP-EXP-COMMON-CONFIG":      "emp-experience-common",
+    "APP_SERVER_CONFIG":          "app-server-config",
+}
+
+
+def _config_anchor(service: str) -> str:
+    """Resolve a catalog service ID to its wiki/configs/ page path.
+    Layered: curated table first (verified against the real pages), then the
+    naive lowercase transform as a last resort for unknown future services."""
+    svc = (service or "").strip()
+    if not svc:
+        return "configs/"
+    slug = _SERVICE_TO_CONFIG_SLUG.get(svc.upper())
+    if slug is None:
+        slug = svc.lower().replace("_", "-")
+    return f"configs/{slug}.md"
+
+
 def _fmt(row: dict) -> str:
-    svc = (row.get("service") or "").lower().replace("_", "-")
-    anchor = f"configs/{svc}.md" if svc else "configs/"
+    anchor = _config_anchor(row.get("service") or "")
     bits = [f"- `{_prop_name(row)}`"]
     if row.get("data_type"):
         bits.append(f"type `{row['data_type']}`")

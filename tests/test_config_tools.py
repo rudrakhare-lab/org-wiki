@@ -93,3 +93,21 @@ def test_fuzzy_match_via_trigram(seeded):
 def test_schema_has_fuzzy_param():
     props = CONFIG_LOOKUP_SCHEMA["input_schema"]["properties"]
     assert "fuzzy" in props
+
+
+def test_known_property_names_retries_after_transient_error(seeded, monkeypatch):
+    """A transient DB error must NOT be cached as an empty name set —
+    the next call re-queries and recovers (config detection self-heals)."""
+    monkeypatch.setattr(ct, "_known_names_cache", None)
+
+    def _boom():
+        raise RuntimeError("transient DB error")
+
+    with patch.object(ct.db, "connection", _boom):
+        assert ct.known_property_names() == set()
+        assert ct._known_names_cache is None      # empty result NOT cached
+
+    # DB is back — same process, next call re-queries and caches.
+    names = ct.known_property_names()
+    assert "kioskRequireOTPBeforeRegister" in names
+    assert ct._known_names_cache == names         # non-empty result cached
