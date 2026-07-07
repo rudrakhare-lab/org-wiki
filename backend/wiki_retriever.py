@@ -263,6 +263,11 @@ def build_index(agent_id: str | None = None, wiki_dir: Path | None = None) -> Wi
         _INDICES[aid] = idx
     from backend import wiki_graph as _wg
     _wg.invalidate(aid)
+    from backend.retrieval.wiki_v2 import reembed as _re
+    try:
+        _re.schedule_delta_reembed(aid)
+    except Exception:
+        pass  # never let background sync break a wiki write
     return idx
 
 

@@ -250,6 +250,16 @@ def _run_links_delta() -> int:
                            timeout=LINKS_TIMEOUT_S)
 
 
+def _run_wiki_embed_delta() -> int:
+    """Stage 5 (v2): nightly backstop — re-embed wiki pages whose content hash changed.
+
+    Covers any wiki write whose background re-embed (backend.retrieval.wiki_v2.reembed)
+    failed or was never triggered (e.g. direct filesystem edits outside the wiki tools).
+    """
+    return subprocess.call([sys.executable, "scripts/embed_wiki.py", "--mode", "delta"],
+                           timeout=EMBED_TIMEOUT_S)
+
+
 def run() -> None:
     """Core orchestration logic — called by main() and directly by tests.
 
@@ -272,6 +282,9 @@ def run() -> None:
         rc = _run_links_delta()
         if rc != 0:
             print(f"WARNING: links delta exited {rc}", flush=True)
+        rc = _run_wiki_embed_delta()
+        if rc != 0:
+            print(f"WARNING: wiki embed delta exited {rc}", flush=True)
 
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -341,6 +354,9 @@ def main() -> int:
         rc = _run_links_delta()
         if rc != 0:
             log(f"WARNING: links delta exited {rc}", verbose=args.verbose)
+        rc = _run_wiki_embed_delta()
+        if rc != 0:
+            log(f"WARNING: wiki embed delta exited {rc}", verbose=args.verbose)
 
     elapsed = time.time() - start
     cost = "?"
