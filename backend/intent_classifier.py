@@ -41,6 +41,16 @@ _CAMEL_RE = re.compile(
 # Matches UPPER_SNAKE_CASE PMS config constants: MEETING_ROOM_ENABLED, VISITOR_DIGIPASS, etc.
 _UPPER_SNAKE_RE = re.compile(r"\b[A-Z][A-Z0-9]{1,}(?:_[A-Z0-9]+)+\b")
 _JIRA_KEY_RE = re.compile(r"\b[A-Z]{2,5}-\d{3,6}\b")
+
+# Fixed priority for deterministic tie-break in _score() (Phase B Task 3,
+# spec §5.5). Previously ties broke by dict-insertion order — non-deterministic
+# across code changes since Python preserves insertion order, not a designed
+# order. This list is the designed order.
+_TIE_PRIORITY: list[QueryIntent] = [
+    QueryIntent.CONFIGURATION, QueryIntent.DEBUGGING, QueryIntent.HOW_TO,
+    QueryIntent.DEFINITION, QueryIntent.COMPARISON, QueryIntent.ARCHITECTURAL,
+    QueryIntent.STATUS, QueryIntent.GENERAL,
+]
 _DEBUG_STRONG   = re.compile(r"\b(broken|bug|error)\b|not\s+work(?:ing)?|doesn'?t\s+work")
 _DEBUG_MODERATE = re.compile(r"\bfailing\b|doesn'?t\s+show|not\s+showing")
 _DEBUG_WEAK     = re.compile(r"\b(issue|problem|incorrect|missing)\b|wrong\s+value")
@@ -48,6 +58,15 @@ _DEBUG_WEAK     = re.compile(r"\b(issue|problem|incorrect|missing)\b|wrong\s+val
 
 def _count_uppercase(tokens: list[str]) -> int:
     return max((sum(1 for c in t if c.isupper()) for t in tokens), default=0)
+
+
+def _break_tie(tied: list[QueryIntent]) -> QueryIntent:
+    """Deterministically resolve a tie among equally-scored intents.
+
+    Picks the intent that appears earliest in _TIE_PRIORITY, independent of
+    the order `tied` is given in. Single-element input returns that element.
+    """
+    return min(tied, key=_TIE_PRIORITY.index)
 
 
 def _score(q: str) -> tuple[QueryIntent, float]:
@@ -140,8 +159,9 @@ def _score(q: str) -> tuple[QueryIntent, float]:
 
     if not scores:
         return QueryIntent.GENERAL, 0.4
-    best_intent = max(scores, key=lambda k: scores[k])
-    best_score = scores[best_intent]
+    best_score = max(scores.values())
+    tied = [intent for intent, s in scores.items() if s == best_score]
+    best_intent = _break_tie(tied)
     if best_score < 1.5:
         return QueryIntent.GENERAL, 0.4
     if best_score >= 3.0:
@@ -170,4 +190,40 @@ def classify_intent(question: str) -> IntentResult:
         rewritten_query=_rewrite(question),
         confidence=confidence,
         retrieval_hints=_HINTS[intent].copy(),
+    )
+
+
+def combine_intent(regex_result: IntentResult, llm_intent: str | None) -> IntentResult:
+    """Regex verdict + the Haiku rewriter's LLM intent verdict (spec §5.5).
+
+    Soft second opinion: only the label (and its associated retrieval_hints)
+    can change. `rewritten_query` always carries forward from the regex
+    result unchanged — the rewrite text is intent-independent.
+
+    Rules (in order):
+      1. regex confidence >= 0.75 and intents agree (or no usable LLM intent)
+         → regex wins.
+      2. intents disagree and regex confidence < 0.75 → LLM intent wins
+         (only if it names a valid QueryIntent).
+      3. LLM intent invalid or missing → regex wins.
+      4. both weak (regex confidence < 0.65 and LLM says GENERAL) → GENERAL.
+    """
+    try:
+        llm = QueryIntent(llm_intent) if llm_intent else None
+    except ValueError:
+        llm = None
+
+    winner = regex_result.intent
+    if llm and llm != regex_result.intent and regex_result.confidence < 0.75:
+        winner = llm
+    if regex_result.confidence < 0.65 and llm == QueryIntent.GENERAL:
+        winner = QueryIntent.GENERAL
+
+    if winner == regex_result.intent:
+        return regex_result
+    return IntentResult(
+        intent=winner,
+        rewritten_query=regex_result.rewritten_query,
+        confidence=max(regex_result.confidence, 0.7),
+        retrieval_hints=_HINTS[winner].copy(),
     )

@@ -23,7 +23,7 @@ from dataclasses import dataclass, field
 from backend import jira_retriever, trace_store, wiki_graph, wiki_retriever
 from backend.tools import build_registry
 from backend.tools.registry import ToolRegistry, ToolTraceEntry
-from backend.intent_classifier import classify_intent, IntentResult, QueryIntent
+from backend.intent_classifier import classify_intent, combine_intent, IntentResult, QueryIntent
 from backend.retrieval.v2.rewrite import rewrite
 from backend.retrieval.wiki_v2 import pipeline as _wiki_v2
 from backend.retrieval.wiki_v2.pipeline import WikiV2Unavailable
@@ -171,17 +171,35 @@ def run_preflight(
 
     bundle = PreflightBundle()
 
-    # classify intent and apply retrieval hints
+    # classify intent (regex verdict)
     _intent_result = classify_intent(question)
     bundle.intent_result = _intent_result
-    _hints = _intent_result.retrieval_hints
     _search_query = _intent_result.rewritten_query
-    _wiki_top_n_eff = _hints.get("wiki_top_n", _PREFLIGHT_WIKI_TOP_N)
-    _latest_limit_eff = _hints.get("jira_latest_limit", latest_limit)
 
     # Shared Haiku rewrite — computed ONCE, fed to both the wiki v2 seed
     # search and the jira v2 pipeline (Phase B Task 2). Never raises.
     bundle.rewrite_result = _compute_rewrite(_search_query)
+
+    # Phase B Task 3 — combine the regex verdict with the rewriter's own LLM
+    # intent verdict (a second opinion computed on every query since Task 2,
+    # previously discarded). Soft: only the label + its retrieval_hints can
+    # change; rewritten_query always carries forward from the regex result.
+    # Must happen AFTER both verdicts exist (regex above, LLM via the rewrite
+    # just computed) and BEFORE _hints/_wiki_top_n_eff/_latest_limit_eff and
+    # the wiki seed fetch are derived, so the effective retrieval knobs and the
+    # intent label passed downstream are always for the same winning intent.
+    _llm_intent = getattr(bundle.rewrite_result, "intent", None)
+    bundle.intent_result = combine_intent(bundle.intent_result, _llm_intent)
+    trace_store.record_event(
+        trace_id, "preflight", "preflight_intent", round_num=0,
+        metadata={"regex_intent": _intent_result.intent.value,
+                  "regex_confidence": _intent_result.confidence,
+                  "llm_intent": _llm_intent,
+                  "combined_intent": bundle.intent_result.intent.value})
+
+    _hints = bundle.intent_result.retrieval_hints
+    _wiki_top_n_eff = _hints.get("wiki_top_n", _PREFLIGHT_WIKI_TOP_N)
+    _latest_limit_eff = _hints.get("jira_latest_limit", latest_limit)
 
     # Wiki search always runs — it is universal to all agents. Tries the wiki
     # v2 semantic pipeline first (default-on); falls back to the keyword
