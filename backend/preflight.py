@@ -20,7 +20,7 @@ import json
 import time
 from dataclasses import dataclass, field
 
-from backend import jira_retriever, trace_store, wiki_graph, wiki_retriever
+from backend import jira_retriever, seed_budget, trace_store, wiki_graph, wiki_retriever
 from backend.tools import build_registry
 from backend.tools.registry import ToolRegistry, ToolTraceEntry
 from backend.intent_classifier import classify_intent, combine_intent, IntentResult, QueryIntent
@@ -135,16 +135,19 @@ def _fetch_seed_wiki(question: str, top_n: int, intent: str, rewrite):
     return wiki_retriever.search(question, top_n=top_n), [], None
 
 
+def _render_chunk_for_seed(h) -> str:
+    """One ChunkHit rendered as a seed section (shared by the formatter
+    and the seed-budget block builder)."""
+    head = f"### `{h.anchor}` — {h.section_title or h.page_path}"
+    if h.related_via:
+        head += f"\n_(related via: {h.related_via})_"
+    return f"{head}\n\n{h.chunk_text}"
+
+
 def format_wiki_chunks_for_seed(hits) -> str:
     if not hits:
         return "No relevant wiki sections found in preflight."
-    parts = []
-    for h in hits:
-        head = f"### `{h.anchor}` — {h.section_title or h.page_path}"
-        if h.related_via:
-            head += f"\n_(related via: {h.related_via})_"
-        parts.append(f"{head}\n\n{h.chunk_text}")
-    return "\n\n---\n\n".join(parts)
+    return "\n\n---\n\n".join(_render_chunk_for_seed(h) for h in hits)
 
 
 # ── Preflight runner ────────────────────────────────────────────────────────
@@ -373,6 +376,16 @@ def format_wiki_for_seed(pages: list, excerpt_chars: int = _PREFLIGHT_WIKI_EXCER
     return "\n\n---\n\n".join(parts)
 
 
+def _render_bucket_line(row: dict) -> str:
+    """One ranked-search result line (shared by the formatter and the
+    seed-budget block builder)."""
+    summary = (row.get("summary") or "")[:120]
+    updated = row.get("updated", "?")
+    resolved = row.get("resolved")
+    tail = f" (resolved {resolved})" if resolved else f" (updated {updated})"
+    return f"  - `{row.get('key')}` — {summary}{tail}"
+
+
 def format_jira_buckets_for_seed(jira_result: dict) -> str:
     buckets = jira_result.get("buckets", {})
     if not any(buckets.get(b) for b in ("LATEST", "HISTORICAL", "STALE-OPEN")):
@@ -385,11 +398,7 @@ def format_jira_buckets_for_seed(jira_result: dict) -> str:
             continue
         lines.append(f"**{bucket}:**")
         for row in rows[:3]:
-            summary = (row.get("summary") or "")[:120]
-            updated = row.get("updated", "?")
-            resolved = row.get("resolved")
-            tail = f" (resolved {resolved})" if resolved else f" (updated {updated})"
-            lines.append(f"  - `{row.get('key')}` — {summary}{tail}")
+            lines.append(_render_bucket_line(row))
     return "\n".join(lines)
 
 
@@ -458,29 +467,113 @@ def format_related_module_for_seed(rows: list[dict]) -> str:
     return "\n".join(lines)
 
 
+def _render_ticket_body(t: dict) -> str:
+    """One full ticket body rendered as a seed section (shared by the
+    formatter and the seed-budget block builder)."""
+    desc = (t.get("description_text") or "").strip()
+    comments = (t.get("comments_text") or "").strip()
+    head = (
+        f"### Jira {t.get('key')} — {(t.get('summary') or '').strip()}\n"
+        f"Status: **{t.get('status_category', '?')}** · "
+        f"Priority: {t.get('priority') or '—'} · "
+        f"Updated: {t.get('updated', '?')}"
+    )
+    if t.get("resolved"):
+        head += f" · Resolved: {t.get('resolved')}"
+    head += f" · Comments: {t.get('comment_count', 0)}"
+    body = ""
+    if desc:
+        body += f"\n\n**Description:**\n{desc[:1200]}"
+    if comments:
+        body += f"\n\n**Comments:**\n{comments[:800]}"
+    return head + body
+
+
 def format_preflight_tickets(tickets: list[dict]) -> str:
     if not tickets:
         return "No LATEST ticket bodies were pre-fetched."
-    parts: list[str] = []
-    for t in tickets:
-        desc = (t.get("description_text") or "").strip()
-        comments = (t.get("comments_text") or "").strip()
-        head = (
-            f"### Jira {t.get('key')} — {(t.get('summary') or '').strip()}\n"
-            f"Status: **{t.get('status_category', '?')}** · "
-            f"Priority: {t.get('priority') or '—'} · "
-            f"Updated: {t.get('updated', '?')}"
-        )
-        if t.get("resolved"):
-            head += f" · Resolved: {t.get('resolved')}"
-        head += f" · Comments: {t.get('comment_count', 0)}"
-        body = ""
-        if desc:
-            body += f"\n\n**Description:**\n{desc[:1200]}"
-        if comments:
-            body += f"\n\n**Comments:**\n{comments[:800]}"
-        parts.append(head + body)
-    return "\n\n---\n\n".join(parts)
+    return "\n\n---\n\n".join(_render_ticket_body(t) for t in tickets)
+
+
+def _seed_evidence_blocks(bundle: "PreflightBundle", has_jira: bool) -> list:
+    """Build the SeedBlocks fed to seed_budget.apply_budget (spec §5.7).
+
+    Each block's text is its rendered section (header + items joined); the
+    evictable list carries the per-item rendered strings (best-ranked first)
+    so eviction pops from the bottom while KEEP_MIN top items survive. Only
+    used on the OVER-budget path — under budget, build_seed_message returns
+    its byte-identical legacy assembly untouched.
+    """
+    blocks: list = []
+
+    # ── Wiki ──────────────────────────────────────────────────────────────
+    if bundle.seed_wiki_chunks:
+        direct = [h for h in bundle.seed_wiki_chunks if not h.related_via]
+        related = [h for h in bundle.seed_wiki_chunks if h.related_via]
+        if direct:
+            blocks.append(seed_budget.SeedBlock(
+                "wiki_direct", 0,
+                "## Pre-fetched wiki evidence\n\n"
+                + "\n\n---\n\n".join(_render_chunk_for_seed(h) for h in direct),
+                [(h.anchor, _render_chunk_for_seed(h), "wiki_read_page") for h in direct]))
+        if related:
+            blocks.append(seed_budget.SeedBlock(
+                "wiki_related", 0,
+                "## Related wiki sections\n\n"
+                + "\n\n---\n\n".join(_render_chunk_for_seed(h) for h in related),
+                [(h.anchor, _render_chunk_for_seed(h), "wiki_read_page") for h in related]))
+    elif bundle.seed_wiki:
+        # Keyword-fallback pages: kept whole (non-evictable) — a degraded path
+        # already, not worth per-page shedding logic.
+        blocks.append(seed_budget.SeedBlock(
+            "wiki_direct", 0,
+            "## Pre-fetched wiki evidence\n\n" + format_wiki_for_seed(bundle.seed_wiki),
+            []))
+
+    # ── Config evidence (all-or-nothing; protected by eviction order) ──────
+    if bundle.config_evidence:
+        blocks.append(seed_budget.SeedBlock(
+            "config_evidence", 0, bundle.config_evidence.strip(), []))
+
+    if not has_jira:
+        return blocks
+
+    # ── Jira LATEST (full ticket bodies first — KEEP_MIN protects them — then
+    #    LATEST bucket summary lines) ─────────────────────────────────────
+    buckets = bundle.seed_jira.get("buckets", {})
+    latest_rows = buckets.get("LATEST", [])
+    body_items = [(t.get("key"), _render_ticket_body(t), "jira_get_ticket")
+                  for t in bundle.preflight_tickets]
+    line_items = [(r.get("key"), _render_bucket_line(r), "jira_get_ticket")
+                  for r in latest_rows]
+    latest_items = body_items + line_items
+    if latest_items:
+        blocks.append(seed_budget.SeedBlock(
+            "jira_latest", 0,
+            "## Pre-fetched Jira LATEST\n\n"
+            + "\n\n---\n\n".join(txt for _, txt, _ in latest_items),
+            latest_items))
+
+    # ── Jira HISTORICAL + STALE-OPEN ──────────────────────────────────────
+    hist_rows = buckets.get("HISTORICAL", []) + buckets.get("STALE-OPEN", [])
+    hist_items = [(r.get("key"), _render_bucket_line(r), "jira_get_ticket")
+                  for r in hist_rows]
+    if hist_items:
+        blocks.append(seed_budget.SeedBlock(
+            "jira_historical", 0,
+            "## Pre-fetched Jira HISTORICAL / STALE\n\n"
+            + "\n".join(txt for _, txt, _ in hist_items),
+            hist_items))
+
+    # ── Module-tagged / related-module (non-evictable — small, high-signal) ─
+    mt = format_module_tagged_for_seed(bundle.module_tagged_jira)
+    if mt:
+        blocks.append(seed_budget.SeedBlock("module_tagged", 0, mt, []))
+    rm = format_related_module_for_seed(bundle.related_module_jira)
+    if rm:
+        blocks.append(seed_budget.SeedBlock("related_module", 0, rm, []))
+
+    return blocks
 
 
 def build_seed_message(
@@ -546,7 +639,10 @@ def build_seed_message(
     if bundle.config_evidence:
         config_evidence_block = f"{bundle.config_evidence}\n\n---\n\n"
 
-    header = (
+    # header_pre = everything before the evidence sections (stays OUTSIDE the
+    # seed budget). Concatenating header_pre + the wiki/config section reproduces
+    # the legacy `header` byte-for-byte, so the under-budget path is unchanged.
+    header_pre = (
         f"{op_block}"
         f"**Question:** {question}\n"
         f"**Scope:** {scope_line}\n"
@@ -554,20 +650,29 @@ def build_seed_message(
         f"{summary_block}"
         f"---\n\n"
         f"{degradation_block}"
-        f"## Pre-fetched wiki evidence (top {_wiki_evidence_count} {_wiki_evidence_label}, ~800-char excerpts)\n\n"
+    )
+    header = (
+        header_pre
+        + f"## Pre-fetched wiki evidence (top {_wiki_evidence_count} {_wiki_evidence_label}, ~800-char excerpts)\n\n"
         f"{wiki_text}\n\n"
         f"---\n\n"
         f"{config_evidence_block}"
     )
+    _intent_name = (bundle.intent_result.intent.value
+                    if bundle.intent_result else "GENERAL")
 
     if not agent.has_jira:
         # Wiki-only agent — omit all Jira sections.
-        return (
-            header
-            + "This pre-fetched evidence is your starting context. The wiki search "
+        _closing = (
+            "This pre-fetched evidence is your starting context. The wiki search "
             "already ran; call additional tools (wiki_read_page, wiki_search) "
             "ONLY if the pre-fetched evidence is insufficient."
         )
+        _blocks = _seed_evidence_blocks(bundle, has_jira=False)
+        if sum(seed_budget.est_tokens(b.text) for b in _blocks) > seed_budget.SEED_BUDGET_TOKENS:
+            _body, _ = seed_budget.apply_budget(_blocks, _intent_name)
+            return f"{header_pre}{_body}\n\n---\n\n{_closing}"
+        return header + _closing
 
     # Conwo (and any has_jira agent) — include full Jira evidence.
     jira_text = format_jira_buckets_for_seed(bundle.seed_jira)
@@ -577,6 +682,26 @@ def build_seed_message(
     module_tagged_block  = (module_tagged_text  + "\n---\n\n") if module_tagged_text  else ""
     related_module_block = (related_module_text + "\n---\n\n") if related_module_text else ""
     latest_count = len(bundle.seed_jira.get("buckets", {}).get("LATEST", []))
+
+    _closing = (
+        "This pre-fetched evidence is your starting context. The wiki + Jira ranked "
+        "search already ran; the top LATEST tickets' full bodies are above. Call "
+        "additional tools (wiki_read_page, jira_get_ticket for a different key, "
+        "jira_search_ranked with a refined keyword, config_lookup, pms_runtime_values) "
+        "ONLY if the pre-fetched evidence is insufficient. Always cite Jira keys "
+        "from the LATEST bucket and treat HISTORICAL/STALE as weaker evidence."
+    )
+
+    # Over-budget guard (spec §5.7): when the assembled evidence would exceed
+    # SEED_BUDGET_TOKENS, route through seed_budget.apply_budget — intent-aware
+    # eviction (Jira protected for CONFIGURATION/DEBUGGING/STATUS) + a mandatory
+    # trim-note so trimmed evidence is demoted to pull, never hidden. Under
+    # budget (the common case, and every existing test) the legacy assembly
+    # below returns byte-identical output.
+    _blocks = _seed_evidence_blocks(bundle, has_jira=True)
+    if sum(seed_budget.est_tokens(b.text) for b in _blocks) > seed_budget.SEED_BUDGET_TOKENS:
+        _body, _ = seed_budget.apply_budget(_blocks, _intent_name)
+        return f"{header_pre}{_body}\n\n---\n\n{_closing}"
 
     return (
         header
@@ -588,12 +713,7 @@ def build_seed_message(
         f"## Pre-fetched LATEST ticket bodies ({len(bundle.preflight_tickets)})\n\n"
         f"{tickets_text}\n\n"
         f"---\n\n"
-        f"This pre-fetched evidence is your starting context. The wiki + Jira ranked "
-        f"search already ran; the top LATEST tickets' full bodies are above. Call "
-        f"additional tools (wiki_read_page, jira_get_ticket for a different key, "
-        f"jira_search_ranked with a refined keyword, config_lookup, pms_runtime_values) "
-        f"ONLY if the pre-fetched evidence is insufficient. Always cite Jira keys "
-        f"from the LATEST bucket and treat HISTORICAL/STALE as weaker evidence."
+        + _closing
     )
 
 
