@@ -640,6 +640,12 @@ def _verify_and_gate(raw_answer: str, confidence: str, bundle,
             wiki_anchors.add(str(inp["path"]).removeprefix("wiki/"))
         elif name == "jira_get_ticket" and inp.get("key"):
             jira_keys.add(inp["key"])
+    # Fold in the configs/<slug>.md pages that the config-KB push (B4) surfaced
+    # in bundle.config_evidence — otherwise a CONFIGURATION answer faithfully
+    # citing a B4-surfaced config page gets spuriously flagged unverified,
+    # capping confidence on exactly the intent config_evidence exists to serve.
+    wiki_anchors |= set(re.findall(r"configs/[a-z0-9-]+\.md",
+                                   getattr(bundle, "config_evidence", "") or ""))
     wiki_anchors.discard("")
 
     report = verify_citations(raw_answer, wiki_anchors, jira_keys)

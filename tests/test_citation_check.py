@@ -35,10 +35,10 @@ def test_extract_confidence_unknown_not_medium():
 from types import SimpleNamespace
 
 
-def _fake_bundle(anchors=(), jira_latest=()):
+def _fake_bundle(anchors=(), jira_latest=(), config_evidence=""):
     chunks = [SimpleNamespace(anchor=a) for a in anchors]
     return SimpleNamespace(
-        seed_wiki_chunks=chunks, seed_wiki=[],
+        seed_wiki_chunks=chunks, seed_wiki=[], config_evidence=config_evidence,
         seed_jira={"buckets": {"LATEST": [{"key": k} for k in jira_latest]}})
 
 
@@ -60,6 +60,19 @@ def test_verify_and_gate_keeps_high_when_all_cited_retrieved():
     new_answer, conf, report = _verify_and_gate(answer, "High", bundle, [])
     assert conf == "High" and "⚠️" not in new_answer
     assert report.cited_unverified == []
+
+
+def test_verify_and_gate_accepts_config_page_from_config_evidence():
+    """A CONFIGURATION answer citing a configs/<slug>.md page that B4 surfaced
+    in config_evidence must be verified — not spuriously capped (cross-task
+    B4×B6 integration, final-review Important)."""
+    from backend.orchestrator import _verify_and_gate
+    bundle = _fake_bundle(
+        config_evidence="- `roomBookingBuffer` — type ... → `configs/meeting-rooms.md`")
+    answer = "See `configs/meeting-rooms.md` for the buffer setting. Confidence: High"
+    new_answer, conf, report = _verify_and_gate(answer, "High", bundle, [])
+    assert conf == "High" and "⚠️" not in new_answer
+    assert "configs/meeting-rooms.md" not in report.cited_unverified
 
 
 def test_verify_and_gate_counts_tool_fetched_evidence():
