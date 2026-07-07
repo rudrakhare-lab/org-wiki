@@ -297,13 +297,17 @@ def run_deep(
             intent_confidence=_intent_conf,
         )
 
-    # 4. Extract sources from tool trace (preflight + model rounds combined)
+    # 4. Verify citations against retrieved evidence (inline no-source-no-fact
+    #    gate, spec §5.9): cap over-confident answers that cite unretrieved
+    #    sources, then derive Sources from what was actually cited AND retrieved.
     raw_answer = deep_result.raw_answer
     confidence = _extract_confidence(raw_answer)
-    cited_wiki = _trace_wiki_paths(deep_result.tool_trace, bundle.seed_wiki)
-    cited_jira = _trace_jira_keys(deep_result.tool_trace, bundle.seed_jira)
-    cited_pms = _extract_pms_configs(raw_answer)
-    sources = SourceInfo(wiki_pages=cited_wiki, jira_keys=cited_jira, pms_configs=cited_pms)
+    raw_answer, confidence, _cite_report = _verify_and_gate(
+        raw_answer, confidence, bundle, deep_result.tool_trace)
+    sources = _honest_sources(_cite_report, raw_answer)
+    cited_wiki = sources.wiki_pages
+    cited_jira = sources.jira_keys
+    cited_pms = sources.pms_configs
 
     # 5. Compute the answer_id from the model's literal output (placeholder
     # intact), inject it into the feedback-prompt template, then log the
@@ -585,7 +589,7 @@ def _extract_confidence(text: str) -> str:
     m2 = re.search(r"Suggested confidence[:\s]+(High|Medium|Low)", text, re.IGNORECASE)
     if m2:
         return m2.group(1).capitalize()
-    return "Medium"
+    return "Unknown"
 
 
 def _extract_jira_keys(rows: list[dict]) -> list[str]:
@@ -593,13 +597,67 @@ def _extract_jira_keys(rows: list[dict]) -> list[str]:
 
 
 def _extract_pms_configs(text: str) -> list[str]:
-    matches = re.findall(r"`([A-Z]{2,}:[a-zA-Z][a-zA-Z0-9]+)`|`([a-z][a-zA-Z0-9]{5,})`", text)
+    # Config properties are either SERVICE:prop or camelCase (roomBookingBuffer).
+    # The camelCase form REQUIRES an internal uppercase letter — this is what
+    # excludes all-lowercase backtick tokens like `description`/`conversation`
+    # that the old greedy `[a-z][a-zA-Z0-9]{5,}` pattern promoted to "PMS config"
+    # (audit false-positive fix).
+    matches = re.findall(r"`([A-Z]{2,}:[a-zA-Z][a-zA-Z0-9]+)`|`([a-z]+[A-Z][a-zA-Z0-9]+)`", text)
     configs: list[str] = []
     for m in matches:
         val = m[0] or m[1]
         if val and val not in configs:
             configs.append(val)
     return configs[:10]
+
+
+_JIRA_KEY_RE = re.compile(r"^[A-Z]{2,}-\d{2,6}$")
+
+
+def _verify_and_gate(raw_answer: str, confidence: str, bundle,
+                     tool_trace: list[dict]) -> tuple[str, str, "object"]:
+    """Inline no-source-no-fact gate (spec §5.9). Builds the evidence set
+    actually retrieved this query (seed wiki chunks/pages + seed Jira buckets +
+    tool-fetched pages/tickets), verifies every citation in the answer against
+    it, and — when a High-confidence answer cites something never retrieved —
+    caps confidence to Medium and appends a visible warning. Mechanical, no
+    LLM, runs before the response ships. Returns (raw_answer, confidence,
+    CitationReport)."""
+    from backend.citation_check import verify_citations
+
+    wiki_anchors: set[str] = {h.anchor for h in (getattr(bundle, "seed_wiki_chunks", None) or [])}
+    wiki_anchors |= {getattr(p, "path", "") for p in (getattr(bundle, "seed_wiki", None) or [])}
+    jira_keys: set[str] = set()
+    for _bucket in (bundle.seed_jira.get("buckets", {}) or {}).values():
+        jira_keys |= {r.get("key") for r in _bucket if r.get("key")}
+    for e in tool_trace or []:
+        name = e.get("tool_name")
+        inp = e.get("input") or {}
+        if name == "wiki_read_page" and inp.get("path"):
+            wiki_anchors.add(str(inp["path"]).removeprefix("wiki/"))
+        elif name == "jira_get_ticket" and inp.get("key"):
+            jira_keys.add(inp["key"])
+    wiki_anchors.discard("")
+
+    report = verify_citations(raw_answer, wiki_anchors, jira_keys)
+    if report.confidence_capped and confidence == "High":
+        confidence = "Medium"
+        raw_answer = raw_answer.rstrip() + (
+            "\n\n⚠️ Unverified citations: "
+            + ", ".join(report.cited_unverified)
+            + " — verify before relying on them."
+        )
+    return raw_answer, confidence, report
+
+
+def _honest_sources(report, raw_answer: str) -> "SourceInfo":
+    """Sources derived from what the answer actually cited AND was retrieved
+    (report.cited_ok) — not a greedy scrape or a raw bucket dump. PMS configs
+    still come from the (now camelCase-tightened) answer scan."""
+    wiki = [c for c in report.cited_ok if c.endswith(".md") or "#" in c]
+    jira = [c for c in report.cited_ok if _JIRA_KEY_RE.match(c)]
+    return SourceInfo(wiki_pages=wiki, jira_keys=jira,
+                      pms_configs=_extract_pms_configs(raw_answer))
 
 
 def _row_summary(row: dict) -> dict:
