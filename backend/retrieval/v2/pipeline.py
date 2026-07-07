@@ -7,7 +7,7 @@ from backend.retrieval.v2.embed import embed_query
 from backend.retrieval.v2.hybrid import hybrid_search
 from backend.retrieval.v2.links import expand as expand_links
 from backend.retrieval.v2.rerank import score as rerank_score
-from backend.retrieval.v2.rewrite import rewrite
+from backend.retrieval.v2.rewrite import rewrite, RewriteResult
 from backend.retrieval.v2.gate import apply as gate_apply, RetrievalResult
 
 # Alias so tests can monkeypatch `pipeline.get_conn` without modification.
@@ -15,7 +15,8 @@ get_conn = connection
 
 
 def search(question: str, *, functional_area: str | None = None,
-           limit: int = 10) -> RetrievalResult:
+           limit: int = 10,
+           rewrite_result: "RewriteResult | None" = None) -> RetrievalResult:
     """Run the full v2 retrieval pipeline and return a gated result.
 
     Steps: rewrite → embed → hybrid → links → rerank → gate.
@@ -25,11 +26,14 @@ def search(question: str, *, functional_area: str | None = None,
         functional_area: Optional Jira functional_area filter. Caller-supplied
             value wins over the filter inferred by the rewriter.
         limit: Maximum candidate tickets to pass through hybrid search.
+        rewrite_result: Pre-computed RewriteResult (e.g. from preflight's
+            shared Haiku call). When None, this function computes its own —
+            back-compat for direct/standalone tool calls.
 
     Returns:
         RetrievalResult — either a populated result or an Abstain result.
     """
-    rw = rewrite(question)
+    rw = rewrite_result or rewrite(question)
     # Caller-supplied functional_area wins over inferred filter
     filters = dict(rw.filters)
     if functional_area:

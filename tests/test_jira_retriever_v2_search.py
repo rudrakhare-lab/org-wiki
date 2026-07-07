@@ -37,7 +37,8 @@ def _patch_pipeline_search(monkeypatch, tickets, message="fake evidence"):
 
     fake_result = _FakeRetrievalResult(tickets=tickets, message=message)
 
-    def _fake_search(question, *, functional_area=None, limit=10):
+    def _fake_search(question, *, functional_area=None, limit=10,
+                     rewrite_result=None):
         return fake_result
 
     monkeypatch.setattr(pipeline_mod, "search", _fake_search)

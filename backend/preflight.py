@@ -24,6 +24,7 @@ from backend import jira_retriever, trace_store, wiki_graph, wiki_retriever
 from backend.tools import build_registry
 from backend.tools.registry import ToolRegistry, ToolTraceEntry
 from backend.intent_classifier import classify_intent, IntentResult, QueryIntent
+from backend.retrieval.v2.rewrite import rewrite
 from backend.retrieval.wiki_v2 import pipeline as _wiki_v2
 from backend.retrieval.wiki_v2.pipeline import WikiV2Unavailable
 
@@ -86,6 +87,8 @@ class PreflightBundle:
     intent_result: "IntentResult | None" = field(default=None)
     seed_wiki_chunks: list = field(default_factory=list)  # list[ChunkHit] (wiki v2 path)
     degradations: list = field(default_factory=list)      # visible seed notes
+    # Phase B Task 2 — shared Haiku rewrite, computed once, fed to both pillars
+    rewrite_result: object = None                          # RewriteResult | None
 
     def latest_keys(self) -> list[str]:
         return [r["key"] for r in self.seed_jira.get("buckets", {}).get("LATEST", [])]
@@ -101,6 +104,15 @@ class PreflightBundle:
             "related_module_count": len(self.related_module_jira),
             "keywords": self.seed_jira.get("keywords", []),
         }
+
+
+def _compute_rewrite(question: str):
+    """Shared Haiku rewrite — one call feeds both retrieval pillars.
+
+    Test seam: tests monkeypatch `preflight.rewrite` and call this directly.
+    rewrite() never raises (v2 Task 1 guarantee) — no try/except needed.
+    """
+    return rewrite(question)
 
 
 def _fetch_seed_wiki(question: str, top_n: int, intent: str, rewrite):
@@ -167,6 +179,10 @@ def run_preflight(
     _wiki_top_n_eff = _hints.get("wiki_top_n", _PREFLIGHT_WIKI_TOP_N)
     _latest_limit_eff = _hints.get("jira_latest_limit", latest_limit)
 
+    # Shared Haiku rewrite — computed ONCE, fed to both the wiki v2 seed
+    # search and the jira v2 pipeline (Phase B Task 2). Never raises.
+    bundle.rewrite_result = _compute_rewrite(_search_query)
+
     # Wiki search always runs — it is universal to all agents. Tries the wiki
     # v2 semantic pipeline first (default-on); falls back to the keyword
     # index (with a visible degradation note) when v2 is off or unavailable.
@@ -174,7 +190,7 @@ def run_preflight(
     _pages, _chunk_hits, _degradation_note = _fetch_seed_wiki(
         _search_query, _wiki_top_n_eff,
         intent=bundle.intent_result.intent.value if bundle.intent_result else "GENERAL",
-        rewrite=None)  # Phase B passes the shared RewriteResult here
+        rewrite=bundle.rewrite_result)
     bundle.seed_wiki = _pages
     bundle.seed_wiki_chunks = _chunk_hits
     if _degradation_note:
@@ -190,7 +206,9 @@ def run_preflight(
 
     if agent.has_jira:
         _t = time.perf_counter()
-        bundle.seed_jira = jira_retriever.search(_search_query, functional_area=functional_area)
+        bundle.seed_jira = jira_retriever.search(
+            _search_query, functional_area=functional_area,
+            rewrite_result=bundle.rewrite_result)
         _buckets = bundle.seed_jira.get("buckets", {})          # buckets are NESTED under "buckets"
         trace_store.record_event(
             trace_id, "preflight", "preflight_jira",

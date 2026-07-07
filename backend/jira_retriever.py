@@ -103,14 +103,16 @@ def _render_v2_markdown(tickets: list[dict], *, confidence: str, message: str,
 
 
 def _v2_search(question: str, *, functional_area: str | None = None,
-               limit: int = 10, include_stale: bool = False, **kwargs):
-    # kwargs (e.g. include_stale, trace_id) are v1-only and intentionally not
-    # passed to the v2 pipeline yet. Callers (e.g. jira_tools.py) may pass
-    # include_stale=True; v2 always returns all recency buckets via its own
-    # reranker, so the flag has no v2 equivalent. This is a known behaviour
-    # delta — callers should expect it when CONWO_RETRIEVAL_V2 flips to 'on'.
+               limit: int = 10, include_stale: bool = False,
+               rewrite_result=None, **kwargs):
+    # kwargs (e.g. trace_id) are v1-only and intentionally not passed to the
+    # v2 pipeline yet. Callers (e.g. jira_tools.py) may pass include_stale=True;
+    # v2 always returns all recency buckets via its own reranker, so the flag
+    # has no v2 equivalent. This is a known behaviour delta — callers should
+    # expect it when CONWO_RETRIEVAL_V2 flips to 'on'.
     from backend.retrieval.v2.pipeline import search as _p
-    result = _p(question, functional_area=functional_area, limit=limit)
+    result = _p(question, functional_area=functional_area, limit=limit,
+                rewrite_result=rewrite_result)
     tickets = result.tickets  # list[dict] with reranker_score
 
     # Normalise field names to match v1's dict shape so preflight.py,
@@ -201,21 +203,31 @@ def _ab_serve_v2() -> bool:
 
 
 def search(question: str, *, functional_area: str | None = None,
-           limit: int = 10, **kwargs):
+           limit: int = 10, rewrite_result=None, **kwargs):
+    # rewrite_result: optional pre-computed RewriteResult (preflight's shared
+    # Haiku call, Phase B Task 2). Passed uniformly to both paths — _v2_search
+    # forwards it to the v2 pipeline; _v1_search absorbs it via **kwargs
+    # (no v1 equivalent).
     mode = _mode()
     if mode == "off":
-        return _v1_search(question, functional_area=functional_area, limit=limit, **kwargs)
+        return _v1_search(question, functional_area=functional_area, limit=limit,
+                          rewrite_result=rewrite_result, **kwargs)
     if mode == "on":
-        return _v2_search(question, functional_area=functional_area, limit=limit, **kwargs)
+        return _v2_search(question, functional_area=functional_area, limit=limit,
+                          rewrite_result=rewrite_result, **kwargs)
     if mode == "ab":
         if _ab_serve_v2():
-            return _v2_search(question, functional_area=functional_area, limit=limit, **kwargs)
-        return _v1_search(question, functional_area=functional_area, limit=limit, **kwargs)
+            return _v2_search(question, functional_area=functional_area, limit=limit,
+                              rewrite_result=rewrite_result, **kwargs)
+        return _v1_search(question, functional_area=functional_area, limit=limit,
+                          rewrite_result=rewrite_result, **kwargs)
     # shadow: serve v1, run v2 alongside, log both
-    v1_result = _v1_search(question, functional_area=functional_area, limit=limit, **kwargs)
+    v1_result = _v1_search(question, functional_area=functional_area, limit=limit,
+                           rewrite_result=rewrite_result, **kwargs)
     t0 = time.perf_counter()
     try:
-        v2_result = _v2_search(question, functional_area=functional_area, limit=limit, **kwargs)
+        v2_result = _v2_search(question, functional_area=functional_area, limit=limit,
+                               rewrite_result=rewrite_result, **kwargs)
         dt = int((time.perf_counter() - t0) * 1000)
         v1_keys = _extract_v1_keys(v1_result)
         _shadow_log(trace_id=kwargs.get("trace_id"), question=question,
