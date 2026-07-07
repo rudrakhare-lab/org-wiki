@@ -65,6 +65,47 @@ def _wiki_fallback(property_name: str, service: str, server: str) -> dict:
     }
 
 
+_known_names_cache: set[str] | None = None
+
+
+def known_property_names() -> set[str]:
+    """Return the set of all distinct property_name values in the config
+    catalog. Cached per-process — the catalog only changes via re-ingest +
+    restart (see CLAUDE.md §1), so no invalidation is needed."""
+    global _known_names_cache
+    if _known_names_cache is not None:
+        return _known_names_cache
+    try:
+        with db.connection() as con:
+            rows = con.execute("SELECT DISTINCT property_name FROM configs").fetchall()
+            _known_names_cache = {r["property_name"] for r in rows}
+    except Exception:
+        _known_names_cache = set()
+    return _known_names_cache
+
+
+def lookup_property(name: str) -> dict | None:
+    """Shared lookup core used by both the `config_lookup` tool and the
+    preflight config-evidence push (backend/config_evidence.py). Exact match
+    only (case-insensitive) — no fuzzy fallback, no wiki fallback; callers
+    that need those wrap this (see `_config_lookup_handler`).
+
+    Returns the same enriched dict shape as `_build_enriched`, or None if
+    the property isn't in the catalog / the DB is unavailable.
+    """
+    try:
+        with db.connection() as con:
+            row = con.execute(
+                "SELECT * FROM configs WHERE LOWER(property_name) = LOWER(%s) LIMIT 1",
+                (name,),
+            ).fetchone()
+            if row is None:
+                return None
+            return _build_enriched(con, row)
+    except Exception:
+        return None
+
+
 def _build_enriched(con, row) -> dict:
     """Build the enriched result dict from a configs row plus linked tables."""
     prop = row["property_name"]
@@ -136,6 +177,14 @@ def _config_lookup_handler(inp: dict) -> dict:
     service = inp.get("service") or ""
     server = inp.get("server") or ""
     fuzzy = inp.get("fuzzy", True)
+
+    # No service/server filter → the shared lookup_property() core (exact,
+    # case-insensitive match) covers this call exactly, so tool and preflight
+    # share one implementation. Fall through to fuzzy/wiki below on a miss.
+    if not service and not server:
+        enriched = lookup_property(property_name)
+        if enriched is not None:
+            return enriched
 
     try:
         with db.connection() as con:

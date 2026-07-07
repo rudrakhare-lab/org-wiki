@@ -89,6 +89,8 @@ class PreflightBundle:
     degradations: list = field(default_factory=list)      # visible seed notes
     # Phase B Task 2 — shared Haiku rewrite, computed once, fed to both pillars
     rewrite_result: object = None                          # RewriteResult | None
+    # Phase B Task 4 — config-KB dependency push (PMS pillar, spec §5.6)
+    config_evidence: str = ""
 
     def latest_keys(self) -> list[str]:
         return [r["key"] for r in self.seed_jira.get("buckets", {}).get("LATEST", [])]
@@ -200,6 +202,16 @@ def run_preflight(
     _hints = bundle.intent_result.retrieval_hints
     _wiki_top_n_eff = _hints.get("wiki_top_n", _PREFLIGHT_WIKI_TOP_N)
     _latest_limit_eff = _hints.get("jira_latest_limit", latest_limit)
+
+    # Phase B Task 4 — config-KB dependency push (PMS pillar, spec §5.6).
+    # Fail-open: the PMS pillar must never crash a query. Live PMS *values*
+    # remain pull-only (server/BUID disambiguation — CLAUDE.md §12); this only
+    # pushes the static catalog row + dependency chain.
+    from backend import config_evidence
+    try:
+        bundle.config_evidence = config_evidence.build_config_evidence(_search_query)
+    except Exception:
+        bundle.config_evidence = ""
 
     # Wiki search always runs — it is universal to all agents. Tries the wiki
     # v2 semantic pipeline first (default-on); falls back to the keyword
@@ -530,6 +542,10 @@ def build_seed_message(
             + "\n\n---\n\n"
         )
 
+    config_evidence_block = ""
+    if bundle.config_evidence:
+        config_evidence_block = f"{bundle.config_evidence}\n\n---\n\n"
+
     header = (
         f"{op_block}"
         f"**Question:** {question}\n"
@@ -541,6 +557,7 @@ def build_seed_message(
         f"## Pre-fetched wiki evidence (top {_wiki_evidence_count} {_wiki_evidence_label}, ~800-char excerpts)\n\n"
         f"{wiki_text}\n\n"
         f"---\n\n"
+        f"{config_evidence_block}"
     )
 
     if not agent.has_jira:
@@ -673,6 +690,10 @@ def build_agent_preamble(bundle: PreflightBundle) -> str:
             + "\n\n---\n\n"
         )
 
+    config_evidence_block = ""
+    if bundle.config_evidence:
+        config_evidence_block = f"{bundle.config_evidence}\n\n---\n\n"
+
     return (
         f"{_intent_line}"
         f"{_tool_sequence}"
@@ -691,6 +712,7 @@ def build_agent_preamble(bundle: PreflightBundle) -> str:
         "Combining all sources produces the most accurate answer.\n\n"
         f"### Wiki — top {_wiki_evidence_count} {_wiki_evidence_label} (~800-char excerpts)\n\n"
         f"{wiki_text}\n\n"
+        f"{config_evidence_block}"
         f"### Jira — ranked search results (LATEST first)\n\n"
         f"{jira_text}\n\n"
         f"{module_tagged_block}"
