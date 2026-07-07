@@ -38,3 +38,33 @@ def test_rewrite_caches_identical_questions_for_5_minutes(monkeypatch):
         rewrite.rewrite("same question?")
         rewrite.rewrite("same question?")
     assert fake.messages.create.call_count == 1
+
+
+# --- rewrite hardening — never-raise fallback, fence stripping, bounded cache ---
+from backend.retrieval.v2 import rewrite as rw
+
+
+def test_api_exception_falls_back_to_question(monkeypatch):
+    class Boom:
+        def create(self, **kw):
+            raise RuntimeError("rate limited")
+    monkeypatch.setattr(rw, "_client_messages", lambda: Boom())
+    out = rw.rewrite("why does OTP fail?")
+    assert out.sub_queries == ["why does OTP fail?"]
+    assert out.intent == "GENERAL"
+
+
+def test_fenced_json_is_parsed(monkeypatch):
+    fenced = '```json\n{"sub_queries": ["a", "b"], "intent": "DEBUGGING"}\n```'
+    monkeypatch.setattr(rw, "_raw_completion", lambda q: fenced)
+    out = rw._call_claude("q")
+    assert out.sub_queries == ["a", "b"] and out.intent == "DEBUGGING"
+
+
+def test_cache_is_bounded(monkeypatch):
+    monkeypatch.setattr(rw, "_raw_completion",
+                        lambda q: '{"sub_queries": ["x"]}')
+    rw._cache.clear()
+    for i in range(rw._CACHE_MAX + 50):
+        rw.rewrite(f"question {i}")
+    assert len(rw._cache) <= rw._CACHE_MAX

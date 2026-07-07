@@ -7,6 +7,8 @@ identical question strings to keep cost down at ~₹1 per query.
 from __future__ import annotations
 import json
 import os
+import re
+import threading
 import time
 from dataclasses import dataclass, field
 
@@ -14,6 +16,9 @@ import anthropic
 
 _MODEL = "claude-haiku-4-5-20251001"
 _CACHE_TTL = 300  # seconds
+_CACHE_MAX = 128  # bounded cache — evict oldest insertions beyond this
+_cache_lock = threading.Lock()
+_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 
 @dataclass
 class RewriteResult:
@@ -40,15 +45,24 @@ _SYSTEM = (
     "Output JSON only. No prose."
 )
 
-def _call_claude(question: str) -> RewriteResult:
-    resp = _client.messages.create(
+def _client_messages():
+    """Test seam: returns the anthropic messages API object."""
+    return _client.messages
+
+def _raw_completion(question: str) -> str:
+    """Test seam: one Haiku call, returns raw text."""
+    resp = _client_messages().create(
         model=_MODEL,
         max_tokens=600,
         system=_SYSTEM,
         messages=[{"role": "user", "content": question}],
     )
-    raw = resp.content[0].text if resp.content else ""
+    return resp.content[0].text if resp.content else ""
+
+def _call_claude(question: str) -> RewriteResult:
     try:
+        raw = _raw_completion(question)
+        raw = _FENCE_RE.sub("", raw.strip())
         data = json.loads(raw)
         return RewriteResult(
             sub_queries=list(data.get("sub_queries") or [question]) or [question],
@@ -57,13 +71,19 @@ def _call_claude(question: str) -> RewriteResult:
             intent=str(data.get("intent") or "GENERAL"),
         )
     except Exception:
+        # Any failure — API error, fence weirdness, bad JSON — degrades to a
+        # pass-through rewrite. A broken rewriter must never kill retrieval.
         return RewriteResult(sub_queries=[question])
 
 def rewrite(question: str) -> RewriteResult:
     now = time.time()
-    cached = _cache.get(question)
-    if cached and now - cached[0] < _CACHE_TTL:
-        return cached[1]
+    with _cache_lock:
+        cached = _cache.get(question)
+        if cached and now - cached[0] < _CACHE_TTL:
+            return cached[1]
     result = _call_claude(question)
-    _cache[question] = (now, result)
+    with _cache_lock:
+        _cache[question] = (now, result)
+        while len(_cache) > _CACHE_MAX:
+            _cache.pop(next(iter(_cache)))  # evict oldest insertion
     return result
