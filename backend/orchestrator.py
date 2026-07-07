@@ -664,7 +664,11 @@ def _honest_sources(report, raw_answer: str, config_evidence: str = "") -> "Sour
     wiki = [c for c in report.cited_ok if c.endswith(".md") or "#" in c]
     jira = [c for c in report.cited_ok if _JIRA_KEY_RE.match(c)]
     ce = config_evidence or ""
-    pms = [c for c in _extract_pms_configs(raw_answer) if c in ce]
+    # Backtick-delimited match: config_evidence renders every property name as
+    # `name` (config_evidence._fmt), so requiring the backticks avoids a
+    # camelCase-prefix false positive (e.g. `roomBooking` spuriously "grounded"
+    # by `roomBookingBuffer`).
+    pms = [c for c in _extract_pms_configs(raw_answer) if f"`{c}`" in ce]
     return SourceInfo(wiki_pages=wiki, jira_keys=jira, pms_configs=pms)
 
 

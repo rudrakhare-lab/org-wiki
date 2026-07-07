@@ -111,3 +111,15 @@ def test_honest_sources_no_pms_when_no_config_evidence():
     src = _honest_sources(CitationReport(cited_ok=[]),
                           "mentions `roomBookingBuffer`", config_evidence="")
     assert src.pms_configs == []   # nothing retrieved from the config KB
+
+
+def test_honest_sources_pms_no_camelcase_prefix_false_positive():
+    """A shorter camelCase token that is only a PREFIX of a retrieved config
+    must not be spuriously grounded (backtick-delimited match)."""
+    from backend.orchestrator import _honest_sources
+    from backend.citation_check import CitationReport
+    # answer cites `roomBooking`; config_evidence only has `roomBookingBuffer`
+    src = _honest_sources(CitationReport(cited_ok=[]),
+                          "check `roomBooking` behavior",
+                          config_evidence="- `roomBookingBuffer` — desc")
+    assert src.pms_configs == []   # prefix ≠ grounded
