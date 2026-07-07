@@ -24,6 +24,10 @@ from backend import jira_retriever, trace_store, wiki_graph, wiki_retriever
 from backend.tools import build_registry
 from backend.tools.registry import ToolRegistry, ToolTraceEntry
 from backend.intent_classifier import classify_intent, IntentResult, QueryIntent
+from backend.retrieval.wiki_v2 import pipeline as _wiki_v2
+from backend.retrieval.wiki_v2.pipeline import WikiV2Unavailable
+
+_wiki_v2_search = _wiki_v2.search  # test seam
 
 _PREFLIGHT_LATEST_LIMIT = 2     # auto-fetch top N LATEST tickets
 _PREFLIGHT_WIKI_TOP_N = 3       # number of wiki pages to seed
@@ -80,6 +84,8 @@ class PreflightBundle:
     module_tagged_jira: list[dict] = field(default_factory=list)
     related_module_jira: list[dict] = field(default_factory=list)
     intent_result: "IntentResult | None" = field(default=None)
+    seed_wiki_chunks: list = field(default_factory=list)  # list[ChunkHit] (wiki v2 path)
+    degradations: list = field(default_factory=list)      # visible seed notes
 
     def latest_keys(self) -> list[str]:
         return [r["key"] for r in self.seed_jira.get("buckets", {}).get("LATEST", [])]
@@ -95,6 +101,36 @@ class PreflightBundle:
             "related_module_count": len(self.related_module_jira),
             "keywords": self.seed_jira.get("keywords", []),
         }
+
+
+def _fetch_seed_wiki(question: str, top_n: int, intent: str, rewrite):
+    """Returns (pages, chunk_hits, degradation_note). Exactly one of
+    pages/chunk_hits is populated. Fail-open: v2 failure → keyword path."""
+    if _wiki_v2.wiki_v2_enabled():
+        try:
+            hits = _wiki_v2_search(
+                question,
+                sub_queries=getattr(rewrite, "sub_queries", None),
+                expansions=getattr(rewrite, "expansions", None),
+                intent=intent, top_k=top_n * 3)
+            return [], hits, None
+        except WikiV2Unavailable as exc:
+            note = (f"wiki semantic search unavailable ({exc}) — "
+                    f"fell back to keyword search; results may be less complete.")
+            return wiki_retriever.search(question, top_n=top_n), [], note
+    return wiki_retriever.search(question, top_n=top_n), [], None
+
+
+def format_wiki_chunks_for_seed(hits) -> str:
+    if not hits:
+        return "No relevant wiki sections found in preflight."
+    parts = []
+    for h in hits:
+        head = f"### `{h.anchor}` — {h.section_title or h.page_path}"
+        if h.related_via:
+            head += f"\n_(related via: {h.related_via})_"
+        parts.append(f"{head}\n\n{h.chunk_text}")
+    return "\n\n---\n\n".join(parts)
 
 
 # ── Preflight runner ────────────────────────────────────────────────────────
@@ -131,14 +167,26 @@ def run_preflight(
     _wiki_top_n_eff = _hints.get("wiki_top_n", _PREFLIGHT_WIKI_TOP_N)
     _latest_limit_eff = _hints.get("jira_latest_limit", latest_limit)
 
-    # Wiki search always runs — it is universal to all agents.
+    # Wiki search always runs — it is universal to all agents. Tries the wiki
+    # v2 semantic pipeline first (default-on); falls back to the keyword
+    # index (with a visible degradation note) when v2 is off or unavailable.
     _t = time.perf_counter()
-    bundle.seed_wiki = wiki_retriever.search(_search_query, top_n=_wiki_top_n_eff)
+    _pages, _chunk_hits, _degradation_note = _fetch_seed_wiki(
+        _search_query, _wiki_top_n_eff,
+        intent=bundle.intent_result.intent.value if bundle.intent_result else "GENERAL",
+        rewrite=None)  # Phase B passes the shared RewriteResult here
+    bundle.seed_wiki = _pages
+    bundle.seed_wiki_chunks = _chunk_hits
+    if _degradation_note:
+        bundle.degradations.append(_degradation_note)
     trace_store.record_event(
         trace_id, "preflight", "preflight_wiki",
         duration_ms=int((time.perf_counter() - _t) * 1000), round_num=0,
-        metadata={"results_count": len(bundle.seed_wiki),
-                  "top_paths": [p.path for p in bundle.seed_wiki[:3]]})
+        metadata={"results_count": len(bundle.seed_wiki) + len(bundle.seed_wiki_chunks),
+                  "engine": "v2" if bundle.seed_wiki_chunks else
+                            ("keyword-fallback" if _degradation_note else "keyword"),
+                  "top_paths": [p.path for p in bundle.seed_wiki[:3]] or
+                               [h.page_path for h in bundle.seed_wiki_chunks[:3]]})
 
     if agent.has_jira:
         _t = time.perf_counter()
@@ -164,10 +212,20 @@ def run_preflight(
         # query-filtered, and (b) related-module tickets via depends_on + used_by
         # (one hop). Dedup: direct wins over related. Total capped at 25.
         seen_modules: set[str] = set()
-        for page in bundle.seed_wiki:
-            if not page.path.startswith("modules/"):
+        # Module-page paths come from whichever seed path actually served:
+        # keyword path populates seed_wiki (Page objects), wiki v2 populates
+        # seed_wiki_chunks (ChunkHit objects) — union both so the downstream
+        # module-tagged/related-module ticket fetch works on either path.
+        _module_page_paths = [p.path for p in bundle.seed_wiki]
+        _module_page_paths += [h.page_path for h in bundle.seed_wiki_chunks]
+        _seen_module_pages: set[str] = set()
+        for page_path in _module_page_paths:
+            if page_path in _seen_module_pages:
                 continue
-            module_slug = extract_slug_from_path(page.path)
+            _seen_module_pages.add(page_path)
+            if not page_path.startswith("modules/"):
+                continue
+            module_slug = extract_slug_from_path(page_path)
             if module_slug in seen_modules:
                 continue
             seen_modules.add(module_slug)
@@ -186,7 +244,7 @@ def run_preflight(
             # `depends_on: [module_slug]` elsewhere also surfaces here. The
             # existing dedup/cap logic below still bounds the fan-out.
             related_edges = wiki_graph.get_graph().neighbors(
-                page.path, types=("depends_on", "used_by"))
+                page_path, types=("depends_on", "used_by"))
             for related_path, _edge_type in related_edges:
                 related_slug = extract_slug_from_path(related_path)
                 if related_slug in seen_modules:
@@ -412,13 +470,28 @@ def build_seed_message(
             "**Prior conversation summary** (older turns compacted):\n\n"
             f"{summary.strip()}\n\n"
         )
-    wiki_text = format_wiki_for_seed(bundle.seed_wiki)
+    if bundle.seed_wiki_chunks:
+        wiki_text = format_wiki_chunks_for_seed(bundle.seed_wiki_chunks)
+        _wiki_evidence_count = len(bundle.seed_wiki_chunks)
+        _wiki_evidence_label = "sections"
+    else:
+        wiki_text = format_wiki_for_seed(bundle.seed_wiki)
+        _wiki_evidence_count = len(bundle.seed_wiki)
+        _wiki_evidence_label = "pages"
     _intent_line = ""
     if bundle.intent_result and bundle.intent_result.intent != QueryIntent.GENERAL:
         ir = bundle.intent_result
         _intent_line = (
             f"**Intent:** {ir.intent.value} (conf: {ir.confidence:.2f})"
             f" | query: \"{ir.rewritten_query}\"\n"
+        )
+
+    degradation_block = ""
+    if bundle.degradations:
+        degradation_block = (
+            "## Degradation notes\n\n"
+            + "\n".join(f"- ⚠️ {d}" for d in bundle.degradations)
+            + "\n\n---\n\n"
         )
 
     header = (
@@ -428,7 +501,8 @@ def build_seed_message(
         f"{_intent_line}\n"
         f"{summary_block}"
         f"---\n\n"
-        f"## Pre-fetched wiki evidence (top {len(bundle.seed_wiki)} pages, ~800-char excerpts)\n\n"
+        f"{degradation_block}"
+        f"## Pre-fetched wiki evidence (top {_wiki_evidence_count} {_wiki_evidence_label}, ~800-char excerpts)\n\n"
         f"{wiki_text}\n\n"
         f"---\n\n"
     )
@@ -528,7 +602,14 @@ _INTENT_TOOL_SEQUENCES: dict[QueryIntent, str] = {
 
 def build_agent_preamble(bundle: PreflightBundle) -> str:
     """Block prepended to the user's question for Claude Code agent mode."""
-    wiki_text = format_wiki_for_seed(bundle.seed_wiki)
+    if bundle.seed_wiki_chunks:
+        wiki_text = format_wiki_chunks_for_seed(bundle.seed_wiki_chunks)
+        _wiki_evidence_count = len(bundle.seed_wiki_chunks)
+        _wiki_evidence_label = "sections"
+    else:
+        wiki_text = format_wiki_for_seed(bundle.seed_wiki)
+        _wiki_evidence_count = len(bundle.seed_wiki)
+        _wiki_evidence_label = "pages"
     jira_text = format_jira_buckets_for_seed(bundle.seed_jira)
     tickets_text = format_preflight_tickets(bundle.preflight_tickets)
     module_tagged_text  = format_module_tagged_for_seed(bundle.module_tagged_jira)
@@ -548,9 +629,18 @@ def build_agent_preamble(bundle: PreflightBundle) -> str:
         if seq:
             _tool_sequence = f"{seq}\n\n"
 
+    degradation_block = ""
+    if bundle.degradations:
+        degradation_block = (
+            "## Degradation notes\n\n"
+            + "\n".join(f"- ⚠️ {d}" for d in bundle.degradations)
+            + "\n\n---\n\n"
+        )
+
     return (
         f"{_intent_line}"
         f"{_tool_sequence}"
+        f"{degradation_block}"
         "## Pre-fetched evidence from Conwo backend\n\n"
         "The Conwo backend has already searched the wiki and Jira mirror and "
         "fetched the most relevant LATEST ticket bodies. Use this as your "
@@ -563,7 +653,7 @@ def build_agent_preamble(bundle: PreflightBundle) -> str:
         "Jira tickets (operational history + recent changes), "
         "PMS live (actual runtime values, only if BUID given). "
         "Combining all sources produces the most accurate answer.\n\n"
-        f"### Wiki — top {len(bundle.seed_wiki)} pages (~800-char excerpts)\n\n"
+        f"### Wiki — top {_wiki_evidence_count} {_wiki_evidence_label} (~800-char excerpts)\n\n"
         f"{wiki_text}\n\n"
         f"### Jira — ranked search results (LATEST first)\n\n"
         f"{jira_text}\n\n"

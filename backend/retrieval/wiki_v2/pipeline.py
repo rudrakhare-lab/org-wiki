@@ -44,6 +44,12 @@ TYPE_BOOSTS: dict[str, dict[str, float]] = {
 }
 
 
+def wiki_v2_enabled() -> bool:
+    # Default ON in code (no devops env change needed); env var is the ops
+    # kill switch — CONWO_WIKI_RETRIEVAL_V2=off reverts to the keyword index.
+    return os.getenv("CONWO_WIKI_RETRIEVAL_V2", "on").lower() == "on"
+
+
 class WikiV2Unavailable(Exception):
     """Wiki v2 cannot serve (embed API down / chunks not backfilled)."""
 

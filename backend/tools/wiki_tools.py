@@ -94,6 +94,21 @@ def _wiki_search_handler(inp: dict) -> dict:
     if not query:
         return {"error": "query is required", "code": "missing_input"}
     top_n = min(int(inp.get("top_n", 5)), 10)
+
+    from backend.retrieval.wiki_v2 import pipeline as _wv2
+    if _wv2.wiki_v2_enabled():
+        try:
+            hits = _wv2.search(query, top_k=top_n)
+            return {"results": [{
+                "path": h.page_path, "anchor": h.anchor,
+                "section": h.section_title, "type": h.page_type,
+                "excerpt": h.chunk_text[:300],
+                "related_via": h.related_via,
+                "score": round(h.score, 4),
+            } for h in hits], "engine": "v2"}
+        except _wv2.WikiV2Unavailable:
+            pass  # fall through to keyword engine
+
     pages = wiki_retriever.search(query, top_n=top_n)
     return {
         "results": [
@@ -105,6 +120,7 @@ def _wiki_search_handler(inp: dict) -> dict:
             for p in pages
         ],
         "total": len(pages),
+        "engine": "keyword-fallback",
     }
 
 
