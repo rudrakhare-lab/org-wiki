@@ -64,6 +64,11 @@ def pages_needing_embed(disk: dict[str, str], hashes: dict[str, str],
     return [p for p, text in disk.items() if hashes.get(p) != page_hash(text)]
 
 
+def nonempty_chunks(chunks: list[Chunk]) -> list[Chunk]:
+    """Drop chunks whose text is empty or whitespace-only — never embed them."""
+    return [c for c in chunks if c.chunk_text.strip()]
+
+
 def embed_chunks(chunks: list[Chunk]) -> list[list[float]]:
     texts = [c.embed_text for c in chunks]
     vecs: list[list[float]] = []
@@ -107,7 +112,7 @@ def run(mode: str, agent_id: str, wiki_dir: Path) -> int:
             chunks = split_page(path, text,
                                 page_type=page_type_from_path(path),
                                 last_updated=_frontmatter_last_updated(text))
-            chunks = [c for c in chunks if c.chunk_text.strip()]
+            chunks = nonempty_chunks(chunks)
             if not chunks:
                 continue
             t0 = time.perf_counter()
