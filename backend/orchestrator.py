@@ -304,7 +304,8 @@ def run_deep(
     confidence = _extract_confidence(raw_answer)
     raw_answer, confidence, _cite_report = _verify_and_gate(
         raw_answer, confidence, bundle, deep_result.tool_trace)
-    sources = _honest_sources(_cite_report, raw_answer)
+    sources = _honest_sources(_cite_report, raw_answer,
+                              getattr(bundle, "config_evidence", ""))
     cited_wiki = sources.wiki_pages
     cited_jira = sources.jira_keys
     cited_pms = sources.pms_configs
@@ -327,7 +328,9 @@ def run_deep(
         retrieval_notes=(
             f"deep_search rounds={deep_result.rounds_used} "
             f"tools={len(deep_result.tool_trace)} "
-            f"preflight_tickets={pf_stats['tickets_prefetched']} server={server}"
+            f"preflight_tickets={pf_stats['tickets_prefetched']} server={server} "
+            f"cited_ok={len(_cite_report.cited_ok)} "
+            f"cited_unverified={len(_cite_report.cited_unverified)}"
         ),
         answer_id=answer_id,
         created_at=created_at,
@@ -650,14 +653,19 @@ def _verify_and_gate(raw_answer: str, confidence: str, bundle,
     return raw_answer, confidence, report
 
 
-def _honest_sources(report, raw_answer: str) -> "SourceInfo":
+def _honest_sources(report, raw_answer: str, config_evidence: str = "") -> "SourceInfo":
     """Sources derived from what the answer actually cited AND was retrieved
-    (report.cited_ok) — not a greedy scrape or a raw bucket dump. PMS configs
-    still come from the (now camelCase-tightened) answer scan."""
+    (report.cited_ok for wiki/Jira) — not a greedy scrape or a raw bucket dump.
+
+    PMS configs are grounded too: a config name is reported only when it both
+    appears in the answer AND was surfaced in the preflight `config_evidence`
+    block (spec §5.9). A well-formed but never-retrieved camelCase token is
+    therefore NOT promoted to a source."""
     wiki = [c for c in report.cited_ok if c.endswith(".md") or "#" in c]
     jira = [c for c in report.cited_ok if _JIRA_KEY_RE.match(c)]
-    return SourceInfo(wiki_pages=wiki, jira_keys=jira,
-                      pms_configs=_extract_pms_configs(raw_answer))
+    ce = config_evidence or ""
+    pms = [c for c in _extract_pms_configs(raw_answer) if c in ce]
+    return SourceInfo(wiki_pages=wiki, jira_keys=jira, pms_configs=pms)
 
 
 def _row_summary(row: dict) -> dict:

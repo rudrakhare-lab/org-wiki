@@ -89,3 +89,25 @@ def test_extract_pms_configs_rejects_lowercase_words():
     assert "roomBookingBuffer" in out
     assert "VISITOR:kioskRequireOTP" in out
     assert "description" not in out and "conversation" not in out
+
+
+def test_honest_sources_pms_grounded_in_config_evidence():
+    """A camelCase token in the answer is a PMS source ONLY if it was actually
+    surfaced in the preflight config_evidence block — a hallucinated but
+    well-formed token is not promoted (spec §5.9 honesty guarantee)."""
+    from backend.orchestrator import _honest_sources
+    from backend.citation_check import CitationReport
+    rep = CitationReport(cited_ok=[])
+    answer = "Set `roomBookingBuffer` and also `fakeConfigName` to fix this."
+    config_evidence = "## Config properties detected\n- `roomBookingBuffer` — ..."
+    src = _honest_sources(rep, answer, config_evidence)
+    assert src.pms_configs == ["roomBookingBuffer"]        # grounded, kept
+    assert "fakeConfigName" not in src.pms_configs          # never retrieved, dropped
+
+
+def test_honest_sources_no_pms_when_no_config_evidence():
+    from backend.orchestrator import _honest_sources
+    from backend.citation_check import CitationReport
+    src = _honest_sources(CitationReport(cited_ok=[]),
+                          "mentions `roomBookingBuffer`", config_evidence="")
+    assert src.pms_configs == []   # nothing retrieved from the config KB
