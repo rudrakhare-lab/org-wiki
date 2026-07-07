@@ -12,6 +12,7 @@ import re
 from fastapi import APIRouter
 
 from backend import agent_context, db
+from backend import wiki_graph as _wiki_graph_module
 
 router = APIRouter(prefix="/api/wiki")
 
@@ -191,16 +192,32 @@ async def wiki_graph(include_configs: bool = False) -> dict:
     links: list[dict] = []
     degree: dict[str, int] = {k: 0 for k in nodes}
 
-    def _add(a: str, b: str | None) -> None:
+    def _add(a: str, b: str | None, edge_type: str | None = None) -> None:
         if not b or a == b:
             return
         key = (min(a, b), max(a, b))
         if key in seen:
             return
         seen.add(key)
-        links.append({"source": a, "target": b})
+        link: dict = {"source": a, "target": b}
+        if edge_type:
+            link["type"] = edge_type
+        links.append(link)
         degree[a] = degree.get(a, 0) + 1
         degree[b] = degree.get(b, 0) + 1
+
+    # ── wiki_graph layer (typed curated/structural edges) ────────────────────
+    # Added first so it claims each undirected pair before the looser
+    # frontmatter/wikilink extraction below runs — this is what makes the
+    # endpoint an actual consumer of wiki_graph (spec §5.3) without dropping
+    # any existing edge source. wiki_graph's Edge.src/dst carry a `.md`
+    # suffix; this endpoint's node ids never do (see `_get_page_tolerant_of_missing_md`
+    # test in tests/test_agent_scoping.py), so strip it before matching nodes.
+    for e in _wiki_graph_module.get_graph().edges:
+        src = e.src.removesuffix(".md")
+        dst = e.dst.removesuffix(".md")
+        if src in nodes and dst in nodes:
+            _add(src, dst, e.type)
 
     for node_id, text in texts.items():
         for raw in _extract_links(text) + _frontmatter_refs(text) + _frontmatter_relation_values(text):

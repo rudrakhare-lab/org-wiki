@@ -20,7 +20,7 @@ import json
 import time
 from dataclasses import dataclass, field
 
-from backend import jira_retriever, trace_store, wiki_retriever
+from backend import jira_retriever, trace_store, wiki_graph, wiki_retriever
 from backend.tools import build_registry
 from backend.tools.registry import ToolRegistry, ToolTraceEntry
 from backend.intent_classifier import classify_intent, IntentResult, QueryIntent
@@ -180,8 +180,15 @@ def run_preflight(
                 t["_preflight_module"] = module_slug
             bundle.module_tagged_jira.extend(direct)
 
-            deps = extract_module_dependencies(page)
-            for related_slug in deps["depends_on"] + deps["used_by"]:
+            # Related modules now come from wiki_graph (spec §5.3) instead of
+            # reading only this page's own depends_on/used_by frontmatter —
+            # neighbors() is bidirectional, so a module declaring
+            # `depends_on: [module_slug]` elsewhere also surfaces here. The
+            # existing dedup/cap logic below still bounds the fan-out.
+            related_edges = wiki_graph.get_graph().neighbors(
+                page.path, types=("depends_on", "used_by"))
+            for related_path, _edge_type in related_edges:
+                related_slug = extract_slug_from_path(related_path)
                 if related_slug in seen_modules:
                     continue
                 if len(bundle.related_module_jira) >= _PREFLIGHT_RELATED_TOTAL_CAP:

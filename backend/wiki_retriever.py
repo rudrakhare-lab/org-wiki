@@ -165,6 +165,10 @@ class WikiIndex:
         with self._lock:
             return list(self._pages.keys())
 
+    def pages(self) -> dict[str, WikiPage]:
+        with self._lock:
+            return dict(self._pages)
+
     @property
     def page_count(self) -> int:
         with self._lock:
@@ -257,6 +261,8 @@ def build_index(agent_id: str | None = None, wiki_dir: Path | None = None) -> Wi
     idx.build(wiki_dir)
     with _indices_lock:
         _INDICES[aid] = idx
+    from backend import wiki_graph as _wg
+    _wg.invalidate(aid)
     return idx
 
 
