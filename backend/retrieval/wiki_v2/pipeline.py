@@ -6,6 +6,7 @@ chunk table) — the caller (preflight / wiki_search tool) falls back to the
 keyword path and notes the degradation. Never crash a query from here.
 """
 from __future__ import annotations
+import logging
 import os
 import re
 from dataclasses import dataclass
@@ -14,6 +15,8 @@ from backend.db import connection as _connection
 from backend.retrieval.v2.embed import embed_query
 from backend.retrieval.v2.rerank import score as rerank_score
 from backend.retrieval.wiki_v2.search import hybrid_chunks
+
+_log = logging.getLogger("wiki_v2")
 
 NEIGHBOR_CAP = 6
 EXPAND_DEPTH = {"ARCHITECTURAL": 2}  # every other intent: 1
@@ -115,26 +118,39 @@ def search(question: str, *, sub_queries: list[str] | None = None,
                                     "(backfill pending?)")
 
         # ── Graph expansion (the leash: depth, priority, cap, tags) ──────
-        depth = EXPAND_DEPTH.get(intent, 1)
-        graph = _graph_for(aid)
-        hit_pages = list(dict.fromkeys(r["page_path"] for r in direct[:10]))
+        # Fail-open: expansion is best-effort. Direct hits already succeeded,
+        # so any error here (graph build, neighbor lookup, chunk fetch)
+        # degrades to direct-only — never crash the query, never fall all
+        # the way back to the keyword path.
         expanded: dict[str, tuple[dict, str]] = {}
-        frontier = hit_pages
-        for _hop in range(depth):
-            nxt: list[str] = []
-            for page in frontier:
-                for npath, etype in graph.neighbors(page, limit=NEIGHBOR_CAP):
-                    if npath in hit_pages or npath in expanded:
-                        continue
-                    if len(expanded) >= NEIGHBOR_CAP:
-                        break
-                    row = _best_chunk_for_page(conn, aid, npath, q_vecs[0])
-                    if row:
-                        expanded[npath] = (row, f"{page} —{etype}→ {npath}")
-                        nxt.append(npath)
-            frontier = nxt
-            if len(expanded) >= NEIGHBOR_CAP:
-                break
+        try:
+            depth = EXPAND_DEPTH.get(intent, 1)
+            graph = _graph_for(aid)
+            # Frontier: top-10 direct pages. Exclusion: EVERY direct page —
+            # a page already in direct results must never reappear tagged
+            # as an expanded hit (direct wins).
+            hit_pages = list(dict.fromkeys(r["page_path"] for r in direct[:10]))
+            direct_pages = {r["page_path"] for r in direct}
+            frontier = hit_pages
+            for _hop in range(depth):
+                nxt: list[str] = []
+                for page in frontier:
+                    for npath, etype in graph.neighbors(page, limit=NEIGHBOR_CAP):
+                        if npath in direct_pages or npath in expanded:
+                            continue
+                        if len(expanded) >= NEIGHBOR_CAP:
+                            break
+                        row = _best_chunk_for_page(conn, aid, npath, q_vecs[0])
+                        if row:
+                            expanded[npath] = (row, f"{page} —{etype}→ {npath}")
+                            nxt.append(npath)
+                frontier = nxt
+                if len(expanded) >= NEIGHBOR_CAP:
+                    break
+        except Exception:
+            _log.warning("graph expansion failed; degrading to direct-only "
+                         "(%d expanded pages kept)", len(expanded),
+                         exc_info=True)
 
     # ── Rerank direct + expanded together ─────────────────────────────────
     tagged: list[tuple[dict, str | None]] = [(r, None) for r in direct]

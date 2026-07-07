@@ -117,6 +117,30 @@ def test_embed_failure_raises_unavailable(wired, monkeypatch):
         wp.search("q", agent_id="conwo")
 
 
+def test_direct_page_never_duplicated_as_expanded(wired):
+    # Page B sits at direct rank 11 — outside the top-10 expansion frontier
+    # but inside the merged direct results. It is also a neighbor of the
+    # top-ranked page. It must appear exactly once, as a DIRECT hit.
+    direct = [_chunk_row(f"modules/d{i}.md") for i in range(10)]
+    b = _chunk_row("modules/b.md")
+    wired["hybrid"] = direct + [b]  # b at rank 11
+    wired["neighbors"] = [("modules/b.md", "wikilink")]
+    wired["best_chunks"] = {"modules/b.md": _chunk_row("modules/b.md")}
+    hits = wp.search("q", agent_id="conwo", top_k=50)
+    b_hits = [h for h in hits if h.page_path == "modules/b.md"]
+    assert len(b_hits) == 1
+    assert b_hits[0].related_via is None
+
+
+def test_expansion_failure_degrades_to_direct_only(wired, monkeypatch):
+    def boom(aid):
+        raise RuntimeError("graph build failed")
+    monkeypatch.setattr(wp, "_graph_for", boom)
+    hits = wp.search("q", agent_id="conwo")
+    assert hits  # direct hits still served, no exception raised
+    assert all(h.related_via is None for h in hits)
+
+
 def test_anchor_property():
     h = wp.ChunkHit(page_path="modules/a.md", section_anchor="overview",
                     section_title="Overview", page_type="module",
