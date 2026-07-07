@@ -33,6 +33,41 @@ def test_over_budget_evicts_wiki_related_first_protects_config():
     assert "## Trimmed (fetch on demand)" in text
 
 
+def test_jira_protected_wiki_fully_drained_before_any_jira_evicted():
+    """The hard requirement: for CONFIGURATION, no jira_* item may be evicted
+    while any non-KEEP_MIN wiki item still survives. Fixture is sized so wiki
+    alone CANNOT get under budget (both wiki blocks drained to KEEP_MIN still
+    leave the total over), forcing eviction to reach jira — and asserting it
+    only reaches jira_latest, never before wiki is exhausted, and never
+    config_evidence."""
+    blocks = [
+        _block("wiki_related", 8, chars_per=2000),   # 8 → drains to 3
+        _block("wiki_direct", 8, chars_per=2000),    # 8 → drains to 3
+        _block("jira_latest", 8, chars_per=2000),
+        # config_evidence is atomic (evictable=[]) in production — model that.
+        sb.SeedBlock("config_evidence", 0, "c" * 8000, []),
+    ]
+    _, trimmed = sb.apply_budget(blocks, "CONFIGURATION")
+    evicted = [t.split(" — ")[0] for t in trimmed]
+    # config never evicted
+    assert not any(e.startswith("config_evidence") for e in evicted)
+    # if any jira_latest was evicted, BOTH wiki blocks must be fully drained to
+    # KEEP_MIN first (5 evicted each = 8 - 3)
+    if any(e.startswith("jira_latest") for e in evicted):
+        assert sum(e.startswith("wiki_related") for e in evicted) == 8 - sb.KEEP_MIN
+        assert sum(e.startswith("wiki_direct") for e in evicted) == 8 - sb.KEEP_MIN
+
+
+def test_eviction_leaves_no_orphaned_separators():
+    """Regression: eviction rebuilds block text from survivors (rerender), so
+    the rendered seed must never contain doubled `\\n\\n---\\n\\n` runs."""
+    import re
+    blocks = [_block("wiki_related", 40, chars_per=1000)]
+    text, trimmed = sb.apply_budget(blocks, "GENERAL")
+    assert trimmed  # eviction happened
+    assert not re.search(r"(?:\n\n---\n\n){2,}", text), "orphaned separator run"
+
+
 def test_trim_note_lists_every_evicted_id_with_fetch_hint():
     blocks = [_block("wiki_related", 40)]
     text, trimmed = sb.apply_budget(blocks, "GENERAL")

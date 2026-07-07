@@ -511,17 +511,19 @@ def _seed_evidence_blocks(bundle: "PreflightBundle", has_jira: bool) -> list:
         direct = [h for h in bundle.seed_wiki_chunks if not h.related_via]
         related = [h for h in bundle.seed_wiki_chunks if h.related_via]
         if direct:
+            _hdr = "## Pre-fetched wiki evidence\n\n"
+            _items = [(h.anchor, _render_chunk_for_seed(h), "wiki_read_page") for h in direct]
             blocks.append(seed_budget.SeedBlock(
                 "wiki_direct", 0,
-                "## Pre-fetched wiki evidence\n\n"
-                + "\n\n---\n\n".join(_render_chunk_for_seed(h) for h in direct),
-                [(h.anchor, _render_chunk_for_seed(h), "wiki_read_page") for h in direct]))
+                _hdr + seed_budget._SEP.join(t for _, t, _ in _items),
+                _items, header=_hdr))
         if related:
+            _hdr = "## Related wiki sections\n\n"
+            _items = [(h.anchor, _render_chunk_for_seed(h), "wiki_read_page") for h in related]
             blocks.append(seed_budget.SeedBlock(
                 "wiki_related", 0,
-                "## Related wiki sections\n\n"
-                + "\n\n---\n\n".join(_render_chunk_for_seed(h) for h in related),
-                [(h.anchor, _render_chunk_for_seed(h), "wiki_read_page") for h in related]))
+                _hdr + seed_budget._SEP.join(t for _, t, _ in _items),
+                _items, header=_hdr))
     elif bundle.seed_wiki:
         # Keyword-fallback pages: kept whole (non-evictable) — a degraded path
         # already, not worth per-page shedding logic.
@@ -548,22 +550,22 @@ def _seed_evidence_blocks(bundle: "PreflightBundle", has_jira: bool) -> list:
                   for r in latest_rows]
     latest_items = body_items + line_items
     if latest_items:
+        _hdr = "## Pre-fetched Jira LATEST\n\n"
         blocks.append(seed_budget.SeedBlock(
             "jira_latest", 0,
-            "## Pre-fetched Jira LATEST\n\n"
-            + "\n\n---\n\n".join(txt for _, txt, _ in latest_items),
-            latest_items))
+            _hdr + seed_budget._SEP.join(txt for _, txt, _ in latest_items),
+            latest_items, header=_hdr))
 
     # ── Jira HISTORICAL + STALE-OPEN ──────────────────────────────────────
     hist_rows = buckets.get("HISTORICAL", []) + buckets.get("STALE-OPEN", [])
     hist_items = [(r.get("key"), _render_bucket_line(r), "jira_get_ticket")
                   for r in hist_rows]
     if hist_items:
+        _hdr = "## Pre-fetched Jira HISTORICAL / STALE\n\n"
         blocks.append(seed_budget.SeedBlock(
             "jira_historical", 0,
-            "## Pre-fetched Jira HISTORICAL / STALE\n\n"
-            + "\n".join(txt for _, txt, _ in hist_items),
-            hist_items))
+            _hdr + "\n".join(txt for _, txt, _ in hist_items),
+            hist_items, header=_hdr, item_sep="\n"))
 
     # ── Module-tagged / related-module (non-evictable — small, high-signal) ─
     mt = format_module_tagged_for_seed(bundle.module_tagged_jira)

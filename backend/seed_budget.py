@@ -29,6 +29,9 @@ _DEFAULT_ORDER = ["wiki_related", "jira_historical", "wiki_direct",
                   "jira_latest", "config_evidence"]
 
 
+_SEP = "\n\n---\n\n"  # separator between items within a block
+
+
 def est_tokens(text: str) -> int:
     return len(text) // 4
 
@@ -42,6 +45,20 @@ class SeedBlock:
     # (best first). Eviction pops from the END — the first KEEP_MIN items of
     # a block are never evicted.
     evictable: list[tuple[str, str, str]] = field(default_factory=list)
+    # Prefix (e.g. "## Section\n\n") kept when the block's text is rebuilt from
+    # surviving items after eviction. Empty for atomic (evictable=[]) blocks,
+    # whose `text` is used verbatim and never rebuilt.
+    header: str = ""
+    # Separator used BOTH for the initial join and the post-eviction rebuild —
+    # must match how the caller built `text` so rerender is byte-consistent.
+    item_sep: str = _SEP
+
+    def rerender(self) -> None:
+        """Rebuild `text` from the surviving evictable items — rejoining with
+        `item_sep` so eviction never leaves an orphaned separator. No-op for
+        atomic blocks (no evictable items)."""
+        if self.evictable:
+            self.text = self.header + self.item_sep.join(t for _, t, _ in self.evictable)
 
 
 def apply_budget(blocks: list[SeedBlock], intent: str) -> tuple[str, list[str]]:
@@ -71,8 +88,8 @@ def apply_budget(blocks: list[SeedBlock], intent: str) -> tuple[str, list[str]]:
             # evict from the bottom (lowest-ranked last items), keep top KEEP_MIN
             while (total > SEED_BUDGET_TOKENS
                    and len(blk.evictable) > KEEP_MIN):
-                item_id, item_text, hint = blk.evictable.pop()
-                blk.text = blk.text.replace(item_text, "", 1).strip()
+                item_id, _item_text, hint = blk.evictable.pop()
+                blk.rerender()  # rebuild from survivors — no orphaned separators
                 trimmed.append(f"{item_id} — fetch via {hint}")
                 total = sum(est_tokens(b.text) for b in blocks)
 
