@@ -7,6 +7,7 @@ from backend.retrieval.v2.embed import embed_query
 from backend.retrieval.v2.hybrid import hybrid_search
 from backend.retrieval.v2.links import expand as expand_links
 from backend.retrieval.v2.rerank import score as rerank_score
+from backend.retrieval.v2.blend import blend_scores
 from backend.retrieval.v2.rewrite import rewrite, RewriteResult
 from backend.retrieval.v2.gate import apply as gate_apply, RetrievalResult
 
@@ -46,6 +47,7 @@ def search(question: str, *, functional_area: str | None = None,
             return gate_apply([])
         candidates = expand_links(conn, candidates)
         scored = rerank_score(question, candidates)
+        scored = blend_scores(scored)          # A1: fold recency+fusion into ranking
         return gate_apply(scored)
 
 

@@ -74,14 +74,16 @@ def apply(scored: list[tuple[dict, float]]) -> RetrievalResult:
             message="I couldn't find any matching tickets.",
             diagnostics={"top_score": None, "candidate_count": 0},
         )
-    top_score = scored[0][1]
+    top_blend = scored[0][1]
+    top_rerank = float(scored[0][0].get("reranker_score", top_blend))
     diag = {
-        "top_score": top_score,
+        "top_score": top_blend,
+        "top_reranker_score": top_rerank,
         "candidate_count": len(scored),
         "bucket_counts": timeline.bucket_counts(c for c, _ in scored),
     }
 
-    if top_score < abstain_t:
+    if top_rerank < abstain_t:
         keys = [c["key"] for c, _ in scored[:5]]
         return RetrievalResult(
             tickets=[],
@@ -95,7 +97,9 @@ def apply(scored: list[tuple[dict, float]]) -> RetrievalResult:
     # Build the tickets list with attached reranker_score, top-10 max.
     tickets = []
     for c, s in scored[:10]:
-        out = {**c, "reranker_score": s}
+        out = {**c}
+        out.setdefault("reranker_score", s)   # blend stashes true reranker; direct callers fall back to s
+        out["rank_score"] = s
         tickets.append(out)
 
     # Compute base result.
@@ -105,7 +109,7 @@ def apply(scored: list[tuple[dict, float]]) -> RetrievalResult:
             message="single-source evidence — only one ticket supports this.",
             diagnostics=diag,
         )
-    elif top_score >= high_t:
+    elif top_blend >= high_t:
         if _top3_agree(scored):
             result = RetrievalResult(tickets=tickets, confidence="High", abstain=False,
                                      message="strong, agreeing evidence", diagnostics=diag)
@@ -114,7 +118,7 @@ def apply(scored: list[tuple[dict, float]]) -> RetrievalResult:
                                      message="strong evidence but tickets do not fully agree",
                                      diagnostics=diag)
     else:
-        # abstain_t <= top_score < high_t
+        # abstain_t <= top_blend < high_t
         if _top3_agree(scored):
             result = RetrievalResult(tickets=tickets, confidence="Medium", abstain=False,
                                      message="moderate, agreeing evidence", diagnostics=diag)

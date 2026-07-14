@@ -91,3 +91,40 @@ def test_gate_diagnostics_includes_bucket_counts():
         ("TS-3", "A", "latest",     0.8),
     ))
     assert r.diagnostics["bucket_counts"] == {"latest": 2, "historical": 1, "stale_open": 0}
+
+
+from backend.retrieval.v2.gate import apply
+
+
+def _c(key, fa=None, bucket="latest"):
+    return {"key": key, "functional_area": fa, "bucket": bucket}
+
+
+def test_abstain_uses_reranker_not_blend():
+    # Top candidate is semantically weak (reranker 0.30 < 0.5 abstain) but its
+    # blend was boosted to 0.72 by recency+fusion. Must STILL abstain — recency
+    # cannot rescue an irrelevant ticket past the semantic floor.
+    weak = {**_c("A"), "reranker_score": 0.30}
+    scored = [(weak, 0.72)]
+    r = apply(scored)
+    assert r.abstain is True
+
+
+def test_confidence_tier_uses_blend_score():
+    # Reranker 0.55 (would be Medium band alone) but blend 0.80 >= HIGH; with
+    # agreeing top-3 → High.
+    top3 = [
+        ({**_c("A", fa="WF-empexp"), "reranker_score": 0.55}, 0.80),
+        ({**_c("B", fa="WF-empexp"), "reranker_score": 0.52}, 0.75),
+        ({**_c("C", fa="WF-empexp"), "reranker_score": 0.50}, 0.72),
+    ]
+    r = apply(top3)
+    assert r.abstain is False and r.confidence == "High"
+
+
+def test_gate_preserves_true_reranker_score_and_adds_rank_score():
+    c = {**_c("A"), "reranker_score": 0.61}
+    r = apply([(c, 0.80)])
+    t = r.tickets[0]
+    assert t["reranker_score"] == 0.61     # true reranker preserved, not clobbered by blend
+    assert t["rank_score"] == 0.80          # blend value exposed for downstream/debug
