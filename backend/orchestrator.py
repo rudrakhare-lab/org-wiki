@@ -304,6 +304,7 @@ def run_deep(
     confidence = _extract_confidence(raw_answer)
     raw_answer, confidence, _cite_report = _verify_and_gate(
         raw_answer, confidence, bundle, deep_result.tool_trace)
+    confidence = _cap_confidence_by_retrieval(confidence, bundle)
     sources = _honest_sources(_cite_report, raw_answer,
                               getattr(bundle, "config_evidence", ""))
     cited_wiki = sources.wiki_pages
@@ -426,6 +427,7 @@ def run_single_shot(
     # 6. Parse response
     raw_answer = provider_result.raw_answer
     confidence = _extract_confidence(raw_answer)
+    confidence = _cap_confidence_by_retrieval(confidence, bundle)
     cited_wiki = [p.path for p in wiki_pages]
     cited_jira = _extract_jira_keys(jira_result["rows"])
     cited_pms = _extract_pms_configs(raw_answer)
@@ -593,6 +595,22 @@ def _extract_confidence(text: str) -> str:
     if m2:
         return m2.group(1).capitalize()
     return "Unknown"
+
+
+_CONF_RANK = {"High": 3, "Medium": 2, "Low": 1, "Abstain": 0, "Unknown": 0}
+
+
+def _cap_confidence_by_retrieval(confidence: str, bundle) -> str:
+    """Cap the answer confidence by the Jira retrieval confidence (stricter-of).
+
+    Phase 1: only when retrieval returned a concrete tier (High/Medium/Low)
+    that is LOWER than the answer's. Abstain / missing retrieval confidence is
+    handled by Phase 2 (B3 honest degradation), not here.
+    """
+    rc = (getattr(bundle, "seed_jira", None) or {}).get("confidence")
+    if rc in ("High", "Medium", "Low") and _CONF_RANK.get(confidence, 0) > _CONF_RANK[rc]:
+        return rc
+    return confidence
 
 
 def _extract_jira_keys(rows: list[dict]) -> list[str]:

@@ -138,6 +138,8 @@ def _v2_search(question: str, *, functional_area: str | None = None,
 
     return {
         "keywords": extract_keywords(question),
+        "confidence": result.confidence,        # A1: thread retrieval confidence to the bundle
+        "abstain": result.abstain,
         "markdown": _render_v2_markdown(
             tickets, confidence=result.confidence, message=result.message,
             include_stale=include_stale,
