@@ -55,12 +55,14 @@ def test_doc_text_truncates_description_to_500(monkeypatch):
     assert out == "sum\n" + ("d" * 500)
 
 
-def test_doc_text_truncates_comments_to_300_with_prefix():
+def test_doc_text_truncates_comments_to_300_with_prefix(monkeypatch):
+    # Legacy fixed-budget layout only applies with smart-window off.
+    monkeypatch.setenv("CONWO_RERANK_SMART_WINDOW", "off")
     from backend.retrieval.v2.rerank import _doc_text
     long_comments = "c" * 1000
     out = _doc_text({"summary": "sum", "description_text": "", "comments_text": long_comments}, "q")
-    assert "[comments] " + ("c" * 300) in out
-    assert out.endswith("c" * 300)
+    # summary + "\n" + "[comments] " + first 300 chars of comments (no desc, so no second "\n")
+    assert out == "sum\n[comments] " + ("c" * 300)
 
 
 def test_doc_text_omits_comments_prefix_when_empty():
