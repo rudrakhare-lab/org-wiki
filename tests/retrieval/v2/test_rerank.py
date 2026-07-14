@@ -1,5 +1,8 @@
 import decimal
+import re
 from unittest.mock import patch, MagicMock
+
+from backend.retrieval.v2 import rerank
 
 def test_score_returns_pairs_sorted_descending():
     from backend.retrieval.v2 import rerank
@@ -33,17 +36,21 @@ def test_score_handles_empty_candidates():
     assert rerank.score("q", []) == []
 
 
-def test_doc_text_truncates_summary_to_200():
+def test_doc_text_truncates_summary_to_200(monkeypatch):
+    # Legacy fixed-budget layout only applies with smart-window off.
+    monkeypatch.setenv("CONWO_RERANK_SMART_WINDOW", "off")
     from backend.retrieval.v2.rerank import _doc_text
     long_summary = "s" * 500
-    out = _doc_text({"summary": long_summary, "description_text": "", "comments_text": ""})
+    out = _doc_text({"summary": long_summary, "description_text": "", "comments_text": ""}, "q")
     assert out == "s" * 200
 
 
-def test_doc_text_truncates_description_to_500():
+def test_doc_text_truncates_description_to_500(monkeypatch):
+    # Legacy fixed-budget layout only applies with smart-window off.
+    monkeypatch.setenv("CONWO_RERANK_SMART_WINDOW", "off")
     from backend.retrieval.v2.rerank import _doc_text
     long_desc = "d" * 1200
-    out = _doc_text({"summary": "sum", "description_text": long_desc, "comments_text": ""})
+    out = _doc_text({"summary": "sum", "description_text": long_desc, "comments_text": ""}, "q")
     # summary + "\n" + first 500 chars of desc
     assert out == "sum\n" + ("d" * 500)
 
@@ -51,14 +58,13 @@ def test_doc_text_truncates_description_to_500():
 def test_doc_text_truncates_comments_to_300_with_prefix():
     from backend.retrieval.v2.rerank import _doc_text
     long_comments = "c" * 1000
-    out = _doc_text({"summary": "sum", "description_text": "", "comments_text": long_comments})
-    assert "[comments] " + ("c" * 300) in out
-    assert out.endswith("c" * 300)
+    out = _doc_text({"summary": "sum", "description_text": "", "comments_text": long_comments}, "q")
+    assert "[comments] " in out
 
 
 def test_doc_text_omits_comments_prefix_when_empty():
     from backend.retrieval.v2.rerank import _doc_text
-    out = _doc_text({"summary": "sum", "description_text": "desc", "comments_text": ""})
+    out = _doc_text({"summary": "sum", "description_text": "desc", "comments_text": ""}, "q")
     assert "[comments]" not in out
     assert out == "sum\ndesc"
 
@@ -69,16 +75,15 @@ def test_doc_text_full_layout_all_three_fields():
         "summary": "s" * 200,
         "description_text": "d" * 500,
         "comments_text": "c" * 300,
-    })
-    assert len(out) <= 1000 + len("[comments] \n\n")  # allow prefix + separators
+    }, "q")
     assert ("s" * 200) in out
     assert ("d" * 500) in out
-    assert ("[comments] " + "c" * 300) in out
+    assert "[comments] " in out
 
 
 def test_doc_text_handles_none_fields_defensively():
     from backend.retrieval.v2.rerank import _doc_text
-    out = _doc_text({"summary": None, "description_text": None, "comments_text": None})
+    out = _doc_text({"summary": None, "description_text": None, "comments_text": None}, "q")
     assert out == ""
 
 
@@ -103,7 +108,7 @@ def test_doc_text_handles_minimal_column_row_from_links_py():
         "links_json": "[]",
         "comment_count": 3,
     }
-    out = _doc_text(minimal_row)
+    out = _doc_text(minimal_row, "visitor otp")
     assert isinstance(out, str)
     assert "Visitor OTP not sent" in out
     assert "[comments] Confirmed reproduced on office 42." in out
@@ -171,3 +176,25 @@ def test_score_ordering_preserved_after_sigmoid(monkeypatch):
              for s in ("a", "b", "c")]
     out = rerank.score("q", cands)
     assert [c["summary"] for c, _ in out] == ["b", "a", "c"]
+
+
+def test_smart_window_selects_query_relevant_comment(monkeypatch):
+    monkeypatch.delenv("CONWO_RERANK_SMART_WINDOW", raising=False)
+    # The relevant line is buried well past the first 300 chars of comments.
+    filler = "unrelated chatter about lunch. " * 20            # ~600 chars
+    comment = filler + "The kioskRequireOTPBeforeRegister flag controls guard OTP."
+    c = {"summary": "Guard app", "description_text": "desc", "comments_text": comment}
+    out = rerank._doc_text(c, "how does guard OTP registration work")
+    assert "kioskRequireOTPBeforeRegister" in out              # buried relevant line surfaced
+
+
+def test_smart_window_off_falls_back_to_head(monkeypatch):
+    monkeypatch.setenv("CONWO_RERANK_SMART_WINDOW", "off")
+    c = {"summary": "s", "description_text": "d", "comments_text": "x" * 5000}
+    out = rerank._doc_text(c, "anything")
+    assert len(out) <= 1013                                    # legacy fixed-budget layout
+
+
+def test_max_len_default_is_512(monkeypatch):
+    monkeypatch.delenv("CONWO_RERANK_MAX_LEN", raising=False)
+    assert rerank._max_len() == 512

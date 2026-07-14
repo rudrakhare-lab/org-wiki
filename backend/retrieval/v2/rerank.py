@@ -25,16 +25,26 @@ from __future__ import annotations
 import asyncio
 import math
 import os
+import re
 from functools import lru_cache
 
 MODEL_DIR = os.getenv("RERANKER_MODEL_DIR", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+
+def _max_len() -> int:
+    try:
+        return int(os.getenv("CONWO_RERANK_MAX_LEN", "512"))
+    except (TypeError, ValueError):
+        return 512
+
+def _smart_window() -> bool:
+    return os.getenv("CONWO_RERANK_SMART_WINDOW", "on").strip().lower() != "off"
 
 @lru_cache(maxsize=1)
 def _load_model():
     import torch
     torch.set_num_threads(2)  # Cap intra-op parallelism — prevents torch from competing with uvicorn workers.
     from sentence_transformers import CrossEncoder
-    return CrossEncoder(MODEL_DIR, max_length=256)
+    return CrossEncoder(MODEL_DIR, max_length=_max_len())
 
 # Test seam: tests patch `_model`.
 _model = None
@@ -57,6 +67,11 @@ _SUMMARY_MAX  = 200
 _DESC_MAX     = 500
 _COMMENTS_MAX = 300
 
+# Smart-window budgets (larger — we now target the 512-token window, ~2000 chars).
+_SW_SUMMARY_MAX  = 300
+_SW_DESC_MAX     = 900
+_SW_COMMENTS_MAX = 700
+
 
 def _sigmoid(x: float) -> float:
     """Numerically stable sigmoid: converts raw logits to [0,1] probabilities.
@@ -70,23 +85,52 @@ def _sigmoid(x: float) -> float:
     return e / (1.0 + e)
 
 
-def _doc_text(c: dict) -> str:
-    """Fixed-budget layout for reranker input — ~1013 chars max total.
+def _relevant_comment_slice(comments: str, query: str, budget: int) -> str:
+    """Pick the comment lines most lexically-overlapping the query, up to
+    `budget` chars — so a relevant line buried deep in a long thread still
+    reaches the reranker instead of being truncated away."""
+    comments = (comments or "").strip()
+    if not comments:
+        return ""
+    q_tokens = set(re.findall(r"[a-z0-9]{3,}", query.lower()))
+    lines = [ln.strip() for ln in comments.splitlines() if ln.strip()]
+    if not q_tokens or not lines:
+        return comments[:budget]
+    ranked = sorted(
+        lines,
+        key=lambda ln: len(q_tokens & set(re.findall(r"[a-z0-9]{3,}", ln.lower()))),
+        reverse=True,
+    )
+    out, total = [], 0
+    for ln in ranked:
+        if total + len(ln) + 1 > budget:
+            continue
+        out.append(ln)
+        total += len(ln) + 1
+    return "\n".join(out) if out else comments[:budget]
 
-    Layout (each field independently trimmed):
-      summary            : 0..200 chars
-      description_text   : 0..500 chars
-      [comments] ...     : 0..300 chars (prefix omitted when empty)
 
-    Max total is 200+500+300 plus the '[comments] ' prefix (11) and two '\\n'
-    separators = 1013 chars — safe under MiniLM cross-encoder's 256-token
-    limit even at ~4 chars/token. Fields joined with '\\n'; empty fields
-    skipped.
+def _doc_text(c: dict, query: str) -> str:
+    """Build the reranker document for candidate `c` relative to `query`.
+
+    Smart-window (default): larger field budgets + the query-relevant comment
+    slice, targeting the 512-token window. Legacy (switch off): the original
+    fixed 1013-char head layout.
     """
-    summary  = (c.get("summary")          or "").strip()[:_SUMMARY_MAX]
-    desc     = (c.get("description_text") or "").strip()[:_DESC_MAX]
-    comments = (c.get("comments_text")    or "").strip()[:_COMMENTS_MAX]
-    parts: list[str] = []
+    if not _smart_window():
+        summary  = (c.get("summary")          or "").strip()[:_SUMMARY_MAX]
+        desc     = (c.get("description_text") or "").strip()[:_DESC_MAX]
+        comments = (c.get("comments_text")    or "").strip()[:_COMMENTS_MAX]
+        parts = []
+        if summary:  parts.append(summary)
+        if desc:     parts.append(desc)
+        if comments: parts.append(f"[comments] {comments}")
+        return "\n".join(parts)
+
+    summary  = (c.get("summary")          or "").strip()[:_SW_SUMMARY_MAX]
+    desc     = (c.get("description_text") or "").strip()[:_SW_DESC_MAX]
+    comments = _relevant_comment_slice(c.get("comments_text") or "", query, _SW_COMMENTS_MAX)
+    parts = []
     if summary:  parts.append(summary)
     if desc:     parts.append(desc)
     if comments: parts.append(f"[comments] {comments}")
@@ -95,7 +139,7 @@ def _doc_text(c: dict) -> str:
 def score(query: str, candidates: list[dict]) -> list[tuple[dict, float]]:
     if not candidates:
         return []
-    pairs = [(query, _doc_text(c)) for c in candidates]
+    pairs = [(query, _doc_text(c, query)) for c in candidates]
     m = _model_or_load() if _model is None else _model
     # ms-marco cross-encoders emit raw logits (no activation declared in
     # their config). Sigmoid to [0,1] so gate.py's ABSTAIN/HIGH thresholds
