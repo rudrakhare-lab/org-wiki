@@ -59,7 +59,8 @@ def test_doc_text_truncates_comments_to_300_with_prefix():
     from backend.retrieval.v2.rerank import _doc_text
     long_comments = "c" * 1000
     out = _doc_text({"summary": "sum", "description_text": "", "comments_text": long_comments}, "q")
-    assert "[comments] " in out
+    assert "[comments] " + ("c" * 300) in out
+    assert out.endswith("c" * 300)
 
 
 def test_doc_text_omits_comments_prefix_when_empty():
@@ -76,9 +77,10 @@ def test_doc_text_full_layout_all_three_fields():
         "description_text": "d" * 500,
         "comments_text": "c" * 300,
     }, "q")
+    assert len(out) <= 1000 + len("[comments] \n\n")  # allow prefix + separators
     assert ("s" * 200) in out
     assert ("d" * 500) in out
-    assert "[comments] " in out
+    assert ("[comments] " + "c" * 300) in out
 
 
 def test_doc_text_handles_none_fields_defensively():
@@ -180,12 +182,38 @@ def test_score_ordering_preserved_after_sigmoid(monkeypatch):
 
 def test_smart_window_selects_query_relevant_comment(monkeypatch):
     monkeypatch.delenv("CONWO_RERANK_SMART_WINDOW", raising=False)
-    # The relevant line is buried well past the first 300 chars of comments.
-    filler = "unrelated chatter about lunch. " * 20            # ~600 chars
-    comment = filler + "The kioskRequireOTPBeforeRegister flag controls guard OTP."
+    # Many filler lines (total > the 700-char smart-window comments budget),
+    # with the query-relevant line placed LAST. A naive comments[:budget]
+    # head-slice would never reach it. Only token-overlap ranking (which
+    # promotes the relevant line to the front, then backfills with fillers
+    # until the budget is exhausted) surfaces it — and in doing so must
+    # drop at least one filler line, proving real ranking/truncation
+    # happened rather than everything trivially fitting.
+    filler_lines = [
+        f"Line {i}: unrelated chatter about lunch and parking spots today."
+        for i in range(1, 16)
+    ]
+    relevant_line = (
+        "The kioskRequireOTPBeforeRegister flag controls guard OTP "
+        "registration behavior at the kiosk."
+    )
+    comment = "\n".join(filler_lines) + "\n" + relevant_line
+    assert len(comment) > 700  # exceeds _SW_COMMENTS_MAX — truncation is unavoidable
+
     c = {"summary": "Guard app", "description_text": "desc", "comments_text": comment}
     out = rerank._doc_text(c, "how does guard OTP registration work")
+
+    # Sanity check: a naive head-slice of the raw comments would NOT contain
+    # the relevant line, since it sits after 700+ chars of filler.
+    assert "kioskRequireOTPBeforeRegister" not in comment[:700]
+
     assert "kioskRequireOTPBeforeRegister" in out              # buried relevant line surfaced
+    assert filler_lines[-1] not in out                         # proves truncation happened
+    # Proves reordering (not just truncation): the relevant line was LAST in
+    # the input but appears BEFORE the first filler line in the output — only
+    # possible if token-overlap ranking hoisted it. A naive head-slice would
+    # raise ValueError here (the token isn't in `out` at all).
+    assert out.index("kioskRequireOTPBeforeRegister") < out.index(filler_lines[0])
 
 
 def test_smart_window_off_falls_back_to_head(monkeypatch):
