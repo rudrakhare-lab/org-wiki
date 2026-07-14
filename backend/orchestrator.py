@@ -18,6 +18,7 @@ Flow (single-shot mode, used for mode="claude-code"):
 from __future__ import annotations
 
 import base64 as _b64
+import os
 import re
 from dataclasses import dataclass, field
 from typing import Literal
@@ -608,6 +609,8 @@ def _cap_confidence_by_retrieval(confidence: str, jira_result: "dict | None") ->
     returned a concrete tier (High/Medium/Low) LOWER than the answer's; Abstain /
     missing confidence is left unchanged (Phase 2 / B3 handles that).
     """
+    if os.getenv("CONWO_CONF_CAP", "on").strip().lower() == "off":
+        return confidence
     rc = (jira_result or {}).get("confidence")
     if rc in ("High", "Medium", "Low") and _CONF_RANK.get(confidence, 0) > _CONF_RANK[rc]:
         return rc

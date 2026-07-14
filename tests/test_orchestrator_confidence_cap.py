@@ -17,3 +17,8 @@ def test_abstain_and_missing_are_left_to_phase2():
     assert _cap_confidence_by_retrieval("High", _result("Abstain")) == "High"
     assert _cap_confidence_by_retrieval("High", _result(None)) == "High"
     assert _cap_confidence_by_retrieval("High", None) == "High"
+
+
+def test_cap_disabled_by_kill_switch(monkeypatch):
+    monkeypatch.setenv("CONWO_CONF_CAP", "off")
+    assert _cap_confidence_by_retrieval("High", {"confidence": "Low"}) == "High"

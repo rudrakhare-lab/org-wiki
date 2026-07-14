@@ -1,4 +1,4 @@
-"""Retrieval v2 pipeline: rewrite → embed → hybrid → links → rerank → gate."""
+"""Retrieval v2 pipeline: rewrite → embed → hybrid → links → rerank → blend → gate."""
 from __future__ import annotations
 from typing import Any
 
@@ -20,7 +20,7 @@ def search(question: str, *, functional_area: str | None = None,
            rewrite_result: "RewriteResult | None" = None) -> RetrievalResult:
     """Run the full v2 retrieval pipeline and return a gated result.
 
-    Steps: rewrite → embed → hybrid → links → rerank → gate.
+    Steps: rewrite → embed → hybrid → links → rerank → blend → gate.
 
     Args:
         question: The user's natural-language question.

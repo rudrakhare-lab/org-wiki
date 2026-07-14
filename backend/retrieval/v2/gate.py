@@ -75,7 +75,11 @@ def apply(scored: list[tuple[dict, float]]) -> RetrievalResult:
             diagnostics={"top_score": None, "candidate_count": 0},
         )
     top_blend = scored[0][1]
-    top_rerank = float(scored[0][0].get("reranker_score", top_blend))
+    # Abstain is a SEMANTIC floor: abstain only when NO candidate clears it.
+    # scored is blend-sorted, so scored[0] may not be the top-reranker candidate —
+    # keying off slot 0 alone would spuriously abstain when a strong-but-old ticket
+    # was displaced to a lower slot by recency/fusion (final-review finding).
+    top_rerank = max(float(c.get("reranker_score", s)) for c, s in scored)
     diag = {
         "top_score": top_blend,
         "top_reranker_score": top_rerank,

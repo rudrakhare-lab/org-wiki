@@ -128,3 +128,14 @@ def test_gate_preserves_true_reranker_score_and_adds_rank_score():
     t = r.tickets[0]
     assert t["reranker_score"] == 0.61     # true reranker preserved, not clobbered by blend
     assert t["rank_score"] == 0.80          # blend value exposed for downstream/debug
+
+
+def test_no_abstain_when_a_lower_slot_candidate_clears_floor():
+    # Blend-sorted: a marginal-but-recent ticket at slot 0 (reranker 0.45 < abstain),
+    # a strong-but-old ticket displaced to slot 1 (reranker 0.90). Must NOT abstain —
+    # the semantic floor is cleared by SOME candidate.
+    marginal = {**_c("W", fa="WF-empexp"), "reranker_score": 0.45}
+    strong   = {**_c("S", fa="WF-empexp"), "reranker_score": 0.90}
+    r = apply([(marginal, 0.725), (strong, 0.54)])   # already blend-sorted
+    assert r.abstain is False
+    assert {t["key"] for t in r.tickets} == {"W", "S"}

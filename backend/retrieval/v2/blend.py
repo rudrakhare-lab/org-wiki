@@ -21,7 +21,7 @@ def _w(env: str, default: float) -> float:
 
 
 def enabled() -> bool:
-    return os.getenv("CONWO_RANK_BLEND", "on").strip().lower() != "off"
+    return os.getenv("CONWO_RANK_BLEND", "on").strip().lower() not in ("off", "false", "0", "no")
 
 
 def weights() -> tuple[float, float, float]:
@@ -48,10 +48,9 @@ def blend_scores(scored: list[tuple[dict, float]]) -> list[tuple[dict, float]]:
     lo, hi = min(fused_vals), max(fused_vals)
     span = hi - lo
     out: list[tuple[dict, float]] = []
-    for c, rr in scored:
+    for (c, rr), f in zip(scored, fused_vals):
         c["reranker_score"] = rr
         if on:
-            f = float(c.get("fused_score") or 0.0)
             nf = (f - lo) / span if span > 0 else 0.0
             ts = float(c.get("timeline_score") or 0.0)
             b = w_r * rr + w_t * ts + w_f * nf
